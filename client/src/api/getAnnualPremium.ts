@@ -1,4 +1,4 @@
-import { Coordinates, Limits, ValueByRiskType } from 'common';
+import { Coordinates, Limits, TCommSource, ValueByRiskType } from 'common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface RatingInputs {
@@ -15,7 +15,10 @@ export interface RatingInputs {
   state: string;
   floodZone?: string | null;
   basement?: string | null;
-  commissionPct?: number | null;
+  commissionPct?: number | null; // pass commSource, agentId, orgId instead
+  commSource: string | null;
+  orgId: string | null;
+  agentId: string | null;
 }
 
 // export interface GetAnnualPremiumRequest extends RatingInputs {
@@ -31,7 +34,10 @@ export interface GetAnnualPremiumRequest {
   state: string;
   floodZone?: string | null;
   basement?: string | null;
-  commissionPct?: number | null;
+  // commissionPct?: number | null;
+  commSource: TCommSource;
+  orgId: string | null;
+  agentId: string | null;
   submissionId?: string | null;
   locationId?: string | null;
   externalId?: string | null;

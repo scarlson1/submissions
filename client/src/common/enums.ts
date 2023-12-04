@@ -38,7 +38,7 @@ export const Collection = z.enum([
   'tasks', // TODO: DELETE
   'versions',
   'permissions', // TODO: rename to privliged or secure etc.
-  'secure',
+  // 'secure',
   'payables',
 ]);
 export type TCollection = z.infer<typeof Collection>;

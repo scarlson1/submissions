@@ -86,11 +86,15 @@ import { ROUTES, createPath } from 'router';
 import { AddressStepQuote } from '../AddressStepQuote';
 import { FormikAddressLite } from '../FormikAddressLite';
 import { LimitsStep } from '../LimitsStep';
-import { TestAutocomplete } from './TestAutocomplete';
 import { DEFAULT_VALUES, RATING_FIELDS, gridProps, policyEffShortcuts } from './constants';
 import { getQuoteValidation } from './validation';
 
-// TODO: need to save agent orgId in order to validate matches agency (or fetch user doc in validation / onsubmit)
+// BUG: setting agency name - gets cleared by autocomplete b/c local autocomplete state does not have option in values/options
+// must be free solo ??
+
+// TODO: require agency ID and stripeAccountId - must have for billing purposes
+
+// TODO: need to save agent orgId in order to validate matches agency (or fetch user doc in validation / onsubmit) or use firestore rule
 
 // TODO: move quote type to field (new, renewal, etc.) ??
 // TODO: must geocode if address is manually entered (add button if missing coordinates ??)
@@ -294,7 +298,7 @@ export const QuoteForm = ({
         // setFieldValue('subproducerCommission', newComm);
         // formikRef.current?.setFieldTouched('subproducerCommission', true, true);
 
-        const source = newComm ? (agent?.defaultCommission?.flood ? 'agent' : 'org') : 'default';
+        const source = agent?.defaultCommission?.flood ? 'agent' : 'org';
         setFieldValue('commSource', source);
         formikRef.current?.setFieldTouched('commSource', true, true);
         toast.info(`commission → ${source} default (${newComm * 100}%)`, {
@@ -1159,6 +1163,7 @@ export const QuoteForm = ({
             </Grid>
             <Grid xs={6} md={3}>
               <FormikTextField name='namedInsured.firstName' label='Insured first name' fullWidth />
+              {/* TODO: use autocomplete instead of dialog */}
             </Grid>
             <Grid xs={6} md={3}>
               <FormikTextField name='namedInsured.lastName' label='Insured last name' fullWidth />
@@ -1186,7 +1191,7 @@ export const QuoteForm = ({
                 >
                   Agent & Agency
                 </Typography>
-                <UserSearchDialog
+                {/* <UserSearchDialog
                   onSelect={handleAgentSelected}
                   indexTitle='Agents'
                   translations={{
@@ -1197,7 +1202,7 @@ export const QuoteForm = ({
                   }}
                   shortcutKey='u'
                   placeholder='Search agents by name, email, or orgId...'
-                />
+                /> */}
               </Box>
             </Grid>
             <Grid xs={6} sm={3}>
@@ -1216,8 +1221,9 @@ export const QuoteForm = ({
                       handleAgentSelected(org as any as User & { objectID: string })
                     }
                     resetFields={() => {
+                      // reset agency too ??
                       setFieldValue('agent.userId', '');
-                      setFieldValue('agent.email', null);
+                      setFieldValue('agent.email', '');
                       setFieldValue('agent.name', '');
                       setFieldValue('agent.phone', '');
                     }}
@@ -1261,7 +1267,7 @@ export const QuoteForm = ({
                     }
                     resetFields={() => {
                       setFieldValue('agency.orgId', '');
-                      setFieldValue('agency.stripeAccountId', null);
+                      setFieldValue('agency.stripeAccountId', '');
                       setFieldValue('agency.name', '');
                       setFieldValue('agency.address', null);
                       setFieldValue('agency.photoURL', '');
@@ -1270,10 +1276,7 @@ export const QuoteForm = ({
                 </Suspense>
               </ErrorBoundary>
             </Grid>
-            <Grid xs={6} sm={3}>
-              <FormikTextField name='agency.orgId' label='Agency ID' fullWidth />
-            </Grid>
-            <Grid xs={12} sm={6}>
+            <Grid xs={12} sm={6} md={3}>
               <FormikAddressLite
                 names={{
                   addressLine1: 'agency.address.addressLine1',
@@ -1290,7 +1293,26 @@ export const QuoteForm = ({
                 }}
               />
             </Grid>
-            <Grid xs={12}></Grid>
+            <Grid xs={6} sm={3} md={3}>
+              {/* <FormikTextField name='agency.orgId' label='Agency ID' fullWidth /> */}
+              <Typography variant='overline' color='text.secondary'>
+                Agency Id*
+              </Typography>
+              <Typography>{values.agency?.orgId}</Typography>
+            </Grid>
+            <Grid xs={6} sm={3} md={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Stripe Id*
+              </Typography>
+              <Typography>{values.agency?.stripeAccountId}</Typography>
+            </Grid>
+
+            <Grid xs={12}>
+              <Divider sx={{ my: 3 }} />
+              <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
+                Carrier
+              </Typography>
+            </Grid>
             <Grid xs={12} sm={3}>
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense>
@@ -1314,7 +1336,14 @@ export const QuoteForm = ({
                 </Suspense>
               </ErrorBoundary>
             </Grid>
-
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Address
+              </Typography>
+              {values.carrier?.address ? (
+                <FormattedAddress address={values.carrier.address} />
+              ) : null}
+            </Grid>
             <Grid xs={6} sm={3}>
               <Typography variant='overline' color='text.secondary'>
                 Org Id*
@@ -1327,14 +1356,7 @@ export const QuoteForm = ({
               </Typography>
               <Typography>{values.carrier?.stripeAccountId}</Typography>
             </Grid>
-            <Grid xs={6} sm={3}>
-              <Typography variant='overline' color='text.secondary'>
-                Address
-              </Typography>
-              {values.carrier?.address ? (
-                <FormattedAddress address={values.carrier.address} />
-              ) : null}
-            </Grid>
+
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />
               <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
@@ -1363,27 +1385,6 @@ export const QuoteForm = ({
                 gridProps={{ sx: { px: 0 } }}
                 addButtonText='Add Note'
               />
-            </Grid>
-            <Grid xs={12}>
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense>
-                  <TestAutocomplete />
-                </Suspense>
-              </ErrorBoundary>
-            </Grid>
-            {/* TODO: need to handle autocomplete select value (see address autocomplete ??) */}
-            <Grid xs={12} sm={6}>
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense>
-                  <AlgoliaAutocomplete
-                    onSelectItem={console.log}
-                    searchOptions={{ filters: 'collectionName:users' }}
-                    // name='agent.name'
-                    name='agent.testName'
-                    resetFields={() => console.log('todo: reset fields')}
-                  />
-                </Suspense>
-              </ErrorBoundary>
             </Grid>
           </Grid>
         </>
@@ -1440,6 +1441,8 @@ export function getRatingInputsFromSubmission(subData?: Partial<Submission> | nu
     floodZone: subData?.ratingPropertyData?.floodZone,
     basement: subData?.ratingPropertyData?.basement?.toLowerCase(),
     commSource: subData?.commSource || 'default',
+    agentId: subData?.agent?.userId,
+    orgId: subData?.agency?.orgId,
     // commissionPct: subData?.subproducerCommission || 0.15,
   };
 }

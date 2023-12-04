@@ -111,6 +111,7 @@ export const AlgoliaAutocomplete = <T,>({
         if (reason === 'clear' || reason === 'selectOption') handleSelect(newValue);
         // onSelectItem && newValue && onSelectItem(newValue);
       }}
+      inputValue={field.value}
       onInputChange={(event, newInputValue) => {
         // setQuery(newInputValue);
         helpers.setValue(newInputValue);

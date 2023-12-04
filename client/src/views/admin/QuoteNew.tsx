@@ -12,10 +12,9 @@ import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/
 import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
 import { ROUTES, createPath } from 'router';
 
-// TODO: decide whether to pass along submission data ??
-// TODO: suspense / throw promise to create new quote doc & policy rating data doc
-// TODO: don't store privileged rating doc as subcollection of policy
-// store as top level --> pass along ref through entire process ??
+// TODO: decide whether to pass along submission data ?? refactor to use locations collection & get rating data from rating doc
+// TODO: suspense / throw promise to create new quote doc ??
+// TODO: get property data on address change
 
 interface QuoteNewProps {
   submissionId?: string | null | undefined;
@@ -104,7 +103,7 @@ export const QuoteNewFromSub = () => {
       fees: [],
       taxes: [],
       annualPremium: submissionData?.annualPremium ?? null,
-      commSource: submissionData?.commSource ?? 'default',
+      commSource: submissionData?.commSource ?? 'agent',
       quoteTotal: null,
       namedInsured: {
         firstName: '',

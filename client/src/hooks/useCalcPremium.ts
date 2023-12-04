@@ -3,13 +3,13 @@ import { useFunctions } from 'reactfire';
 import invariant from 'tiny-invariant';
 
 import { CalcQuoteRequest, calcQuote } from 'api';
-import { RatingInputs } from 'api/getAnnualPremium';
-import { Optional } from 'common';
+import { CommSource, Optional } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { truthyOrZero } from 'modules/utils';
+import { RatingInputsWithAAL } from './useRateQuote';
 
 export function validateCommonInputs(values: QuoteValues) {
-  const { ratingPropertyData, deductible, subproducerCommission, address, limits } = values;
+  const { ratingPropertyData, deductible, commSource, address, limits } = values;
 
   invariant(address?.state, 'state required');
   invariant(
@@ -18,12 +18,11 @@ export function validateCommonInputs(values: QuoteValues) {
   );
   invariant(ratingPropertyData?.floodZone, 'flood zone required');
   invariant(ratingPropertyData.basement, 'basement required');
-  // subproducerCommission &&
-  // TODO: ALLOW STRING ?? NATIVE SELECT CONVERTS TO STRING
-  invariant(
-    typeof subproducerCommission === 'number',
-    "subproducer commission required (type: 'number')"
-  );
+  // invariant(
+  //   typeof subproducerCommission === 'number',
+  //   "subproducer commission required (type: 'number')"
+  // );
+  invariant(CommSource.safeParse(commSource).success, 'invalid comm. source');
   invariant(
     deductible && typeof deductible === 'number' && deductible >= 1000,
     'deductible required (min $1,000)'
@@ -46,8 +45,11 @@ function getValidatedCalcInputs(values: QuoteValues) {
     ratingPropertyData: { replacementCost, floodZone, basement, priorLossCount },
     deductible,
     address,
-    subproducerCommission,
+    // subproducerCommission,
+    commSource,
     limits,
+    agent,
+    agency,
   } = comValues;
 
   invariant(truthyOrZero(AALs?.inland), 'inland aal required');
@@ -63,17 +65,20 @@ function getValidatedCalcInputs(values: QuoteValues) {
     priorLossCount,
     floodZone,
     basement,
-    commissionPct:
-      typeof subproducerCommission === 'string'
-        ? parseFloat(subproducerCommission)
-        : subproducerCommission,
+    commSource,
+    agentId: agent?.userId || null,
+    orgId: agency?.orgId || null,
+    // commissionPct:
+    //   typeof subproducerCommission === 'string'
+    //     ? parseFloat(subproducerCommission)
+    //     : subproducerCommission,
   };
 }
 
 export const useCalcPremium = (
   onSuccess?: (
     newPremium: number,
-    ratingInputs: Optional<RatingInputs>,
+    ratingInputs: Optional<RatingInputsWithAAL>,
     newRatingDocId?: Optional<string>
   ) => void,
   onError?: (msg: string, err: any) => void,
@@ -84,7 +89,6 @@ export const useCalcPremium = (
 
   const calcPremium = useCallback(
     async (values: QuoteValues) => {
-      // console.log('VALUES: ', values);
       let validatedReqBody;
       try {
         validatedReqBody = getValidatedCalcInputs(values) as CalcQuoteRequest;
@@ -104,7 +108,7 @@ export const useCalcPremium = (
         if (!data.annualPremium || typeof data.annualPremium !== 'number')
           throw new Error('Missing premium in response');
 
-        const flattenedRatingInputs = {
+        const flattenedRatingInputs: Optional<RatingInputsWithAAL> = {
           ...validatedReqBody.limits,
           inlandAAL: validatedReqBody.AALs.inland,
           surgeAAL: validatedReqBody.AALs.surge,
@@ -112,21 +116,19 @@ export const useCalcPremium = (
           state: validatedReqBody.state,
           floodZone: validatedReqBody.floodZone,
           basement: validatedReqBody.basement,
-          commissionPct: validatedReqBody.commissionPct,
+          // commissionPct: validatedReqBody.commissionPct,
           replacementCost: validatedReqBody.replacementCost,
           deductible: validatedReqBody.deductible,
           priorLossCount: validatedReqBody.priorLossCount,
           numStories: values.ratingPropertyData?.numStories,
           latitude: values.coordinates?.latitude,
           longitude: values.coordinates?.longitude,
+          commSource: validatedReqBody.commSource,
+          agentId: validatedReqBody.agentId,
+          orgId: validatedReqBody.orgId,
         };
 
         if (onSuccess) onSuccess(data.annualPremium, flattenedRatingInputs, data.ratingDocId);
-        // onSuccess(data.annualPremium, {
-        //   ...validatedReqBody,
-        //   latitude: values.coordinates?.latitude,
-        //   longitude: values.coordinates?.longitude,
-        // });
         setLoading(false);
         return data.annualPremium;
       } catch (err: any) {

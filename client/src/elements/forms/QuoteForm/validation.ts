@@ -149,6 +149,7 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
     agent: agentValidation, // TODO: need to save agent orgId in order to validate matches agency
     agency: agencyValidation,
     carrier: carrierValidation,
+    commSource: yup.string().required('commission source required'),
     // TODO: reusable rating data validation
     ratingPropertyData: yup.object().shape({
       CBRSDesignation: yup

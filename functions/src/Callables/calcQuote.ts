@@ -1,15 +1,22 @@
-import { Basement, FloodZone, Limits, PriorLossCount, ValueByRiskType } from '@idemand/common';
+import {
+  Basement,
+  CommSource,
+  FloodZone,
+  Limits,
+  PriorLossCount,
+  ValueByRiskType,
+} from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { HttpsError } from 'firebase-functions/v1/https';
 import { CallableRequest } from 'firebase-functions/v2/https';
 import { defaultFloodZone, ratingDataCollection } from '../common/index.js';
 import {
+  getComm,
   getPremium,
   getRCVs,
   validateAALs,
   validateBasement,
-  validateCommission,
   validateDeductible,
   validateFloodZone,
   validateLimits,
@@ -33,7 +40,10 @@ export interface CalcQuoteRequest {
   priorLossCount: string;
   submissionId: string;
   basement?: string;
-  commissionPct?: number;
+  // commissionPct?: number;
+  commSource: CommSource;
+  agentId: string | null;
+  orgId: string | null;
 }
 
 export interface CalcQuoteResponse {
@@ -56,7 +66,10 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     floodZone = defaultFloodZone.value(),
     state,
     basement = 'unknown',
-    commissionPct = 0.15,
+    // commissionPct = 0.15,
+    commSource,
+    agentId,
+    orgId,
     submissionId,
   } = data;
 
@@ -66,7 +79,7 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     validateReplacementCost(replacementCost);
     validateFloodZone(floodZone);
     validateBasement(basement);
-    validateCommission(commissionPct);
+    // validateCommission(commissionPct);
     validateAALs(AALs);
     validateState(state);
   } catch (err: any) {
@@ -80,6 +93,9 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 
     throw new HttpsError('failed-precondition', msg);
   }
+
+  const commData = await getComm(commSource, orgId, agentId, 'flood');
+  const commissionPct = commData.subproducerCommissionPct;
 
   try {
     const result = getPremium({

@@ -196,7 +196,8 @@ export const QuoteEdit = () => {
           rate: `${t.rate ?? ''}`,
         })) || [],
       annualPremium: quoteData?.annualPremium ?? null,
-      subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
+      // subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
+      commSource: quoteData?.commSource ?? 'agent',
       quoteTotal: quoteData?.quoteTotal ?? null,
       namedInsured: {
         firstName: quoteData?.namedInsured?.firstName ?? '',
@@ -310,5 +311,8 @@ function getRatingInputsFromQuote(data: Partial<Quote> | null) {
     inlandAAL: data?.AALs?.inland, // @ts-ignore
     surgeAAL: data?.AALs?.surge, // @ts-ignore
     tsunamiAAL: data?.AALs?.tsunami,
+    commSource: data?.commSource,
+    agentId: data?.agent?.userId,
+    orgId: data?.agency?.orgId,
   };
 }

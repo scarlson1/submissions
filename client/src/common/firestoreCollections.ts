@@ -94,9 +94,9 @@ export const finTrxCollection = (db: Firestore) =>
 export const importSummaryCollection = (db: Firestore) =>
   createCollection<ImportSummary, ImportSummary>(db, 'dataImports');
 
-export const secureCollection = <T = DocumentData, U extends DocumentData = DocumentData>(
-  db: Firestore
-) => createCollection<T, U>(db, 'secure');
+// export const secureCollection = <T = DocumentData, U extends DocumentData = DocumentData>(
+//   db: Firestore
+// ) => createCollection<T, U>(db, 'secure');
 
 // SUB COLLECTIONS
 export const userClaimsCollection = (db: Firestore, orgId: string, ...rest: string[]) =>
