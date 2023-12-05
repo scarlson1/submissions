@@ -19,8 +19,9 @@ import { splitChunks, verify } from '../utils/index.js';
 // Idempotent functions: https://cloud.google.com/blog/products/serverless/cloud-functions-pro-tips-building-idempotent-functions
 
 // TODO: verify only return error if transient error (can't write to db, etc.)
-
 // TODO: need to verify works with multiple locations
+
+// TODO: refactor to use same calculation data as create payables on bound ??
 
 const reportErr = getReportErrorFn('policyCreatedListener');
 
@@ -65,6 +66,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
     const locationIds = Object.keys(policy.locations || {});
     verify(locationIds.length, 'no locations found on policy');
 
+    // TODO: fix limited to 50 docs ??
     const locationSnaps = await getAllById(locationsCol, locationIds);
 
     locations = locationSnaps.docs

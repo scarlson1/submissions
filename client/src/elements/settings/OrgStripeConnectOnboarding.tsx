@@ -44,6 +44,7 @@ export const OrgStripeConnectOnboarding = () => {
   const { data: org } = useDocData<Organization>('organizations', orgId);
   const accountId = org.stripeAccountId;
   if (!accountId) throw new Error('Org missing stripe account ID');
+  // TODO: handle creating an account ID
 
   const { account, loading } = useStripeAccount(orgId);
 

@@ -47,20 +47,21 @@ export const useFetchTaxes = (
       try {
         setLoading(true);
         const data = await getTaxes({ data: body });
-        console.log('TAXES: ', data);
+        // console.log('TAXES: ', data);
 
         let newTaxes: TTaxItem[] = [];
         if (data && data.lineItems?.length > 0) {
           // TODO: fix typing
           // @ts-ignore
           newTaxes = data.lineItems.map((t) => ({
+            ...t,
             displayName: t.displayName || '',
             rate: `${t.rate || ''}`, // t.rate (causes iMask error if return number)
             value: `${t.value || ''}`,
             subjectBase: t.subjectBase || [],
             baseDigits: t.baseDigits,
             resultDigits: t.resultDigits,
-            id: t.id,
+            // id: t.id,
           }));
 
           toast.info(`${data.lineItems.length} tax${data.lineItems.length > 1 ? 'es' : ''} found`);

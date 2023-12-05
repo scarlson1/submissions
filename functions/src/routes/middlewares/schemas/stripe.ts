@@ -12,11 +12,14 @@ export const accountSessionSchema = checkSchema({
   type: {
     in: 'body',
     optional: true,
+    isArray: {
+      options: { min: 1 },
+      errorMessage: 'session type required',
+    },
     isIn: {
-      options: [['account_onboarding']], // payments, payment_details, payouts in beta
+      options: [['account_onboarding', 'payments', 'payment_details', 'payouts']],
       errorMessage: 'Invalid type',
     },
-    // default: 'account_onboarding'
   },
 });
 
@@ -34,6 +37,5 @@ export const accountLinkSchema = checkSchema({
       options: [['account_update', 'account_onboarding']],
       errorMessage: 'Invalid type - must be "account_update" or "account_onboarding" or undefined',
     },
-    // default: 'account_onboarding'
   },
 });

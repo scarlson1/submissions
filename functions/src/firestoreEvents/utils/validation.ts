@@ -5,6 +5,7 @@ import { getReportErrorFn } from '../../common/index.js';
 
 const reportErr = getReportErrorFn('firestoreEvent');
 
+// TODO: don't use invariant ?? removes error messages in prod
 // TODO: wrap firestore events in try/catch so validate can throw errors (need : assert condition)
 // Don't want to throw for idempotency reasons
 /**

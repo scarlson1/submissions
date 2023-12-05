@@ -1,7 +1,7 @@
 import { doc, DocumentReference } from 'firebase/firestore';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
 
-import { TCollection } from 'common';
+import { TCollection, WithId } from 'common';
 
 export const useDocData = <T = any>(
   colName: TCollection,
@@ -11,7 +11,7 @@ export const useDocData = <T = any>(
   ...pathSegments: string[]
 ) => {
   const firestore = useFirestore();
-  const docRef = doc(firestore, colName, id, ...pathSegments) as DocumentReference<T>;
+  const docRef = doc(firestore, colName, id, ...pathSegments) as DocumentReference<WithId<T>>;
 
   return useFirestoreDocData(docRef, { idField: 'id' });
 };

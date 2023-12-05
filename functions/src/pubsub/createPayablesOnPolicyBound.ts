@@ -1,59 +1,59 @@
-import { Organization, Policy, Totals, WithId, orgsCollection } from '@idemand/common';
+import { Policy, Totals, WithId } from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
-import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
+import { CloudEvent } from 'firebase-functions/v2';
+import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { sumBy } from 'lodash-es';
 import Stripe from 'stripe';
-import { Payable, getReportErrorFn, payablesCollection, stripeSecretKey } from '../common/index.js';
-import { createDocId, createTransferGroupId, getDocData } from '../modules/db/utils.js';
+import {
+  Payable,
+  getReportErrorFn,
+  payablesCollection,
+  policiesCollection,
+  stripeSecretKey,
+} from '../common/index.js';
+import { createDocId, createTransferGroupId, getDocData } from '../modules/db/index.js';
 import { getComm } from '../modules/rating/utils.js';
-import { getStripe } from '../services/stripe.js';
+import { getStripe } from '../services/index.js';
 import { verify } from '../utils/index.js';
+import { PolicyCreatedPayload } from './policyCreatedListener.js';
 
-// TODO: move to pub sub ?? or module so it can be reused for policy changes, renewal, etc.
-// scenarios:
-//    - create payable from new policy
-//    - create payable from adding location
-//    - policy renewal
+// NOT BEING USED - CURRENTLY RUNNING FROM POLICY CREATED DOC
+// ^^ would create payable from policy csv import -- intended behavior ??
 
-// TODO: send notifications to each billing entity
-//    - if invoice --> create invoice and send
-//    - if checkout or empty --> link to checkout page for payable
+// TODO: validate policy before binding
+// billing entity has email --> look up to make sure exists in stripe
+// make sure agency has stripe account ID --> verify exists in stripe
 
-const reportErr = getReportErrorFn('createPayableOnPolicyCreated');
+// TODO: what params should be passed to allow for creating payables in different scenarios ??
+// add locations ?? renewal ??
 
-export default async (
-  event: FirestoreEvent<
-    QueryDocumentSnapshot | undefined,
-    {
-      policyId: string;
-    }
-  >
-) => {
-  const { policyId } = event.params;
-  info(`policy created (${policyId}) - creating payables...`);
+const reportErr = getReportErrorFn('createPayablesOnPolicyBound');
+
+export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayload>>) => {
+  let policyId = null;
+
   try {
-    const snap = event.data;
-    verify(snap, 'no data associated with event');
-    let p = event.data?.data() as Policy;
-    verify(p, 'new policy missing data');
-    const policy = { ...p, id: policyId };
+    policyId = event.data?.message?.json?.policyId;
+  } catch (e) {
+    reportErr('PubSub message was not JSON', {}, e);
+  }
 
-    const db = getFirestore();
-    const payablesCol = payablesCollection(db);
+  const db = getFirestore();
+  const policyCol = policiesCollection(db);
+  const payablesCol = payablesCollection(db);
+
+  try {
+    verify(policyId, 'pub sub payload missing policyId');
+    const policy = await getDocData<Policy>(
+      policyCol.doc(policyId),
+      `policy not found (${policyId})`
+    );
 
     const billingEntityIds = Object.keys(policy.billingEntities);
+    const stripeAccountId = policy.agency.stripeAccountId;
+    verify(stripeAccountId, 'agency missing stripe account ID');
 
-    const agencyId = policy.agency.orgId;
-    const orgRef = orgsCollection(db).doc(agencyId);
-    const org = await getDocData<Organization>(orgRef);
-    const stripeAccountId = org.stripeAccountId;
-    if (!stripeAccountId) throw new Error('missing stripe account Id');
-
-    const stripe = getStripe(stripeSecretKey.value());
-    const batch = db.batch();
-
-    // const subProducerCommPct = await getSubProducerCommPct(db, policy);
     const { subproducerCommissionPct } = await getComm(
       policy.commSource,
       policy.agency.orgId,
@@ -61,18 +61,21 @@ export default async (
       policy.product
     );
 
+    const stripe = getStripe(stripeSecretKey.value());
+    const batch = db.batch();
+
+    // for each billing entity
     for (let cusId of billingEntityIds) {
       const customer = await stripe.customers.retrieve(cusId);
-      // console.log('stripe customer: ', customer);
       verify(!customer.deleted, `stripe customer deleted ${cusId}`);
 
       const lineItems = billingEntityTotalsToLineItems({ ...policy, id: policyId }, customer);
       console.log('billing entity lineItems: ', lineItems);
 
       const totals = policy.totalsByBillingEntity[cusId];
-      if (!totals) throw new Error(`missing totals for billing ID ${cusId}`);
+      verify(totals, `missing totals for billing ID ${cusId}`);
       const transfers = getTransfersForNewPolicy(stripeAccountId, totals, subproducerCommissionPct);
-      console.log('transfers: ', transfers);
+      info(`transfers: `, transfers);
 
       const payableAmounts = getPayableAmounts(totals);
 
@@ -108,13 +111,12 @@ export default async (
       let payableRef = payablesCol.doc(`rec_${createDocId(7)}`);
       batch.set(payableRef, payable);
     }
-
-    await batch.commit();
   } catch (err: any) {
-    let msg = 'Error creating payable for new policy';
-    if (err?.message) msg += ` (${err.message})`;
+    let msg = 'Error creating payables for new bound policy';
+
     reportErr(msg, { ...event }, err);
   }
+  return;
 };
 
 // TODO: replace totals by billing entity with line items ?? place total outside lineItems
@@ -127,7 +129,7 @@ function billingEntityTotalsToLineItems(policy: WithId<Policy>, customer: Stripe
 
   let lineItems = [
     {
-      displayName: 'iDemand Flood term premium',
+      displayName: 'iDemand Flood Insurance term premium',
       amount: billingEntityTotals.termPremium * 100,
       descriptor: `Total term premium for locations assigned to ${
         customer.name || customer.email

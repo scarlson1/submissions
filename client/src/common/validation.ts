@@ -288,15 +288,17 @@ export const agentValidation = object().shape({
 });
 
 export const agencyValidation = object().shape({
-  orgId: string().typeError('agency orgId required').required(),
+  orgId: string().typeError('agency org ID required').required(),
   name: string().typeError('agency name required').required(),
   address: addressValidation,
 });
 
 export const carrierValidation = object().shape({
-  orgId: string().typeError('agency orgId required').required(),
-  stripeAccountId: string().required(),
-  name: string().typeError('agency name required').required(),
+  orgId: string().typeError('org ID required').required('org ID required'),
+  stripeAccountId: string()
+    .typeError('Stripe account ID required')
+    .required('Stripe account ID required'),
+  name: string().typeError('carrier required').required('carrier required'),
   address: addressValidation.nullable(),
 });
 

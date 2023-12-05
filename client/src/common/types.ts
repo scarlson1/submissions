@@ -423,6 +423,7 @@ export interface NamedInsuredDetails {
   email: string;
   phone: string;
   userId?: string | null;
+  stripeCustomerId?: string | null;
 }
 
 // export interface IndividualNamedInsured {
@@ -455,6 +456,7 @@ export const NamedInsuredZ = z.object({
   phone: PhoneZ, // .optional(), // allow optional/null ??
   userId: z.string().nullable().optional(),
   orgId: z.string().nullable().optional(),
+  stripeCustomerId: z.string().optional().nullable(),
 });
 export type NamedInsured = z.infer<typeof NamedInsuredZ>;
 
@@ -506,11 +508,13 @@ export const TaxItem = z.object({
   resultDigits: z.number().int().optional(), // .default(2),
   baseRoundType: RoundingType.optional(),
   resultRoundType: RoundingType.default('nearest'),
-  id: z.string(),
+  // id: z.string(),
+  taxId: z.string(),
+  taxCalcId: z.string(),
 });
 export type TTaxItem = z.infer<typeof TaxItem>;
 
-export const Tax = TaxItem.omit({ value: true }).and(
+export const Tax = TaxItem.omit({ value: true, taxCalcId: true }).and(
   z.object({
     state: State,
     effectiveDate: TimestampZ,
@@ -661,7 +665,7 @@ export interface Quote {
   fees: TFeeItem[];
   taxes: TTaxItem[];
   annualPremium: number;
-  subproducerCommission: number; // TODO: remove ??
+  // subproducerCommission: number; // TODO: remove ??
   quoteTotal?: number;
   cardFee: number; // TODO: keep ?? delete ?? add security rules ??
   effectiveDate?: Timestamp;
@@ -1022,6 +1026,16 @@ export type ILocation = z.infer<typeof ILocationZ>;
 //   cancelEffDate?: Timestamp | null;
 //   version?: number; // TODO: remove optional
 // }
+
+export const BillingEntityZ = z.object({
+  displayName: z.string(),
+  email: z.string().email(),
+  phone: PhoneZ,
+  billingType: BillingType,
+  selectedPaymentMethodId: z.string().optional().nullable(),
+  paymentMethods: z.array(PaymentMethodZ),
+});
+export type BillingEntity = z.infer<typeof BillingEntityZ>;
 
 export const TotalsZ = z.object({
   termPremium: z.number(),

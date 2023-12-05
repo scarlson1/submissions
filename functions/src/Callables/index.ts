@@ -72,7 +72,7 @@ export const createpaymentintent = onCall({ secrets: [stripeSecretKey] }, async 
   return (await import('./createPaymentIntent.js')).default(request);
 });
 
-export const createpolicy = onCall(async (request) => {
+export const createpolicy = onCall({ secrets: [stripeSecretKey] }, async (request) => {
   return (await import('./createPolicy.js')).default(request);
 });
 

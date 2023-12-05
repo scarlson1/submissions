@@ -50,7 +50,6 @@ functionsInstance.interceptors.response.use(
 
     const originalRequest = err.config;
     // const tokenRevoked = isRevokedError(errors);
-    console.log('not retry already: ', !originalRequest._retry);
 
     // tokenRevoked &&
     if (err.response.status === 403 && !originalRequest._retry) {

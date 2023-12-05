@@ -152,6 +152,7 @@ export const Wizard: React.FC<React.PropsWithChildren<WizardProps>> = memo(
       if (hasNextStep.current && nextStepHandler.current) {
         try {
           setIsLoading(true);
+          console.log('calling next step handler');
           await nextStepHandler.current();
 
           setIsLoading(false);

@@ -9,6 +9,7 @@ export * from './getZodObjPaths.js';
 export * from './helpers.js';
 export * from './policy.js';
 export * from './storage.js';
+export * from './stripe.js';
 export * from './transform.js';
 export * from './validateCoords.js';
 export * from './validation.js';

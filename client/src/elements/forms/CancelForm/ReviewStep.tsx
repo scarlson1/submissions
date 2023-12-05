@@ -41,7 +41,8 @@ function useCancelRequestReview(changeRequest: Partial<CancellationRequest>) {
       const lcnIds = Object.keys(changeRequest.cancellationChanges || {});
       // let lcns = await getAll<ILocation>(firestore, 'LOCATIONS', lcnIds);
       // let lcnData = lcns.docs.map((l) => ({ id: l.id, ...l.data() }));
-      let lcns = await getAllById<ILocation>(firestore, 'LOCATIONS', lcnIds);
+      let lcns = await getAllById<ILocation>(firestore, 'locations', lcnIds);
+      // TODO: limited to 50 locations
 
       // TODO: fix typing (and/or throw if one of the locations is not found ??)
       let lcnData = lcns
@@ -78,6 +79,8 @@ export interface ReviewStepProps {
   onSubmit: () => Promise<void>;
   policy: Policy;
 }
+
+// using onSubmit ??
 
 export const ReviewStep = ({ onSubmit, changeRequest, policy }: ReviewStepProps) => {
   // const { changeRequest, locations, error } = useChangeRequestReview(changeRequest.policyId, changeRequest);

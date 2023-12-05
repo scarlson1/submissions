@@ -387,7 +387,7 @@ export const maskStringShowLast = (str: string, showLast: number = 4, mask: stri
 };
 
 export const readableFirebaseCode = (err: AuthError | FirestoreError) => {
-  return err?.code?.split('/')[1].split('-').join(' ');
+  return err?.code?.split('/')[1]?.split('-').join(' ');
 };
 
 export function getAddressComponent(address: Address, addressComponent: keyof Address) {

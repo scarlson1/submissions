@@ -1,26 +1,28 @@
+import { ILocation, Policy } from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-
-import { ILocation, Policy } from '@idemand/common';
 import {
   QUOTE_STATUS,
   getReportErrorFn,
   locationsCollection,
   policiesCollection,
   quotesCollection,
+  stripeSecretKey,
 } from '../common/index.js';
 import { createDocId, getSLLicenseByState } from '../modules/db/index.js';
-import { checkMoratoriums } from '../services/index.js';
+import { checkMoratoriums, getStripe } from '../services/index.js';
 import { publishPolicyCreated } from '../services/pubsub/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
+import { getStripeCustomer } from '../utils/stripe.js';
 import { getPolicyFromQuote, getPolicyLocationsFromQuote, validate } from './utils/index.js';
 
-// TODO: use Policy converter ??
 // TODO: calc mustBePaidByDate (or in converter) OR use created date ??
 // TODO: need to handle payments directly (not via stripe to block outdated policies) ?? cannout use checkout link b/c policy status has to be fetched?? or can link have a "valid until" property (and webhook to set policy as invalid)
 // OR need to check date in payments webhook --> automatically refund or notify admin
 // TODO: dont store RCVs in policy directly --> need to fetch rating doc
+
+// TODO: state machine for tracing quote status / validation / requirements ??
 
 const reportErr = getReportErrorFn('createPolicy');
 
@@ -53,14 +55,13 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   const policyId = quoteData.policyId ?? `ID${createDocId(8)}`;
   const policyRef = policiesCol.doc(policyId);
 
+  // if quote status is bound, check if policy exists
   if (quoteData.status === QUOTE_STATUS.BOUND) {
     // if quote status === bound --> fetch policy --> if policy already created, check if values changed
     // only allow updating billing ??
-    // add message ?? "policy already bound, billing entity updated" or "policy bound" ??
     const policySnap = await policyRef.get();
     const policy = policySnap.data();
     if (policySnap.exists && policy) {
-      // if (!isEqual(policy.pay))
       return { policyId: policyRef.id, message: 'policy already bound' };
     }
   }
@@ -109,12 +110,32 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   let locationData: Record<string, ILocation>;
 
   try {
+    // temp - need to create location collection doc (convert single doc quote into policy/location docs)
     locationData = getPolicyLocationsFromQuote(quoteData, policyRef.id);
     policyData = getPolicyFromQuote(quoteData, locationData, licenseData);
   } catch (err: any) {
     let msg = 'invalid or missing data';
     if (err?.message) msg = err.message;
     throw new HttpsError('invalid-argument', msg);
+  }
+
+  // TODO: need to validate policy data
+  // billing entity has email --> look up to make sure exists in stripe (use getStripeCustomer fn pass in second param createIfNotFound)
+  // make sure agency has stripe account ID --> verify exists in stripe
+  try {
+    const agencyAccountId = policyData.agency.stripeAccountId;
+    const billingEntityIds = Object.keys(policyData.billingEntities);
+    const stripe = getStripe(stripeSecretKey.value());
+    // BUG: creating new customer will create a new customer ID (throw instead ?? need to create at different stage ?? quote stage ?? when named insured is set ??)
+    // NEED TO SET UP IN BIND QUOTE FORM
+    const customers = billingEntityIds.map((cusId) => {
+      return getStripeCustomer(stripe, cusId, false); // params: { email: policyData.billingEntities[cusId].email }
+    });
+    const orgConnectedAccount = await stripe.accounts.retrieve(agencyAccountId);
+    await Promise.all([...customers, orgConnectedAccount]);
+  } catch (err: any) {
+    let msg = err?.message || 'agency or customer must be set up in Stripe';
+    throw new HttpsError('failed-precondition', msg);
   }
 
   try {

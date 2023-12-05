@@ -1,7 +1,9 @@
+import { BillingEntity, quotesCollection } from '@idemand/common';
 import express, { Request as ERequest, Response } from 'express';
 import 'express-async-errors';
 import { param } from 'express-validator';
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
+import { Firestore, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { info } from 'firebase-functions/logger';
 import { Request as FBRequest } from 'firebase-functions/v2/https';
 import Stripe from 'stripe';
 import invariant from 'tiny-invariant';
@@ -15,6 +17,7 @@ import {
   stripeSecretKey,
 } from '../common/index.js';
 import { getStripe } from '../services/index.js';
+import { getStripeCustomerByEmail } from '../utils/stripe.js';
 import { currentUser, requireAuth, validateRequest } from './middlewares/index.js';
 import { accountLinkSchema, accountSessionSchema } from './middlewares/schemas/stripe.js';
 
@@ -263,18 +266,39 @@ app.post(
   async (req: ERequest, res: Response) => {
     try {
       const accountId = req.body.accountId; // TODO: middleware to require account ID
-      const type = req.body.type || 'account_onboarding';
+      // const type = req.body.type || 'account_onboarding';
+      const types = req.body.type;
       // payments, payment_details, payouts in beta
       const stripe = getStripe(stripeSecretKey.value());
-      const accountSession = await stripe.accountSessions.create({
+      const params: Stripe.AccountSessionCreateParams = {
         account: accountId,
         components: {
-          [type]: {
-            enabled: true,
+          payments: {
+            enabled: types.includes('payments'), // TODO: pass type as array and check if payments is included ??
+            features: {
+              refund_management: false,
+              dispute_management: false,
+              capture_payments: false,
+            },
+          },
+          payment_details: {
+            enabled: types.includes('payment_details'),
+            features: {
+              refund_management: false,
+              dispute_management: false,
+              capture_payments: false,
+            },
+          },
+          payouts: {
+            enabled: types.includes('payouts'),
           },
         },
+      };
+      const accountSession = await stripe.accountSessions.create(params, {
+        apiVersion: '2023-10-16; embedded_connect_beta=v2', // '2022-08-01; embedded_connect_beta=v2',
       });
 
+      info(`stripe account session created`, { account: accountSession.account });
       res.send({
         clientSecret: accountSession.client_secret,
       });
@@ -399,5 +423,67 @@ app.get(
     }
   }
 );
+
+// TODO: validation middleware
+app.post('/bind/quote/getCustomers', async (req: RequestUserAuth, res: Response) => {
+  try {
+    const quoteId = req.body.quoteId;
+    const billingEntities = req.body.billingEntities; // formatted [{ email, displayName, phone }] ??
+    const stripe = getStripe(stripeSecretKey.value());
+    info(`fetching stripe customers for quote ${quoteId}...`);
+
+    // TODO: update quote schema for stripe
+    // const stripeCustomerDetails: Record<string, {displayName: string, email: string, phone: string, billingType: BillingEntity['billingType'], address?: Address | null }> = {}
+    const stripeCustomerDetails: Record<
+      string,
+      Pick<BillingEntity, 'displayName' | 'email' | 'phone' | 'billingType'>
+    > = {};
+
+    for (let billingEntity of billingEntities) {
+      try {
+        const cus = await getStripeCustomerByEmail(stripe, billingEntity?.email);
+        if (!cus.email) throw new Error('missing email');
+        info(`billing entity email matched existing customer ${cus.id} - ${cus.email}`);
+        stripeCustomerDetails[cus.id] = {
+          displayName: cus.name || '',
+          email: cus.email || '',
+          phone: cus.phone || '',
+          billingType: billingEntity.billingType || 'checkout',
+        };
+      } catch (err: any) {
+        const cus = await stripe.customers.create({
+          name: billingEntity.displayName || '',
+          email: billingEntity.email,
+          phone: billingEntity.phone || '',
+        });
+        info(`new stripe customer created ${cus.id} - ${cus.email}`);
+        stripeCustomerDetails[cus.id] = {
+          displayName: cus.name || '',
+          email: cus.email || '',
+          phone: cus.phone || '',
+          billingType: billingEntity.billingType || 'checkout',
+        };
+      }
+    }
+
+    // res.status(200).send(stripeCustomerDetails)
+    const db = getFirestore();
+    const quotesCol = quotesCollection(db);
+    await quotesCol.doc(quoteId).update({
+      // @ts-ignore
+      billingEntities: stripeCustomerDetails,
+      'metadata.updated': Timestamp.now(),
+    });
+
+    info(`Updated quote with stripe customer details`, { ...stripeCustomerDetails });
+    // update quote with billing entities ?? or allow font end to update ??
+    res.status(200).send(stripeCustomerDetails);
+  } catch (err: any) {
+    let msg = `Error retrieving/creating stripe customer(s)`;
+    if (err?.message) msg += ` (${err.message})`;
+    reportErr(msg, {}, err);
+    res.status(500).send({ message: 'Error creating/retrieving Stripe details' });
+  }
+});
 
 export default app;

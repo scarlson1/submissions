@@ -44,6 +44,7 @@ export const useCreateQuote = (
   });
   const sendEmailNotifications = useSendQuoteNotification();
 
+  // TODO: move to hook ??
   const getSLLicense = useCallback(
     async (state: string) => {
       try {
@@ -79,8 +80,10 @@ export const useCreateQuote = (
 
       try {
         const quoteData = getFormattedQuote(values, signInCheckResult.user?.uid);
+        // console.log('QUOTE DATA: ', quoteData);
 
-        const geoHash = getGeoHash(submissionData?.coordinates);
+        // const geoHash = getGeoHash(submissionData?.coordinates);
+        const geoHash = getGeoHash(values?.coordinates);
 
         const quoteRef = await addDoc(quotesCollection(firestore), {
           ...quoteData,
@@ -130,11 +133,13 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     namedInsured,
     agent,
     agency,
+    carrier,
+    commSource,
     quoteTotal,
     annualPremium,
     taxes,
     fees,
-    subproducerCommission,
+    // subproducerCommission,
     ratingPropertyData,
     ratingDocId,
     notes,
@@ -145,6 +150,8 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
   invariant(annualPremium, 'missing annualPremium');
   invariant(namedInsured?.email || agent?.email, 'Must have at least one email (insured or agent)');
   invariant(isValid(effectiveDate), 'Invalid effective date');
+  invariant(typeof coordinates?.latitude === 'number', 'invalid latitude');
+  invariant(typeof coordinates?.longitude === 'number', 'invalid longitude');
 
   let effDateStartOfDay = startOfDay(effectiveDate);
 
@@ -165,10 +172,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
       limitD: limits.limitD,
     },
     address,
-    coordinates:
-      coordinates.longitude && coordinates.latitude
-        ? new GeoPoint(coordinates.latitude, coordinates.longitude)
-        : null,
+    coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
     homeState: address.state,
     mailingAddress: {
       name: '',
@@ -186,17 +190,20 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     annualPremium,
     fees,
     taxes: numTaxes,
-    subproducerCommission,
+    // subproducerCommission,
     cardFee: round(quoteTotal * CARD_FEE_RATE, 2),
     quoteTotal, // calculate on server ??
     userId: namedInsured.userId || null,
     namedInsured,
-    agent: agent,
-    agency: {
-      orgId: agency.orgId || null,
-      name: agency.name || null,
-      address: agency.address || null,
-    },
+    agent,
+    agency,
+    carrier,
+    commSource,
+    // agency: {
+    // orgId: agency.orgId || null,
+    // name: agency.name || null,
+    // address: agency.address || null,
+    // },
     billingEntities: {},
     defaultBillingEntityId: 'namedInsured',
     notes:

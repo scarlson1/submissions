@@ -2,9 +2,9 @@ import { AddCardRounded } from '@mui/icons-material';
 import { Box, Typography } from '@mui/material';
 import { useFormikContext } from 'formik';
 import { useCallback, useMemo } from 'react';
+import { array, object, string } from 'yup';
 
 import { PaymentMethod, emailVal, phoneVal } from 'common';
-import { array, object, string } from 'yup';
 import { AddPaymentDialog } from '../AddPaymentDialog';
 import { BindQuoteValues } from './BindQuoteForm';
 import { PaymentCard } from './PaymentCard';

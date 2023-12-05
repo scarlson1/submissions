@@ -7,7 +7,7 @@ import {
   TextFieldProps,
   Typography,
 } from '@mui/material';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { useField } from 'formik';
 import { UseAlgoliaOptions, useAlgolia } from 'hooks/useAlgolia';
@@ -42,11 +42,8 @@ export const AlgoliaAutocomplete = <T,>({
 }: AlgoliaAutocompleteProps<WithBaseHit<T>>) => {
   const [value, setValue] = useState<WithBaseHit<T> | null>(null);
   // const [query, setQuery] = useState('');
-  // const debouncedQuery = useDebounce<string>(query, 100);
   const [field, meta, helpers] = useField(name);
   const debouncedQuery = useDebounce<string>(field.value, 100);
-  // could replace query state with formik useField--> pass to inputValue and onInputChange
-  // see AddressAutocomplete
 
   const active = useRef(false);
 
@@ -60,23 +57,20 @@ export const AlgoliaAutocomplete = <T,>({
     ...searchOptions,
   });
 
-  useEffect(() => {
-    console.log('autocomplete value: ', value);
-  }, [value]);
-  useEffect(() => {
-    console.log('autocomplete field.value: ', field.value);
-  }, [field.value]);
+  // useEffect(() => {
+  //   console.log('autocomplete value: ', value);
+  // }, [value]);
+  // useEffect(() => {
+  //   console.log('autocomplete field.value: ', field.value);
+  // }, [field.value]);
 
   const options = useMemo<readonly Hit<WithBaseHit<T>>[]>(() => {
-    console.log('OPTIONS: ', hits);
+    // console.log('OPTIONS: ', hits);
     return (hits || []) as Hit<WithBaseHit<T>>[];
   }, [hits]);
 
   const optionsWithVal = useMemo(() => {
     return value ? [value, ...options] : options;
-    // let o: (Hit<WithBaseHit<T>> | WithBaseHit<T>)[] = [...options];
-    // if (value) o.push(value);
-    // return o;
   }, [options, value]);
 
   const handleSelect = useCallback(
@@ -95,7 +89,6 @@ export const AlgoliaAutocomplete = <T,>({
       // getOptionLabel={(option) => (typeof option === 'string' ? option : option.searchTitle)}
       getOptionLabel={(option) => option?.searchTitle ?? null}
       filterOptions={(x) => x}
-      // options={options}
       options={optionsWithVal}
       autoComplete
       includeInputInList
@@ -105,22 +98,19 @@ export const AlgoliaAutocomplete = <T,>({
       loading={isFetching}
       onChange={(event: any, newValue: WithBaseHit<T> | null, reason) => {
         event.stopPropagation();
-        // setOptions(newValue ? [newValue, ...options] : options); // TODO: handle selection
-        // setValue(newValue);
+
         if (reason === 'clear' && resetFields) resetFields();
         if (reason === 'clear' || reason === 'selectOption') handleSelect(newValue);
-        // onSelectItem && newValue && onSelectItem(newValue);
       }}
       inputValue={field.value}
       onInputChange={(event, newInputValue) => {
-        // setQuery(newInputValue);
         helpers.setValue(newInputValue);
       }}
       onOpen={() => {
         active.current = true;
       }}
       onClose={(event, reason) => {
-        console.log(`onClose (${reason})`);
+        // console.log(`onClose (${reason})`);
         active.current = false;
       }}
       renderInput={(params) => (
@@ -136,6 +126,8 @@ export const AlgoliaAutocomplete = <T,>({
         />
       )}
       renderOption={(props, option) => {
+        console.log('props/option: ', props, option);
+        // TODO: word match highlight (option._highlightResult)
         return (
           <li {...props} key={option.objectID}>
             <Grid container spacing={2} alignItems='center' disableEqualOverflow>

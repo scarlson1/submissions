@@ -19,6 +19,7 @@ import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
 import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
 
 // TODO: org details tab (address, default commissions, etc.)
+// TODO: payments, payouts, etc.
 
 const MIN_TAB_HEIGHT = 40;
 

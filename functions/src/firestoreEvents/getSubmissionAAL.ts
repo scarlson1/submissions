@@ -1,12 +1,13 @@
-import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import type { QueryDocumentSnapshot, UpdateData } from 'firebase-admin/firestore';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { error, info, warn } from 'firebase-functions/logger';
+import { info, warn } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import invariant from 'tiny-invariant';
 
 import { PriorLossCount, Submission, swissReResCollection } from '@idemand/common';
 import {
   defaultFloodZone,
+  getReportErrorFn,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
@@ -25,7 +26,7 @@ import {
 // TODO: get commission if submitted by agent
 // TODO: HOW IS COMM HANDLED BETWEEN SUB AND QUOTE ?? how does quote form know what to pre-fill with if agent's commission is different than 15% ?? include commission in submission doc ??
 
-// const DEFAULT_COMMISSION = 0.15;
+const reportErr = getReportErrorFn('getSubmissionAAL');
 
 export default async (
   event: FirestoreEvent<
@@ -75,6 +76,7 @@ export default async (
       ...srVals,
     });
 
+    // TODO: move saving SR res to getAALs ?? (pass along extra data & return ref)
     const swissReRef = await swissReResCollection(db).add({
       ...AALsRes.srRes,
       submissionId: snap.id,
@@ -101,13 +103,14 @@ export default async (
       }
     );
 
+    // TODO: need to store separately (use rxjs for quote form ??)
     // update submission doc with AALs
-    const updates: Partial<Submission> = {
+    const updates: UpdateData<Submission> = {
       AALs: {
         inland: AALsRes.AALs?.inland ?? null,
         surge: AALsRes.AALs?.surge ?? null,
         tsunami: AALsRes.AALs?.tsunami ?? null,
-      }, // @ts-ignore
+      },
       'metadata.updated': Timestamp.now(),
     };
     await snap.ref.update(updates);
@@ -213,7 +216,9 @@ export default async (
       ...result,
     });
   } catch (err: any) {
-    error('ERROR CALCULATING QUOTE: ', { err });
+    let msg = 'Error calculating submission AALs / premium';
+    if (err?.message) msg += ` (${err.message})`;
+    reportErr(msg, { submissionId: event.data?.id || null }, err);
     return;
   }
 };

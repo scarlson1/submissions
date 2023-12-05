@@ -2,6 +2,7 @@ export { ActionHandler } from './ActionHandler';
 export { CSVUploadDialog, RequiredHeaders } from './CSVUploadDialog';
 export { DevWarningBanner } from './DevWarningBanner';
 export { FormattedAddress } from './FormattedAddress';
+export { StripeConnectViewsLayout } from './StripeConnectViewsLayout';
 export { UpdateAvatarImg } from './UpdateAvatarImg';
 export { UpdateProfileImg } from './UpdateProfileImg';
 export { VerifyEmailButton } from './VerifyEmailButton';

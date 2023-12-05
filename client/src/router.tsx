@@ -9,6 +9,7 @@ import {
 import { CLAIMS, TProduct } from 'common';
 import { PageMeta, RequireAuth, RouterErrorBoundary } from 'components';
 // import { StripePmtIntentWrapper } from 'components/forms/StripeCheckout/StripeElementsWrapper';
+import { ConnectPayments, ConnectPayouts } from '@stripe/react-connect-js';
 import { ConfigLayout, Layout, SettingsLayout } from 'components/layout';
 import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
@@ -17,6 +18,7 @@ import { AuthActionsProvider } from 'context';
 import { ActionHandler } from 'elements';
 import { SuccessStep } from 'elements/forms';
 import { LocationChangeWrapper } from 'elements/forms/LocationChangeForm';
+import StripeBindQuote from 'elements/forms/StripeBindQuote';
 import StripeCheckout from 'elements/forms/StripeCheckout';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid, ImportsSummaryGrid } from 'elements/grids';
@@ -30,6 +32,7 @@ import {
   UserDetails as UserDetailsNew,
   UserSecurity,
 } from 'elements/settings';
+import { StripeConnectViewsLayout } from 'elements/StripeConnectViewsLayout';
 import {
   AddLocation,
   AgencyNew,
@@ -1061,15 +1064,45 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <div>pmt success</div>
+                <div>TODO: payment success</div>
               </RequireAuthReactFire>
             ),
           },
           {
             path: 'stripe-test/payables/:policyId',
             element: (
-              <RequireAuthReactFire>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <ViewPayables />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: 'stripe-test/data',
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <StripeConnectViewsLayout />
+              </RequireAuthReactFire>
+            ),
+            children: [
+              {
+                path: 'payments',
+                element: <ConnectPayments />,
+              },
+              {
+                path: 'payouts',
+                element: <ConnectPayouts />,
+              },
+            ],
+          },
+          {
+            path: 'stripe-test/quote/bind/:quoteId',
+            element: (
+              <RequireAuthReactFire>
+                <StripeBindQuote />
               </RequireAuthReactFire>
             ),
           },
