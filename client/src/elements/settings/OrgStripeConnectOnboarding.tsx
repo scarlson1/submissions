@@ -23,7 +23,7 @@ function useStripeAccount(orgId: string) {
     if (orgId !== prevOrgId || !account) {
       setLoading(true);
       functionsInstance
-        .get('/stripe/account/idemand')
+        .get(`/stripe/account/${orgId}`)
         .then(({ data }) => {
           setAccount({ ...data });
           setLoading(false);
@@ -49,7 +49,7 @@ export const OrgStripeConnectOnboarding = () => {
   const { account, loading } = useStripeAccount(orgId);
 
   // TODO: better status determination (look at requirements)
-  // need to determine if
+  // correct status for determining link type ??
   const submitted = account?.details_submitted;
   // const accountEnabled = account?.payouts_enabled && account?.charges_enabled;
 
@@ -60,7 +60,6 @@ export const OrgStripeConnectOnboarding = () => {
     <Box>
       {/* <ConnectOnboarding accountId={accountId} /> */}
       {/* <Button>Account Link</Button> */}
-      {/* <AccountLinkImplementation orgId={orgId} /> */}
       {submitted ? (
         <StripeAccountLink orgId={orgId} title='Update Account' type='account_update' />
       ) : (
@@ -80,7 +79,7 @@ export const OrgStripeConnectOnboarding = () => {
 
 type StripeAccountLinkType = 'account_onboarding' | 'account_update';
 
-function StripeAccountLink({
+export function StripeAccountLink({
   orgId,
   type,
   title,
@@ -117,40 +116,3 @@ function StripeAccountLink({
     </Link>
   );
 }
-
-// function AccountLinkImplementation({ orgId }: { orgId: string }) {
-//   const [url, setUrl] = useState();
-//   const prevOrgId = usePrevious(orgId);
-
-//   useEffect(() => {
-//     if (prevOrgId !== orgId || !url) {
-//       // async function getUrl() {
-//       //   const { data } = await functionsInstance.post('/stripe/accountLink', {
-//       //     orgId,
-//       //   });
-//       //   console.log(data);
-//       //   setUrl(data.accountLink);
-//       // }
-//       // getUrl();
-//       functionsInstance
-//         .post('/stripe/accountLink', {
-//           orgId,
-//         })
-//         .then(({ data }) => {
-//           console.log(data);
-//           setUrl(data.accountLink);
-//         })
-//         .catch((e) => {
-//           console.log('error getting account link: ', e);
-//         });
-//     }
-//   }, [orgId]);
-
-//   if (!url) return null;
-
-//   return (
-//     <Link href={url} rel='noopener'>
-//       Account Link <LaunchRounded fontSize='small' />
-//     </Link>
-//   );
-// }

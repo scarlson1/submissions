@@ -11,6 +11,7 @@ import { useFirestore } from 'reactfire';
 import { Organization as Org } from 'common';
 import { ClaimsGuard, ErrorFallback, PageMeta } from 'components';
 import { LoadingComponent } from 'components/layout';
+import { StripeConnectViewsLocalTabs } from 'elements/StripeConnectViewsLayout';
 import { AddUsersDialog } from 'elements/forms';
 import { InvitesGrid, PoliciesGrid, QuotesGrid, SubmissionsGrid, UsersGrid } from 'elements/grids';
 import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
@@ -73,6 +74,7 @@ export const Organization = () => {
                 <Tab label='Team' value='team' />
                 <Tab label='Invites' value='invites' />
                 <Tab label='Admin Users (test)' value='test' />
+                <Tab label='Stripe' value='stripe' />
               </TabList>
             </Box>
             <TabPanel value='test'>
@@ -140,6 +142,15 @@ export const Organization = () => {
                   </Suspense>
                 </ErrorBoundary>
               </>
+            </TabPanel>
+            <TabPanel value='stripe'>
+              <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[tabValue]}>
+                <Suspense fallback={<LoadingComponent />}>
+                  <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                    <StripeConnectViewsLocalTabs orgId={orgId} />
+                  </ClaimsGuard>
+                </Suspense>
+              </ErrorBoundary>
             </TabPanel>
           </TabContext>
         </Box>

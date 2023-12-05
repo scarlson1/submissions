@@ -23,6 +23,8 @@ import { accountLinkSchema, accountSessionSchema } from './middlewares/schemas/s
 
 // event types: https://stripe.com/docs/api/events/types
 
+// TODO: create separate endpoint for connected accounts: https://stripe.com/docs/connect/webhooks#connect-webhooks
+
 const reportErr = getReportErrorFn('stripe');
 
 const endpointSecret = 'whsec_ac4f0585f7511a2616f0750393299ffdddab9f7275dfd743786982df5e9cc9eb';
@@ -135,7 +137,17 @@ app.post(
         // TODO: must reverse any transfers
         // use this event or 'refund.created' ??
         break;
-      // account.updated
+      // TODO: recommended connect endpoints: https://stripe.com/docs/connect/webhooks#connect-webhooks
+      case 'account.updated':
+        // Allows you to monitor changes to connected account requirements and status changes.
+        const account = event.data.object as Stripe.Account;
+        console.log('account updated: ', account);
+        break;
+      case 'payout.failed':
+        // Occurs when a payout fails. When a payout fails, the external account involved will be disabled, and no automatic or manual payouts can go through until the external account is updated.
+        const failedPayout = event.data.object as Stripe.Payout;
+        console.log('failed payout: ', failedPayout);
+        break;
       // capability.updated
       case 'customer.created':
         const createdCustomer = event.data.object as Stripe.Customer;
@@ -345,7 +357,7 @@ app.post(
       const accountLink = await stripe.accountLinks.create({
         account: accountId,
         refresh_url: `${functionsBaseURL.value()}/stripe/accountLink/${accountId}`,
-        return_url: `${hostingBaseURL.value()}account/org/${orgId}/onboarding`,
+        return_url: `${hostingBaseURL.value()}account/org/${orgId}`, // /onboarding
         type,
         collect: 'eventually_due',
       });
@@ -405,6 +417,7 @@ app.get(
       const orgId = req.params.orgId;
       const user = req.user;
       const isIDemandAdmin = user?.iDemandAdmin || false;
+      // TODO: require orgAdmin permissions ?? create middleware function requireClaims(['orgAdmin', 'iDemandAdmin'])
       if (!isIDemandAdmin && orgId !== user?.firebase.tenant)
         throw new Error('tenantId must match requested orgId');
 

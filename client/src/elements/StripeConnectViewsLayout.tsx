@@ -1,12 +1,18 @@
-import { Box, Container, Tabs, Typography } from '@mui/material';
-import { ConnectComponentsProvider } from '@stripe/react-connect-js';
-import { ReactNode, Suspense, useEffect, useMemo, useState } from 'react';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
+import { Box, Container, Tab, Tabs, Typography } from '@mui/material';
+import {
+  ConnectComponentsProvider,
+  ConnectPayments,
+  ConnectPayouts,
+} from '@stripe/react-connect-js';
+import { ReactNode, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 
 import { Organization } from 'common';
 import { LoadingComponent } from 'components/layout';
 import { LinkTab } from 'components/layout/ConfigLayout';
 import { StripeEmbeddedType, useClaims, useDocData, useStripeConnectInstance } from 'hooks';
+import { StripeAccountLink } from './settings/OrgStripeConnectOnboarding';
 
 // TODO:
 //    - hosting content security policy - https://firebase.google.com/docs/hosting/full-config#headers
@@ -98,6 +104,70 @@ export function StripeConnectViewsLayout() {
           </StripeAccountWrapper>
         </Suspense>
       </Box>
+    </Box>
+  );
+}
+
+// use in admin org view (don't want to use current user's org)
+export function StripeConnectViewsLocalTabs({ orgId }: { orgId: string }) {
+  const [value, setValue] = useState('payments');
+  const { data } = useDocData<Organization>('organizations', orgId);
+
+  const handleChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
+    setValue(newValue);
+  }, []);
+
+  if (!data.stripeAccountId) {
+    return (
+      <Typography variant='subtitle1' align='center' sx={{ py: 8 }}>
+        Org missing stripe account ID
+      </Typography>
+    );
+  }
+
+  return (
+    <Box>
+      <TabContext value={value}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <TabList onChange={handleChange} aria-label='lab API tabs example'>
+            <Tab label='Payments' value='payments' />
+            <Tab label='Payouts' value='payouts' />
+            <Tab label='Account' value='account' />
+          </TabList>
+        </Box>
+        {/* <Box sx={{ py: { xs: 2, md: 3 } }}> */}
+        <Suspense fallback={<LoadingComponent />}>
+          <StripeConnectComponentWrapper
+            accountId={data.stripeAccountId}
+            type={['payments', 'payouts', 'payment_details']}
+          >
+            <TabPanel value='payments'>
+              <ConnectPayments />
+            </TabPanel>
+            <TabPanel value='payouts'>
+              <ConnectPayouts />
+            </TabPanel>
+            <TabPanel value='account'>
+              <StripeAccountLink
+                orgId={orgId}
+                type='account_update'
+                title='Update Stripe Account'
+              />
+              {/* <ConnectAccountOnboarding
+                onExit={() => {
+                  console.log('The account has exited onboarding');
+                }}
+                // Optional: make sure to follow our policy instructions above
+                // fullTermsOfServiceUrl="{{URL}}"
+                // recipientTermsOfServiceUrl="{{URL}}"
+                // privacyPolicyUrl="{{URL}}"
+                // skipTermsOfServiceCollection={false}
+              /> */}
+            </TabPanel>
+          </StripeConnectComponentWrapper>
+        </Suspense>
+        {/* </Box> */}
+      </TabContext>
     </Box>
   );
 }

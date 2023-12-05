@@ -45,8 +45,9 @@ export function useStripeConnectInstance(accountId: string, type: StripeEmbedded
           colorPrimary: palette.primary.main,
           colorText: palette.text.primary,
           colorSecondaryText: palette.text.secondary,
-          colorBackground: palette.background.paper,
+          colorBackground: palette.background.default,
           colorBorder: palette.divider, // TODO: look up border color
+          formBackgroundColor: palette.background.default,
           borderRadius: `${shape.borderRadius}px`,
           spacingUnit: '8px',
           overlayBorderRadius: '10px',
@@ -64,6 +65,7 @@ export function useStripeConnectInstance(accountId: string, type: StripeEmbedded
           colorSecondaryText: palette.text.secondary,
           colorBackground: palette.background.paper,
           colorBorder: palette.divider,
+          formBackgroundColor: palette.background.default,
         },
       },
     });
