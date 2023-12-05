@@ -1,9 +1,10 @@
 import { LaunchRounded } from '@mui/icons-material';
-import { Box, Link } from '@mui/material';
+import { Box, Divider, Unstable_Grid2 as Grid, Link, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 
 import { functionsInstance } from 'api';
 import { Organization } from 'common';
+import { FormattedAddress } from 'elements/FormattedAddress';
 import { useClaims, useDocData } from 'hooks';
 import { usePrevious } from 'hooks/utils';
 
@@ -69,7 +70,56 @@ export const OrgStripeConnectOnboarding = () => {
           type='account_onboarding'
         />
       )}
-
+      <Box>
+        <Typography variant='h6'>Contact Information</Typography>
+        <Divider sx={{ my: 3 }} />
+        <Grid container spacing={4}>
+          <Grid xs={12} sm={6}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', py: 1 }}>
+              <Typography variant='body2' color='text.secondary' sx={{ flex: '0 0 160px' }}>
+                Doing business as
+              </Typography>
+              <Typography variant='body2' sx={{ flex: '1 1 auto' }}>
+                {account?.business_profile?.name || ''}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', py: 1 }}>
+              <Typography variant='body2' color='text.secondary' sx={{ flex: '0 0 160px' }}>
+                Email
+              </Typography>
+              <Typography variant='body2' sx={{ flex: '1 1 auto' }}>
+                {account?.email || ''}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', py: 1 }}>
+              <Typography variant='body2' color='text.secondary' sx={{ flex: '0 0 160px' }}>
+                Website
+              </Typography>
+              <Typography variant='body2' sx={{ flex: '1 1 auto' }}>
+                {account?.business_profile?.url || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid xs={12} sm={6}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', py: 1 }}>
+              <Typography variant='body2' color='text.secondary' sx={{ flex: '0 0 160px' }}>
+                Address
+              </Typography>
+              <Box sx={{ flex: '1 1 auto' }}>
+                <FormattedAddress
+                  address={{
+                    addressLine1: account?.company?.address?.line1 || '',
+                    addressLine2: account?.company?.address?.line2 || '',
+                    city: account?.company?.address?.city || '',
+                    state: account?.company?.address?.state || '',
+                    postal: account?.company?.address?.postal_code || '',
+                  }}
+                />
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
       <Box typography='body2' color='text.secondary'>
         <pre>{JSON.stringify(account, null, 2)}</pre>
       </Box>
