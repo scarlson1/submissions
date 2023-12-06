@@ -19,6 +19,10 @@ import {
 } from '../common/index.js';
 import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom.js';
 
+export const addbillingentity = onCall({ secrets: [stripeSecretKey] }, async (request) => {
+  return (await import('./addBillingEntity.js')).default(request);
+});
+
 export const approvechangerequest = onCall(async (request) => {
   return (await import('./approveChangeRequest.js')).default(request);
 });

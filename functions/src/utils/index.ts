@@ -1,5 +1,6 @@
 export * from './algolia.js';
 export * from './arrays.js';
+export * from './createStripeConnectAccount.js';
 export * from './customDeepMerge.js';
 export { EDITOR_EXTENSION_DEFAULTS } from './editorExtensions.js';
 export * from './errorHelpers.js';

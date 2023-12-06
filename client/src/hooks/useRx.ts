@@ -1,18 +1,18 @@
-import { collectionData, docData } from 'rxfire/firestore';
 import {
-  Query as FirestoreQuery,
-  queryEqual,
-  Query,
-  getFirestore,
-  doc as fsDoc,
   DocumentReference,
+  Query as FirestoreQuery,
+  Query,
+  doc as fsDoc,
+  getFirestore,
+  queryEqual,
 } from 'firebase/firestore';
 import { ReactFireGlobals, ReactFireOptions, checkIdField, useObservable } from 'reactfire';
-import { from, groupBy, map, mergeMap, tap, toArray } from 'rxjs';
+import { collectionData, docData } from 'rxfire/firestore';
 import { DocumentData } from 'rxfire/firestore/interfaces';
+import { from, groupBy, map, mergeMap, tap, toArray } from 'rxjs';
 
-import { innerJoin } from 'modules/rxOperators/innerJoin';
 import { docJoin } from 'modules/rxOperators/docJoin';
+import { innerJoin } from 'modules/rxOperators/innerJoin';
 import { populateById } from 'modules/rxOperators/innerJoinById';
 
 // example group: https://stackoverflow.com/a/56307873
@@ -38,7 +38,7 @@ function getUniqueIdForFirestoreQuery(query: FirestoreQuery) {
 
 // JOINS ANOTHER COLLECTION BASED ON A SHARED FIELD NAME/VALUE - WORKS
 
-export const useCollectionDataInnerJoin = <T>(
+export const useCollectionDataInnerJoin = <T extends DocumentData>(
   query: Query<T>,
   joinField: string,
   coll: { root: string; pathSegments?: string[] },
@@ -50,22 +50,19 @@ export const useCollectionDataInnerJoin = <T>(
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
   const idSegments = coll.pathSegments ? `:${coll.pathSegments.join(':')}` : '';
   const observable1Id = `firestore:collectionData:${getUniqueIdForFirestoreQuery(
-    // @ts-ignore
     query
   )}:innerJoin:${joinField}:${coll.root}${idSegments}:idField=${idField}`;
 
   const policies$ = collectionData<T>(query);
   const combinedObservable$ = policies$.pipe(innerJoin(getFirestore(), joinField, coll, limit));
 
-  // TODO: need to incorporate merged query into observableId
-  // ADD `innerJoin:${joinfields}` before idField=... ??
   return useObservable(observable1Id, combinedObservable$, options);
 };
 
 export const useCollectionDataPopulateById = <
   JoinKey extends string,
-  T = DocumentData,
-  K = DocumentData
+  T extends DocumentData = DocumentData,
+  K extends DocumentData = DocumentData
 >(
   query: Query<T>,
   joinField: JoinKey,
@@ -77,7 +74,6 @@ export const useCollectionDataPopulateById = <
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
   const idSegments = coll.pathSegments ? `:${coll.pathSegments.join(':')}` : '';
   const observable1Id = `firestore:collectionData:${getUniqueIdForFirestoreQuery(
-    // @ts-ignore
     query
   )}:innerJoin:${joinField}:${coll.root}${idSegments}:idField=${idField}`;
 
@@ -86,16 +82,13 @@ export const useCollectionDataPopulateById = <
     populateById<JoinKey, T, K>(getFirestore(), joinField, coll)
   );
 
-  // TODO: need to incorporate merged query into observableId
-  // ADD `innerJoin:${joinfields}` before idField=... ??
   return useObservable(observable1Id, combinedObservable$, options);
 };
 
 // works like mongoose populate
 // TODO: typing so return type of populated docs is known
-export const useRxDocJoin = <T = any, J = { [key: string]: string }>(
+export const useRxDocJoin = <T extends DocumentData = DocumentData, J = { [key: string]: string }>(
   docRef: DocumentReference<T>,
-  // join: { [key: string]: string },
   join: { [Property in keyof J]: string },
   options?: ReactFireOptions<T[]>
 ) => {
@@ -110,18 +103,15 @@ export const useRxDocJoin = <T = any, J = { [key: string]: string }>(
   //   docJoin(getFirestore(), join)
   // );
 
-  // TODO: need to incorporate merged query into observableId
-  // ADD `docJoin:${joinfields}` before idField=... ??
   // return useObservable<T & { [Property in keyof J]: any }>(
   return useObservable(observable1Id, combinedObservable$, options); // as ObservableStatus<T & { [Property in keyof J]: any }>;
 };
 
 // ATTEMPTS TO GET POLICIES AND FETCH USER AFTER - not fully working
 
-export const useRx = <T>(query: Query<T>, options?: ReactFireOptions<T[]>) => {
+export const useRx = <T extends DocumentData>(query: Query<T>, options?: ReactFireOptions<T[]>) => {
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
   const observable1Id = `firestore:collectionData:${getUniqueIdForFirestoreQuery(
-    // @ts-ignore
     query
   )}:idField=${idField}`;
 

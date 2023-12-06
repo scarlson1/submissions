@@ -1,4 +1,4 @@
-import { TabContext, TabList, TabPanel } from '@mui/lab';
+import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
 import { Box, Container, Tab, Tabs, Typography } from '@mui/material';
 import {
   ConnectComponentsProvider,
@@ -8,11 +8,19 @@ import {
 import { ReactNode, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 
+import { functionsInstance } from 'api';
 import { Organization } from 'common';
 import { LoadingComponent } from 'components/layout';
 import { LinkTab } from 'components/layout/ConfigLayout';
-import { StripeEmbeddedType, useClaims, useDocData, useStripeConnectInstance } from 'hooks';
-import { StripeAccountLink } from './settings/OrgStripeConnectOnboarding';
+import {
+  StripeEmbeddedType,
+  useAsyncToast,
+  useClaims,
+  useDocData,
+  useStripeConnectInstance,
+} from 'hooks';
+import { logDev } from 'modules/utils';
+import { OrgStripeConnectOnboarding } from './settings/OrgStripeConnectOnboarding';
 
 // TODO:
 //    - hosting content security policy - https://firebase.google.com/docs/hosting/full-config#headers
@@ -45,13 +53,7 @@ const StripeAccountWrapper = ({ children }: { children: ReactNode }) => {
   if (!orgId) throw new Error('org ID not found for current user');
   const { data } = useDocData<Organization>('organizations', orgId);
 
-  // TODO: link to complete setup ?? validate user is org user, etc.
-  if (!data.stripeAccountId)
-    return (
-      <Typography align='center' sx={{ py: 8 }} variant='subtitle1'>
-        Org missing stripe account ID
-      </Typography>
-    );
+  if (!data.stripeAccountId) return <NoStripeAccountFallback orgId={orgId} />;
 
   return (
     <StripeConnectComponentWrapper accountId={data.stripeAccountId} type={['payments', 'payouts']}>
@@ -75,6 +77,7 @@ export const getTab = (currPath: string, pathsArr: string[], isRetry: boolean = 
   return 0;
 };
 
+// DELETE ?? use other tabs implementation ?? only being used under admin/stripe-test/...
 export function StripeConnectViewsLayout() {
   const location = useLocation();
   // TODO: create paths in router
@@ -108,21 +111,26 @@ export function StripeConnectViewsLayout() {
   );
 }
 
+// TODO: need to wrap in require auth and check orgAdmin or iDemand admin
 // use in admin org view (don't want to use current user's org)
 export function StripeConnectViewsLocalTabs({ orgId }: { orgId: string }) {
-  const [value, setValue] = useState('payments');
+  const [value, setValue] = useState<'payments' | 'payouts' | 'account'>('payments');
   const { data } = useDocData<Organization>('organizations', orgId);
 
-  const handleChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
-    setValue(newValue);
-  }, []);
+  const handleChange = useCallback(
+    (event: React.SyntheticEvent, newValue: 'payments' | 'payouts' | 'account') => {
+      setValue(newValue);
+    },
+    []
+  );
 
+  const handleAccountInitialized = () => {
+    setValue('account');
+  };
+
+  // TODO: handle create stripe account if it does not exist ??
   if (!data.stripeAccountId) {
-    return (
-      <Typography variant='subtitle1' align='center' sx={{ py: 8 }}>
-        Org missing stripe account ID
-      </Typography>
-    );
+    return <NoStripeAccountFallback orgId={orgId} onSuccess={handleAccountInitialized} />;
   }
 
   return (
@@ -148,11 +156,12 @@ export function StripeConnectViewsLocalTabs({ orgId }: { orgId: string }) {
               <ConnectPayouts />
             </TabPanel>
             <TabPanel value='account'>
-              <StripeAccountLink
+              {/* <StripeAccountLink
                 orgId={orgId}
                 type='account_update'
                 title='Update Stripe Account'
-              />
+              /> */}
+              <OrgStripeConnectOnboarding orgId={orgId} />
               {/* <ConnectAccountOnboarding
                 onExit={() => {
                   console.log('The account has exited onboarding');
@@ -168,6 +177,84 @@ export function StripeConnectViewsLocalTabs({ orgId }: { orgId: string }) {
         </Suspense>
         {/* </Box> */}
       </TabContext>
+    </Box>
+  );
+}
+
+function useInitializeConnectAccount(
+  onSuccess?: (id: string) => void,
+  onError?: (msg: string, err: any) => void
+) {
+  const [loading, setLoading] = useState(false);
+
+  const initializeAccount = useCallback(
+    async (orgId: string) => {
+      try {
+        setLoading(true);
+        const { data } = await functionsInstance.get(`/stripe/account/initialize/${orgId}`);
+
+        setLoading(false);
+        onSuccess && onSuccess(data.stripeAccountId);
+      } catch (err: any) {
+        setLoading(false);
+        logDev(err);
+        if (onError) {
+          if (err?.hasErrorMessages && err?.errorMessages.length) {
+            err?.errorMessages?.map((e: any) => {
+              e?.message && onError(e.message, null);
+            });
+          } else {
+            let errMsg = `failed to create stripe connect account`;
+            onError(errMsg, err);
+          }
+        }
+      }
+    },
+    [onSuccess, onError]
+  );
+
+  return { initializeAccount, loading };
+}
+
+function NoStripeAccountFallback({
+  orgId,
+  onSuccess,
+}: {
+  orgId: string;
+  onSuccess?: (acctId: string) => void;
+}) {
+  const toast = useAsyncToast({ position: 'top-right' });
+  const { initializeAccount, loading } = useInitializeConnectAccount(
+    (id: string) => {
+      toast.success(`Stripe connect account created (${id})`);
+      toast.warn('must complete onboarding to enable account');
+      onSuccess && onSuccess(id);
+    },
+    (msg) => toast.error(msg)
+  );
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <Typography variant='subtitle1' align='center' sx={{ py: 5 }}>
+        Org missing stripe account ID
+      </Typography>
+      <Box>
+        <LoadingButton
+          onClick={() => initializeAccount(orgId)}
+          disabled={!orgId}
+          loading={loading}
+          variant='contained'
+        >
+          Initialize Stripe Account
+        </LoadingButton>
+      </Box>
     </Box>
   );
 }

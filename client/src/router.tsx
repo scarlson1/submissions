@@ -27,11 +27,11 @@ import { TestSubmissionsMapWithFilters } from 'elements/maps/SubmissionsMap';
 import {
   OrgDetails,
   OrgSecurity,
-  OrgStripeConnectOnboarding,
   OrgUsers,
   UserDetails as UserDetailsNew,
   UserSecurity,
 } from 'elements/settings';
+import { CurrentUserOrgStripeConnectOnboarding } from 'elements/settings/OrgStripeConnectOnboarding';
 import { StripeConnectViewsLayout } from 'elements/StripeConnectViewsLayout';
 import {
   AddLocation,
@@ -185,7 +185,7 @@ export enum ACCOUNT_ROUTES {
   USER_SETTING = '/account/user/:setting',
   ORG_SETTINGS = '/account/org',
   ORG_SETTING = '/account/org/:setting',
-  ORG_STRIPE_ONBOARDING = '/account/org/:orgId/onboarding',
+  // ORG_STRIPE_ONBOARDING = '/account/org/:orgId/stripe', // onboarding
 }
 
 type TArgs =
@@ -271,8 +271,8 @@ type TArgs =
   | { path: ACCOUNT_ROUTES.USER_SETTINGS }
   | { path: ACCOUNT_ROUTES.USER_SETTING; params: { setting: string } }
   | { path: ACCOUNT_ROUTES.ORG_SETTINGS }
-  | { path: ACCOUNT_ROUTES.ORG_SETTING; params: { setting: string } }
-  | { path: ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING; params: { orgId: string } };
+  | { path: ACCOUNT_ROUTES.ORG_SETTING; params: { setting: string } };
+// | { path: ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING; params: { orgId: string } };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
 
@@ -638,19 +638,6 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
-            path: ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING,
-            element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
-                <OrgStripeConnectOnboarding />
-              </RequireAuth>
-            ),
-            // element: (
-            //   <RequireAuthReactFire requiredClaims>
-            //     <OrgStripeConnectOnboarding />
-            //   </RequireAuthReactFire>
-            // ),
-          },
-          {
             path: 'account',
             element: (
               <AuthActionsProvider>
@@ -762,6 +749,14 @@ export const router = sentryCreateBrowserRouter([
                         //   params: { setting: 'security' },
                         // }),
                       },
+                      {
+                        title: 'Payouts',
+                        route: 'stripe',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.ORG_SETTING,
+                        //   params: { setting: 'security' },
+                        // }),
+                      },
                     ]}
                   />
                 ),
@@ -790,6 +785,19 @@ export const router = sentryCreateBrowserRouter([
                     // or explicitly specify each setting page in router ??
                     path: 'security',
                     element: <OrgSecurity />,
+                  },
+                  {
+                    path: 'stripe', // ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING,
+                    element: (
+                      <RequireAuth requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                        <CurrentUserOrgStripeConnectOnboarding />
+                      </RequireAuth>
+                    ),
+                    // element: (
+                    //   <RequireAuthReactFire requiredClaims>
+                    //     <OrgStripeConnectOnboarding />
+                    //   </RequireAuthReactFire>
+                    // ),
                   },
                 ],
               },
@@ -1096,6 +1104,10 @@ export const router = sentryCreateBrowserRouter([
                 path: 'payouts',
                 element: <ConnectPayouts />,
               },
+              // {
+              //   path: 'payouts',
+              //   element: <OrgStripeConnectOnboarding orgId={orgId} />,
+              // },
             ],
           },
           {

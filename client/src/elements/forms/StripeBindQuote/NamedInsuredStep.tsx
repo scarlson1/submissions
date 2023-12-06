@@ -18,7 +18,7 @@ export interface NamedInsuredValues {
 }
 
 export interface BindQuoteProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
-  onStepSubmit: (updates: UpdateData<Quote>) => Promise<void>;
+  onStepSubmit: (updates: UpdateData<Quote>, forceUpdate?: boolean) => Promise<void>;
   formRef: RefObject<FormikProps<T>>;
   onError?: (msg: string, err?: any) => void;
 }

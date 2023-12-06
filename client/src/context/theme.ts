@@ -449,7 +449,7 @@ export function getThemedComponents(theme: Theme): {
             },
           },
           sizeSmall: {
-            padding: theme.spacing(1, 2),
+            padding: theme.spacing(2, 2), // theme.spacing(1, 2),
             // marginLeft: theme.spacing(-1),
           },
           containedPrimary: {

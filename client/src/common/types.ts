@@ -424,6 +424,7 @@ export interface NamedInsuredDetails {
   phone: string;
   userId?: string | null;
   stripeCustomerId?: string | null;
+  photoURL?: string | null;
 }
 
 // export interface IndividualNamedInsured {

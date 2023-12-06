@@ -2,10 +2,20 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { AuthData } from 'firebase-functions/lib/common/providers/https.js';
 import { HttpsError } from 'firebase-functions/v1/auth';
 
-import { CLAIMS } from '../../common/index.js';
+import { AgencyDetails, AgentDetails } from '@idemand/common';
+import { Claim, Optional } from '../../common/index.js';
 
-export const isIDemandAdmin = (token?: DecodedIdToken | undefined) =>
-  token ? token[CLAIMS.IDEMAND_ADMIN] || false : false;
+export const hasClaim = (token: DecodedIdToken | undefined, claim: Claim) =>
+  token ? token[claim] || false : false;
+
+export const isIDemandAdmin = (token: DecodedIdToken | undefined) =>
+  hasClaim(token, 'iDemandAdmin');
+// token ? token[CLAIMS.IDEMAND_ADMIN] || false : false;
+
+export const isAgent = (token: DecodedIdToken | undefined) => hasClaim(token, 'agent'); // token ? token[CLAIMS.AGENT] || false : false;
+
+export const isOrgAdmin = (token: DecodedIdToken | undefined) => hasClaim(token, 'orgAdmin');
+// token ? token[CLAIMS.ORG_ADMIN] || false : false;
 
 export function requireIDemandAdminClaims(
   token: DecodedIdToken | undefined,
@@ -22,5 +32,30 @@ export function requireIDemandAdminClaims(
 
 export function requireAuth(auth: AuthData | undefined): asserts auth is AuthData {
   if (!auth?.uid) throw new HttpsError('unauthenticated', 'must be signed in');
+  return;
+}
+
+type AgentAndAgencyDoc = {
+  agent: Optional<AgentDetails>;
+  agency: Optional<AgencyDetails>;
+  userId: string | null;
+};
+// TODO: doc typing (make generic with extends type with agent & agency)
+export function requireOwnerAgentAdmin<T extends AgentAndAgencyDoc>(
+  auth: AuthData | undefined,
+  doc: T,
+  errMsg: string = 'unauthorized'
+): asserts auth is AuthData {
+  requireAuth(auth);
+  const uid = auth.uid;
+  const tenantId = auth.token.firebase?.tenant;
+
+  const userIsAgent = isAgent(auth?.token) && uid === doc?.agent?.userId;
+  const userIsOrgAdmin = isOrgAdmin(auth?.token) && tenantId === doc?.agency?.orgId;
+  const userIsIDemandAdmin = isIDemandAdmin(auth?.token);
+
+  if (!(userIsAgent || userIsOrgAdmin || userIsIDemandAdmin))
+    throw new HttpsError('permission-denied', errMsg);
+
   return;
 }

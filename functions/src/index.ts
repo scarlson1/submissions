@@ -13,6 +13,7 @@ export {
   setUidByEmailOnCreate,
 } from './authEvents/index.js';
 export {
+  addbillingentity,
   approvechangerequest,
   approveimport,
   assignquote,

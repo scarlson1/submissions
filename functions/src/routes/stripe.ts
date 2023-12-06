@@ -17,7 +17,8 @@ import {
   stripeSecretKey,
 } from '../common/index.js';
 import { getStripe } from '../services/index.js';
-import { getStripeCustomerByEmail } from '../utils/stripe.js';
+import { createStripeConnectAccount, getActiveStripeCustomerByEmail } from '../utils/index.js';
+import { NotAuthorizedError } from './errors/index.js';
 import { currentUser, requireAuth, validateRequest } from './middlewares/index.js';
 import { accountLinkSchema, accountSessionSchema } from './middlewares/schemas/stripe.js';
 
@@ -437,6 +438,32 @@ app.get(
   }
 );
 
+app.get(
+  '/account/initialize/:orgId',
+  param('orgId').isString().notEmpty(),
+  validateRequest,
+  async (req: RequestUserAuth, res: Response) => {
+    const orgId = req.params.orgId;
+
+    const user = req.user;
+    const tenantId = req.tenantId;
+    const isIDemandAdmin = user?.iDemandAdmin;
+    const isOrgAdmin = user?.orgAdmin && orgId === tenantId;
+
+    if (!(isIDemandAdmin || isOrgAdmin)) throw new NotAuthorizedError();
+
+    try {
+      const account = await createStripeConnectAccount(stripeSecretKey.value(), orgId);
+
+      res.status(201).send({ stripeAccountId: account.id });
+    } catch (err: any) {
+      let msg = `Error creating stripe connect account`;
+      reportErr(`${msg} ${err?.message || ''}`.trim(), {}, err);
+      res.status(500).send({ message: msg });
+    }
+  }
+);
+
 // TODO: validation middleware
 app.post('/bind/quote/getCustomers', async (req: RequestUserAuth, res: Response) => {
   try {
@@ -454,7 +481,7 @@ app.post('/bind/quote/getCustomers', async (req: RequestUserAuth, res: Response)
 
     for (let billingEntity of billingEntities) {
       try {
-        const cus = await getStripeCustomerByEmail(stripe, billingEntity?.email);
+        const cus = await getActiveStripeCustomerByEmail(stripe, billingEntity?.email);
         if (!cus.email) throw new Error('missing email');
         info(`billing entity email matched existing customer ${cus.id} - ${cus.email}`);
         stripeCustomerDetails[cus.id] = {

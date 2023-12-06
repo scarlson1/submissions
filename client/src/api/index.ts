@@ -8,6 +8,7 @@ export { calcPolicyCancelChanges } from './calcPolicyCancelChanges';
 export { calcPolicyChanges } from './calcPolicyChanges';
 export { calcQuote } from './calcQuote';
 // export { convertPolicySchema } from './convertPolicySchema';
+export { addBillingEntity } from './addBillingEntity';
 export * from './cloudRunApi';
 export { createPaymentIntent } from './createPaymentIntent';
 export { createPolicy } from './createPolicy';
@@ -27,6 +28,7 @@ export { sendEmail } from './sendEmail';
 export { submitClaim } from './submitClaim';
 export { verifyEPayToken } from './verifyEPayToken';
 
+export type { AddBillingEntityRequest, AddBillingEntityResponse } from './addBillingEntity';
 export type { ApproveChangeRequest, ApproveChangeResponse } from './approveChangeRequest';
 export type { ApproveImportRequest, ApproveImportResponse } from './approveImport';
 export type { AssignQuoteRequest, AssignQuoteResponse } from './assignQuote';

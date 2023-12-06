@@ -15,12 +15,17 @@ import { addToDate, logDev } from 'modules/utils';
 import { AdditionalInterestsStep, AdditionalInterestsValues } from './AdditionalInterestsStep';
 import { BillingStep, BillingValues } from './BillingStep';
 import { EffectiveDateStep, EffectiveDateValues } from './EffectiveDateStep';
+import { BillingEntityStepValues, LocationBillingStep } from './LocationBillingStep';
 import { NamedInsuredStep, NamedInsuredValues } from './NamedInsuredStep';
 import { ReviewStep } from './ReviewStep';
 import { SuccessStep } from './SuccessStep';
 
 // TODO: stepper nav
 // - fix submit from review step continuing to next step when error thrown
+
+// Refactor -- view all locations
+// select billing entity for each location
+// add additional insureds
 
 const useBindQuote = (
   quoteId: string,
@@ -32,11 +37,11 @@ const useBindQuote = (
   const formRef = useRef<FormikProps<BindQuoteValues>>(null);
 
   const saveValues = useCallback(
-    async (updates: UpdateData<Quote>) => {
+    async (updates: UpdateData<Quote>, forceUpdate?: boolean) => {
       let values = formRef.current?.values;
       let initValues = formRef.current?.initialValues;
       let skipUpdate = isEqual(values, initValues);
-      if (!skipUpdate) {
+      if (!skipUpdate || forceUpdate) {
         const quoteRef = doc(quotesCollection(firestore), quoteId);
         await updateDoc(quoteRef, updates);
       } else console.log('values unchanged ...skipping update');
@@ -157,6 +162,18 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
           formRef={formRef as any as RefObject<FormikProps<BillingValues>>}
           quoteId={quoteId}
           validateOnMount
+        />
+        <LocationBillingStep
+          colName='quotes'
+          docId={quoteId}
+          address={quote.address}
+          img={quote.imageURLs?.satellite}
+          onStepSubmit={saveValues}
+          formRef={formRef as any as RefObject<FormikProps<BillingEntityStepValues>>}
+          initialValues={{
+            defaultBillingEntityId: quote?.defaultBillingEntityId || '',
+            additionalInterests: quote?.additionalInterests || [],
+          }}
         />
         <ReviewStep onSubmit={bindQuote} quote={quote} />
         <SuccessStep />

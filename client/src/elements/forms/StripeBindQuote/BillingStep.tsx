@@ -75,8 +75,10 @@ export const BillingStep = ({
     async (values: BillingValues) => {
       try {
         // call api to get stripe customer IDs and update quote
-        console.log('handleSubmit called');
-        await getStripeCustomerDetails(values);
+        const data = await getStripeCustomerDetails(values);
+        console.log('res: ', data);
+        let cusIds = Object.keys(data);
+        await onStepSubmit({ defaultBillingEntityId: cusIds[0] || '' }, true);
 
         // already updating from backend
         // await onStepSubmit({

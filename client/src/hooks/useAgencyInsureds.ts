@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Policy, User, WithId } from 'common';
 import { useCollectionData } from './useCollectionData';
 
-// TODO: use subcollection group query instead (users/uid/permissions/private)
+// TODO: use subcollection group query instead (users/uid/permissions/private) - rxjs switchMap ??
 
 let uniq = (a: any) => [...new Set(a)];
 

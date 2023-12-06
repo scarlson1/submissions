@@ -31,7 +31,7 @@ import {
   UpdateUserEmail,
   UserDetailsForm,
 } from 'elements/forms';
-import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
+import { UserClaimsGrid } from 'elements/grids';
 import { useClaims, useCollectionData } from 'hooks';
 import { AUTH_ROUTES, createPath } from 'router';
 
@@ -204,7 +204,7 @@ export const AccountDetails = () => {
                       <AddUsersDialog orgId={orgId} />
                     </ClaimsGuard>
                   </Box>
-                  <AdminManageUsersGrid
+                  <UserClaimsGrid
                     orgId={orgId}
                     columnVisibilityModel={{
                       displayName: false,
