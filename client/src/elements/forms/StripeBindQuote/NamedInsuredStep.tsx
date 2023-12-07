@@ -3,10 +3,13 @@ import { Timestamp, UpdateData } from 'firebase/firestore';
 import { Form, Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { RefObject, useCallback } from 'react';
 
+import { setQuoteUserId } from 'api';
 import { NamedInsured, Quote, namedInsuredValidationNested, phoneRequiredVal } from 'common';
 import { FormikMaskField, FormikWizardNavButtons, IMask, phoneMaskProps } from 'components/forms';
 import { useWizard } from 'hooks';
+import { useFunctions } from 'reactfire';
 import { ContactStep } from '../ContactStep';
+import { useAddBillingEntity } from './useAddBillingEntity';
 
 // mailing address in same step or separate ??
 
@@ -23,34 +26,64 @@ export interface BindQuoteProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
   onError?: (msg: string, err?: any) => void;
 }
 
-export type NamedInsuredStepProps = BindQuoteProps<NamedInsuredValues>;
+export type NamedInsuredStepProps = BindQuoteProps<NamedInsuredValues> & { quoteId: string };
 
 export function NamedInsuredStep({
   onStepSubmit,
   formRef,
   onError,
+  quoteId,
   ...props
 }: NamedInsuredStepProps) {
+  const functions = useFunctions();
   const { nextStep } = useWizard();
+  const { addBillingEntity } = useAddBillingEntity('quotes', quoteId, console.log, console.error);
   // useEffect(() => {
   //   logAnalyticsStep(0, 'named insured step');
   // }, [logAnalyticsStep]);
 
   const handleSubmit = useCallback(
     async (values: NamedInsuredValues, bag: FormikHelpers<NamedInsuredValues>) => {
+      // TODO: need to call setQuoteUserId when quote created ??
+      let namedInsuredUserId;
       try {
-        await onStepSubmit({
-          namedInsured: {
-            firstName: values.namedInsured?.firstName,
-            lastName: values.namedInsured?.lastName,
-            email: values.namedInsured.email,
-            phone: values.namedInsured?.phone || '',
-            userId: values.namedInsured?.userId || null, // TODO: must set to null if changed from quote
-            stripeCustomerId: values.namedInsured?.stripeCustomerId || null,
-          },
-          'metadata.updated': Timestamp.now(),
+        const { data } = await setQuoteUserId(functions, {
+          quoteId,
+          email: values.namedInsured.email,
         });
-        // TODO: if values changed --> call backend to look up / create stripe customer ID
+        namedInsuredUserId = data.userId;
+      } catch (err: any) {}
+
+      let stripeAccountId;
+      try {
+        stripeAccountId = await addBillingEntity({
+          displayName:
+            `${values.namedInsured?.firstName || ''} ${
+              values.namedInsured?.lastName || ''
+            }`.trim() || '',
+          email: values.namedInsured?.email || '',
+          phone: values.namedInsured?.phone || '',
+        });
+      } catch (err: any) {
+        console.log('error get stripe customer', err); // don't throw -- handle in billing step ??
+      }
+
+      try {
+        // use dot notation so namedInsured userId is not overwritten after set in setQuoteUserId ^
+        await onStepSubmit(
+          {
+            'namedInsured.firstName': values.namedInsured?.firstName,
+            'namedInsured.lastName': values.namedInsured?.lastName,
+            'namedInsured.email': values.namedInsured.email,
+            'namedInsured.phone': values.namedInsured?.phone || '',
+            'namedInsured.stripeCustomerId': stripeAccountId || null,
+            defaultBillingEntityId: stripeAccountId || '',
+            'metadata.updated': Timestamp.now(),
+          },
+          true
+        );
+        // force update (could be missing stripe ID or userId from quote creation)
+
         await nextStep();
       } catch (err: any) {
         let msg = 'error saving named insured';

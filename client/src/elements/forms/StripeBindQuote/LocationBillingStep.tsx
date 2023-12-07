@@ -1,57 +1,41 @@
-// replacement for BillingStep
-
-import { AddRounded, ExpandMoreRounded, PersonAddAltRounded } from '@mui/icons-material';
+import {
+  AccountBalanceRounded,
+  AddRounded,
+  ExpandMoreRounded,
+  PersonAddAltRounded,
+  PersonRounded,
+} from '@mui/icons-material';
 import {
   Avatar,
   AvatarGroup,
   Box,
-  Button,
-  ButtonProps,
   Card,
   CardContent,
   CardMedia,
   CardMediaProps,
   Collapse,
   Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Unstable_Grid2 as Grid,
-  IconButton,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useCallback, useMemo, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
-import { useFunctions } from 'reactfire';
+import { Form, Formik, useFormikContext } from 'formik';
+import { useCallback, useMemo, useState } from 'react';
 import { object, string } from 'yup';
 
-import { addBillingEntity as addBillingEntityFn } from 'api';
 import {
   AdditionalInterest,
   Address,
-  BillingEntity,
-  BillingType,
   NamedInsuredDetails,
   Quote,
   TCollection,
-  emailVal,
   fallbackImages,
-  phoneVal,
 } from 'common';
-import {
-  FormikFieldArray,
-  FormikMaskField,
-  FormikNativeSelect,
-  FormikTextField,
-  FormikWizardNavButtons,
-  IMask,
-  phoneMaskProps,
-} from 'components/forms';
+import { FormikFieldArray, FormikNativeSelect, FormikWizardNavButtons } from 'components/forms';
 import { SelectOption } from 'components/forms/FormikSelect';
-import { Form, Formik, FormikConfig, FormikProps, useFormikContext } from 'formik';
+import { ExpandMoreButton } from 'elements/cards/ExpandMoreButton';
 import { useDocData, useWizard } from 'hooks';
+import { AddBillingEntity } from './AddBillingEntity';
 import { BindQuoteProps } from './NamedInsuredStep';
 
 // list locations
@@ -61,155 +45,6 @@ import { BindQuoteProps } from './NamedInsuredStep';
 //    - select dropdown for billing entity
 //    - add additional insured button that opens collapse to add additional insured ??
 //        - or dialog ?? b/c eventually will be stored in locations collection docs
-
-const useAddBillingEntity = (
-  colName: TCollection,
-  docId: string,
-  onSuccess?: (cusId: string) => void,
-  onError?: (msg: string, err: any) => void
-) => {
-  const functions = useFunctions();
-  const [loading, setLoading] = useState(false);
-
-  // call backend with cus details -- create/retrieve customer --> add to quote
-  const addBillingEntity = useCallback(
-    async (billingEntityDetails: Pick<BillingEntity, 'displayName' | 'email' | 'phone'>) => {
-      try {
-        setLoading(true);
-        const { data } = await addBillingEntityFn(functions, {
-          collection: colName,
-          docId,
-          billingEntityDetails,
-        });
-
-        console.log('data: ', data);
-
-        setLoading(false);
-        onSuccess && onSuccess(data.stripeCustomerId);
-      } catch (err: any) {
-        setLoading(false);
-        let msg = err?.message || 'Error adding billing entity';
-        onError && onError(msg, err);
-      }
-    },
-    [functions, onSuccess, onError, colName, docId]
-  );
-
-  return useMemo(() => ({ addBillingEntity, loading }), [addBillingEntity, loading]);
-};
-
-const newBillingEntityVal = object().shape({
-  displayName: string().required(),
-  email: emailVal.required(),
-  phone: phoneVal.required(),
-  billingPref: string().notRequired(),
-});
-
-interface NewBillingEntityValues {
-  email: string;
-  phone: string;
-  displayName: string;
-  billingPref: string; // BillingType
-}
-
-type NewBillingEntityFormProps = FormikConfig<NewBillingEntityValues>;
-
-function NewBillingEntityForm(props: NewBillingEntityFormProps) {
-  return (
-    <Formik validationSchema={newBillingEntityVal} {...props}>
-      {({ handleSubmit }) => (
-        <Form onSubmit={handleSubmit}>
-          <Grid container spacing={4}>
-            <Grid xs={6}>
-              <FormikTextField name='displayName' label='Name' required fullWidth />
-            </Grid>
-            <Grid xs={6}>
-              <FormikTextField name='email' label='Email' required fullWidth />
-            </Grid>
-            <Grid xs={6}>
-              <FormikMaskField
-                id='phone'
-                name='phone'
-                label='Phone'
-                maskComponent={IMask}
-                inputProps={{ maskProps: phoneMaskProps }}
-                required
-                fullWidth
-              />
-            </Grid>
-            <Grid xs={6}>
-              <FormikNativeSelect
-                name='billingPref'
-                label='Billing Preference'
-                fullWidth
-                selectOptions={BillingType.options}
-              />
-            </Grid>
-          </Grid>
-        </Form>
-      )}
-    </Formik>
-  );
-}
-
-interface AddBillingEntityProps {
-  colName: TCollection;
-  docId: string;
-  buttonProps?: Omit<ButtonProps, 'onClick'>;
-}
-
-function AddBillingEntity({ colName, docId, buttonProps }: AddBillingEntityProps) {
-  const [open, setOpen] = useState(false);
-  const { addBillingEntity } = useAddBillingEntity(
-    colName,
-    docId,
-    () => {
-      toast.success(`billing entity added`);
-      setOpen(false);
-    },
-    (msg: string) => toast.error(msg)
-  );
-  const formRef = useRef<FormikProps<NewBillingEntityValues>>(null);
-
-  return (
-    <Box>
-      <Button onClick={() => setOpen(true)} {...buttonProps}>
-        Add Billing Entity
-      </Button>
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>New Billing Entity</DialogTitle>
-        <DialogContent dividers>
-          <NewBillingEntityForm
-            initialValues={{
-              displayName: '',
-              email: '',
-              phone: '',
-              billingPref: '',
-            }}
-            onSubmit={addBillingEntity}
-            innerRef={formRef}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              console.log(formRef.current);
-              if (
-                !formRef.current?.isValid ||
-                formRef.current?.isSubmitting ||
-                formRef.current?.isValidating
-              )
-                return;
-              formRef.current?.submitForm();
-            }}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-}
 
 const locationBillingVal = object().shape({
   defaultBillingEntityId: string().required(),
@@ -386,7 +221,7 @@ function BillingLocationFormCard({
               )}
             </Grid>
             <Grid xs={12} sx={{ display: 'flex', pt: 6 }}>
-              <AvatarGroup max={4} spacing='small' sx={{ justifyContent: 'flex-end' }}>
+              <AvatarGroup max={4} spacing='medium' sx={{ justifyContent: 'flex-end' }}>
                 {namedInsured ? (
                   <Tooltip title={`${namedInsured.firstName}`} key={namedInsured.email}>
                     <Avatar
@@ -399,46 +234,30 @@ function BillingLocationFormCard({
                 {dbAdditionalInterests?.length
                   ? dbAdditionalInterests.map((f, i) => (
                       <Tooltip title={`${f?.name}`} key={`${f.email}-${i}`}>
-                        <Avatar alt={`${f.email}-${i}`} sx={{ width: 30, height: 30 }} />
+                        <Avatar alt={`${f.email}-${i}`} sx={{ width: 30, height: 30 }}>
+                          {f.type === 'mortgagee' ? (
+                            <AccountBalanceRounded fontSize='inherit' />
+                          ) : (
+                            <PersonRounded fontSize='inherit' />
+                          )}
+                        </Avatar>
                       </Tooltip>
                     ))
                   : null}
               </AvatarGroup>
-              <IconButton
+              <ExpandMoreButton
+                expand={expanded}
                 onClick={handleExpandClick}
                 aria-expanded={expanded}
                 aria-label='edit additional interests'
-                sx={{ ml: 'auto' }}
                 size='small'
+                sx={{ ml: 'auto', height: 28, width: 28 }}
               >
-                <ExpandMoreRounded />
-              </IconButton>
+                <ExpandMoreRounded fontSize='inherit' />
+              </ExpandMoreButton>
             </Grid>
           </Grid>
         </CardContent>
-        {/* TODO: additional insured avatar group */}
-        {/* TODO: additional insured regular button with expand icon */}
-        {/* <CardActions disableSpacing>
-          <IconButton
-            onClick={handleExpandClick}
-            aria-expanded={expanded}
-            aria-label='edit additional interests'
-            sx={{ ml: 'auto' }}
-          >
-            <ExpandMoreRounded />
-          </IconButton>
-        </CardActions> */}
-        {/* <Box>
-          <ExpandMore
-          expand={expanded}
-          onClick={handleExpandClick}
-          aria-expanded={expanded}
-          aria-label="show more"
-        >
-          <ExpandMoreIcon />
-          </ExpandMore>
-        </Box> */}
-        {/* </Box> */}
       </Box>
       <Collapse
         in={expanded}

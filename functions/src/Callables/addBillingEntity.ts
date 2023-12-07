@@ -30,7 +30,7 @@ const addBillingEntity = async ({ data, auth }: CallableRequest<AddBillingEntity
   validate(docId, 'failed-precondition', 'docId required');
 
   const db = getFirestore();
-  const docRef = db.collection(collection).doc(docId) as DocumentReference<Quote>; // TODO: type assertion function
+  const docRef = db.collection(collection).doc(docId) as DocumentReference<Quote>; // TODO: type assertion function - could be policy or quote
   const docData = await getDoc(docRef);
 
   // only callable by user, agent, orgAdmin, iDemandAdmin

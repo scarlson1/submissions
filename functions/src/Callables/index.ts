@@ -188,6 +188,10 @@ export const sendpolicydoc = onCall(
   }
 );
 
+export const setquoteuserid = onCall(async (request) => {
+  return (await import('./setQuoteUserId.js')).default(request);
+});
+
 export const submitclaim = onCall(
   {
     secrets: [sendgridApiKey],

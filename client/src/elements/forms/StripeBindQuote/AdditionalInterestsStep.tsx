@@ -9,6 +9,8 @@ import { FormikFieldArray, FormikWizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import { BindQuoteProps } from './NamedInsuredStep';
 
+// CAN DELETE COMPONENT - ADDITIONAL INSURED MOVED TO BILLING LOCATION DETAILS STEP
+
 export interface AdditionalInterestsValues {
   additionalInterests: AdditionalInterest[];
 }

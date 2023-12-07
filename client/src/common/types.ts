@@ -640,7 +640,7 @@ const PaymentMethodZ = z.object({
   maskedAccountNumber: z.string(),
 });
 
-export const BillingType = z.enum(['checkout', 'invoice', 'mortgagee']);
+export const BillingType = z.enum(['checkout', 'invoice']); // 'mortgagee'
 export type TBillingType = z.infer<typeof BillingType>;
 
 export const BillingEntity = z.object({

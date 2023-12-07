@@ -2,7 +2,7 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { AuthData } from 'firebase-functions/lib/common/providers/https.js';
 import { HttpsError } from 'firebase-functions/v1/auth';
 
-import { AgencyDetails, AgentDetails } from '@idemand/common';
+import { AgencyDetails, AgentDetails, NamedInsured } from '@idemand/common';
 import { Claim, Optional } from '../../common/index.js';
 
 export const hasClaim = (token: DecodedIdToken | undefined, claim: Claim) =>
@@ -36,6 +36,7 @@ export function requireAuth(auth: AuthData | undefined): asserts auth is AuthDat
 }
 
 type AgentAndAgencyDoc = {
+  namedInsured?: Optional<NamedInsured>;
   agent: Optional<AgentDetails>;
   agency: Optional<AgencyDetails>;
   userId: string | null;
@@ -50,11 +51,13 @@ export function requireOwnerAgentAdmin<T extends AgentAndAgencyDoc>(
   const uid = auth.uid;
   const tenantId = auth.token.firebase?.tenant;
 
+  const userIsOwner = uid === doc?.userId;
+  const userIsNamedInsured = uid === doc?.namedInsured?.userId;
   const userIsAgent = isAgent(auth?.token) && uid === doc?.agent?.userId;
   const userIsOrgAdmin = isOrgAdmin(auth?.token) && tenantId === doc?.agency?.orgId;
   const userIsIDemandAdmin = isIDemandAdmin(auth?.token);
 
-  if (!(userIsAgent || userIsOrgAdmin || userIsIDemandAdmin))
+  if (!(userIsOwner || userIsNamedInsured || userIsAgent || userIsOrgAdmin || userIsIDemandAdmin))
     throw new HttpsError('permission-denied', errMsg);
 
   return;

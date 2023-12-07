@@ -41,6 +41,7 @@ export {
   sendemail,
   sendnewquotenotifications,
   sendpolicydoc,
+  setquoteuserid,
   submitclaim,
   verifyepaytoken,
 } from './callables/index.js';

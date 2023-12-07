@@ -25,6 +25,7 @@ export { getTenantIdFromEmail } from './getTenantIdFromEmail';
 export { inviteUsers } from './inviteUsers';
 export { moveUserToTenant } from './moveUserToTenant';
 export { sendEmail } from './sendEmail';
+export { setQuoteUserId } from './setQuoteUserId';
 export { submitClaim } from './submitClaim';
 export { verifyEPayToken } from './verifyEPayToken';
 

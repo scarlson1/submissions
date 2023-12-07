@@ -6,32 +6,14 @@ import {
   CardMedia,
   Chip,
   Collapse,
-  IconButton,
-  IconButtonProps,
   Typography,
-  styled,
 } from '@mui/material';
 import { useCallback, useState } from 'react';
 
 import { Submission, WithId, fallbackImages } from 'common';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils';
 import { Item } from '.';
-
-interface ExpandMoreProps extends IconButtonProps {
-  expand: boolean;
-}
-
-const ExpandMore = styled((props: ExpandMoreProps) => {
-  const { expand, ...other } = props;
-  return <IconButton {...other} />;
-})(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto', // @ts-ignore
-  transition: theme.transitions.create('transform', {
-    // @ts-ignore
-    duration: theme.transitions?.duration.shortest,
-  }),
-}));
+import { ExpandMoreButton } from './ExpandMoreButton';
 
 export function SubmissionCard({ submission: s }: { submission: WithId<Submission> }) {
   const [expanded, setExpanded] = useState<boolean>(false);
@@ -78,7 +60,7 @@ export function SubmissionCard({ submission: s }: { submission: WithId<Submissio
         sx={{ borderTop: (theme) => `1px solid ${theme.vars.palette.divider}` }}
       >
         <Chip size='small' label={s.status} />
-        <ExpandMore
+        <ExpandMoreButton
           // expand={Boolean(expanded && !!expanded[s.id])}
           expand={expanded}
           onClick={handleExpandClick}
@@ -87,7 +69,7 @@ export function SubmissionCard({ submission: s }: { submission: WithId<Submissio
           size='small'
         >
           <ExpandMoreRounded fontSize='inherit' />
-        </ExpandMore>
+        </ExpandMoreButton>
       </CardActions>
       <Collapse in={expanded} timeout='auto' unmountOnExit>
         <CardContent>

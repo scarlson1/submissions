@@ -12,7 +12,7 @@ import { Quote, quotesCollection } from 'common';
 import { Wizard } from 'components/forms';
 import { useDocData } from 'hooks';
 import { addToDate, logDev } from 'modules/utils';
-import { AdditionalInterestsStep, AdditionalInterestsValues } from './AdditionalInterestsStep';
+import { AdditionalInterestsValues } from './AdditionalInterestsStep';
 import { BillingStep, BillingValues } from './BillingStep';
 import { EffectiveDateStep, EffectiveDateValues } from './EffectiveDateStep';
 import { BillingEntityStepValues, LocationBillingStep } from './LocationBillingStep';
@@ -124,6 +124,7 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
     <Container maxWidth='md' disableGutters>
       <Wizard maxWidth='md'>
         <NamedInsuredStep
+          quoteId={quoteId}
           initialValues={{
             namedInsured: {
               firstName: quote?.namedInsured?.firstName || '',
@@ -138,12 +139,12 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
           formRef={formRef as any as RefObject<FormikProps<NamedInsuredValues>>}
           validateOnMount
         />
-        <AdditionalInterestsStep
+        {/* <AdditionalInterestsStep
           initialValues={{ additionalInterests: quote.additionalInterests || [] }}
           onStepSubmit={saveValues}
           formRef={formRef as any as RefObject<FormikProps<AdditionalInterestsValues>>}
           validateOnMount
-        />
+        /> */}
         <EffectiveDateStep
           initialValues={{
             effectiveDate: quote?.effectiveDate?.toDate() || (null as any as Date),
