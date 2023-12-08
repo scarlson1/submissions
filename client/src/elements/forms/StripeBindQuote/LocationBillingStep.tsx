@@ -50,7 +50,7 @@ import { BindQuoteProps } from './NamedInsuredStep';
 //        - or dialog ?? b/c eventually will be stored in locations collection docs
 
 const locationBillingVal = object().shape({
-  defaultBillingEntityId: string().required(),
+  defaultBillingEntityId: string().required('required'),
   additionalInterests: additionalInterestsVal,
 });
 
@@ -190,7 +190,6 @@ function BillingLocationFormCard({
   const { values, touched, errors, dirty, setFieldValue, setFieldTouched, setFieldError } =
     useFormikContext<BillingEntityStepValues>();
   const [expanded, setExpanded] = useState(false);
-  console.log('values ', values);
 
   const handleExpandClick = () => {
     // TODO: dont allow collapse if form is invalid (use formik context, check if key included in errors)

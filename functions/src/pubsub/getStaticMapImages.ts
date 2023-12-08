@@ -15,6 +15,7 @@ import { StorageFolder, getReportErrorFn, mapboxPublicToken } from '../common/in
 import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
 import { clearTempFiles, randomFileName, verify } from '../utils/index.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // boost cpu if hashing blurhash
 // https://firebase.google.com/docs/functions/manage-functions?gen=2nd#set_timeout_and_memory_allocation
@@ -64,17 +65,23 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
   });
   const startMS = new Date().getTime();
 
-  let collection = null;
-  let docPath = null;
-  let locationPath = null;
+  // let collection = null;
+  // let docPath = null;
+  // let locationPath = null;
 
-  try {
-    collection = event.data?.message?.json?.collection;
-    docPath = event.data?.message?.json?.docPath;
-    locationPath = event.data?.message?.json?.locationPath;
-  } catch (e) {
-    reportErr('PubSub message was not JSON', { ...event }, e);
-  }
+  // try {
+  //   collection = event.data?.message?.json?.collection;
+  //   docPath = event.data?.message?.json?.docPath;
+  //   locationPath = event.data?.message?.json?.locationPath;
+  // } catch (e) {
+  //   reportErr('PubSub message was not JSON', { ...event }, e);
+  // }
+
+  const { collection, docPath, locationPath } = extractPubSubPayload(
+    event,
+    ['collection', 'docPath', 'locationPath'],
+    true
+  );
 
   const cleanUpTempPaths = [];
 

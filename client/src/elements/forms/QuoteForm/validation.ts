@@ -127,10 +127,10 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
       .typeError('annual premium required (number)')
       .min(100)
       .required('annual premium is required'),
-    subproducerCommission: yup
-      .number()
-      .typeError('subproducer commission required (number)')
-      .required('commission is required'),
+    // subproducerCommission: yup
+    //   .number()
+    //   .typeError('subproducer commission required (number)')
+    //   .required('commission is required'),
     quoteTotal: yup
       .number()
       .typeError('quote total required')

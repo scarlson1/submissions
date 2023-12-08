@@ -1,6 +1,6 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import type { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info, warn } from 'firebase-functions/logger';
+import { info, warn } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { getReportErrorFn, locationsCollection, transactionsCollection } from '../common/index.js';
@@ -13,6 +13,7 @@ import {
 } from '../modules/transactions/index.js';
 import { publishGetPolicyImages } from '../services/pubsub/publishers.js';
 import { splitChunks, verify } from '../utils/index.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // using JS Module over classes: https://dev.to/giantmachines/stop-using-javascript-classes-33ij
 
@@ -35,12 +36,13 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
   info('POLICY CREATED EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
 
   const eventId = event.id;
-  let policyId = null;
-  try {
-    policyId = event.data?.message?.json?.policyId;
-  } catch (e) {
-    error('PubSub message was not JSON', e);
-  }
+  // let policyId = null;
+  // try {
+  //   policyId = event.data?.message?.json?.policyId;
+  // } catch (e) {
+  //   error('PubSub message was not JSON', e);
+  // }
+  const { policyId } = extractPubSubPayload(event, ['policyId']);
 
   if (!policyId || typeof policyId !== 'string') {
     reportErr(`Missing policy ID`, { policyId });

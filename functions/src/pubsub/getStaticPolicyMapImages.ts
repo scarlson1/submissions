@@ -18,6 +18,7 @@ import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
 import { clearTempFiles, getBoundingBox, randomFileName, verify } from '../utils/index.js';
 import { MAPBOX_STYLES } from './getStaticMapImages.js';
+import { extractPubSubPayload } from './utils/index.js';
 
 // using the sdk: https://github.com/mapbox/mapbox-sdk-js/blob/main/docs/services.md#getstaticimage
 
@@ -30,12 +31,17 @@ export type GetStaticPolicyMapImagesPayload = { policyId: string };
 export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapImagesPayload>>) => {
   info(`Get static policy map images`, { ...(event.data?.message?.json || {}) });
 
-  let policyId = null;
-  try {
-    policyId = event.data?.message?.json?.policyId;
-  } catch (err: any) {
-    reportErr('invalid message json', event, err);
-  }
+  // let policyId = null;
+  // try {
+  //   policyId = event.data?.message?.json?.policyId;
+  // } catch (err: any) {
+  //   reportErr('invalid message json', event, err);
+  // }
+  const { policyId } = extractPubSubPayload<GetStaticPolicyMapImagesPayload>(
+    event,
+    ['policyId'],
+    true
+  );
 
   const cleanUpTempPaths: string[] = [];
 
@@ -104,13 +110,14 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
       cleanUpTempPaths.push(tempFilePath);
 
       try {
+        let params: Record<string, any> = {
+          access_token: mapboxPublicToken.value(),
+          logo: false,
+        };
+        if (markers.length > 1) params['padding'] = 100;
         await downloadFromUrl(url, tempFilePath, {
           responseType: 'stream',
-          params: {
-            access_token: mapboxPublicToken.value(),
-            logo: false,
-            padding: 100,
-          },
+          params,
         });
 
         const fileId = createDocId(8);

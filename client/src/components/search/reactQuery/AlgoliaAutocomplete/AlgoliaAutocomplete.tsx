@@ -85,7 +85,7 @@ export const AlgoliaAutocomplete = <T,>({
 
   return (
     <MuiAutocomplete
-      sx={{ width: 300 }}
+      // sx={{ width: 300 }}
       // getOptionLabel={(option) => (typeof option === 'string' ? option : option.searchTitle)}
       getOptionLabel={(option) => option?.searchTitle ?? null}
       filterOptions={(x) => x}

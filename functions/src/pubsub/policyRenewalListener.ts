@@ -1,6 +1,6 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info } from 'firebase-functions/logger';
+import { info } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { ILocation, Policy, WithId } from '@idemand/common';
@@ -13,6 +13,7 @@ import {
   formatPremiumTrx,
 } from '../modules/transactions/index.js';
 import { verify } from '../utils/index.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // TODO: shared logic with new policy event (abstract into module)
 
@@ -26,12 +27,13 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
   info('POLICY RENEWAL EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
 
   const eventId = event.id;
-  let policyId = null;
-  try {
-    policyId = event.data?.message?.json?.policyId;
-  } catch (e) {
-    error('PubSub message was not JSON', e);
-  }
+  // let policyId = null;
+  // try {
+  //   policyId = event.data?.message?.json?.policyId;
+  // } catch (e) {
+  //   error('PubSub message was not JSON', e);
+  // }
+  const { policyId } = extractPubSubPayload(event, ['policyId']);
 
   const db = getFirestore();
   // const policyCol = policiesCollection(db); // .withConverter(policyConverter)

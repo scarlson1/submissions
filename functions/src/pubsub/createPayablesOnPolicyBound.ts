@@ -18,6 +18,7 @@ import { getComm } from '../modules/rating/utils.js';
 import { getStripe } from '../services/index.js';
 import { verify } from '../utils/index.js';
 import { PolicyCreatedPayload } from './policyCreatedListener.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // NOT BEING USED - CURRENTLY RUNNING FROM POLICY CREATED EVENT
 // ^^ would create payable from policy csv import -- intended behavior ??
@@ -32,13 +33,14 @@ import { PolicyCreatedPayload } from './policyCreatedListener.js';
 const reportErr = getReportErrorFn('createPayablesOnPolicyBound');
 
 export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayload>>) => {
-  let policyId = null;
+  // let policyId = null;
 
-  try {
-    policyId = event.data?.message?.json?.policyId;
-  } catch (e) {
-    reportErr('PubSub message was not JSON', {}, e);
-  }
+  // try {
+  //   policyId = event.data?.message?.json?.policyId;
+  // } catch (e) {
+  //   reportErr('PubSub message was not JSON', {}, e);
+  // }
+  const { policyId } = extractPubSubPayload(event, ['policyId']);
 
   const db = getFirestore();
   const policyCol = policiesCollection(db);

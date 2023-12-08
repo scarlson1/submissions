@@ -1215,6 +1215,7 @@ export const QuoteForm = ({
                       label: 'Agent name',
                       required: true,
                       fullWidth: true,
+                      sx: { minWidth: 120 },
                     }}
                     searchOptions={{ filters: 'collectionName:users AND isOrgUser:true' }}
                     onSelectItem={(org) =>

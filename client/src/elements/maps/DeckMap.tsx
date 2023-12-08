@@ -6,6 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { ReactNode } from 'react';
 import Map from 'react-map-gl';
 
+import { MAPBOX_DARK, MAPBOX_LIGHT } from 'components';
 import { useWidth } from 'hooks';
 import { DEFAULT_INITIAL_VIEW_STATE, MAPBOX_TOKEN } from './constants';
 
@@ -56,8 +57,8 @@ export const DeckMap = ({
           mapboxAccessToken={MAPBOX_TOKEN}
           mapStyle={
             theme.palette.mode === 'light'
-              ? 'mapbox://styles/mapbox/light-v11' // 8
-              : 'mapbox://styles/spencer-carlson/clkrsmyib01wz01qwdbujb4da'
+              ? MAPBOX_LIGHT // 'mapbox://styles/mapbox/light-v11' // 8
+              : MAPBOX_DARK // 'mapbox://styles/spencer-carlson/clkrsmyib01wz01qwdbujb4da'
           }
           styleDiffing
           minZoom={2}

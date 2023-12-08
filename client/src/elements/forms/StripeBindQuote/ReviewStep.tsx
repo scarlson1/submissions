@@ -188,7 +188,7 @@ export const ReviewStep = ({ onSubmit, quote }: ReviewStepProps) => {
         <pre>{JSON.stringify(quote, null, 2)}</pre>
       </Box> */}
       <Box sx={{ py: 2 }}>
-        <WizardNavButtons buttonText='bind policy' />
+        <WizardNavButtons buttonText='bind policy' variant='contained' />
       </Box>
     </Container>
   );

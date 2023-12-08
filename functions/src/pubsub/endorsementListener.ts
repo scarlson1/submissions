@@ -23,6 +23,7 @@ import {
   getOffsetTrx,
 } from '../modules/transactions/index.js';
 import { verify } from '../utils/index.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // Handles creating transactions whenever a location endorsement event is published
 //    - trx1: offsets the remaining period for the original trx
@@ -47,17 +48,23 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
   info('PREM ENDORSEMENT EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
 
   const eventId = event.id;
-  let policyId = null;
-  let locationId = null;
-  let effDateMS = null;
+  // let policyId = null;
+  // let locationId = null;
+  // let effDateMS = null;
 
-  try {
-    policyId = event.data?.message?.json?.policyId;
-    locationId = event.data?.message?.json?.locationId;
-    effDateMS = event.data?.message?.json?.effDateMS;
-  } catch (e) {
-    reportErr('PubSub message was not JSON', {}, e);
-  }
+  // try {
+  //   policyId = event.data?.message?.json?.policyId;
+  //   locationId = event.data?.message?.json?.locationId;
+  //   effDateMS = event.data?.message?.json?.effDateMS;
+  // } catch (e) {
+  //   reportErr('PubSub message was not JSON', {}, e);
+  // }
+
+  const { policyId, locationId, effDateMS } = extractPubSubPayload(event, [
+    'policyId',
+    'locationId',
+    'effDateMS',
+  ]);
 
   const db = getFirestore();
   const locationsCol = locationsCollection(db);
