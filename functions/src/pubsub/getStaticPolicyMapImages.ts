@@ -94,10 +94,19 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
       //   bbox[1]
       // },${bbox[2]},${bbox[3]}]/1200x720@2x?access_token=${mapboxPublicToken.value()}&logo=false`;
 
+      const viewParams =
+        markers.length > 1
+          ? `[${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}]`
+          : `${coordsArr[0][1]},${coordsArr[0][0]},${styleType.zoom},0,40`;
+      console.log(viewParams);
+
       // marker encoding
       const url = `https://api.mapbox.com/styles/v1/${styleType.style}/static/${markers.join(
         ','
-      )}/[${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}]/1200x720@2x`; // ?padding=100&access_token=${mapboxPublicToken.value()}&logo=false
+      )}/${viewParams}/1200x720@2x`;
+      // ?access_token=${mapboxPublicToken.value()}&logo=false${
+      //   markers.length > 1 ? `&padding=100` : ''
+      // }
 
       // geojson encoding
       // const url = `https://api.mapbox.com/styles/v1/${
@@ -115,6 +124,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
           logo: false,
         };
         if (markers.length > 1) params['padding'] = 100;
+
         await downloadFromUrl(url, tempFilePath, {
           responseType: 'stream',
           params,
@@ -128,6 +138,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
             fileId,
           },
         };
+        console.log('downloaded file');
 
         const destinationPath = `${StorageFolder.Enum.locationMapImages}/map_${styleType.name}_${fileId}.jpeg`;
         await bucket.upload(tempFilePath, {
@@ -144,7 +155,9 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
         set(docUpdates, ['imageURLs', styleType.name], downloadURL);
       } catch (err: any) {
         if (cleanUpTempPaths.length > 0) {
-          await clearTempFiles(cleanUpTempPaths);
+          try {
+            await clearTempFiles(cleanUpTempPaths);
+          } catch (err: any) {}
         }
         reportErr(`Error downloading map images`, { errMsg: err?.message || null }, err);
         return;
