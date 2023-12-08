@@ -35,7 +35,7 @@ export function requireAuth(auth: AuthData | undefined): asserts auth is AuthDat
   return;
 }
 
-type AgentAndAgencyDoc = {
+export type AgentAndAgencyDoc = {
   namedInsured?: Optional<NamedInsured>;
   agent: Optional<AgentDetails>;
   agency: Optional<AgencyDetails>;

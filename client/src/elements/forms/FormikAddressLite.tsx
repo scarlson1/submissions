@@ -101,7 +101,7 @@ export const FormikAddressLite = ({
         </DialogTitle>
         <DialogContent dividers sx={{ py: 5 }}>
           {/* TODO: duplicated in FormikAddress Component --> combine */}
-          <Grid container rowSpacing={3} columnSpacing={4} {...gridProps}>
+          <Grid container rowSpacing={5} columnSpacing={6} {...gridProps}>
             {names.addressLine1 && (
               <Grid xs={9}>
                 <FormikTextField
@@ -123,22 +123,23 @@ export const FormikAddressLite = ({
               </Grid>
             )}
             {names.city && (
-              <Grid xs={6}>
+              <Grid xs={6} sm={4}>
                 <FormikTextField name={names.city} label='City' fullWidth {...textFieldProps} />
               </Grid>
             )}
             {names.state && (
-              <Grid xs={6}>
+              <Grid xs={6} sm={4}>
                 <FormikNativeSelect
                   name={names.state}
                   label='State'
                   fullWidth
                   selectOptions={State.options}
+                  variant={textFieldProps?.variant === 'standard' ? 'standard' : 'outlined'}
                 />
               </Grid>
             )}
             {names.postal && (
-              <Grid xs={6}>
+              <Grid xs={6} sm={4}>
                 <FormikMaskField
                   id={names.postal}
                   name={names.postal}

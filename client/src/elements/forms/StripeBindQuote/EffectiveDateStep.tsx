@@ -1,8 +1,7 @@
-// BUG: load form when eff exception req = true, then turn it off and select valid date ==> validation fails
-
 import { Box, Collapse, Typography } from '@mui/material';
+import { startOfDay } from 'date-fns';
 import { Form, Formik } from 'formik';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { boolean, date, object, string } from 'yup';
 
 import {
@@ -16,12 +15,18 @@ import { useWizard } from 'hooks';
 import { policyEffShortcuts } from '../QuoteForm/constants';
 import { BindQuoteProps } from './NamedInsuredStep';
 
-export const getEffectiveDateValidation = (minEffDate: Date, maxEffDate: Date) =>
+// BUG: load form when eff exception req = true, then turn it off and select valid date ==> validation fails
+const today = startOfDay(new Date());
+
+export const getEffectiveDateValidation = (
+  minEffDate: Date | undefined,
+  maxEffDate: Date | undefined
+) =>
   object().shape({
     effectiveExceptionRequested: boolean(),
     effectiveDate: date().when('effectiveExceptionRequested', {
       is: true,
-      then: () => date().min(new Date(), 'Effective cannot be in the past'),
+      then: () => date().min(today, 'Effective cannot be in the past'),
       otherwise: () =>
         date() // addToDate({ days: 15 })
           .min(minEffDate, 'Effective date must be at least 15 days from binding coverage')
@@ -74,8 +79,13 @@ EffectiveDateStepProps) => {
     }
   }, []);
 
+  const validation = useMemo(
+    () => getEffectiveDateValidation(minEffDate || undefined, maxEffDate || undefined),
+    [minEffDate, maxEffDate]
+  );
+
   return (
-    <Formik onSubmit={handleSubmit} {...props} innerRef={formRef}>
+    <Formik onSubmit={handleSubmit} validationSchema={validation} {...props} innerRef={formRef}>
       {({ values, submitForm }) => (
         <Form>
           <Box>

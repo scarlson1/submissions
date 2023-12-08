@@ -23,6 +23,7 @@ export {
   calcpolicycancelchanges,
   calcpolicychanges,
   calcquote,
+  calctotalsbybillingentity,
   createpaymentintent,
   createpolicy,
   createtenantfromsubmission,

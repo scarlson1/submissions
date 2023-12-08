@@ -1,11 +1,15 @@
-import { Organization, Policy, Totals, WithId, orgsCollection } from '@idemand/common';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { info } from 'firebase-functions/logger';
+import { Organization, Policy, orgsCollection } from '@idemand/common';
+import { getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
 import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
-import { sumBy } from 'lodash-es';
-import Stripe from 'stripe';
-import { Payable, getReportErrorFn, payablesCollection, stripeSecretKey } from '../common/index.js';
-import { createDocId, createTransferGroupId, getDocData } from '../modules/db/utils.js';
+import { getReportErrorFn, payablesCollection, stripeSecretKey } from '../common/index.js';
+import { createDocId, getDocData } from '../modules/db/utils.js';
+import { generateInvoiceForPayable } from '../modules/payments/generateInvoiceForPayable.js';
+import {
+  createPayableObject,
+  getInvoiceDueDate,
+  getLcnSummariesByCusId,
+} from '../modules/payments/index.js';
 import { getComm } from '../modules/rating/utils.js';
 import { getStripe } from '../services/stripe.js';
 import { verify } from '../utils/index.js';
@@ -52,6 +56,7 @@ export default async (
 
     const stripe = getStripe(stripeSecretKey.value());
     const batch = db.batch();
+    const payableIds = [];
 
     // const subProducerCommPct = await getSubProducerCommPct(db, policy);
     const { subproducerCommissionPct } = await getComm(
@@ -62,137 +67,43 @@ export default async (
     );
 
     for (let cusId of billingEntityIds) {
-      const customer = await stripe.customers.retrieve(cusId);
-      // console.log('stripe customer: ', customer);
-      verify(!customer.deleted, `stripe customer deleted ${cusId}`);
-
-      const lineItems = billingEntityTotalsToLineItems({ ...policy, id: policyId }, customer);
-      console.log('billing entity lineItems: ', lineItems);
-
       const totals = policy.totalsByBillingEntity[cusId];
       if (!totals) throw new Error(`missing totals for billing ID ${cusId}`);
-      const transfers = getTransfersForNewPolicy(stripeAccountId, totals, subproducerCommissionPct);
-      console.log('transfers: ', transfers);
 
-      const payableAmounts = getPayableAmounts(totals);
+      const billingEntityLocations = getLcnSummariesByCusId(cusId, policy.locations);
 
-      let billingEntityLocations: Policy['locations'] = {};
-      for (let [lcnId, lcn] of Object.entries(policy.locations)) {
-        if (lcn.billingEntityId === cusId) billingEntityLocations[lcnId] = lcn;
-      }
-
-      let payable: Payable = {
+      const payable = await createPayableObject(stripe, {
+        cusId,
         policyId,
-        stripeCustomerId: cusId,
-        billingEntityDetails: {
-          email: customer.email,
-          name: customer.name || null,
-          phone: customer.phone || null,
-          address: customer.address || null,
-        },
-        lineItems,
-        transfers,
-        transferGroup: createTransferGroupId(policyId),
-        taxes: totals.taxes,
-        fees: totals.fees,
-        status: 'outstanding',
-        ...payableAmounts,
-        paymentOption: null,
-        locations: billingEntityLocations,
-        metadata: {
-          created: Timestamp.now(),
-          updated: Timestamp.now(),
-        },
-      };
+        totals,
+        billingEntityLocations,
+        subProducerCommPct: subproducerCommissionPct,
+        dueDate: getInvoiceDueDate(policy.effectiveDate),
+      });
 
       let payableRef = payablesCol.doc(`rec_${createDocId(7)}`);
       batch.set(payableRef, payable);
+      payableIds.push(payableRef.id);
     }
 
     await batch.commit();
+
+    // emit pub sub event to create invoice for payable ??
+    // TODO: move to correct place --> temp including here for testing
+    for (let payableId of payableIds) {
+      try {
+        let invoiceId = await generateInvoiceForPayable(stripe, payableId);
+        await stripe.invoices.sendInvoice(invoiceId);
+        info(`Created invoice for payable ${invoiceId}`);
+      } catch (err: any) {
+        error(`Error sending/creating invoice`, { ...err });
+      }
+    }
+    return;
   } catch (err: any) {
     let msg = 'Error creating payable for new policy';
     if (err?.message) msg += ` (${err.message})`;
     reportErr(msg, { ...event }, err);
+    return;
   }
 };
-
-// TODO: replace totals by billing entity with line items ?? place total outside lineItems
-// = { lineItems: [lineItem1, lineItem2], total: 1234 }
-function billingEntityTotalsToLineItems(policy: WithId<Policy>, customer: Stripe.Customer) {
-  const billingEntityTotals = policy.totalsByBillingEntity[customer.id];
-  // TODO: enable zod validation
-  // if (!TotalsByBillingEntity.safeParse(billingEntityTotals)) throw new Error(`missing billing entity totals for ${billingEntityId}`)
-  if (!billingEntityTotals) throw new Error(`missing billing entity totals for ${customer.id}`);
-
-  let lineItems = [
-    {
-      displayName: 'iDemand Flood term premium',
-      amount: billingEntityTotals.termPremium * 100,
-      descriptor: `Total term premium for locations assigned to ${
-        customer.name || customer.email
-      } under policy ${policy.id}`,
-    },
-  ];
-
-  for (let fee of billingEntityTotals.fees) {
-    lineItems.push({
-      displayName: fee.displayName,
-      amount: fee.value * 100,
-      descriptor: '',
-    });
-  }
-
-  for (let tax of billingEntityTotals.taxes) {
-    lineItems.push({
-      displayName: tax.displayName,
-      amount: tax.value * 100,
-      descriptor: '', // TODO: add descriptor to tax object
-    });
-  }
-
-  return lineItems;
-}
-
-// Requires DB call to get rating Doc ?? TODO: store as subcollection of policy
-function getTransfersForNewPolicy(
-  stripeAccountId: string,
-  billingEntityTotals: Totals,
-  subProducerCommissionPct: number
-) {
-  return [
-    {
-      amount: billingEntityTotals.termPremium * subProducerCommissionPct,
-      destination: stripeAccountId,
-    },
-  ];
-}
-
-function getPayableAmounts(totals: Totals) {
-  const refundableTaxesAmount =
-    sumBy(
-      totals.taxes.filter((t) => t.refundable || t.refundable === undefined),
-      'value'
-    ) * 100;
-  const totalTaxesAmount = sumBy(totals.taxes, 'value') * 100;
-  const totalFeesAmount = sumBy(totals.taxes, 'value') * 100;
-  const refundableFeesAmount =
-    sumBy(
-      // @ts-ignore
-      totals.fees.filter((f) => f.refundable || f.refundable === undefined),
-      'value'
-    ) * 100;
-  const termPremiumAmount = totals.termPremium;
-  const totalRefundableAmount = totals.termPremium + refundableFeesAmount + refundableTaxesAmount;
-  const totalAmount = totals.price * 100;
-
-  return {
-    refundableFeesAmount,
-    totalFeesAmount,
-    refundableTaxesAmount,
-    totalTaxesAmount,
-    totalRefundableAmount,
-    termPremiumAmount,
-    totalAmount,
-  };
-}

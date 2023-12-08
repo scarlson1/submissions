@@ -8,7 +8,7 @@ import { onCallWrapper } from '../services/sentry/onCallWrapper.js';
 import { getStripe } from '../services/stripe.js';
 import { getActiveStripeCustomerByEmail } from '../utils/stripe.js';
 import { isValidEmail } from '../utils/validation.js';
-import { getDoc, requireOwnerAgentAdmin, validate } from './utils/index.js';
+import { getDocData, requireOwnerAgentAdmin, validate } from './utils/index.js';
 
 const reportErr = getReportErrorFn('addBillingEntity');
 
@@ -26,12 +26,12 @@ interface AddBillingEntityRequest {
 const addBillingEntity = async ({ data, auth }: CallableRequest<AddBillingEntityRequest>) => {
   const { collection, docId, billingEntityDetails } = data;
 
-  validate(collection, 'failed-precondition', 'collection required');
+  validate(Collection.safeParse(collection).success, 'failed-precondition', 'collection required');
   validate(docId, 'failed-precondition', 'docId required');
 
   const db = getFirestore();
   const docRef = db.collection(collection).doc(docId) as DocumentReference<Quote>; // TODO: type assertion function - could be policy or quote
-  const docData = await getDoc(docRef);
+  const docData = await getDocData(docRef);
 
   // only callable by user, agent, orgAdmin, iDemandAdmin
   requireOwnerAgentAdmin(auth, docData);

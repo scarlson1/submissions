@@ -68,6 +68,10 @@ export const calcquote = onCall(async (request) => {
   return (await import('./calcQuote.js')).default(request);
 });
 
+export const calctotalsbybillingentity = onCall(async (request) => {
+  return (await import('./calcTotalsByBillingEntity.js')).default(request);
+});
+
 // export const convertpolicyschema = onCall(async (request) => {
 //   return (await import('./convertPolicySchema.js')).default(request);
 // });

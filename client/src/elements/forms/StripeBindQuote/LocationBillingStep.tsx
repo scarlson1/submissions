@@ -23,18 +23,21 @@ import { Form, Formik, useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
 import { object, string } from 'yup';
 
+import { calcTotalsByBillingEntity } from 'api';
 import {
   AdditionalInterest,
   Address,
   NamedInsuredDetails,
   Quote,
   TCollection,
+  additionalInterestsVal,
   fallbackImages,
 } from 'common';
 import { FormikFieldArray, FormikNativeSelect, FormikWizardNavButtons } from 'components/forms';
 import { SelectOption } from 'components/forms/FormikSelect';
 import { ExpandMoreButton } from 'elements/cards/ExpandMoreButton';
 import { useDocData, useWizard } from 'hooks';
+import { useFunctions } from 'reactfire';
 import { AddBillingEntity } from './AddBillingEntity';
 import { BindQuoteProps } from './NamedInsuredStep';
 
@@ -48,6 +51,7 @@ import { BindQuoteProps } from './NamedInsuredStep';
 
 const locationBillingVal = object().shape({
   defaultBillingEntityId: string().required(),
+  additionalInterests: additionalInterestsVal,
 });
 
 export interface BillingEntityStepValues {
@@ -64,10 +68,10 @@ interface LocationBillingStepProps extends BindQuoteProps<BillingEntityStepValue
 }
 
 // when refactoring to multi-location:
-//    - additional interests stored in location doc ()
+//    - additional interests stored in location doc
 //    - field value: locations.lcnId.billingEntityId
 //    - virtualize cards
-//    - lazy load additional insureds / use react query ??
+//    - lazy load additional insureds (locations) / use react query ??
 
 export const LocationBillingStep = ({
   colName,
@@ -77,11 +81,15 @@ export const LocationBillingStep = ({
   formRef,
   onStepSubmit,
 }: LocationBillingStepProps) => {
+  const functions = useFunctions();
   const { nextStep } = useWizard();
   // TODO: fix type instead of Pick<Quote>
   // pass options & additional interest getter fn --> useMemo to return options & AI ??
   const { data } = useDocData<
-    Pick<Quote, 'billingEntities' | 'defaultBillingEntityId' | 'additionalInterests'>
+    Pick<
+      Quote,
+      'namedInsured' | 'billingEntities' | 'defaultBillingEntityId' | 'additionalInterests'
+    >
   >(colName, docId);
   // console.log('doc data: ', data);
 
@@ -104,12 +112,18 @@ export const LocationBillingStep = ({
           additionalInterests: values.additionalInterests,
         });
 
+        // TODO: move to onStepSubmit ?? make component more reusable / separate view from js
+        const { data } = await calcTotalsByBillingEntity(functions, {
+          collection: colName,
+          docId,
+        });
+
         await nextStep();
       } catch (err: any) {
         console.log('err: ', err);
       }
     },
-    [nextStep]
+    [nextStep, functions, colName, docId]
   );
 
   return (
@@ -141,8 +155,7 @@ export const LocationBillingStep = ({
               sx={{ maxHeight: { xs: 500, sm: 800 }, overflowY: 'auto', py: 5 }}
             >
               <BillingLocationFormCard
-                // @ts-ignore
-                namedInsured={data.namedInsured}
+                namedInsured={data.namedInsured as NamedInsuredDetails}
                 dbAdditionalInterests={data.additionalInterests || []}
                 address={address}
                 img={img}
@@ -220,7 +233,7 @@ function BillingLocationFormCard({
                 </Typography>
               )}
             </Grid>
-            <Grid xs={12} sx={{ display: 'flex', pt: 6 }}>
+            <Grid xs={12} sx={{ display: 'flex', alignItems: 'center', pt: 6 }}>
               <AvatarGroup max={4} spacing='medium' sx={{ justifyContent: 'flex-end' }}>
                 {namedInsured ? (
                   <Tooltip title={`${namedInsured.firstName}`} key={namedInsured.email}>
@@ -252,6 +265,7 @@ function BillingLocationFormCard({
                 aria-label='edit additional interests'
                 size='small'
                 sx={{ ml: 'auto', height: 28, width: 28 }}
+                disabled={Boolean(errors) && Object.keys(errors).includes('additionalInterests')}
               >
                 <ExpandMoreRounded fontSize='inherit' />
               </ExpandMoreButton>
@@ -283,12 +297,19 @@ function BillingLocationFormCard({
                   { label: 'Mortgagee', value: 'mortgagee' },
                   { label: 'Additional Insured', value: 'additional_insured' },
                 ],
+                variant: 'standard',
+                propsGetterFunc: () => ({
+                  sx: {
+                    minWidth: 100,
+                  },
+                }),
               },
               {
                 name: 'name',
                 label: 'Name',
                 required: false,
                 inputType: 'text',
+                variant: 'standard',
               },
               {
                 name: 'accountNumber',
@@ -296,6 +317,7 @@ function BillingLocationFormCard({
                 required: false,
                 inputType: 'text',
                 helperText: 'loan number (optional)',
+                variant: 'standard',
               },
               {
                 name: 'address.addressLine1',
@@ -314,10 +336,13 @@ function BillingLocationFormCard({
                       // latitude: `${parentField}[${index}].address.latitude`,
                       // longitude: `${parentField}[${index}].address.longitude`,
                     },
+                    textFieldProps: { variant: 'standard' },
+                    // autocompleteProps: { textFieldProps: {variant: 'standard'} },
                   };
                 },
               },
             ]}
+            gridProps={{ spacing: 6 }}
             addButtonText='Add additional interest'
             addButtonProps={{ startIcon: <PersonAddAltRounded /> }}
             values={values}

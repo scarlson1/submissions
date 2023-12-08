@@ -695,6 +695,7 @@ export interface Quote {
   carrier: CarrierDetails;
   billingEntities: Record<string, TBillingEntity>;
   defaultBillingEntityId: string;
+  // TODO: add totalsByBillingEntity?: TotalsByBillingEntity | null;
   status: QUOTE_STATUS;
   submissionId?: string | null;
   imageURLs?: TLocationImages | null;

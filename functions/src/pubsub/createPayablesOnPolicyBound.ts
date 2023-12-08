@@ -13,12 +13,13 @@ import {
   stripeSecretKey,
 } from '../common/index.js';
 import { createDocId, createTransferGroupId, getDocData } from '../modules/db/index.js';
+import { getInvoiceDueDate } from '../modules/payments/utils.js';
 import { getComm } from '../modules/rating/utils.js';
 import { getStripe } from '../services/index.js';
 import { verify } from '../utils/index.js';
 import { PolicyCreatedPayload } from './policyCreatedListener.js';
 
-// NOT BEING USED - CURRENTLY RUNNING FROM POLICY CREATED DOC
+// NOT BEING USED - CURRENTLY RUNNING FROM POLICY CREATED EVENT
 // ^^ would create payable from policy csv import -- intended behavior ??
 
 // TODO: validate policy before binding
@@ -102,6 +103,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         ...payableAmounts,
         paymentOption: null,
         locations: billingEntityLocations,
+        dueDate: getInvoiceDueDate(policy.effectiveDate),
         metadata: {
           created: Timestamp.now(),
           updated: Timestamp.now(),

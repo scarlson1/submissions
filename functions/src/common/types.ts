@@ -218,6 +218,16 @@ export const NamedInsured = z.object({
 });
 export type NamedInsured = z.infer<typeof NamedInsured>;
 
+export const StripeAddress = z.object({
+  line1: z.string().nullable(),
+  line2: z.string().nullable(),
+  city: z.string().nullable(),
+  state: z.string().nullable(),
+  postal_code: z.string().nullable(),
+  country: z.string().nullable(),
+});
+export type StripeAddress = z.infer<typeof StripeAddress>;
+
 export const LineItem = z.object({
   displayName: z.string(),
   amount: z.number(),
@@ -244,7 +254,12 @@ export type PayableStatus = z.infer<typeof PayableStatus>;
 export const Payable = z.object({
   policyId: z.string(),
   stripeCustomerId: z.string(),
-  billingEntityDetails: z.any(),
+  billingEntityDetails: z.object({
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    phone: z.string().nullable(),
+    address: StripeAddress.nullable(),
+  }),
   lineItems: z.array(LineItem),
   transfers: z.array(TransferSummary), // create before ?? need to update if revered ??
   transferGroup: z.string(), // passed to payment intent - not available on invoice ??
@@ -264,6 +279,7 @@ export const Payable = z.object({
   termPremiumAmount: z.number().int().nonnegative(),
   totalAmount: z.number().int().nonnegative(),
   locations: z.record(PolicyLocation),
+  dueDate: Timestamp,
   // set charges ?? array ?? save to payable on charge.complete or charge.created ??
   metadata: BaseMetadata,
 });

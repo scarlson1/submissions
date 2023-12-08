@@ -9,6 +9,7 @@ export { calcPolicyChanges } from './calcPolicyChanges';
 export { calcQuote } from './calcQuote';
 // export { convertPolicySchema } from './convertPolicySchema';
 export { addBillingEntity } from './addBillingEntity';
+export { calcTotalsByBillingEntity } from './calcTotalsByBillingEntity';
 export * from './cloudRunApi';
 export { createPaymentIntent } from './createPaymentIntent';
 export { createPolicy } from './createPolicy';

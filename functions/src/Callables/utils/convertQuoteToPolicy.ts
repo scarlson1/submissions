@@ -93,8 +93,10 @@ export function getPolicyFromQuote(
   const locationData = Object.values(locations);
   verify(locationData && locationData.length > 0, 'missing location data');
   const singleLocation = locationData[0];
-  const billingEntityId = Object.keys(data.billingEntities)[0];
-  verify(billingEntityId, 'missing billing entity');
+  // use defaultBillingEntityId ?? could have added another billing entity
+  // const billingEntityId = Object.keys(data.billingEntities)[0];
+  verify(data.defaultBillingEntityId, 'missing billing entity ID');
+  const billingEntityId = data.defaultBillingEntityId; // use default as selected billing entity while only single location
 
   const policyLocations: Policy['locations'] = {};
   for (const [id, location] of Object.entries(locations)) {
@@ -175,7 +177,7 @@ export function getPolicyFromQuote(
       photoURL: data.carrier?.photoURL || '',
     },
     billingEntities: data.billingEntities,
-    defaultBillingEntityId: data.defaultBillingEntityId || 'namedInsured',
+    defaultBillingEntityId: data.defaultBillingEntityId,
     surplusLinesProducerOfRecord: {
       name: `${license.licensee} ${license.state} Surplus Lines Producer of Record License`.trim(),
       licenseNum: license.licenseNumber,

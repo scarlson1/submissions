@@ -112,6 +112,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   try {
     // temp - need to create location collection doc (convert single doc quote into policy/location docs)
     locationData = getPolicyLocationsFromQuote(quoteData, policyRef.id);
+    // TODO: remove get totals by billing entity (calc in quote before review step)
     policyData = getPolicyFromQuote(quoteData, locationData, licenseData);
   } catch (err: any) {
     let msg = 'invalid or missing data';
@@ -120,17 +121,14 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   }
 
   // TODO: need to validate policy data
-  // billing entity has email --> look up to make sure exists in stripe (use getStripeCustomer fn pass in second param createIfNotFound)
+  // billing entity has email --> look up to make sure exists in stripe
   // make sure agency has stripe account ID --> verify exists in stripe
   try {
     const agencyAccountId = policyData.agency.stripeAccountId;
     const billingEntityIds = Object.keys(policyData.billingEntities);
     const stripe = getStripe(stripeSecretKey.value());
-    // BUG: creating new customer will create a new customer ID (throw instead ?? need to create at different stage ?? quote stage ?? when named insured is set ??)
-    // NEED TO SET UP IN BIND QUOTE FORM
-    const customers = billingEntityIds.map((cusId) => {
-      return getStripeCustomer(stripe, cusId, false); // params: { email: policyData.billingEntities[cusId].email }
-    });
+
+    const customers = billingEntityIds.map((cusId) => getStripeCustomer(stripe, cusId, false));
     const orgConnectedAccount = await stripe.accounts.retrieve(agencyAccountId);
     await Promise.all([...customers, orgConnectedAccount]);
   } catch (err: any) {
@@ -159,6 +157,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
     const batch = db.batch();
 
+    // create location doc
     for (const [id, location] of Object.entries(locationData)) {
       const locationRef = locationsCol.doc(id);
       batch.set(locationRef, { ...location, policyId: policyRef.id, parentType: 'policy' });
@@ -172,6 +171,8 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
       'metadata.updated': Timestamp.now(),
       policyId,
     });
+
+    // batch payables too ??
 
     await batch.commit();
 
