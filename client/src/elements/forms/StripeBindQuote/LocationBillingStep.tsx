@@ -117,6 +117,7 @@ export const LocationBillingStep = ({
           collection: colName,
           docId,
         });
+        console.log('billing entity res: ', data);
 
         await nextStep();
       } catch (err: any) {

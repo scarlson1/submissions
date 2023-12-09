@@ -104,9 +104,6 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
       const url = `https://api.mapbox.com/styles/v1/${styleType.style}/static/${markers.join(
         ','
       )}/${viewParams}/1200x720@2x`;
-      // ?access_token=${mapboxPublicToken.value()}&logo=false${
-      //   markers.length > 1 ? `&padding=100` : ''
-      // }
 
       // geojson encoding
       // const url = `https://api.mapbox.com/styles/v1/${

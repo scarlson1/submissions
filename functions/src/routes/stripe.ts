@@ -16,6 +16,7 @@ import {
   payablesCollection,
   stripeSecretKey,
 } from '../common/index.js';
+import { handleInvoiceFinalized } from '../modules/payments/index.js';
 import { getStripe } from '../services/index.js';
 import { createStripeConnectAccount, getActiveStripeCustomerByEmail } from '../utils/index.js';
 import { NotAuthorizedError } from './errors/index.js';
@@ -66,6 +67,7 @@ app.post(
         const createdPaymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log('created payment intent: ', createdPaymentIntent);
 
+        // update invoice-generated payment intent with transfer group from payable doc
         if (createdPaymentIntent.invoice) {
           try {
             const db = getFirestore();
@@ -185,6 +187,8 @@ app.post(
       case 'invoice.finalized':
         const finalizedInvoice = event.data.object as Stripe.Invoice;
         console.log('invoice finalized: ', finalizedInvoice);
+        await handleInvoiceFinalized(finalizedInvoice);
+
         break;
       case 'invoice.sent':
         const sentInvoice = event.data.object as Stripe.Invoice;

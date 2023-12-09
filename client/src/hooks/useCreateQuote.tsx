@@ -35,7 +35,7 @@ export const CARD_FEE_RATE = 0.035;
 
 export const useCreateQuote = (
   onComplete?: () => void | Promise<void>,
-  onStepSuccess?: (msg: string) => void,
+  onStepSuccess?: (msg: string) => void, // TODO: pass quoteId instead of string
   onError?: (msg: string, err: unknown) => void
 ) => {
   const firestore = useFirestore();

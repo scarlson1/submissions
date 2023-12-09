@@ -12,6 +12,7 @@ import { Quote, quotesCollection } from 'common';
 import { Wizard } from 'components/forms';
 import { useDocData } from 'hooks';
 import { addToDate, logDev } from 'modules/utils';
+import { useNavigate } from 'react-router-dom';
 import { AdditionalInterestsValues } from './AdditionalInterestsStep';
 import { EffectiveDateStep, EffectiveDateValues } from './EffectiveDateStep';
 import { BillingEntityStepValues, LocationBillingStep } from './LocationBillingStep';
@@ -71,12 +72,15 @@ interface BindQuoteWizardProps {
 }
 
 export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const { data: quote } = useDocData<Quote>('quotes', quoteId);
   const { saveValues, bindQuote, formRef } = useBindQuote(
     quoteId,
     (data) => {
       console.log('policy created: ', data);
+      // TODO: change to use create path (and non-testing path)
+      // TODO: navigate to bind success / payment screen / payables
+      navigate(`/admin/stripe-test/payables/${data.policyId}`);
       // navigate(
       //   createPath({
       //     path: ROUTES.QUOTE_BIND_SUCCESS,
@@ -101,24 +105,6 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
     return { minEffDate, maxEffDate };
   }, [quote]);
 
-  // const billingInitialValues = useMemo(() => {
-  //   const billingEntities = Object.values(quote.billingEntities || {}).map((cus) => ({
-  //     displayName: cus.displayName || '',
-  //     email: cus.email || '',
-  //     phone: cus.phone || '',
-  //     billingType: cus.billingType || '',
-  //   }));
-  //   if (!billingEntities.length) {
-  //     billingEntities.push({
-  //       displayName: `${quote.namedInsured?.firstName || ''} ${quote.namedInsured?.lastName || ''}`,
-  //       email: quote.namedInsured?.email || '',
-  //       phone: quote.namedInsured?.phone || '',
-  //       billingType: '' as any,
-  //     });
-  //   }
-  //   return { billingEntities };
-  // }, [quote]);
-
   return (
     <Container maxWidth='md' disableGutters>
       <Wizard maxWidth='md'>
@@ -138,12 +124,6 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
           formRef={formRef as any as RefObject<FormikProps<NamedInsuredValues>>}
           validateOnMount
         />
-        {/* <AdditionalInterestsStep
-          initialValues={{ additionalInterests: quote.additionalInterests || [] }}
-          onStepSubmit={saveValues}
-          formRef={formRef as any as RefObject<FormikProps<AdditionalInterestsValues>>}
-          validateOnMount
-        /> */}
         <EffectiveDateStep
           initialValues={{
             effectiveDate: quote?.effectiveDate?.toDate() || (null as any as Date),
@@ -156,13 +136,6 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
           maxEffDate={maxEffDate}
           validateOnMount
         />
-        {/* <BillingStep
-          initialValues={billingInitialValues}
-          onStepSubmit={saveValues}
-          formRef={formRef as any as RefObject<FormikProps<BillingValues>>}
-          quoteId={quoteId}
-          validateOnMount
-        /> */}
         <LocationBillingStep
           colName='quotes'
           docId={quoteId}

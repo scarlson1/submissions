@@ -57,6 +57,7 @@ export {
   syncusersvisibleby,
 } from './firestoreEvents/algolia/index.js';
 export {
+  createpayableonpolicycreated,
   createstripeaccount,
   getstaticsubmissionimg,
   getsubmissionaal,

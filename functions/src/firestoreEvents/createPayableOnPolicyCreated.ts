@@ -1,13 +1,13 @@
 import { Organization, Policy, orgsCollection } from '@idemand/common';
-import { getFirestore } from 'firebase-admin/firestore';
-import { error, info } from 'firebase-functions/logger';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { info } from 'firebase-functions/logger';
 import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
 import { getReportErrorFn, payablesCollection, stripeSecretKey } from '../common/index.js';
 import { createDocId, getDocData } from '../modules/db/utils.js';
 import { generateInvoiceForPayable } from '../modules/payments/generateInvoiceForPayable.js';
 import {
   createPayableObject,
-  getInvoiceDueDate,
+  getInvoiceDueDateTS,
   getLcnSummariesByCusId,
 } from '../modules/payments/index.js';
 import { getComm } from '../modules/rating/utils.js';
@@ -78,10 +78,15 @@ export default async (
         totals,
         billingEntityLocations,
         subProducerCommPct: subproducerCommissionPct,
-        dueDate: getInvoiceDueDate(policy.effectiveDate),
+        dueDate: getInvoiceDueDateTS(
+          policy?.metadata?.created || Timestamp.now(),
+          policy.effectiveDate
+        ),
       });
 
       let payableRef = payablesCol.doc(`rec_${createDocId(7)}`);
+      info(`adding payable ${payableRef.id} to batch for policy ${policyId}`, { ...payable });
+
       batch.set(payableRef, payable);
       payableIds.push(payableRef.id);
     }
@@ -96,7 +101,7 @@ export default async (
         await stripe.invoices.sendInvoice(invoiceId);
         info(`Created invoice for payable ${invoiceId}`);
       } catch (err: any) {
-        error(`Error sending/creating invoice`, { ...err });
+        reportErr(`Error creating / sending invoice for payable `, { payableId }, err);
       }
     }
     return;

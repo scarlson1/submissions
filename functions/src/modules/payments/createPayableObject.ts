@@ -1,10 +1,14 @@
 import { Policy, Totals } from '@idemand/common';
 import { Timestamp } from 'firebase-admin/firestore';
-import { sumBy } from 'lodash-es';
+import { round, sumBy } from 'lodash-es';
 import Stripe from 'stripe';
 import { Payable } from '../../common/index.js';
 import { verify } from '../../utils/index.js';
 import { createTransferGroupId } from '../db/utils.js';
+
+function toAmt(val: number) {
+  return round(val * 100);
+}
 
 export const createPayableObject = async (
   stripe: Stripe,
@@ -64,7 +68,7 @@ function billingEntityTotalsToLineItems(totals: Totals, policyId: string) {
   let lineItems = [
     {
       displayName: 'iDemand Flood term premium',
-      amount: totals.termPremium * 100,
+      amount: toAmt(totals.termPremium), //  * 100,
       descriptor: `Term premium for policy ${policyId}`, // `Term premium for locations assigned to ${customer.name || customer.email} under policy ${policyId}`
     },
   ];
@@ -72,7 +76,7 @@ function billingEntityTotalsToLineItems(totals: Totals, policyId: string) {
   for (let fee of totals.fees) {
     lineItems.push({
       displayName: fee.displayName,
-      amount: fee.value * 100,
+      amount: toAmt(fee.value),
       descriptor: '', // TODO: fee descriptor ??
     });
   }
@@ -80,7 +84,7 @@ function billingEntityTotalsToLineItems(totals: Totals, policyId: string) {
   for (let tax of totals.taxes) {
     lineItems.push({
       displayName: tax.displayName,
-      amount: tax.value * 100,
+      amount: toAmt(tax.value),
       descriptor: '', // TODO: add descriptor to tax object
     });
   }
@@ -96,29 +100,32 @@ function getTransfersForNewPolicy(
 ) {
   return [
     {
-      amount: billingEntityTotals.termPremium * subProducerCommissionPct,
+      amount: toAmt(billingEntityTotals.termPremium * subProducerCommissionPct),
       destination: stripeAccountId,
     },
   ];
 }
 
 function getPayableAmounts(totals: Totals) {
-  const refundableTaxesAmount =
+  const refundableTaxesAmount = toAmt(
     sumBy(
       totals.taxes.filter((t) => t.refundable || t.refundable === undefined),
       'value'
-    ) * 100;
-  const totalTaxesAmount = sumBy(totals.taxes, 'value') * 100;
-  const totalFeesAmount = sumBy(totals.taxes, 'value') * 100;
-  const refundableFeesAmount =
+    )
+  );
+  const totalTaxesAmount = toAmt(sumBy(totals.taxes, 'value'));
+  const totalFeesAmount = toAmt(sumBy(totals.taxes, 'value'));
+  const refundableFeesAmount = toAmt(
     sumBy(
       // @ts-ignore
       totals.fees.filter((f) => f.refundable || f.refundable === undefined),
       'value'
-    ) * 100;
-  const termPremiumAmount = totals.termPremium;
-  const totalRefundableAmount = totals.termPremium + refundableFeesAmount + refundableTaxesAmount;
-  const totalAmount = totals.price * 100;
+    )
+  );
+  const termPremiumAmount = toAmt(totals.termPremium);
+  const totalRefundableAmount =
+    toAmt(totals.termPremium) + refundableFeesAmount + refundableTaxesAmount;
+  const totalAmount = toAmt(totals.price);
 
   return {
     refundableFeesAmount,

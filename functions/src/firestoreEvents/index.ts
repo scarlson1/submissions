@@ -10,6 +10,16 @@ import {
 } from '../common/index.js';
 export type { ClaimsDocData } from './mirrorCustomClaims.js';
 
+export const createpayableonpolicycreated = onDocumentCreated(
+  {
+    document: `${Collection.Enum.policies}/{policyId}`,
+    secrets: [stripeSecretKey],
+  },
+  async (event) => {
+    await (await import('./createPayableOnPolicyCreated.js')).default(event);
+  }
+);
+
 export const createstripeaccount = onDocumentCreated(
   { document: `${Collection.enum.organizations}/{orgId}`, secrets: [stripeSecretKey] },
   async (event) => {

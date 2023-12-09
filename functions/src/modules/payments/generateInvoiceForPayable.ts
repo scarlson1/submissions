@@ -1,5 +1,6 @@
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
+import { round } from 'lodash-es';
 import Stripe from 'stripe';
 import { payablesCollection } from '../../common/index.js';
 import { getDocData } from '../db/index.js';
@@ -33,7 +34,9 @@ export const generateInvoiceForPayable = async (
   const db = getFirestore();
   const payableRef = payablesCollection(db).doc(payableId);
   const payable = await getDocData(payableRef, `Payable not found (ID: ${payableRef.id})`);
-  // TODO: add due date to payable
+
+  const invoiceDueDate = payable.dueDate;
+  const dueDateSeconds = round(invoiceDueDate.toMillis() / 1000);
 
   // create stripe invoice
   const invoice = await stripe.invoices.create({
@@ -47,8 +50,9 @@ export const generateInvoiceForPayable = async (
       payment_method_types: ['ach_debit', 'customer_balance', 'link', 'us_bank_account'], // TODO: look up difference between ach credit vs debit & us_bank_account
       ...(invoiceOptions?.payment_settings || {}),
     },
-    // days_until_due: // TODO: calc using lesser of policy eff date and 30 days ??
-    // due_date: // alt to days until due
+    // if collection method is send_invoice, must provide days_until_due or due_date
+    // days_until_due:
+    due_date: dueDateSeconds,
     // effective_date: When defined, this value replaces the system-generated ‘Date of issue’ printed on the invoice PDF and receipt.
     ...(invoiceOptions || {}),
     metadata: {

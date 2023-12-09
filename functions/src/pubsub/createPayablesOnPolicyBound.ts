@@ -13,7 +13,7 @@ import {
   stripeSecretKey,
 } from '../common/index.js';
 import { createDocId, createTransferGroupId, getDocData } from '../modules/db/index.js';
-import { getInvoiceDueDate } from '../modules/payments/utils.js';
+import { getInvoiceDueDateTS } from '../modules/payments/utils.js';
 import { getComm } from '../modules/rating/utils.js';
 import { getStripe } from '../services/index.js';
 import { verify } from '../utils/index.js';
@@ -105,7 +105,10 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         ...payableAmounts,
         paymentOption: null,
         locations: billingEntityLocations,
-        dueDate: getInvoiceDueDate(policy.effectiveDate),
+        dueDate: getInvoiceDueDateTS(
+          policy?.metadata?.created || Timestamp.now(),
+          policy.effectiveDate
+        ),
         metadata: {
           created: Timestamp.now(),
           updated: Timestamp.now(),
