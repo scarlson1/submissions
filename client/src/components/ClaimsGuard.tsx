@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
 
+import { IdTokenResult } from 'firebase/auth';
 import {
   SignInCheckOptionsBasic,
   SignInCheckOptionsClaimsObject,
   SignInCheckOptionsClaimsValidator,
   useSigninCheck,
 } from 'reactfire';
-import { IdTokenResult } from 'firebase/auth';
 
-import { CustomClaimKeys, getRequiredClaimValidator } from './RequireAuthReactFire';
-import { CLAIMS } from 'common';
+import { TClaim } from 'common';
+import { getRequiredClaimValidator } from './RequireAuthReactFire';
 
 export type SignInCheckProps =
   | SignInCheckOptionsBasic
@@ -19,7 +19,7 @@ export type SignInCheckProps =
 
 export interface ClaimsGuardProps {
   children: React.ReactNode;
-  requiredClaims?: CustomClaimKeys[]; // SignInCheckOptionsClaimsObject;
+  requiredClaims?: TClaim[]; // CustomClaimKeys[];
   signInCheckProps?: SignInCheckProps;
   requireAll?: boolean;
 }
@@ -36,8 +36,6 @@ export const ClaimsGuard = ({
         const claimsValidatorFunc = getRequiredClaimValidator(requiredClaims);
 
         return {
-          // TODO: test getRequiredClaimValidator func need to store in variable?
-          // validateCustomClaims: getRequiredClaimValidator(requiredClaims),
           validateCustomClaims: claimsValidatorFunc,
           suspense: false,
           ...signInCheckProps,
@@ -49,7 +47,8 @@ export const ClaimsGuard = ({
       // );
       const claims: IdTokenResult['claims'] = {};
       requiredClaims.forEach((key) => {
-        claims[CLAIMS[key]] = true;
+        // claims[CLAIMS[key]] = true;
+        claims[key] = true;
       });
 
       return { requiredClaims: claims, suspense: false, ...signInCheckProps };
@@ -58,7 +57,6 @@ export const ClaimsGuard = ({
   }, [requiredClaims, signInCheckProps, requireAll]);
 
   const { status, data } = useSigninCheck({ ...checkProps });
-  // const { status, data } = useSigninCheck({ requiredClaims: claimsObj, suspense: false });
 
   // TODO: use suspense
   if (status === 'loading') return null;

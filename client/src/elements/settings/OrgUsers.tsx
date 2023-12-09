@@ -16,7 +16,7 @@ export const OrgUsers = () => {
   return (
     <Box>
       <Box sx={{ pb: 2, width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
-        <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
+        <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']} requireAll={false}>
           <AddUsersDialog orgId={orgId} />
         </ClaimsGuard>
       </Box>

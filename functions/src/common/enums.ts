@@ -105,9 +105,7 @@ export enum CLAIMS {
   AGENT = 'agent',
 }
 
-// TODO: switch to zod enum
 export const Claim = z.enum(['iDemandAdmin', 'iDemandUser', 'orgAdmin', 'agent']);
-// export const Claim = z.nativeEnum(CLAIMS);
 export type Claim = z.infer<typeof Claim>;
 
 export enum FIN_TRANSACTION_TYPE {
@@ -122,6 +120,7 @@ export enum MISC_PUB_SUB_TOPICS {
 export const MiscPubSubTopics = z.nativeEnum(MISC_PUB_SUB_TOPICS);
 export type MiscPubSubTopics = z.infer<typeof MiscPubSubTopics>;
 
+// TODO: delete - from epay event handling
 export enum PMT_PUB_SUB_TOPICS {
   PAYMENT_COMPLETE = 'payment.complete',
 }
@@ -142,6 +141,15 @@ export enum TRX_PUB_SUB_TOPICS {
 export const TrxPubSubTopics = z.nativeEnum(TRX_PUB_SUB_TOPICS);
 export type TrxPubSubTopics = z.infer<typeof TrxPubSubTopics>;
 
+// stripe
+export enum PAYMENT_PUB_SUB_TOPICS {
+  CHARGE_SUCCEEDED = 'charge.succeeded',
+  REFUND_CREATED = 'refund.created',
+}
+
+export const PaymentPubSubTopics = z.nativeEnum(PAYMENT_PUB_SUB_TOPICS);
+export type PaymentPubSubTopics = z.infer<typeof PaymentPubSubTopics>;
+
 // TODO: need to use zod enum to combine
 // export const PubSubTopics = z.enum([...MiscPubSubTopics.options, ...PmtPubSubTopics.options, ...TrxPubSubTopics.options] as const);
 
@@ -152,6 +160,7 @@ export const PUB_SUB_TOPICS = {
   ...MISC_PUB_SUB_TOPICS,
   ...PMT_PUB_SUB_TOPICS,
   ...TRX_PUB_SUB_TOPICS,
+  ...PAYMENT_PUB_SUB_TOPICS,
 };
 
 // export enum PUB_SUB_TOPICS {

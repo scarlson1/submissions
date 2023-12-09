@@ -8,29 +8,21 @@ import { Payable, getReportErrorFn, payablesCollection } from '../../common/inde
 import { createTaxTrxId, getQueryData } from '../../modules/db/utils.js';
 import { createTaxTrxObjectFromCalc } from '../../modules/taxes/createTaxTrxObjectFromCalc.js';
 import { verify } from '../../utils/validation.js';
+import { extractPubSubPayload } from '../utils/extractPubSubPayload.js';
 
 const reportErr = getReportErrorFn('createTransfersOnChargeComplete');
 
-interface CreateTransfersOnChargeSucceededPayload {
+export interface ChargeSucceededPayload {
   charge: Stripe.Charge;
   // TODO: include other stripe event data ??
 }
 
-export default async (
-  event: CloudEvent<MessagePublishedData<CreateTransfersOnChargeSucceededPayload>>
-) => {
+export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayload>>) => {
   info('STRIPE CHARGE SUCCEEDED EVENT (create transfers listener) - MSG JSON: ', {
     ...(event.data?.message?.json || {}),
   });
 
-  // const eventId = event.id;
-  let charge: Stripe.Charge | null = null;
-
-  try {
-    charge = event.data?.message?.json?.charge;
-  } catch (e) {
-    reportErr('PubSub message was not JSON', {}, e);
-  }
+  const { charge } = extractPubSubPayload(event, ['charge']);
 
   const db = getFirestore();
   const payablesCol = payablesCollection(db);

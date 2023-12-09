@@ -13,11 +13,15 @@ import {
   getReportErrorFn,
   hostingBaseURL,
   orgsCollection,
-  payablesCollection,
   stripeSecretKey,
 } from '../common/index.js';
-import { handleInvoiceFinalized } from '../modules/payments/index.js';
+import {
+  handleInvoiceFinalized,
+  setTransferGroupOnPaymentIntentCreated,
+  syncTransfer,
+} from '../modules/payments/index.js';
 import { getStripe } from '../services/index.js';
+import { publishChargeSucceeded, publishRefundCreated } from '../services/pubsub/index.js';
 import { createStripeConnectAccount, getActiveStripeCustomerByEmail } from '../utils/index.js';
 import { NotAuthorizedError } from './errors/index.js';
 import { currentUser, requireAuth, validateRequest } from './middlewares/index.js';
@@ -26,6 +30,7 @@ import { accountLinkSchema, accountSessionSchema } from './middlewares/schemas/s
 // event types: https://stripe.com/docs/api/events/types
 
 // TODO: create separate endpoint for connected accounts: https://stripe.com/docs/connect/webhooks#connect-webhooks
+// and invoice, charges, refunds ??
 
 const reportErr = getReportErrorFn('stripe');
 
@@ -66,30 +71,9 @@ app.post(
       case 'payment_intent.created':
         const createdPaymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log('created payment intent: ', createdPaymentIntent);
-
         // update invoice-generated payment intent with transfer group from payable doc
-        if (createdPaymentIntent.invoice) {
-          try {
-            const db = getFirestore();
-            const payablesCol = payablesCollection(db);
-            const querySnap = await payablesCol
-              .where('invoiceId', '==', createdPaymentIntent.invoice)
-              .get();
-            if (!querySnap.empty) {
-              const payableSnap = querySnap.docs[0];
-              // set payment intent too ??
-              const transferGroup = payableSnap.data().transferGroup;
-              await stripe.paymentIntents.update(createdPaymentIntent.id, {
-                transfer_group: transferGroup || '',
-              });
-              console.log(
-                `Update invoice created payment intent with transfer group ${transferGroup} from payable doc`
-              );
-            }
-          } catch (err: any) {
-            console.log('err setting transfer group', err);
-          }
-        }
+        await setTransferGroupOnPaymentIntentCreated(stripe, createdPaymentIntent);
+
         break;
       // could use webhook to set the transfer group when invoice creates payment intent ??
       case 'payment_intent.processing':
@@ -108,9 +92,8 @@ app.post(
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`);
         // TODO: handle payment intent succeeded
-        // Then define and call a method to handle the successful payment intent.
-        // handlePaymentIntentSucceeded(paymentIntent);
         // use charge:succeeded instead ?? triggered by payment intent and invoice ??
+
         break;
       case 'payment_method.attached':
         const paymentMethod = event.data.object as Stripe.PaymentMethod;
@@ -118,69 +101,83 @@ app.post(
         // TODO: handle pmt method attached
         // Then define and call a method to handle the successful attachment of a PaymentMethod.
         // handlePaymentMethodAttached(paymentMethod);
+
         break;
       case 'charge.succeeded':
         const charge = event.data.object as Stripe.Charge;
         console.log('charge: ', charge);
         // emit pub sub event ??
         // trigger policy pmt status (might need to be updated by billing entity ??) or charge ID ??
+        await publishChargeSucceeded({ charge });
 
         break;
       case 'charge.failed':
         const failedCharge = event.data.object as Stripe.Charge;
         console.log('charge failed: ', failedCharge);
+
         break;
       case 'charge.captured':
         const capturedCharge = event.data.object as Stripe.Charge;
         console.log('charge captured: ', capturedCharge);
+
         break;
       case 'charge.refunded':
         const refundedCharge = event.data.object as Stripe.Charge;
         console.log('charge refunded: ', refundedCharge);
         // TODO: must reverse any transfers
         // use this event or 'refund.created' ??
+
         break;
       // TODO: recommended connect endpoints: https://stripe.com/docs/connect/webhooks#connect-webhooks
       case 'account.updated':
         // Allows you to monitor changes to connected account requirements and status changes.
         const account = event.data.object as Stripe.Account;
         console.log('account updated: ', account);
+
         break;
       case 'payout.failed':
         // Occurs when a payout fails. When a payout fails, the external account involved will be disabled, and no automatic or manual payouts can go through until the external account is updated.
         const failedPayout = event.data.object as Stripe.Payout;
         console.log('failed payout: ', failedPayout);
+
         break;
       // capability.updated
       case 'customer.created':
         const createdCustomer = event.data.object as Stripe.Customer;
         console.log('customer created', createdCustomer);
         // ensure exists / set on user doc ??
+
         break;
       case 'customer.deleted':
         const deletedCustomer = event.data.object as Stripe.Customer;
         console.log('customer deleted', deletedCustomer);
         // await removeStripeCustomerId(deletedCustomer.id); // get by email & delete if id === deletedId ??
+
         break;
       case 'customer.updated':
         const updatedCustomer = event.data.object as Stripe.Customer;
         console.log('customer updated: ', updatedCustomer);
+
         break;
       // case 'customer.source.created':
       // case 'customer.source.deleted':
       case 'customer.source.expiring':
         const expiringSource = event.data.object as Stripe.Card;
         console.log('customer source expiring: ', expiringSource);
+
         break;
       // case 'customer.source.updated':
       case 'customer.tax_id.created':
         console.log('customer tax id created');
+
         break;
       case 'customer.tax_id.deleted':
         console.log('customer tax id deleted');
+
         break;
       case 'customer.tax_id.updated':
         console.log('customer tax id updated');
+
         break;
       // case 'invoice.created':
       // case 'invoice.finalization_failed':
@@ -193,37 +190,52 @@ app.post(
       case 'invoice.sent':
         const sentInvoice = event.data.object as Stripe.Invoice;
         console.log('invoice sent: ', sentInvoice);
+
         break;
       case 'invoice.marked_uncollectible':
         const uncollectibleInvoice = event.data.object as Stripe.Invoice;
         console.log('invoice uncollectible: ', uncollectibleInvoice);
+
         break;
       case 'invoice.paid':
         const paidInvoice = event.data.object as Stripe.Invoice;
         console.log('invoice paid: ', paidInvoice);
+
         break;
       case 'invoice.payment_failed':
         // Occurs whenever an invoice payment attempt fails, due either to a declined payment or to the lack of a stored payment method.
         const invoicePmtFailed = event.data.object as Stripe.Invoice;
         console.log('invoice pmt failed: ', invoicePmtFailed);
+
         break;
       case 'refund.created':
         // Occurs whenever a refund from a customer’s cash balance is created.
         const refund = event.data.object as Stripe.Refund;
         console.log('refund created: ', refund);
-        // use this event or 'charge.refunded' ??
+        await publishRefundCreated({ refund });
+
         break;
       case 'refund.updated':
         // Occurs whenever a refund from a customer’s cash balance is updated.
         const updatedRefund = event.data.object as Stripe.Refund;
         console.log('refund created: ', updatedRefund);
+
         break;
-      // payout.created
-      // payout.updated
+      case 'payout.created':
+        const createdPayout = event.data.object as Stripe.Payout;
+        console.log('payout created: ', createdPayout);
+
+        break;
+      case 'payout.updated':
+        const updatedPayout = event.data.object as Stripe.Payout;
+        console.log('payout updated: ', updatedPayout);
+
+        break;
       case 'payout.paid':
         // Occurs whenever a payout is expected to be available in the destination account. If the payout fails, a payout.failed notification is also sent, at a later time.
         const paidPayout = event.data.object as Stripe.Payout;
         console.log('payout paid: ', paidPayout);
+
         break;
       // payout.failed (failure_code property indicates reason)
       // financial_connections.account.deactivated
@@ -233,31 +245,37 @@ app.post(
         // Occurs whenever a person associated with an account is created.
         const createdPerson = event.data.object as Stripe.Person;
         console.log('person created: ', createdPerson);
+
         break;
       case 'person.deleted':
         // Occurs whenever a person associated with an account is deleted
         const deletedPerson = event.data.object as Stripe.Person;
         console.log('person deleted: ', deletedPerson);
+
         break;
       case 'person.updated':
         // Occurs whenever a person associated with an account is updated.
         const updatedPerson = event.data.object as Stripe.Person;
         console.log('person created: ', updatedPerson);
+
         break;
       case 'transfer.created':
         const createdTransfer = event.data.object as Stripe.Transfer;
         console.log('transfer created: ', createdTransfer);
-        // TODO: mirror in DB
+        await syncTransfer(createdTransfer, 'transfer.created');
+
         break;
       case 'transfer.reversed':
         const reversedTransfer = event.data.object as Stripe.Transfer;
         console.log('transfer reversed: ', reversedTransfer);
-        // TODO: mirror in DB
+        await syncTransfer(reversedTransfer, 'transfer.reversed');
+
         break;
       case 'transfer.updated':
         const updatedTransfer = event.data.object as Stripe.Transfer;
         console.log('transfer updated: ', updatedTransfer);
-        // TODO: mirror in DB
+        await syncTransfer(updatedTransfer, 'transfer.updated');
+
         break;
       default:
         // Unexpected event type

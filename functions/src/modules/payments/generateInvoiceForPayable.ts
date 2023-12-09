@@ -7,10 +7,7 @@ import { getDocData } from '../db/index.js';
 
 // process idea - create draft invoice for payable
 // add payables to batch with policy
-// on payable created firestore event --> finalize invoice ??
-// const invoice = await stripe.invoices.finalizeInvoice('{{INVOICE_ID}}');
-// or "As soon as the an invoice is sent, Stripe finalizes it."
-// const invoice = await stripe.invoices.sendInvoice('{{INVOICE_ID}}');
+// on payable created firestore event --> finalize invoice ?? (currently sending in onPolicyCreated event)
 
 // payment intent created when invoice is finalized (update payable from payment intent created or invoice finalized event ??)
 
@@ -41,17 +38,17 @@ export const generateInvoiceForPayable = async (
   // create stripe invoice
   const invoice = await stripe.invoices.create({
     customer: payable.stripeCustomerId,
+
     description: `Invoice for policy ${payable.policyId}, billed to ${
       payable.billingEntityDetails?.name || payable.billingEntityDetails.email
     }`,
-    // auto_advance: bool,
     collection_method: 'send_invoice',
     payment_settings: {
-      payment_method_types: ['ach_debit', 'customer_balance', 'link', 'us_bank_account'], // TODO: look up difference between ach credit vs debit & us_bank_account
+      // TODO: look up difference between ach credit vs debit & us_bank_account
+      payment_method_types: ['ach_debit', 'customer_balance', 'link', 'us_bank_account'],
       ...(invoiceOptions?.payment_settings || {}),
     },
     // if collection method is send_invoice, must provide days_until_due or due_date
-    // days_until_due:
     due_date: dueDateSeconds,
     // effective_date: When defined, this value replaces the system-generated ‘Date of issue’ printed on the invoice PDF and receipt.
     ...(invoiceOptions || {}),
@@ -62,6 +59,7 @@ export const generateInvoiceForPayable = async (
     },
     currency: 'USD',
   });
+
   info(`Stripe invoice created ${invoice.id} from payable ${payable.id}`, {
     policyId: payable.policyId,
   });
@@ -71,6 +69,12 @@ export const generateInvoiceForPayable = async (
   // TODO: subgroups / summarize for taxes and fees
   // https://stripe.com/docs/invoicing/group-line-items
   // item grouping (beta): https://stripe.com/docs/invoicing/line-item-grouping
+  const premiumItemPromise = stripe.invoiceItems.create({
+    customer: payable.stripeCustomerId,
+    amount: payable.termPremiumAmount,
+    invoice: invoice.id,
+    description: `Term premium for policy ${payable.policyId}`,
+  });
   const feeItemPromises = payable.fees.map((f) =>
     stripe.invoiceItems.create({
       customer: payable.stripeCustomerId,
@@ -87,7 +91,12 @@ export const generateInvoiceForPayable = async (
       description: f.displayName,
     })
   );
-  const invoiceItems = await Promise.all([...feeItemPromises, ...taxItemPromises]);
+  const invoiceItems = await Promise.all([
+    premiumItemPromise,
+    ...feeItemPromises,
+    ...taxItemPromises,
+  ]);
+
   invoiceItems.forEach((invoiceItem) => {
     info(`${invoiceItem.description} item (ID: ${invoiceItem.id}) added to invoice ${invoice.id}`);
   });

@@ -2,7 +2,6 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
-import Stripe from 'stripe';
 import {
   getReportErrorFn,
   payablesCollection,
@@ -11,29 +10,17 @@ import {
 } from '../../common/index.js';
 import { getStripe } from '../../services/stripe.js';
 import { verify } from '../../utils/validation.js';
+import { extractPubSubPayload } from '../utils/extractPubSubPayload.js';
+import { ChargeSucceededPayload } from './createTaxTransactionsOnChargeSucceeded.js';
 
 const reportErr = getReportErrorFn('createTransfersOnChargeComplete');
 
-interface CreateTransfersOnChargeSucceededPayload {
-  charge: Stripe.Charge;
-  // TODO: include other stripe event data ??
-}
-
-export default async (
-  event: CloudEvent<MessagePublishedData<CreateTransfersOnChargeSucceededPayload>>
-) => {
+export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayload>>) => {
   info('STRIPE CHARGE SUCCEEDED EVENT (create transfers listener) - MSG JSON: ', {
     ...(event.data?.message?.json || {}),
   });
 
-  // const eventId = event.id;
-  let charge = null;
-
-  try {
-    charge = event.data?.message?.json?.charge;
-  } catch (e) {
-    reportErr('PubSub message was not JSON', {}, e);
-  }
+  const { charge } = extractPubSubPayload(event, ['charge']);
 
   try {
     verify(charge, 'pub sub event missing charge data');

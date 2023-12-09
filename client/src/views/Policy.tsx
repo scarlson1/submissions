@@ -495,10 +495,10 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
           >
             <MenuItem onClick={handleOpen}>View change requests</MenuItem>
           </Badge>
-          <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
+          <ClaimsGuard requiredClaims={['iDemandAdmin']}>
             <MenuItem onClick={() => setTrxOpen(true)}>Transactions</MenuItem>
           </ClaimsGuard>
-          <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
+          <ClaimsGuard requiredClaims={['iDemandAdmin']}>
             <MenuItem onClick={() => setVersionsOpen(true)}>History</MenuItem>
           </ClaimsGuard>
           {/* <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>

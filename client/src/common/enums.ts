@@ -256,6 +256,9 @@ export enum CLAIMS {
   AGENT = 'agent',
 }
 
+export const Claim = z.enum(['iDemandAdmin', 'iDemandUser', 'orgAdmin', 'agent']);
+export type TClaim = z.infer<typeof Claim>;
+
 export enum LOCAL_STORAGE {
   USER_SEARCH_KEY = 'userSearchKey',
 }

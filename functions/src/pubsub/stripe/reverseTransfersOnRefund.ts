@@ -7,36 +7,30 @@ import Stripe from 'stripe';
 import { getReportErrorFn, stripeSecretKey, transfersCollection } from '../../common/index.js';
 import { getStripe } from '../../services/stripe.js';
 import { verify } from '../../utils/validation.js';
+import { extractPubSubPayload } from '../utils/extractPubSubPayload.js';
 
 // docs: https://stripe.com/docs/connect/separate-charges-and-transfers#issuing-refunds
 //  It is only possible to reverse a transfer if the connected account’s available balance is greater than the reversal amount or has connected reserves enabled.
 
 const reportErr = getReportErrorFn('createTransfersOnChargeComplete');
 
-interface ReverseTransfersOnRefundPayload {
+export interface RefundCreatedPayload {
   refund: Stripe.Refund; // or use charge.refunded event ??
 }
 
 // TODO: finish calcing transfer refund amount (store percent in original transfer ??)
 
-export default async (event: CloudEvent<MessagePublishedData<ReverseTransfersOnRefundPayload>>) => {
+export default async (event: CloudEvent<MessagePublishedData<RefundCreatedPayload>>) => {
   info('STRIPE CHARGE SUCCEEDED EVENT (create transfers listener) - MSG JSON: ', {
     ...(event.data?.message?.json || {}),
   });
 
-  let refund = null;
-
-  try {
-    refund = event.data?.message?.json?.refund;
-  } catch (e) {
-    reportErr('PubSub message was not JSON', {}, e);
-  }
+  const { refund } = extractPubSubPayload(event, ['refund']);
 
   try {
     verify(refund, 'missing refund data');
   } catch (err: any) {
-    let errMsg = 'validation failed';
-    if (err?.message) errMsg = err.message;
+    let errMsg = err?.message || 'validation failed';
     reportErr(errMsg, { ...event });
     return;
   }
@@ -56,6 +50,7 @@ export default async (event: CloudEvent<MessagePublishedData<ReverseTransfersOnR
     // TODO: need to subtract taxes / fees ??
     // after checking if taxes are refundable
 
+    // transfer queries not supported in stripe --> need to duplicate in our DB
     const transferSnaps = await transfersCol
       .where('source_transaction', '==', sourceTransaction)
       .where('object', '==', 'transfer')
@@ -65,6 +60,8 @@ export default async (event: CloudEvent<MessagePublishedData<ReverseTransfersOnR
 
     const batch = db.batch();
 
+    // TODO: idempotency -- make sure transfer not created more than once
+    // check for reversal with refund ID and connect account ID ??
     for (let transferSnap of transferSnaps.docs) {
       // TODO: calc transfer refund amount
       // TODO: inspection fees and mga fees are earned (subtract)
@@ -81,6 +78,7 @@ export default async (event: CloudEvent<MessagePublishedData<ReverseTransfersOnR
         amount: transferRefundAmt,
       });
 
+      // redundant - setting from webhook event - delete ??
       let reversalRef = transfersCol.doc(transferReversal.id);
       batch.set(reversalRef, {
         ...transferReversal,

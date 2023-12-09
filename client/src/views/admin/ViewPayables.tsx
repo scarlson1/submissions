@@ -1,7 +1,8 @@
 // temp component for testing payables data structure / joining payables data with location data
-import { Box, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { where } from 'firebase/firestore';
 
+import { LaunchRounded } from '@mui/icons-material';
 import { Payable } from 'common';
 import { useCollectionData, useSafeParams } from 'hooks';
 
@@ -15,6 +16,10 @@ export const ViewPayables = () => {
 
   // const createTestPayable = useCreateTestPayable(policyId);
 
+  // click button to pay options:
+  // hostedInvoiceUrl
+  // if hosted invoice url not available (or prefer to use our checkout - more control on display location data) --> redirect to payment page --> using paymentIntent, with invoice as fallback to get client secret
+
   return (
     <Box>
       <Typography
@@ -25,6 +30,15 @@ export const ViewPayables = () => {
       {/* <Button onClick={createTestPayable}>Create test payable</Button> */}
       {payables.map((p) => (
         <Box typography='body2' color='text.secondary' key={p.id}>
+          {p.hostedInvoiceUrl ? (
+            <Button
+              onClick={() => window.open(p.hostedInvoiceUrl!, '_blank', 'noreferrer noopener')}
+              endIcon={<LaunchRounded />}
+              variant='contained'
+            >
+              Pay now
+            </Button>
+          ) : null}
           <pre>{JSON.stringify(p, null, 2)}</pre>
         </Box>
       ))}

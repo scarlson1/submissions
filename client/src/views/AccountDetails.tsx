@@ -200,7 +200,7 @@ export const AccountDetails = () => {
               {orgId ? (
                 <Box>
                   <Box sx={{ pb: 2, width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
-                    <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
+                    <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']} requireAll={false}>
                       <AddUsersDialog orgId={orgId} />
                     </ClaimsGuard>
                   </Box>
@@ -261,7 +261,7 @@ export const AccountDetails = () => {
         </Box>
       </Paper>
 
-      <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
+      <ClaimsGuard requiredClaims={['iDemandAdmin']}>
         <Box sx={{ p: 1 }}>
           <InitializeFIPS />
         </Box>

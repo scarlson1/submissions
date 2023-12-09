@@ -126,7 +126,7 @@ export const Organization = () => {
               <>
                 <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[tabValue]}>
                   <Suspense fallback={<LoadingComponent />}>
-                    <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                    <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']}>
                       <Box
                         sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', pb: 2 }}
                       >
@@ -149,7 +149,7 @@ export const Organization = () => {
             <TabPanel value='stripe'>
               <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[tabValue]}>
                 <Suspense fallback={<LoadingComponent />}>
-                  <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                  <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']}>
                     <StripeConnectViewsLocalTabs orgId={orgId} />
                   </ClaimsGuard>
                 </Suspense>

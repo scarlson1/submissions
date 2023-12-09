@@ -1,29 +1,16 @@
 import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
-import Stripe from 'stripe';
 import { getReportErrorFn } from '../../common/index.js';
+import { extractPubSubPayload } from '../utils/extractPubSubPayload.js';
+import { ChargeSucceededPayload } from './createTaxTransactionsOnChargeSucceeded.js';
 
 const reportErr = getReportErrorFn('markPaidOnChargeComplete');
 
-interface MarkPaidOnChargeSucceededPayload {
-  charge: Stripe.Charge;
-  // TODO: include other stripe event data ??
-}
-
-export default async (
-  event: CloudEvent<MessagePublishedData<MarkPaidOnChargeSucceededPayload>>
-) => {
+export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayload>>) => {
   info('STRIPE CHARGE SUCCEEDED EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
 
-  // const eventId = event.id;
-  let charge = null;
-
-  try {
-    charge = event.data?.message?.json?.charge;
-  } catch (e) {
-    reportErr('PubSub message was not JSON', {}, e);
-  }
+  const { charge } = extractPubSubPayload(event, ['charge']);
   console.log('charge: ', charge);
   // // get policy ID from charge (or are we saving separate collection in our DB ??)
   // const policyId = charge?.metadata?.policyId; // does invoice/payment intent forward metadata to charge object ??
@@ -39,6 +26,7 @@ export default async (
   // const policiesCol = policiesCollection(db);
 
   try {
+    throw new Error('mark paid on succeeded handler not set up yet');
   } catch (err: any) {
     let msg = 'error updating policy on charge.succeeded';
 

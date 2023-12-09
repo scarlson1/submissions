@@ -1153,6 +1153,7 @@ export const PayableZ = z.object({
   paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(),
+  hostedInvoiceUrl: z.string().optional().nullable(),
   refundableTaxesAmount: z.number().int(),
   totalTaxesAmount: z.number().int().nonnegative(),
   refundableFeesAmount: z.number().int(), // inspection fees not refundable, unless flat_cancel

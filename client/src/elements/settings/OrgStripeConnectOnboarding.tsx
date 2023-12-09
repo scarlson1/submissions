@@ -12,44 +12,20 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { ReactNode, Suspense } from 'react';
 
 import { functionsInstance } from 'api';
-import { Copy } from 'components';
+import { AxiosResponse } from 'axios';
+import { Copy, LoadingSpinner } from 'components';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import { useClaims } from 'hooks';
-import { usePrevious } from 'hooks/utils';
 
 // pass orgId as param, prop or from user tenantId ?? switch to param/prop so idemand admin can fill out form ??
 
 // TODO: use stripe api to show status
 // display link to edit (use stripe hosted instead of embedded) ??
 // https://www.youtube.com/live/RYiscsdICrs?si=lnBpQysXWfXxaV17&t=1229
-
-// TODO: use react query ??
-function useStripeAccount(orgId: string) {
-  const [account, setAccount] = useState<Record<string, any>>({});
-  const [loading, setLoading] = useState(false);
-  const prevOrgId = usePrevious(orgId);
-
-  useEffect(() => {
-    if (orgId !== prevOrgId || !account) {
-      setLoading(true);
-      functionsInstance
-        .get(`/stripe/account/${orgId}`)
-        .then(({ data }) => {
-          setAccount({ ...data });
-          setLoading(false);
-        })
-        .catch((e) => {
-          console.log('ERR: ', e);
-          setLoading(false);
-        });
-    }
-  }, [orgId]);
-
-  return useMemo(() => ({ account, loading }), [account, loading]);
-}
 
 function ConnectItem({ title, value }: { title: string; value: ReactNode }) {
   return (
@@ -68,6 +44,43 @@ function ConnectItem({ title, value }: { title: string; value: ReactNode }) {
     </Box>
   );
 }
+
+const fetchStripeAccount = async (orgId: string) => {
+  const { data } = await functionsInstance.get(`/stripe/account/${orgId}`);
+  return data;
+};
+
+const useStripeAccount = (orgId: string) => {
+  return useSuspenseQuery({
+    queryKey: ['stripe', orgId, 'accountDetails'],
+    queryFn: () => fetchStripeAccount(orgId),
+  });
+};
+
+// function useStripeAccount(orgId: string) {
+//   const [account, setAccount] = useState<Record<string, any>>({});
+//   const [loading, setLoading] = useState(false);
+//   const prevOrgId = usePrevious(orgId);
+
+//   useEffect(() => {
+//     if (orgId !== prevOrgId || !account) {
+//       setLoading(true);
+//       functionsInstance
+//         .get(`/stripe/account/${orgId}`)
+//         .then(({ data }) => {
+//           setAccount({ ...data });
+//           setLoading(false);
+//         })
+//         .catch((e) => {
+//           console.log('ERR: ', e);
+//           setLoading(false);
+//         });
+//     }
+//   }, [orgId]);
+
+//   return useMemo(() => ({ account, loading }), [account, loading]);
+// }
+
 // TODO: rename component
 export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
   // const { orgId } = useClaims();
@@ -77,14 +90,14 @@ export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
   // if (!accountId) throw new Error('Org missing stripe account ID');
   // TODO: handle creating an account ID
 
-  const { account, loading } = useStripeAccount(orgId);
+  const { data: account } = useStripeAccount(orgId);
 
   // TODO: better status determination (look at requirements)
   // correct status for determining link type ??
   const submitted = account?.details_submitted;
   // const accountEnabled = account?.payouts_enabled && account?.charges_enabled;
 
-  if (loading) return <Box>Loading...</Box>;
+  // if (loading) return <Box>Loading...</Box>;
 
   return (
     <Box>
@@ -107,15 +120,17 @@ export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
         </Box>
 
         <Box>
-          {submitted ? (
-            <StripeAccountLink orgId={orgId} title='Update Account' type='account_update' />
-          ) : (
-            <StripeAccountLink
-              orgId={orgId}
-              title='Stripe Account Onboarding'
-              type='account_onboarding'
-            />
-          )}
+          <Suspense fallback={<LoadingSpinner loading={true} />}>
+            {submitted ? (
+              <StripeAccountLink orgId={orgId} title='Update Account' type='account_update' />
+            ) : (
+              <StripeAccountLink
+                orgId={orgId}
+                title='Stripe Account Onboarding'
+                type='account_onboarding'
+              />
+            )}
+          </Suspense>
         </Box>
       </Box>
 
@@ -248,9 +263,6 @@ export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
           ))}
         </Grid>
       </Box>
-      {/* <Box typography='body2' color='text.secondary'>
-        <pre>{JSON.stringify(account, null, 2)}</pre>
-      </Box> */}
     </Box>
   );
 };
@@ -264,34 +276,37 @@ export const CurrentUserOrgStripeConnectOnboarding = () => {
 
 type StripeAccountLinkType = 'account_onboarding' | 'account_update';
 
+const fetchAccountLink = async (orgId: string, type: StripeAccountLinkType) => {
+  const { data } = await functionsInstance.post<any, AxiosResponse<{ accountLink: string }>>(
+    '/stripe/accountLink',
+    { orgId, type }
+  );
+
+  return data.accountLink || null;
+};
+
+const useStripeAccountLink = (orgId: string, type: StripeAccountLinkType) => {
+  const { claims } = useClaims();
+
+  return useQuery({
+    queryKey: ['stripe', orgId, 'accountLink', type],
+    queryFn: () => fetchAccountLink(orgId, type),
+    enabled: claims.iDemandAdmin || claims.orgAdmin,
+    throwOnError: false,
+    staleTime: 240000, // 4 mins
+  });
+};
+
 export function StripeAccountLink({
   orgId,
   type,
   title,
 }: {
   orgId: string;
-  type?: StripeAccountLinkType;
+  type: StripeAccountLinkType;
   title: string;
 }) {
-  const [url, setUrl] = useState();
-  const prevOrgId = usePrevious(orgId);
-
-  useEffect(() => {
-    if (prevOrgId !== orgId || !url) {
-      functionsInstance
-        .post('/stripe/accountLink', {
-          orgId,
-          type,
-        })
-        .then(({ data }) => {
-          // console.log(data);
-          setUrl(data.accountLink);
-        })
-        .catch((e) => {
-          console.log('error getting account link: ', e);
-        });
-    }
-  }, [orgId, type]);
+  const { data: url } = useStripeAccountLink(orgId, type);
 
   if (!url) return null;
 
