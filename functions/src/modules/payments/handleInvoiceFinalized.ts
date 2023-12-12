@@ -17,11 +17,8 @@ export const handleInvoiceFinalized = async (invoice: Stripe.Invoice) => {
       return;
     }
 
-    const payableSnap = snaps.docs[0]; // .data();
-    // const payable = payableSnap.data();
-
+    const payableSnap = snaps.docs[0];
     // TODO: need to validate payable state (not already paid, etc.) ??
-    //
 
     const updates: UpdateData<Payable> = {};
     if (typeof invoice.payment_intent === 'string')

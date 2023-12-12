@@ -1,4 +1,4 @@
-import { Box, Container, Divider, Paper, Typography } from '@mui/material';
+import { Box, Container, Divider, Paper, Tooltip, Typography } from '@mui/material';
 import { DownloadFilesSVG } from 'assets/images';
 import { Payable, Policy, WithId } from 'common';
 import { LineItem } from 'components';
@@ -13,7 +13,7 @@ import {
   formatFirestoreTimestamp,
   formatPhoneNumber,
 } from 'modules/utils';
-import { useMemo } from 'react';
+import { forwardRef, useMemo } from 'react';
 
 // mobile swipeable drawer: https://mui.com/material-ui/react-drawer/#swipeable-edge
 
@@ -22,6 +22,7 @@ import { useMemo } from 'react';
 export const PayableCheckout = () => {
   const { payableId } = useSafeParams(['payableId']);
   const { data } = useDocData<Payable>('payables', payableId);
+  if (!data) throw new Error(`Payable not found ${payableId}`);
   // TODO: only use drawer on small screens ??
   // const [open, setOpen] = useState(true); // TODO: false on mobile
 
@@ -46,8 +47,6 @@ export const PayableCheckout = () => {
                 color='text.secondary'
               >{`Due ${formatFirestoreTimestamp(data.dueDate, 'date')}`}</Typography>
             </Box>
-            {/* TODO: only show if invoice url  */}
-
             {data.invoiceId ? (
               <Box
                 sx={{
@@ -58,12 +57,13 @@ export const PayableCheckout = () => {
                   pl: 3,
                 }}
               >
-                <DownloadPDF
-                  // url={data.invoicePdfUrl}
-                  filename={`iDemand Invoice ${data.invoiceId}.pdf`}
-                  // payableId={payableId}
-                  invoiceId={data.invoiceId}
-                />
+                <Tooltip title='download invoice' placement='bottom'>
+                  <DownloadPDF
+                    filename={`iDemand Invoice ${data.invoiceId}.pdf`}
+                    // invoiceId={data.invoiceId}
+                    endpoint={`/stripe/invoice/${data.invoiceId}/download`}
+                  />
+                </Tooltip>
               </Box>
             ) : null}
           </Box>
@@ -171,14 +171,17 @@ function PayableDetails({ data }: { data: WithId<Payable> }) {
   );
 }
 
-function DownloadPDF({ filename, invoiceId }: { filename: string; invoiceId?: string }) {
+const DownloadPDF = forwardRef(function DownloadPDF(
+  { filename, endpoint, ...props }: { filename: string; endpoint: string },
+  ref
+) {
   const { downloadFile } = useDownloadStream('get');
-
-  if (!invoiceId) return null;
 
   return (
     <Box
-      onClick={() => downloadFile(filename, `/stripe/invoice/${invoiceId}/download`)}
+      {...props}
+      ref={ref}
+      onClick={() => downloadFile(filename, endpoint)}
       sx={{
         height: '100%',
         width: '100%',
@@ -214,4 +217,4 @@ function DownloadPDF({ filename, invoiceId }: { filename: string; invoiceId?: st
       />
     </Box>
   );
-}
+});

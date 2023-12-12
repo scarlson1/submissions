@@ -5,6 +5,7 @@ import { FormikProps } from 'formik';
 import { isEqual } from 'lodash';
 import { RefObject, useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { useFirestore, useFunctions } from 'reactfire';
 
 import { CreatePolicyResponse, createPolicy } from 'api';
@@ -12,8 +13,6 @@ import { Quote, quotesCollection } from 'common';
 import { Wizard } from 'components/forms';
 import { useDocData } from 'hooks';
 import { addToDate, logDev } from 'modules/utils';
-import { useNavigate } from 'react-router-dom';
-import { AdditionalInterestsValues } from './AdditionalInterestsStep';
 import { EffectiveDateStep, EffectiveDateValues } from './EffectiveDateStep';
 import { BillingEntityStepValues, LocationBillingStep } from './LocationBillingStep';
 import { NamedInsuredStep, NamedInsuredValues } from './NamedInsuredStep';
@@ -65,7 +64,7 @@ const useBindQuote = (
   return useMemo(() => ({ saveValues, bindQuote, formRef }), [saveValues, bindQuote, formRef]);
 };
 
-type BindQuoteValues = NamedInsuredValues & AdditionalInterestsValues;
+type BindQuoteValues = NamedInsuredValues & EffectiveDateValues & BillingEntityStepValues;
 
 interface BindQuoteWizardProps {
   quoteId: string;
@@ -78,9 +77,10 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
     quoteId,
     (data) => {
       console.log('policy created: ', data);
+      // set policy id in ref for success step ??
       // TODO: change to use create path (and non-testing path)
       // TODO: navigate to bind success / payment screen / payables
-      navigate(`/admin/stripe-test/payables/${data.policyId}`);
+      // navigate(`/admin/stripe-test/payables/${data.policyId}`);
       // navigate(
       //   createPath({
       //     path: ROUTES.QUOTE_BIND_SUCCESS,
@@ -149,7 +149,7 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
           }}
         />
         <ReviewStep onSubmit={bindQuote} quote={quote} />
-        <SuccessStep />
+        <SuccessStep policyId={quote.policyId} />
       </Wizard>
     </Container>
   );

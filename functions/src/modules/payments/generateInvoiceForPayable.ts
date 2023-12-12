@@ -63,7 +63,7 @@ export const generateInvoiceForPayable = async (
     // effective_date: When defined, this value replaces the system-generated ‘Date of issue’ printed on the invoice PDF and receipt.
     ...(invoiceOptions || {}),
     metadata: {
-      transferGroup: payable.transferGroup,
+      // transferGroup: payable.transferGroup, // only available once payment intent created
       ...(invoiceOptions?.metadata || {}),
       policyId: payable.policyId,
     },

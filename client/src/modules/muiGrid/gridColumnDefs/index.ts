@@ -9,6 +9,7 @@ export { licenseCols } from './licenseCols';
 export { LOCATION_COLUMN_VISIBILITY, locationCols } from './locationCols';
 export { moratoriumCols } from './moratoriumCols';
 export { orgCols } from './orgCols';
+export { PAYABLE_COLUMN_VISIBILITY, payableCols } from './payableCols';
 export { POLICY_COLUMN_VISIBILITY, policyCols } from './policyCols';
 export { QUOTE_COLUMN_VISIBILITY, quoteCols } from './quoteCols';
 export { SUBMISSION_COLUMN_VISIBILITY, submissionCols } from './submissionCols';

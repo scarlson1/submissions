@@ -4,7 +4,6 @@ import { round, sumBy } from 'lodash-es';
 import Stripe from 'stripe';
 import { Payable } from '../../common/index.js';
 import { verify } from '../../utils/index.js';
-import { createTransferGroupId } from '../db/utils.js';
 
 function toAmt(val: number) {
   return round(val * 100);
@@ -44,7 +43,7 @@ export const createPayableObject = async (
     },
     lineItems,
     transfers,
-    transferGroup: createTransferGroupId(policyId),
+    // transferGroup: createTransferGroupId(policyId),// TODO: don't create - cannot set on payment intent created by invoice --> need to set once payment intent is created
     taxes: totals.taxes,
     fees: totals.fees,
     status: 'outstanding',

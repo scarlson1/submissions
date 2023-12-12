@@ -8,12 +8,22 @@ import {
   stripeSecretKey,
   transfersCollection,
 } from '../../common/index.js';
+import { getQueryData } from '../../modules/db/utils.js';
 import { getStripe } from '../../services/stripe.js';
 import { verify } from '../../utils/validation.js';
 import { extractPubSubPayload } from '../utils/extractPubSubPayload.js';
-import { ChargeSucceededPayload } from './createTaxTransactionsOnChargeSucceeded.js';
+import {
+  ChargeSucceededPayload,
+  getPayablesQueryFromCharge,
+} from './createTaxTransactionsOnChargeSucceeded.js';
 
 const reportErr = getReportErrorFn('createTransfersOnChargeComplete');
+
+// CANNOT UPDATE PAYMENT INTENT TRANSFER_GROUP CREATED FROM INVOICE
+/*
+  "message": "Some of the parameters you provided (transfer_group) cannot be used when modifying a PaymentIntent that was created by an invoice. You can try again without those parameters."
+*/
+// must specify source_transaction = chargeId when making transfers b/c transfer_group cannot be set from invoice
 
 export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayload>>) => {
   info('STRIPE CHARGE SUCCEEDED EVENT (create transfers listener) - MSG JSON: ', {
@@ -29,58 +39,42 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
     return;
   }
 
-  // get policy ID from charge (or are we saving separate collection in our DB ??)
-  // const policyId = charge?.metadata?.policyId; // does invoice/payment intent forward metadata to charge object ??
-  // const amount = charge?.amount;
-  // const amountCaptured = charge?.amount_captured;
-  // const captured = charge?.captured;
-  // const paid = charge?.paid; // true if successful or successfully authorized for later capture
-  const invoice = charge?.invoice;
-  const paymentIntent = charge?.payment_intent;
-  const transferGroup = charge?.transfer_group; // transfer group set when payment intent / invoice is created
-
   const stripe = getStripe(stripeSecretKey.value());
   const db = getFirestore();
-  // const policiesCol = policiesCollection(db);
   const payablesCol = payablesCollection(db);
   const transfersCol = transfersCollection(db);
 
   try {
-    // TODO: determine best query to get correct payable (billing group, invoice id,  etc.)
-    // get payable - transferGroup not available from invoice charge ??
-    // could use webhook to set the transfer group when invoice creates payment intent ??
-    const payableQuery = payablesCol;
-    if (transferGroup) {
-      // setting on payment_intent.created event if created by invoice
-      payableQuery.where('transferGroup', '==', transferGroup);
-    } else if (invoice) {
-      payableQuery.where('invoiceId', '==', invoice);
-    } else if (paymentIntent) {
-      payableQuery.where('paymentIntentId', '==', paymentIntent);
-    } else {
-      throw new Error('unable to query payable with information in charge object');
-    }
+    let q = getPayablesQueryFromCharge(payablesCol, charge);
+    const payable = (await getQueryData(q, true))[0];
 
-    const payableSnap = await payableQuery.orderBy('metadata.created', 'desc').limit(1).get();
-    if (payableSnap.empty)
-      throw new Error(`could not find payable to create transfers for charge ${charge?.id}`);
-
-    const transfers = payableSnap.docs[0].data()?.transfers;
-    // TODO: zod validation ??
+    const transfers = payable.transfers;
+    // TODO: zod validation ?? (when creating payable)
     if (!Array.isArray(transfers) || !transfers.length) {
-      info(`No transfers found on payable ${payableSnap.docs[0].id}. returning early.`);
+      info(`No transfers found on payable ${payable.id}. returning early.`);
       return;
     }
 
+    // use batch ?? or save directly after the transfer is created ??
+    // TODO: don't use batch (more likely to get out of sync)
     const batch = db.batch();
 
     for (let t of transfers) {
+      // TODO: check if transfer already made ?? or set at payable level ??
+      // or set amountTransferred in case of partial payments ??
+      // TODO: add transferPct and refundableTransferPct to transfer item
+      // should actual calc take into account non-refundable items ??
+      const transferPct = t.amount / payable.totalAmount;
+      const transferAmount = transferPct * charge.amount_captured;
       const transfer = await stripe.transfers.create({
-        amount: t.amount,
+        amount: transferAmount, // t.amount, // TODO: NEED TO CALCULATE AS % OF CHARGE
         currency: 'usd',
-        source_transaction: charge.id,
+        source_transaction: charge.id, // prevent transfer before funds available
         destination: t.destination,
       });
+      // TODO: update payable transfer with transfer ID for idempotency (check before creating transfer)
+      // or will it fail from setting source_transaction ?? (ex: not if 15% is transferred < 8 times)
+
       const transferRef = transfersCol.doc(transfer.id);
       batch.set(transferRef, transfer);
     }

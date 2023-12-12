@@ -14,7 +14,8 @@ export const createTaxTrxId = prefixedDocIdFactory('tt_', 6);
 export const createTaxId = prefixedDocIdFactory('tax_', 6);
 export const createTaxCalcId = prefixedDocIdFactory('taxcalc_', 6);
 
-export const createTransferGroupId = (policyId: string) => `tg_${policyId}_${nanoId(5)}`;
+// https://stripe.com/docs/connect/separate-charges-and-transfers#transfer-availability
+export const createTransferGroupId = (paymentIntentId: string) => `group_${paymentIntentId}`; // `tg_${policyId}_${nanoId(5)}`;
 export const createReversalId = prefixedDocIdFactory(`reversal_${nanoId(6)}`);
 
 /**

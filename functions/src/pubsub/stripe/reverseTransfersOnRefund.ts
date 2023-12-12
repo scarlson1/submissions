@@ -62,6 +62,7 @@ export default async (event: CloudEvent<MessagePublishedData<RefundCreatedPayloa
 
     // TODO: idempotency -- make sure transfer not created more than once
     // check for reversal with refund ID and connect account ID ??
+    // add totalRefunded to transfer object ?? make sure it doesn't except transfer amount ??
     for (let transferSnap of transferSnaps.docs) {
       // TODO: calc transfer refund amount
       // TODO: inspection fees and mga fees are earned (subtract)

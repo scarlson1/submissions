@@ -42,6 +42,7 @@ import { isDate, round, sum, sumBy } from 'lodash';
 import { toast } from 'react-hot-toast';
 import { Link as RouterLink } from 'react-router-dom';
 
+import { LoadingButton, LoadingButtonProps } from '@mui/lab';
 import {
   AdditionalInsured,
   Address,
@@ -82,6 +83,7 @@ import {
   renderPercent,
   renderSplitSnakeCase,
 } from 'components/RenderGridCellHelpers';
+import { useDownloadStream } from 'hooks';
 import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
 import {
   getGridFirestoreBooleanOperators,
@@ -99,6 +101,7 @@ import {
   numberFormat,
   popUpWasBlocked,
 } from 'modules/utils';
+import { memo } from 'react';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
 export const copyBaseProps: Partial<GridColDef> = {
@@ -126,12 +129,30 @@ export const percentColBaseProps: Partial<GridColDef> = {
   renderCell: renderPercent,
 };
 
-export const dateColBaseProps: Partial<GridColDef> = {
+export const dateColBaseProps: Pick<
+  GridColDef,
+  'type' | 'minWidth' | 'flex' | 'valueFormatter' | 'valueParser' | 'filterOperators' | 'renderCell'
+> = {
   type: 'date',
   minWidth: 180,
   flex: 1,
   valueFormatter: formatGridFirestoreTimestampAsDate,
+  valueParser: (value: any, params?: GridCellParams<any, any, any, GridTreeNode> | undefined) => {
+    // console.log('VAL SETTER: ', value, params);
+    if (!value) return null;
+    console.log('is date: ', isDate(value));
+    if (isDate(value)) return Timestamp.fromDate(new Date(value));
+    return value;
+  },
   filterOperators: getGridFirestoreDateOperators(),
+  renderCell: (params: GridRenderCellParams<any, any, any>) => {
+    if (!(params.value && params.value.seconds)) return null;
+    return (
+      <Typography variant='body2' color='text.secondary'>
+        {formatFirestoreTimestamp(params.value)}
+      </Typography>
+    );
+  },
 };
 
 export const idCol: GridColDef = {
@@ -292,7 +313,7 @@ export const createdCol: GridColDef = {
   filterOperators: getGridFirestoreDateOperators(),
   valueGetter: (params: GridValueGetterParams<any, any>) => params.row.metadata?.created || null,
   valueParser: (value: any, params?: GridCellParams<any, any, any, GridTreeNode> | undefined) => {
-    console.log('VAL SETTER: ', value, params);
+    // console.log('VAL SETTER: ', value, params);
     if (!value) return null;
     console.log('is date: ', isDate(value));
     if (isDate(value)) return Timestamp.fromDate(new Date(value));
@@ -856,6 +877,14 @@ export const currencyCol: Partial<GridColDef> = {
   renderCell: renderCurrency,
 };
 
+export const stripeAmountCol: Partial<GridColDef> = {
+  ...numericColBaseProps,
+  minWidth: 120,
+  flex: 0.8,
+  valueGetter: (params) => (typeof params.value === 'number' ? params.value / 100 : null),
+  renderCell: renderCurrency,
+};
+
 export const limitACol: GridColDef = {
   ...currencyCol,
   field: 'limits.limitA',
@@ -1281,6 +1310,142 @@ export const userIdCol: GridColDef = {
   ...copyBaseProps,
 };
 
+export const stripeCustomerIdCol: GridColDef = {
+  field: 'stripeCustomerId',
+  headerName: 'Stripe Customer ID',
+  filterable: false, // true, TODO: enable once index created
+  sortable: false,
+  filterOperators: getGridFirestoreStringOperators(),
+  valueGetter: (params) => params.value || null,
+  ...copyBaseProps,
+};
+
+export const stripeAccountIdCol: GridColDef = {
+  field: 'stripeAccountId',
+  headerName: 'Stripe Account ID',
+  filterable: false, // true, TODO: enable once index created
+  sortable: false,
+  filterOperators: getGridFirestoreStringOperators(),
+  valueGetter: (params) => params.value || null,
+  ...copyBaseProps,
+};
+
+export const invoiceNumberCol: GridColDef = {
+  field: 'invoiceNumber',
+  headerName: 'Invoice #',
+  type: 'string',
+  sortable: false,
+  filterable: false,
+  minWidth: 120,
+  flex: 0.4,
+};
+
+export const invoiceIdCol: GridColDef = {
+  ...idCol,
+  field: 'invoiceId',
+  headerName: 'Invoice ID',
+};
+
+export const billingEntityName: GridColDef = {
+  field: 'billingEntityDetails.name',
+  headerName: 'Billed To',
+  minWidth: 160,
+  flex: 0.8,
+  editable: false,
+  filterable: false,
+  sortable: false,
+  filterOperators: getGridFirestoreStringOperators(),
+  valueGetter: ({ row }) => row.billingEntityDetails?.name || null,
+};
+export const billingEntityEmail: GridColDef = {
+  ...emailCol,
+  field: 'billingEntityDetails.email',
+  headerName: 'Billing Email',
+  editable: false,
+  filterable: false,
+  sortable: false,
+  valueGetter: ({ row }) => row.billingEntityDetails?.email || null,
+};
+export const billingEntityPhone: GridColDef = {
+  ...phoneCol,
+  field: 'billingEntityDetails.phone',
+  headerName: 'Billing Phone',
+  editable: false,
+  filterable: false,
+  sortable: false,
+  valueGetter: ({ row }) => row.billingEntityDetails?.phone || null,
+};
+
+export const dueDateCol: GridColDef = {
+  ...dateColBaseProps,
+  field: 'dueDate',
+  headerName: 'Due Date',
+  sortable: true,
+  filterable: true,
+};
+
+// TODO: move to component
+interface DownloadPDFButtonProps extends Omit<LoadingButtonProps, 'onClick'> {
+  filename: string;
+  endpoint: string;
+  buttonText?: string;
+  onSuccess?: () => void;
+  onDownloadError?: (msg: string, err: any) => void;
+}
+
+const DownloadPDFButton = memo(
+  ({
+    filename,
+    endpoint,
+    buttonText = 'download',
+    onSuccess,
+    onDownloadError,
+    ...props
+  }: DownloadPDFButtonProps) => {
+    const { downloadFile, loading } = useDownloadStream('get', onSuccess, onDownloadError);
+
+    return (
+      <LoadingButton
+        onClick={(e) => {
+          e.stopPropagation();
+          downloadFile(filename, endpoint);
+        }}
+        loading={loading}
+        {...props}
+      >
+        {buttonText}
+      </LoadingButton>
+    );
+  }
+);
+
+// move to top for reuse
+export const downloadInvoiceCol: GridColDef = {
+  field: 'invoicePdfUrl',
+  headerName: 'Invoice PDF',
+  align: 'center',
+  headerAlign: 'center',
+  sortable: false,
+  filterable: false,
+  editable: false,
+  minWidth: 200,
+
+  flex: 1,
+  renderCell: ({ row, value }) => {
+    if (!value || !row.invoiceId) return null;
+
+    return (
+      <DownloadPDFButton
+        filename={`iDemand Invoice ${row.invoiceId}.pdf`}
+        endpoint={`/stripe/invoice/${row.invoiceId}/download`}
+        buttonText='Download Invoice'
+        size='small'
+        sx={{ maxHeight: 30 }}
+      />
+    );
+  },
+};
+
 export const agentNameCol: GridColDef = {
   field: 'agentName',
   headerName: 'Agent Name',
@@ -1488,7 +1653,7 @@ export const feesSumCol: GridColDef = {
   },
 };
 
-export const locationsCount: GridColDef = {
+export const locationsCountCol: GridColDef = {
   field: 'locationsCount',
   headerName: '# locations',
   description: 'active location count',
@@ -1509,7 +1674,7 @@ export const locationsCount: GridColDef = {
 };
 
 // TODO: delete (if not storing address in locations obj) or refactor
-export const locationAddresses: GridColDef = {
+export const locationAddressesCol: GridColDef = {
   field: 'addressesSummary',
   headerName: 'Locations',
   description: 'active location addresses',

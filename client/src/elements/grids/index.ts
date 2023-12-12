@@ -5,6 +5,7 @@ export { ImportsSummaryGrid } from './ImportsSummaryGrid';
 export { InvitesGrid } from './InvitesGrid';
 export { LocationsGrid } from './LocationsGrid';
 export { MoratoriumsGrid } from './MoratoriumsGrid';
+export { PayablesGrid } from './PayablesGrid';
 export { PoliciesGrid } from './PoliciesGrid';
 export { PolicyVersionsGrid } from './PolicyVersionsGrid';
 export { QuotesGrid } from './QuotesGrid';

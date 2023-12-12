@@ -41,6 +41,7 @@ export const PoliciesGrid = ({
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
     null,
     null,
+    // handle policy version collection
     (params) =>
       props?.pathSegments?.length
         ? `/${props.pathSegments.join('/')}/${params.id.toString()}`

@@ -42,22 +42,17 @@ export function NamedInsuredStep({
   //   logAnalyticsStep(0, 'named insured step');
   // }, [logAnalyticsStep]);
 
-  const handleSubmit = useCallback(
-    async (values: NamedInsuredValues, bag: FormikHelpers<NamedInsuredValues>) => {
-      // TODO: need to call setQuoteUserId when quote created ??
-      // TODO: promise all for first two api calls
-      let namedInsuredUserId;
+  const getIdsAndSaveValues = useCallback(
+    async (values: NamedInsuredValues) => {
+      let namedInsuredUserId, stripeAccountId;
+
+      // don't throw if these fail ??
       try {
-        const { data } = await setQuoteUserId(functions, {
+        const setUserIdPromise = setQuoteUserId(functions, {
           quoteId,
           email: values.namedInsured.email,
         });
-        namedInsuredUserId = data.userId;
-      } catch (err: any) {}
-
-      let stripeAccountId;
-      try {
-        stripeAccountId = await addBillingEntity({
+        const addBillingEntityPromise = addBillingEntity({
           displayName:
             `${values.namedInsured?.firstName || ''} ${
               values.namedInsured?.lastName || ''
@@ -65,25 +60,78 @@ export function NamedInsuredStep({
           email: values.namedInsured?.email || '',
           phone: values.namedInsured?.phone || '',
         });
+
+        const [userIdRes, entityRes] = await Promise.all([
+          setUserIdPromise,
+          addBillingEntityPromise,
+        ]);
+
+        namedInsuredUserId = userIdRes.data.userId;
+        stripeAccountId = entityRes;
       } catch (err: any) {
-        console.log('error get stripe customer', err); // don't throw -- handle in billing step ??
+        console.log('err: ', err);
       }
+
+      await onStepSubmit(
+        {
+          'namedInsured.firstName': values.namedInsured?.firstName,
+          'namedInsured.lastName': values.namedInsured?.lastName,
+          'namedInsured.email': values.namedInsured.email,
+          'namedInsured.phone': values.namedInsured?.phone || '',
+          'namedInsured.stripeCustomerId': stripeAccountId || null,
+          defaultBillingEntityId: stripeAccountId || '',
+          'metadata.updated': Timestamp.now(),
+        },
+        true
+      );
+    },
+    [onStepSubmit, addBillingEntity]
+  );
+
+  const handleSubmit = useCallback(
+    async (values: NamedInsuredValues, bag: FormikHelpers<NamedInsuredValues>) => {
+      // TODO: need to call setQuoteUserId when quote created ??
+      // let namedInsuredUserId;
+      // try {
+      //   const { data } = await setQuoteUserId(functions, {
+      //     quoteId,
+      //     email: values.namedInsured.email,
+      //   });
+      //   namedInsuredUserId = data.userId;
+      // } catch (err: any) {
+      //   console.log('err setting user id on quote: ', err);
+      // }
+
+      // let stripeAccountId;
+      // try {
+      //   stripeAccountId = await addBillingEntity({
+      //     displayName:
+      //       `${values.namedInsured?.firstName || ''} ${
+      //         values.namedInsured?.lastName || ''
+      //       }`.trim() || '',
+      //     email: values.namedInsured?.email || '',
+      //     phone: values.namedInsured?.phone || '',
+      //   });
+      // } catch (err: any) {
+      //   console.log('error get stripe customer', err); // don't throw -- handle in billing step ??
+      // }
 
       try {
         // use dot notation so namedInsured userId is not overwritten after set in setQuoteUserId ^
-        await onStepSubmit(
-          {
-            'namedInsured.firstName': values.namedInsured?.firstName,
-            'namedInsured.lastName': values.namedInsured?.lastName,
-            'namedInsured.email': values.namedInsured.email,
-            'namedInsured.phone': values.namedInsured?.phone || '',
-            'namedInsured.stripeCustomerId': stripeAccountId || null,
-            defaultBillingEntityId: stripeAccountId || '',
-            'metadata.updated': Timestamp.now(),
-          },
-          true
-        );
+        // await onStepSubmit(
+        //   {
+        //     'namedInsured.firstName': values.namedInsured?.firstName,
+        //     'namedInsured.lastName': values.namedInsured?.lastName,
+        //     'namedInsured.email': values.namedInsured.email,
+        //     'namedInsured.phone': values.namedInsured?.phone || '',
+        //     'namedInsured.stripeCustomerId': stripeAccountId || null,
+        //     defaultBillingEntityId: stripeAccountId || '',
+        //     'metadata.updated': Timestamp.now(),
+        //   },
+        //   true
+        // );
         // force update (could be missing stripe ID or userId from quote creation)
+        await getIdsAndSaveValues(values);
 
         await nextStep();
       } catch (err: any) {
@@ -91,7 +139,7 @@ export function NamedInsuredStep({
         onError && onError(msg);
       }
     },
-    [onStepSubmit, nextStep]
+    [getIdsAndSaveValues, nextStep]
   );
 
   return (

@@ -27,9 +27,11 @@ export const UserDetails = () => {
         <UpdateUserEmail />
       </Box>
       {!user?.emailVerified ? <VerifyEmailButton /> : null}
-      <Box sx={{ py: 4 }}>
-        <UpdateUserPhone />
-      </Box>
+      {user?.uid ? (
+        <Box sx={{ py: 4 }}>
+          <UpdateUserPhone userId={user?.uid} />
+        </Box>
+      ) : null}
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <Typography variant='body2' color='text.secondary' sx={{ mr: 1, fontSize: '0.725rem' }}>
           User ID:

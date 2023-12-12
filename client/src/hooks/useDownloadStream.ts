@@ -1,6 +1,7 @@
+import { useCallback, useState } from 'react';
+
 import { functionsInstance } from 'api';
 import { saveDownload } from 'modules/utils';
-import { useCallback, useState } from 'react';
 import { useAsyncToast } from './useAsyncToast';
 
 export function useDownloadStream(
@@ -31,7 +32,7 @@ export function useDownloadStream(
       let msg = 'error downloading file';
       if (err.message) msg += ` (${err.message})`;
 
-      toast.error('an error occurred', { duration: 2000 });
+      toast.error('error downloading file', { duration: 2000 });
       if (onError) onError(msg, err);
       setLoading(false);
     }

@@ -19,7 +19,7 @@ function createTaxTrxReversalObject(
   originalTrx: WithId<TaxOgTransaction>,
   refund: Stripe.Refund
 ): TaxReversalTransaction {
-  const percentRefunded = originalTrx.chargeAmount / refund.amount;
+  const percentRefunded = refund.amount / originalTrx.chargeAmount;
   const reversalAmount = round(percentRefunded * originalTrx.taxAmount);
 
   return {
@@ -47,8 +47,10 @@ export const createTaxTrxReversal = async (refund: Stripe.Refund) => {
   const q = taxTrxCol
     .where('chargeId', '==', refund.charge)
     .where('type', '==', TaxTransactionType.Enum.transaction) as Query<TaxOgTransaction>;
+
   const taxTrxs = await getQueryData<TaxOgTransaction>(q, false);
   info(`found ${taxTrxs.length} tax transactions matching charge ${refund.charge}`, { taxTrxs });
+
   if (!taxTrxs.length) return [];
 
   // remove undefined check once all taxes have been updated ??

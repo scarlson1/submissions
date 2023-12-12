@@ -16,11 +16,8 @@ import {
   orgsCollection,
   stripeSecretKey,
 } from '../common/index.js';
-import {
-  handleInvoiceFinalized,
-  setTransferGroupOnPaymentIntentCreated,
-  syncTransfer,
-} from '../modules/payments/index.js';
+import { handleInvoiceFinalized, syncTransfer } from '../modules/payments/index.js';
+import { setTransferGroupOnPaymentIntentCreated } from '../modules/payments/setTransferGroupOnPaymentIntentCreated.js';
 import { getStripe } from '../services/index.js';
 import { publishChargeSucceeded, publishRefundCreated } from '../services/pubsub/index.js';
 import { createStripeConnectAccount, getActiveStripeCustomerByEmail } from '../utils/index.js';
@@ -72,7 +69,7 @@ app.post(
         const createdPaymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log('created payment intent: ', createdPaymentIntent);
         // update invoice-generated payment intent with transfer group from payable doc
-        await setTransferGroupOnPaymentIntentCreated(stripe, createdPaymentIntent);
+        await setTransferGroupOnPaymentIntentCreated(createdPaymentIntent);
 
         break;
       // could use webhook to set the transfer group when invoice creates payment intent ??
@@ -110,6 +107,7 @@ app.post(
         // trigger policy pmt status (might need to be updated by billing entity ??) or charge ID ??
         await publishChargeSucceeded({ charge });
         // TODO: set receipt number on payable
+        // TODO: doesn't run when payment made via bank transfer ? or paid out of network (paper check) ??
 
         break;
       case 'charge.failed':
@@ -201,6 +199,7 @@ app.post(
       case 'invoice.paid':
         const paidInvoice = event.data.object as Stripe.Invoice;
         console.log('invoice paid: ', paidInvoice);
+        // need to handle payable paid if invoice paid out of X (paper check ??) no charge.succeeded event ??
 
         break;
       case 'invoice.payment_failed':
@@ -220,6 +219,7 @@ app.post(
         // Occurs whenever a refund from a customer’s cash balance is updated.
         const updatedRefund = event.data.object as Stripe.Refund;
         console.log('refund created: ', updatedRefund);
+        // any updates to payable / transfers / taxes ??
 
         break;
       case 'payout.created':

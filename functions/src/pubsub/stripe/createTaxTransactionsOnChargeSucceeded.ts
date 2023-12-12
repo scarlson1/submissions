@@ -71,21 +71,23 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
   return;
 };
 
-function getPayablesQueryFromCharge(
+export function getPayablesQueryFromCharge(
   payablesCol: CollectionReference<Payable>,
   charge: Stripe.Charge
 ) {
   const invoice = charge?.invoice;
   const paymentIntent = charge?.payment_intent;
-  const transferGroup = charge?.transfer_group;
+  // const transferGroup = charge?.transfer_group;
 
   let q = payablesCol;
-  if (transferGroup) {
-    q.where('transferGroup', '==', transferGroup);
+  // TRANSFER GROUP ONLY BEING SET FROM INTENT CREATED EVENT (NOT RELIABLE)
+  // if (transferGroup) {
+  //   q.where('transferGroup', '==', transferGroup);
+  // } else
+  if (invoice) {
+    q.where('invoiceId', '==', invoice);
   } else if (paymentIntent) {
     q.where('paymentIntentId', '==', paymentIntent);
-  } else if (invoice) {
-    q.where('invoiceId', '==', invoice);
   } else {
     throw new Error(
       'Unable to determine query to fetch payable for successful charge. Failed to determine/create tax transactions'

@@ -70,6 +70,7 @@ import {
   Moratoriums,
   Organization,
   Organizations,
+  Payables,
   PolicyDelivery,
   QuoteEdit,
   QuoteNew,
@@ -168,6 +169,7 @@ export enum ADMIN_ROUTES {
   IMPORT_REVIEW = '/admin/config/imports/:importId',
   EMAIL_ACTIVITY = '/admin/config/email-activity',
   TRANSACTIONS = '/admin/config/transactions',
+  PAYABLES = '/admin/config/payables', // TODO: move to non admin route once permissions fixed
   LOCATIONS = '/admin/locations',
 }
 
@@ -239,6 +241,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.IMPORT_REVIEW; params: { importId: string } }
   | { path: ADMIN_ROUTES.EMAIL_ACTIVITY }
   | { path: ADMIN_ROUTES.TRANSACTIONS }
+  | { path: ADMIN_ROUTES.PAYABLES }
   | { path: ADMIN_ROUTES.LOCATIONS }
   | {
       path: AUTH_ROUTES.CREATE_ACCOUNT;
@@ -2030,6 +2033,26 @@ export const router = sentryCreateBrowserRouter([
                   crumb: (match: CrumbMatch) => [
                     {
                       label: 'Transactions',
+                    },
+                  ],
+                },
+              },
+              {
+                path: 'payables',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                  >
+                    <>
+                      <PageMeta title='iDemand - Payables' />
+                      <Payables />
+                    </>
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => [
+                    {
+                      label: 'Payables',
                     },
                   ],
                 },

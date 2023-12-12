@@ -17,6 +17,7 @@ export { MoratoriumNew } from './MoratoriumNew';
 export { Moratoriums } from './Moratoriums';
 export { Organization } from './Organization';
 export { Organizations } from './Organizations';
+export { Payables } from './Payables';
 export { PolicyDelivery } from './PolicyDelivery';
 export { QuoteEdit } from './QuoteEdit';
 export { QuoteNew, QuoteNewFromSub } from './QuoteNew';

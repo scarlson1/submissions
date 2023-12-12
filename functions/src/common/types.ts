@@ -263,7 +263,7 @@ export const Payable = z.object({
   }),
   lineItems: z.array(LineItem),
   transfers: z.array(TransferSummary), // create before ?? need to update if revered ??
-  transferGroup: z.string(), // passed to payment intent - not available on invoice ??
+  transferGroup: z.string().optional().nullable(), // passed to payment intent - not available on invoice ??
   taxes: z.array(TaxItem), // just store referance to tax calc object ??
   // taxes separate from line items ??
   fees: z.array(FeeItem), // TODO: need to add refundable property on feeItem

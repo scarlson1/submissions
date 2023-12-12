@@ -12,7 +12,7 @@ import {
   policiesCollection,
   stripeSecretKey,
 } from '../common/index.js';
-import { createDocId, createTransferGroupId, getDocData } from '../modules/db/index.js';
+import { createDocId, getDocData } from '../modules/db/index.js';
 import { getInvoiceDueDateTS } from '../modules/payments/utils.js';
 import { getComm } from '../modules/rating/utils.js';
 import { getStripe } from '../services/index.js';
@@ -98,7 +98,6 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         },
         lineItems,
         transfers,
-        transferGroup: createTransferGroupId(policyId),
         taxes: totals.taxes,
         fees: totals.fees,
         status: 'outstanding',
