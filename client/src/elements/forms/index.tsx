@@ -30,6 +30,7 @@ export { SuccessStep } from './SuccessStep';
 export { TaxForm } from './TaxForm';
 export { UpdatePasswordForm } from './UpdatePasswordForm';
 export { UpdateUserEmail } from './UpdateUserEmail';
+export { UpdateUserPhone } from './UpdateUserPhone';
 export { UserDetailsForm } from './UserDetailsForm';
 
 export type { AddLocationValues } from './AddLocation/AddLocationWizard';

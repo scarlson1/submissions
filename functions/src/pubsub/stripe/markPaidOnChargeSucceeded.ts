@@ -12,6 +12,7 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
 
   const { charge } = extractPubSubPayload(event, ['charge']);
   console.log('charge: ', charge);
+
   // // get policy ID from charge (or are we saving separate collection in our DB ??)
   // const policyId = charge?.metadata?.policyId; // does invoice/payment intent forward metadata to charge object ??
   // const amount = charge?.amount;
@@ -24,6 +25,9 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
 
   // const db = getFirestore();
   // const policiesCol = policiesCollection(db);
+
+  // update payable with receipt number ??
+  // if (invoice.receipt_number)
 
   try {
     throw new Error('mark paid on succeeded handler not set up yet');

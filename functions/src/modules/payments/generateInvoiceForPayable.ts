@@ -45,7 +45,17 @@ export const generateInvoiceForPayable = async (
     collection_method: 'send_invoice',
     payment_settings: {
       // TODO: look up difference between ach credit vs debit & us_bank_account
-      payment_method_types: ['ach_debit', 'customer_balance', 'link', 'us_bank_account'],
+      // customer_balance for bank transfers
+      payment_method_types: ['us_bank_account', 'customer_balance'], // 'ach_debit', 'customer_balance', 'link' link requires card to be enabled ??
+      // Err message: "To use 'link' with the PaymentElement, please pass both 'link' and 'card' as payment_method_types."
+      payment_method_options: {
+        customer_balance: {
+          funding_type: 'bank_transfer',
+          bank_transfer: {
+            type: 'us_bank_transfer',
+          },
+        },
+      },
       ...(invoiceOptions?.payment_settings || {}),
     },
     // if collection method is send_invoice, must provide days_until_due or due_date
@@ -83,7 +93,7 @@ export const generateInvoiceForPayable = async (
       description: f.displayName,
     })
   );
-  const taxItemPromises = payable.fees.map((f) =>
+  const taxItemPromises = payable.taxes.map((f) =>
     stripe.invoiceItems.create({
       customer: payable.stripeCustomerId,
       amount: f.value * 100,

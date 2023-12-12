@@ -1119,6 +1119,16 @@ export const PolicyWithStatusZ = PolicyZ.and(
 );
 export type PolicyWithStatus = z.infer<typeof PolicyWithStatusZ>;
 
+export const StripeAddressZ = z.object({
+  line1: z.string().nullable(),
+  line2: z.string().nullable(),
+  city: z.string().nullable(),
+  state: z.string().nullable(),
+  postal_code: z.string().nullable(),
+  country: z.string().nullable(),
+});
+export type StripeAddress = z.infer<typeof StripeAddressZ>;
+
 export const LineItemZ = z.object({
   displayName: z.string(),
   amount: z.number(),
@@ -1142,7 +1152,12 @@ export type TPayableStatus = z.infer<typeof PayableStatus>;
 export const PayableZ = z.object({
   policyId: z.string(),
   stripeCustomerId: z.string(),
-  billingEntityDetails: z.any(), // rename stripeCustomerDetails ?? (email, etc.)
+  billingEntityDetails: z.object({
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    phone: z.string().nullable(),
+    address: StripeAddressZ.nullable(),
+  }), // rename stripeCustomerDetails ?? (email, etc.)
   lineItems: z.array(LineItemZ),
   transfers: z.array(TransferSummaryZ), // create before ?? need to update if revered ??
   transferGroup: z.string(), // passed to payment intent - not available on invoice ??
@@ -1153,7 +1168,10 @@ export const PayableZ = z.object({
   paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(),
+  invoiceNumber: z.string().optional().nullable(),
+  receiptNumber: z.string().optional().nullable(),
   hostedInvoiceUrl: z.string().optional().nullable(),
+  invoicePdfUrl: z.string().optional().nullable(),
   refundableTaxesAmount: z.number().int(),
   totalTaxesAmount: z.number().int().nonnegative(),
   refundableFeesAmount: z.number().int(), // inspection fees not refundable, unless flat_cancel
@@ -1163,6 +1181,7 @@ export const PayableZ = z.object({
   termPremiumAmount: z.number().int().nonnegative(),
   totalAmount: z.number().int().nonnegative(),
   locations: z.record(PolicyLocationZ),
+  dueDate: TimestampZ,
   // set charges ?? array ?? save to payable on charge.complete or charge.created ??
   metadata: BaseMetadataZ,
 });

@@ -251,6 +251,7 @@ export type PayableStatus = z.infer<typeof PayableStatus>;
 // TODO: need to lock down once paid
 // TODO: pass through zod before saving at all times ??
 
+// TODO: add more invoice state like paid/paidOutOfBand, etc ?? or fetch receipt for extra details ??
 export const Payable = z.object({
   policyId: z.string(),
   stripeCustomerId: z.string(),
@@ -270,7 +271,10 @@ export const Payable = z.object({
   paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(), // generated when invoice is finalized
+  invoiceNumber: z.string().optional().nullable(),
+  receiptNumber: z.string().optional().nullable(),
   hostedInvoiceUrl: z.string().optional().nullable(), // set from finalized event
+  invoicePdfUrl: z.string().optional().nullable(),
   refundableTaxesAmount: z.number().int(),
   totalTaxesAmount: z.number().int().nonnegative(),
   refundableFeesAmount: z.number().int(), // inspection fees not refundable, unless flat_cancel

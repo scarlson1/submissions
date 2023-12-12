@@ -1,14 +1,15 @@
 import { LoadingButton } from '@mui/lab';
 import { Box, Unstable_Grid2 as Grid } from '@mui/material';
 import * as Sentry from '@sentry/react';
-import { usersCollection } from 'common';
-import { RHFTextField } from 'components/forms';
-import { useAuthActions } from 'context';
 import { Firestore, doc, setDoc } from 'firebase/firestore';
-import { useAsyncToast } from 'hooks';
 import { useCallback, useEffect } from 'react';
 import { SubmitHandler, useForm, useFormState } from 'react-hook-form';
 import { useFirestore, useUser } from 'reactfire';
+
+import { usersCollection } from 'common';
+import { RHFTextField } from 'components/forms';
+import { useAuthActions } from 'context';
+import { useAsyncToast } from 'hooks';
 
 async function updateDBEmail(
   firestore: Firestore,

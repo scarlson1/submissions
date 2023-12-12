@@ -21,6 +21,7 @@ import { addToDate, dollarFormat, formatDate, formatFirestoreTimestamp } from 'm
 // TODO:
 //    - show location summary
 //    - display costs by billing entity (use accordion to open details ??)
+//    - view billing details --> open side panel with billing by entity
 
 interface ReviewStepProps {
   onSubmit: () => Promise<void>;

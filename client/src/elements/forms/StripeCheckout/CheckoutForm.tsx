@@ -2,6 +2,7 @@ import { LoadingButton } from '@mui/lab';
 import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { DefaultValuesOption, StripePaymentElementOptions } from '@stripe/stripe-js';
 import { FormEvent, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 // use named insured as default billing details ??
 // or only provide if current user === named insured ??
@@ -19,10 +20,10 @@ export function CheckoutForm({ billingDetails, emailReceipt }: CheckoutFormProps
 
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [link, setLink] = useState({
-    complete: false,
-    email: '',
-  });
+  // const [link, setLink] = useState({
+  //   complete: false,
+  //   email: '',
+  // });
   // const [emailComplete, setEmailComplete] = useState(false);
   const [pmtElReady, setPmtElReady] = useState(false);
 
@@ -79,7 +80,7 @@ export function CheckoutForm({ billingDetails, emailReceipt }: CheckoutFormProps
         // Make sure to change this to your payment completion page
         return_url: 'http://localhost:3000/admin/stripe-test/success', // TODO: REDIRECT TO PAYMENT SUCCEEDED
         // payment_intent_client_secret is set as query param --> fetch intent to display status
-        receipt_email: emailReceipt || link.email, // email,
+        receipt_email: emailReceipt, // || link.email, // email,
       },
     });
 
@@ -104,12 +105,9 @@ export function CheckoutForm({ billingDetails, emailReceipt }: CheckoutFormProps
         name: billingDetails?.name || '', // default to named insured or current user ??
         email: billingDetails?.email || '',
         phone: billingDetails?.phone || '',
-        // address: {
-        //   postal_code: '10001',
-        //   country: 'US',
-        // },
       },
     },
+    paymentMethodOrder: ['us_bank_account', 'bank_transfer'],
   };
 
   return (
@@ -131,6 +129,10 @@ export function CheckoutForm({ billingDetails, emailReceipt }: CheckoutFormProps
         onReady={() => {
           console.log('payment element ready');
           setPmtElReady(true);
+        }}
+        onLoadError={({ elementType, error: err }) => {
+          console.log('load err: ', err);
+          toast.error(err.message || 'error loading Stripe');
         }}
       />
       <LoadingButton
@@ -208,7 +210,7 @@ export function CheckoutForm({ billingDetails, emailReceipt }: CheckoutFormProps
 //       elements,
 //       params: {
 //         billing_details: {
-//           name: 'Jenny Rosen',
+//           name: 'Jenny Rose',
 //         },
 //       },
 //     });
@@ -261,7 +263,7 @@ export function CheckoutForm({ billingDetails, emailReceipt }: CheckoutFormProps
 //   //   elements,
 //   //   params: {
 //   //     shipping: {
-//   //       name: 'Jenny Rosen',
+//   //       name: 'Jenny Rose',
 //   //       address: {
 //   //         line1: '1234 Main Street',
 //   //         city: 'San Francisco',

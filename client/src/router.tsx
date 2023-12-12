@@ -40,6 +40,7 @@ import {
   CreateAccount,
   Home,
   Login,
+  PayableCheckout,
   Policies,
   Policy,
   QuoteBind,
@@ -126,6 +127,7 @@ export enum ROUTES {
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
   // CLAIM_NEW = '/policies/:policyId/claim/new',
   CLAIM_NEW = '/policies/:policyId/:locationId/claims/new',
+  PAYABLE_CHECKOUT = '/payables/:payableId',
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
   ACCOUNT = '/account',
@@ -202,6 +204,7 @@ type TArgs =
   | { path: ROUTES.POLICY; params: { policyId: string }; search?: { view: string } }
   | { path: ROUTES.ADD_LOCATION_NEW; params: { policyId: string } }
   | { path: ROUTES.CLAIM_NEW; params: { policyId: string; locationId: string } }
+  | { path: ROUTES.PAYABLE_CHECKOUT; params: { payableId: string } }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
@@ -524,6 +527,29 @@ export const router = sentryCreateBrowserRouter([
                   // link: createPath({
                   //   path: ROUTES.SUBMISSION_SUBMITTED,
                   //   params: { submissionId: `${match?.params?.submissionId || ''}` },
+                  // }),
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.PAYABLE_CHECKOUT,
+            element: <PayableCheckout />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Payables',
+                  // TODO: add link once route added
+                  // link: createPath({
+                  //   path: ROUTES.POLICIES,
+                  // }),
+                },
+                {
+                  label: `${match?.params?.payableId || ''}`,
+                  // link: createPath({
+                  //   path: ROUTES.POLICY,
+                  //   params: { policyId: `${match?.params?.policyId || ''}` },
                   // }),
                 },
               ],

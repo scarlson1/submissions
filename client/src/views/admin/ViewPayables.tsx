@@ -1,24 +1,47 @@
-// temp component for testing payables data structure / joining payables data with location data
-import { Box, Button, Typography } from '@mui/material';
+import { DataObjectRounded, LaunchRounded } from '@mui/icons-material';
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Unstable_Grid2 as Grid,
+  IconButton,
+  Typography,
+} from '@mui/material';
 import { where } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
-import { LaunchRounded } from '@mui/icons-material';
-import { Payable } from 'common';
-import { useCollectionData, useSafeParams } from 'hooks';
+import { Payable, WithId } from 'common';
+import { useCollectionData, useSafeParams, useShowJson } from 'hooks';
+import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
+import { ROUTES, createPath } from 'router';
 
+// temp component for testing payables data structure / joining payables data with location data
 // get client secret for payment intent
+
+// payment approaches:
+//  - use url stripe hosted payment from invoice finalized event
+//  - get payment intent from invoice finalized event & host our own checkout
+//    - fetch client secret by sending payable ID ?? backend could create payment intent if necessary ?? or throw ??
+//  - need handling for missing paymentIntent/payment URL (check payable created date, if later than x, report error ??)
+
+// views to support:
+//  - show all payables for agent/user/org
+//  - show payables for specific policy
+//  - view invoice details ?? use same route as make payment ?? show different views depending on invoice state (link stripe hosted url) ??
+//  options:
+//    - break into: payables card, then pass in data
+// collapse card - expand to see location details (collapsed) (term premium), taxes, fees, total
 
 export const ViewPayables = () => {
   const { policyId } = useSafeParams(['policyId']);
   const { data: payables } = useCollectionData<Payable>('payables', [
     where('policyId', '==', policyId),
   ]);
-
-  // const createTestPayable = useCreateTestPayable(policyId);
-
-  // click button to pay options:
-  // hostedInvoiceUrl
-  // if hosted invoice url not available (or prefer to use our checkout - more control on display location data) --> redirect to payment page --> using paymentIntent, with invoice as fallback to get client secret
 
   return (
     <Box>
@@ -27,118 +50,96 @@ export const ViewPayables = () => {
         variant='h5'
         gutterBottom
       >{`Payables for policy ${policyId}`}</Typography>
-      {/* <Button onClick={createTestPayable}>Create test payable</Button> */}
-      {payables.map((p) => (
-        <Box typography='body2' color='text.secondary' key={p.id}>
-          {p.hostedInvoiceUrl ? (
-            <Button
-              onClick={() => window.open(p.hostedInvoiceUrl!, '_blank', 'noreferrer noopener')}
-              endIcon={<LaunchRounded />}
-              variant='contained'
-            >
-              Pay now
-            </Button>
-          ) : null}
-          <pre>{JSON.stringify(p, null, 2)}</pre>
-        </Box>
-      ))}
+      <Grid container spacing={6}>
+        {payables.map((p) => (
+          <Grid key={p.id} xs={12} sm={6} lg={4} xl={3}>
+            <PayableCard data={p} />
+          </Grid>
+        ))}
+      </Grid>
     </Box>
   );
 };
 
-// function useCreateTestPayable(policyId: string) {
-//   const { data: authUser } = useUser();
-//   invariant(authUser);
-//   const { data: user } = useDocData<User>('users', authUser.uid);
-//   invariant(user?.orgId);
-//   const { data: company } = useDocData<Organization>('organizations', user.orgId);
-//   const firestore = useFirestore();
+// TODO: generate mapbox maps for invoice ?? or copy from policy ??
+interface PayableCardProps {
+  data: WithId<Payable>;
+}
 
-//   // TODO: accept form data
-//   return useCallback(async () => {
-//     try {
-//       const payablesCol = payablesCollection(firestore);
-//       const stripeCustomerId = user.stripeCustomerId;
-//       if (!stripeCustomerId) throw new Error('missing stripe customer ID');
-//       if (!company?.stripeAccountId) throw new Error('missing stripe account ID');
+const PayableCard = ({ data }: PayableCardProps) => {
+  const navigate = useNavigate();
+  const showJson = useShowJson('payables'); // PRE_DEPLOY: delete (for dev testing)
 
-//       const data: Payable = {
-//         policyId,
-//         stripeCustomerId,
-//         billingEntityDetails: {
-//           name: 'Dev Admin',
-//           phone: '+12345678976',
-//           email: 'dev@idemandinsurance.com',
-//         },
-//         lineItems: [
-//           {
-//             displayName: 'iDemand Flood Insurance',
-//             amount: 100000, // $1000
-//             descriptor: `term premium for policy ${policyId}`,
-//           },
-//           {
-//             displayName: 'FL State Surplus Lines Tax',
-//             amount: 1000, // $10
-//             descriptor: `Florida 1% surplus lines tax`,
-//           },
-//         ],
-//         transfers: [
-//           {
-//             amount: 15000, // $150
-//             destination: company?.stripeAccountId, // agent
-//           },
-//         ],
-//         transferGroup: uniqueId('tg_'),
-//         taxes: [],
-//         fees: [
-//           {
-//             displayName: 'MGA Fee',
-//             value: 20,
-//             refundable: true,
-//           },
-//           {
-//             displayName: 'Inspection Fee',
-//             value: 100,
-//             refundable: false,
-//           },
-//         ],
-//         status: 'outstanding',
-//         paymentOption: null,
-//         invoiceId: null,
-//         paymentIntentId: null,
-//         termPremiumAmount: 101000, // $1,010
-//         refundableTaxesAmount: 0,
-//         totalTaxesAmount: 0,
-//         refundableFeesAmount: 2000, // $20
-//         totalFeesAmount: 12000, // $120
-//         totalRefundableAmount: 103000, // $1,030
-//         totalAmount: 113000, // #1,130
-//         locations: {
-//           location_1_id: {
-//             termPremium: 1000,
-//             annualPremium: 1000,
-//             address: {
-//               s1: '123 Main St',
-//               s2: '',
-//               c: 'Nashville',
-//               st: 'TN',
-//               p: '37203',
-//             },
-//             billingEntityId: stripeCustomerId,
-//             coords: new GeoPoint(34.234, -86.293847),
-//           },
-//         },
-//         metadata: {
-//           created: Timestamp.now(),
-//           updated: Timestamp.now(),
-//         },
-//       };
-
-//       const docRef = await addDoc(payablesCol, data);
-
-//       toast.success(`payable created ${docRef.id}`);
-//     } catch (err: any) {
-//       toast.error(err?.message || 'an error occurred');
-//     }
-//   }, [firestore, user, policyId]);
-// }
+  return (
+    <Card sx={{ maxWidth: 400 }}>
+      <CardActionArea onClick={() => alert('TODO: nav to payable view')}>
+        <CardHeader
+          avatar={
+            <Avatar aria-label='billing entity'>{data.billingEntityDetails?.name || null}</Avatar>
+          }
+          // action={
+          //   <IconButton aria-label='settings'>
+          //     <MoreVertIcon />
+          //   </IconButton>
+          // }
+          title={
+            data.billingEntityDetails?.name ||
+            data.billingEntityDetails?.email ||
+            `Policy ${data.policyId}`
+          }
+          subheader={`Invoice #${data.invoiceId || ''}`}
+          subheaderTypographyProps={{
+            sx: {
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+            },
+          }}
+        />
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant='h6'>{dollarFormat(data.totalAmount / 100)}</Typography>
+              <Typography variant='body2' color='text.secondary'>
+                {`Due ${formatFirestoreTimestamp(data.dueDate, 'date')}`}
+              </Typography>
+              {/* TODO: memo ?? */}
+            </Box>
+            <Typography variant='body2' color='text.tertiary' align='right'>{`${
+              Object.keys(data.locations || {}).length
+            } location(s)`}</Typography>
+          </Box>
+          {/* {data.paymentIntentId ? <StripePayableCheckout payableId={data.id} /> : null} */}
+        </CardContent>
+      </CardActionArea>
+      <CardActions
+        sx={{
+          borderTop: (theme) => `1px solid ${theme.vars.palette.divider}`,
+          justifyContent: 'space-between',
+        }}
+      >
+        {/* TODO: expand more button (show line items) */}
+        {/* TODO: download invoice icon button */}
+        <IconButton size='small' onClick={() => showJson(data.id)}>
+          <DataObjectRounded fontSize='inherit' />
+        </IconButton>
+        <Button
+          onClick={() =>
+            navigate(createPath({ path: ROUTES.PAYABLE_CHECKOUT, params: { payableId: data.id } }))
+          }
+        >
+          Pay now (checkout)
+        </Button>
+        {data.hostedInvoiceUrl ? (
+          <Button
+            onClick={() => window.open(data.hostedInvoiceUrl!, '_blank', 'noreferrer noopener')}
+            endIcon={<LaunchRounded />}
+            // variant='contained'
+          >
+            Pay now
+          </Button>
+        ) : null}
+      </CardActions>
+    </Card>
+  );
+};

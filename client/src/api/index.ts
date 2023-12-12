@@ -17,6 +17,7 @@ export { createTenantFromSubmission } from './createTenantFromSubmission';
 export { deliverAgencyAgreement } from './deliverAgencyAgreement';
 export { ePayInstance } from './ePayInstance';
 export { executePayment } from './executePayment';
+export { fetchPaymentIntentSecret } from './fetchPaymentIntentSecret';
 export { functionsInstance } from './functionsOnRequest';
 export { generateSearchKey } from './generateSearchKey';
 export { getAnnualPremium } from './getAnnualPremium';

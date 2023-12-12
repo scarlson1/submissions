@@ -27,6 +27,9 @@ export const handleInvoiceFinalized = async (invoice: Stripe.Invoice) => {
     if (typeof invoice.payment_intent === 'string')
       updates['paymentIntentId'] = invoice.payment_intent;
     if (invoice.hosted_invoice_url) updates['hostedInvoiceUrl'] = invoice.hosted_invoice_url;
+    // download invoice url
+    if (invoice.invoice_pdf) updates['invoicePdfUrl'] = invoice.invoice_pdf;
+    if (invoice.number) updates['invoiceNumber'] = invoice.number;
 
     info(
       `Updating payable ${payableSnap.id} with invoice url and payment intent from invoice finalized event data`,

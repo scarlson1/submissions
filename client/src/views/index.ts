@@ -7,6 +7,7 @@ export { ContactUs } from './ContactUs';
 export { CreateAccount } from './CreateAccount';
 export { Home } from './Home';
 export { Login } from './Login';
+export { PayableCheckout } from './PayableCheckout';
 export { Policies } from './Policies';
 export { Policy } from './Policy';
 export { QuoteBind } from './QuoteBind';

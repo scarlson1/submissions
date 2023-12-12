@@ -40,7 +40,7 @@ export default function () {
 
   return (
     <ErrorBoundary
-      FallbackComponent={ErrorFallback}
+      FallbackComponent={ErrorFallback} // use ErrorFallbackWithReset ??
       onReset={handleReset}
       resetKeys={[pmtIntentResource]}
     >

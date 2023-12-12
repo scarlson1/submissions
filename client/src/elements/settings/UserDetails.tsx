@@ -3,7 +3,7 @@ import { useUser } from 'reactfire';
 
 import { Copy } from 'components';
 import { VerifyEmailButton } from 'elements/VerifyEmailButton';
-import { UpdateUserEmail, UserDetailsForm } from 'elements/forms';
+import { UpdateUserEmail, UpdateUserPhone, UserDetailsForm } from 'elements/forms';
 
 // TODO:
 // auth providers / MFA (see iDemand Console project)
@@ -27,6 +27,9 @@ export const UserDetails = () => {
         <UpdateUserEmail />
       </Box>
       {!user?.emailVerified ? <VerifyEmailButton /> : null}
+      <Box sx={{ py: 4 }}>
+        <UpdateUserPhone />
+      </Box>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <Typography variant='body2' color='text.secondary' sx={{ mr: 1, fontSize: '0.725rem' }}>
           User ID:

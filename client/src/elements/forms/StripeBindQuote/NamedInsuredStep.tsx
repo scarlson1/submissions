@@ -45,6 +45,7 @@ export function NamedInsuredStep({
   const handleSubmit = useCallback(
     async (values: NamedInsuredValues, bag: FormikHelpers<NamedInsuredValues>) => {
       // TODO: need to call setQuoteUserId when quote created ??
+      // TODO: promise all for first two api calls
       let namedInsuredUserId;
       try {
         const { data } = await setQuoteUserId(functions, {

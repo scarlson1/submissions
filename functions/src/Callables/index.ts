@@ -99,6 +99,10 @@ export const executepayment = onCall({ secrets: [ePayCreds] }, async (request) =
   return (await import('./executePayment.js')).default(request);
 });
 
+export const fetchpaymentintentsecret = onCall({ secrets: [stripeSecretKey] }, async (request) => {
+  return (await import('./fetchPaymentIntentSecret.js')).default(request);
+});
+
 export const generatesearchkey = onCall(
   {
     secrets: [algoliaAdminKey, algoliaUserBaseKey, algoliaIDemandAdminSearchKey],

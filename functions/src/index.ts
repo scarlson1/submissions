@@ -29,6 +29,7 @@ export {
   createtenantfromsubmission,
   // deliveragencyagreement,
   executepayment,
+  fetchpaymentintentsecret,
   generatesearchkey,
   getannualpremium,
   getpropertydetailsattom,

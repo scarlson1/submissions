@@ -1,4 +1,5 @@
 import { BillingEntity, quotesCollection } from '@idemand/common';
+import axios from 'axios';
 import express, { Request as ERequest, Response } from 'express';
 import 'express-async-errors';
 import { param } from 'express-validator';
@@ -66,7 +67,6 @@ app.post(
     console.log('Event Type => ', event.type);
     // console.log('Trigger Object Id => ', event.data.object.id);
 
-    // Handle the event
     switch (event.type) {
       case 'payment_intent.created':
         const createdPaymentIntent = event.data.object as Stripe.PaymentIntent;
@@ -109,6 +109,7 @@ app.post(
         // emit pub sub event ??
         // trigger policy pmt status (might need to be updated by billing entity ??) or charge ID ??
         await publishChargeSucceeded({ charge });
+        // TODO: set receipt number on payable
 
         break;
       case 'charge.failed':
@@ -545,6 +546,38 @@ app.post('/bind/quote/getCustomers', async (req: RequestUserAuth, res: Response)
     if (err?.message) msg += ` (${err.message})`;
     reportErr(msg, {}, err);
     res.status(500).send({ message: 'Error creating/retrieving Stripe details' });
+  }
+});
+
+app.get('/invoice/:invoiceId/download', async (req: RequestUserAuth, res: Response) => {
+  // allow unauthenticated ??
+  if (!req.user?.uid) throw new NotAuthorizedError();
+  const invoiceId = req.params.invoiceId;
+
+  let invoice;
+  try {
+    const stripe = getStripe(stripeSecretKey.value());
+    invoice = await stripe.invoices.retrieve(invoiceId);
+  } catch (err: any) {
+    reportErr('Error fetching invoice to download PDF', { invoiceId }, err);
+    res.status(404).send('Invoice not found');
+    return;
+  }
+
+  const invoiceUrl = invoice.invoice_pdf;
+  if (!invoiceUrl) {
+    res.status(400).send('Invoice PDF not available');
+    return;
+  }
+
+  try {
+    return axios.get(invoiceUrl, { responseType: 'stream' }).then((response) => {
+      response.data.pipe(res);
+    });
+  } catch (err: any) {
+    reportErr('Error fetching invoice PDF and piping response to client', { invoiceId }, err);
+    res.status(500).send('Error downloading PDF');
+    return;
   }
 });
 
