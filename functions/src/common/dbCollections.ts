@@ -57,7 +57,7 @@ export const transfersCollection = (db: Firestore) =>
   createCollection<Stripe.Transfer | Stripe.TransferReversal>(db, 'transfers');
 
 export const receivablesCollection = (db: Firestore) =>
-  createCollection<Receivable>(db, 'payables');
+  createCollection<Receivable>(db, 'receivables');
 
 export const ratingDataCollection = (db: Firestore) =>
   createCollection<RatingData>(db, 'ratingData');

@@ -94,18 +94,20 @@ export const generateInvoiceForReceivable = async (
     invoice: invoice.id,
     description: `Term premium for policy ${receivable.policyId}`,
   });
+  // TODO: switch to feeAmount (calc when receivable created)
   const feeItemPromises = receivable.fees.map((f) =>
     stripe.invoiceItems.create({
       customer: receivable.stripeCustomerId,
-      amount: f.value * 100,
+      amount: round(f.value * 100),
       invoice: invoice.id,
       description: f.displayName,
     })
   );
+  // TODO: switch to taxAmount (calc when receivable created)
   const taxItemPromises = receivable.taxes.map((f) =>
     stripe.invoiceItems.create({
       customer: receivable.stripeCustomerId,
-      amount: f.value * 100,
+      amount: round(f.value * 100),
       invoice: invoice.id,
       description: f.displayName,
     })

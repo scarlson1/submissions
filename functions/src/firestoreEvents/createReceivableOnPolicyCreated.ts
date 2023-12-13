@@ -48,10 +48,14 @@ export default async (
 
     const billingEntityIds = Object.keys(policy.billingEntities);
 
-    const agencyId = policy.agency.orgId;
-    const orgRef = orgsCollection(db).doc(agencyId);
-    const org = await getDocData<Organization>(orgRef);
-    const stripeAccountId = org.stripeAccountId;
+    // TODO: don't allow policy to be created without account ID
+    let stripeAccountId: string | null = policy?.agency?.stripeAccountId;
+    if (!stripeAccountId) {
+      const agencyId = policy.agency.orgId;
+      const orgRef = orgsCollection(db).doc(agencyId);
+      const org = await getDocData<Organization>(orgRef);
+      stripeAccountId = org.stripeAccountId;
+    }
     if (!stripeAccountId) throw new Error('missing stripe account Id');
 
     const stripe = getStripe(stripeSecretKey.value());

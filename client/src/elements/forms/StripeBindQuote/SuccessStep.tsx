@@ -1,3 +1,4 @@
+import { PaidRounded } from '@mui/icons-material';
 import {
   Avatar,
   Box,
@@ -14,13 +15,12 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material';
+import { where } from 'firebase/firestore';
 import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
-import { PaidRounded } from '@mui/icons-material';
 import { CheckmarkLottie } from 'assets';
 import { Policy, Receivable } from 'common';
-import { where } from 'firebase/firestore';
 import { useCollectionData, useDocData } from 'hooks';
 import { ROUTES, createPath } from 'router';
 
@@ -109,7 +109,7 @@ const ReceivablesList = ({ policyId }: ReceivablesListProps) => {
             Invoices
           </Typography>
           <List sx={{ width: '100%', maxWidth: 480, mx: 'auto' }}>
-            {data.map((p) => (
+            {data.map((r) => (
               <ListItem
                 secondaryAction={
                   <Button
@@ -117,7 +117,7 @@ const ReceivablesList = ({ policyId }: ReceivablesListProps) => {
                       navigate(
                         createPath({
                           path: ROUTES.PAYABLE_CHECKOUT,
-                          params: { receivableId: p.id },
+                          params: { receivableId: r.id },
                         })
                       )
                     }
@@ -128,6 +128,7 @@ const ReceivablesList = ({ policyId }: ReceivablesListProps) => {
                   </Button>
                 }
                 divider
+                key={r.id}
               >
                 <ListItemAvatar>
                   <Avatar>
@@ -136,11 +137,11 @@ const ReceivablesList = ({ policyId }: ReceivablesListProps) => {
                 </ListItemAvatar>
                 <ListItemText
                   primary={
-                    p.billingEntityDetails?.name ||
-                    p.billingEntityDetails?.email ||
-                    `Policy ${p.policyId}`
+                    r.billingEntityDetails?.name ||
+                    r.billingEntityDetails?.email ||
+                    `Policy ${r.policyId}`
                   }
-                  secondary={p.invoiceNumber ? `Invoice #${p.invoiceNumber}` : `ID ${p.id}`}
+                  secondary={r.invoiceNumber ? `Invoice #${r.invoiceNumber}` : `ID ${r.id}`}
                 />
               </ListItem>
             ))}

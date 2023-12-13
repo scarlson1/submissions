@@ -24,6 +24,11 @@ import { getPolicyFromQuote, getPolicyLocationsFromQuote, validate } from './uti
 
 // TODO: state machine for tracing quote status / validation / requirements ??
 
+// TODO: verify stripe accounts exist
+// check connect accounts (agency) and customer
+// check connect (agency) account exists before quote can be created
+// state machine for agency status
+
 const reportErr = getReportErrorFn('createPolicy');
 
 interface CreatePolicyProps {

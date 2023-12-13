@@ -80,8 +80,7 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
     (data) => {
       console.log('policy created: ', data);
       // set policy id in ref for success step ??
-      // TODO: change to use create path (and non-testing path)
-      // TODO: navigate to bind success / payment screen / receivables
+      // TODO: navigate to bind success / payment screen / receivables or return different component if quote is bound ?? or redirect to policy if quote bound ??
       // navigate(`/admin/stripe-test/receivables/${data.policyId}`);
       // navigate(
       //   createPath({
