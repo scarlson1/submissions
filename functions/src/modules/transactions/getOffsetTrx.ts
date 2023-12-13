@@ -1,10 +1,11 @@
+import { Policy, WithId } from '@idemand/common';
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
-
-import { Policy, WithId } from '@idemand/common';
 import { CancellationReason, OffsetTransaction, PremiumTransaction } from '../../common/index.js';
 import { getTrxTaxesAndFees } from '../taxes/index.js';
 import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils.js';
+
+// TODO: cancelReason - some subject to minEarnedPremium
 
 /**
  * get formatted offset transaction for cancellation or premium endorsement transactions
@@ -29,15 +30,18 @@ export const getOffsetTrx = (
   const trxExpDate = add(trxEffDate.toDate(), { days: 1 });
   const trxDays = 1;
 
-  // term premium is negative in offset trx (premium uncollected b/c after change/cancel date)
   const termPremium = getOffsetTermPremium(prevTrx, trxEffDate); // negative
   const MGACommission = getMGAComm(termPremium, prevTrx); // negative
   const netDWP = getNetDWP(termPremium, MGACommission); // negative
 
   const dailyPremium = termPremium / trxDays;
 
+  // TODO: check offset calculations (negative, prorata, non-refundable)
+  // create new function getTrxOffsetTaxesAndFees (derive from refund calc ??) batch refund & trx
   const { surplusLinesTax, surplusLinesRegulatoryFee, MGAFee, inspectionFee } =
     getTrxTaxesAndFees(policy);
+
+  // TODO: calc taxItems and feeItems (needed for refund record) or separate fn ??
 
   // need to add billing entity totals ??
 

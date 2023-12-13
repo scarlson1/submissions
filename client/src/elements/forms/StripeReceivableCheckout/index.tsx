@@ -3,12 +3,12 @@ import { getFunctions } from 'firebase/functions';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import { fetchPaymentIntentSecret } from 'api';
-import { Payable, WithId } from 'common';
+import { Receivable, WithId } from 'common';
 import { ErrorFallback } from 'components';
 import { StripeElementsWrapper } from './StripeElementsWrapper';
 
-// REPLACE StripeCheckout WITH THIS COMPONENT ?? should serve as wrapper to pass payment intent from payable
-// pass in payable --> fetch payable --> fetch payment intent client secret from api
+// REPLACE StripeCheckout WITH THIS COMPONENT ?? should serve as wrapper to pass payment intent from receivable
+// pass in receivable --> fetch receivable --> fetch payment intent client secret from api
 
 // need to pass payment options ??
 function fetchStripeSecret(paymentIntentId: string) {
@@ -24,14 +24,14 @@ const usePaymentIntentSecret = (paymentIntent: string) => {
   });
 };
 
-// move payable state up to parent component
+// move receivable state up to parent component
 // parent show location details in drawer (collapsed on small screen)
 
-interface StripePayableCheckoutProps {
-  data: WithId<Payable>;
+interface StripeReceivableCheckoutProps {
+  data: WithId<Receivable>;
 }
 
-export default function ({ data }: StripePayableCheckoutProps) {
+export default function ({ data }: StripeReceivableCheckoutProps) {
   // TODO: don't throw ?? handle error case - may be situations where invoice needs to be recreated (void, marked uncollectible, etc.) ??
   if (!data.paymentIntentId) throw new Error('missing payment intent'); // TODO: handle in error boundary
   const { data: clientSecret } = usePaymentIntentSecret(data.paymentIntentId);

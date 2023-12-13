@@ -8,6 +8,7 @@ import {
   CreditScoreRounded,
   DisabledByDefaultRounded,
   DoneRounded,
+  DownloadRounded,
   EmailRounded,
   ErrorOutlineRounded,
   FaceRounded,
@@ -1505,8 +1506,8 @@ const DownloadPDFButton = memo(
           e.stopPropagation();
           downloadFile(filename, endpoint);
         }}
-        loading={loading}
         {...props}
+        loading={loading || props?.loading}
       >
         {buttonText}
       </LoadingButton>
@@ -1535,6 +1536,7 @@ export const downloadInvoiceCol: GridColDef = {
         buttonText='Download Invoice'
         size='small'
         sx={{ maxHeight: 30 }}
+        startIcon={<DownloadRounded />}
       />
     );
   },

@@ -6,10 +6,10 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { sumBy } from 'lodash-es';
 import Stripe from 'stripe';
 import {
-  Payable,
+  Receivable,
   getReportErrorFn,
-  payablesCollection,
   policiesCollection,
+  receivablesCollection,
   stripeSecretKey,
 } from '../common/index.js';
 import { createDocId, getDocData } from '../modules/db/index.js';
@@ -21,16 +21,16 @@ import { PolicyCreatedPayload } from './policyCreatedListener.js';
 import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // NOT BEING USED - CURRENTLY RUNNING FROM POLICY CREATED EVENT
-// ^^ would create payable from policy csv import -- intended behavior ??
+// ^^ would create receivable from policy csv import -- intended behavior ??
 
 // TODO: validate policy before binding
 // billing entity has email --> look up to make sure exists in stripe
 // make sure agency has stripe account ID --> verify exists in stripe
 
-// TODO: what params should be passed to allow for creating payables in different scenarios ??
+// TODO: what params should be passed to allow for creating receivables in different scenarios ??
 // add locations ?? renewal ??
 
-const reportErr = getReportErrorFn('createPayablesOnPolicyBound');
+const reportErr = getReportErrorFn('createReceivablesOnPolicyBound');
 
 export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayload>>) => {
   // let policyId = null;
@@ -44,7 +44,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
 
   const db = getFirestore();
   const policyCol = policiesCollection(db);
-  const payablesCol = payablesCollection(db);
+  const receivablesCol = receivablesCollection(db);
 
   try {
     verify(policyId, 'pub sub payload missing policyId');
@@ -80,14 +80,14 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
       const transfers = getTransfersForNewPolicy(stripeAccountId, totals, subproducerCommissionPct);
       info(`transfers: `, transfers);
 
-      const payableAmounts = getPayableAmounts(totals);
+      const receivableAmounts = getReceivableAmounts(totals);
 
       let billingEntityLocations: Policy['locations'] = {};
       for (let [lcnId, lcn] of Object.entries(policy.locations)) {
         if (lcn.billingEntityId === cusId) billingEntityLocations[lcnId] = lcn;
       }
 
-      let payable: Payable = {
+      let receivable: Receivable = {
         policyId,
         stripeCustomerId: cusId,
         billingEntityDetails: {
@@ -103,8 +103,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         status: 'outstanding',
         paid: false,
         paidOutOfBand: false,
-        ...payableAmounts,
-        paymentOption: null,
+        ...receivableAmounts,
         locations: billingEntityLocations,
         dueDate: getInvoiceDueDateTS(
           policy?.metadata?.created || Timestamp.now(),
@@ -116,11 +115,11 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         },
       };
 
-      let payableRef = payablesCol.doc(`rec_${createDocId(7)}`);
-      batch.set(payableRef, payable);
+      let receivableRef = receivablesCol.doc(`rec_${createDocId(7)}`);
+      batch.set(receivableRef, receivable);
     }
   } catch (err: any) {
-    let msg = 'Error creating payables for new bound policy';
+    let msg = 'Error creating receivables for new bound policy';
 
     reportErr(msg, { ...event }, err);
   }
@@ -178,7 +177,7 @@ function getTransfersForNewPolicy(
   ];
 }
 
-function getPayableAmounts(totals: Totals) {
+function getReceivableAmounts(totals: Totals) {
   const refundableTaxesAmount =
     sumBy(
       totals.taxes.filter((t) => t.refundable || t.refundable === undefined),

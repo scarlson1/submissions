@@ -68,7 +68,7 @@ app.post(
       case 'payment_intent.created':
         const createdPaymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log('created payment intent: ', createdPaymentIntent);
-        // update invoice-generated payment intent with transfer group from payable doc
+        // update invoice-generated payment intent with transfer group from receivable doc
         await setTransferGroupOnPaymentIntentCreated(createdPaymentIntent);
 
         break;
@@ -106,7 +106,7 @@ app.post(
         // emit pub sub event ??
         // trigger policy pmt status (might need to be updated by billing entity ??) or charge ID ??
         await publishChargeSucceeded({ charge });
-        // TODO: set receipt number on payable
+        // TODO: set receipt number on receivable
         // TODO: doesn't run when payment made via bank transfer ? or paid out of network (paper check) ??
 
         break;
@@ -199,7 +199,7 @@ app.post(
       case 'invoice.paid':
         const paidInvoice = event.data.object as Stripe.Invoice;
         console.log('invoice paid: ', paidInvoice);
-        // need to handle payable paid if invoice paid out of X (paper check ??) no charge.succeeded event ??
+        // need to handle receivable paid if invoice paid out of X (paper check ??) no charge.succeeded event ??
 
         break;
       case 'invoice.payment_failed':
@@ -219,7 +219,7 @@ app.post(
         // Occurs whenever a refund from a customer’s cash balance is updated.
         const updatedRefund = event.data.object as Stripe.Refund;
         console.log('refund created: ', updatedRefund);
-        // any updates to payable / transfers / taxes ??
+        // any updates to receivable / transfers / taxes ??
 
         break;
       case 'payout.created':

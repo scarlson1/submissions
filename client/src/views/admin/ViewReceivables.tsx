@@ -15,31 +15,31 @@ import {
 import { where } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-import { Payable, WithId } from 'common';
+import { Receivable, WithId } from 'common';
 import { useCollectionData, useSafeParams, useShowJson } from 'hooks';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
 
-// temp component for testing payables data structure / joining payables data with location data
+// temp component for testing receivables data structure / joining receivables data with location data
 // get client secret for payment intent
 
 // payment approaches:
 //  - use url stripe hosted payment from invoice finalized event
 //  - get payment intent from invoice finalized event & host our own checkout
-//    - fetch client secret by sending payable ID ?? backend could create payment intent if necessary ?? or throw ??
-//  - need handling for missing paymentIntent/payment URL (check payable created date, if later than x, report error ??)
+//    - fetch client secret by sending receivable ID ?? backend could create payment intent if necessary ?? or throw ??
+//  - need handling for missing paymentIntent/payment URL (check receivable created date, if later than x, report error ??)
 
 // views to support:
-//  - show all payables for agent/user/org
-//  - show payables for specific policy
+//  - show all receivables for agent/user/org
+//  - show receivables for specific policy
 //  - view invoice details ?? use same route as make payment ?? show different views depending on invoice state (link stripe hosted url) ??
 //  options:
-//    - break into: payables card, then pass in data
+//    - break into: receivables card, then pass in data
 // collapse card - expand to see location details (collapsed) (term premium), taxes, fees, total
 
-export const ViewPayables = () => {
+export const ViewReceivables = () => {
   const { policyId } = useSafeParams(['policyId']);
-  const { data: payables } = useCollectionData<Payable>('payables', [
+  const { data: receivables } = useCollectionData<Receivable>('receivables', [
     where('policyId', '==', policyId),
   ]);
 
@@ -49,11 +49,11 @@ export const ViewPayables = () => {
         align='center'
         variant='h5'
         gutterBottom
-      >{`Payables for policy ${policyId}`}</Typography>
+      >{`Receivables for policy ${policyId}`}</Typography>
       <Grid container spacing={6}>
-        {payables.map((p) => (
+        {receivables.map((p) => (
           <Grid key={p.id} xs={12} sm={6} lg={4} xl={3}>
-            <PayableCard data={p} />
+            <ReceivableCard data={p} />
           </Grid>
         ))}
       </Grid>
@@ -62,17 +62,17 @@ export const ViewPayables = () => {
 };
 
 // TODO: generate mapbox maps for invoice ?? or copy from policy ??
-interface PayableCardProps {
-  data: WithId<Payable>;
+interface ReceivableCardProps {
+  data: WithId<Receivable>;
 }
 
-const PayableCard = ({ data }: PayableCardProps) => {
+const ReceivableCard = ({ data }: ReceivableCardProps) => {
   const navigate = useNavigate();
-  const showJson = useShowJson('payables'); // PRE_DEPLOY: delete (for dev testing)
+  const showJson = useShowJson('receivables'); // PRE_DEPLOY: delete (for dev testing)
 
   return (
     <Card sx={{ maxWidth: 400 }}>
-      <CardActionArea onClick={() => alert('TODO: nav to payable view')}>
+      <CardActionArea onClick={() => alert('TODO: nav to receivable view')}>
         <CardHeader
           avatar={
             <Avatar aria-label='billing entity'>{data.billingEntityDetails?.name || null}</Avatar>
@@ -109,7 +109,7 @@ const PayableCard = ({ data }: PayableCardProps) => {
               Object.keys(data.locations || {}).length
             } location(s)`}</Typography>
           </Box>
-          {/* {data.paymentIntentId ? <StripePayableCheckout payableId={data.id} /> : null} */}
+          {/* {data.paymentIntentId ? <StripeReceivableCheckout receivableId={data.id} /> : null} */}
         </CardContent>
       </CardActionArea>
       <CardActions
@@ -127,7 +127,7 @@ const PayableCard = ({ data }: PayableCardProps) => {
           <Button
             onClick={() =>
               navigate(
-                createPath({ path: ROUTES.PAYABLE_CHECKOUT, params: { payableId: data.id } })
+                createPath({ path: ROUTES.PAYABLE_CHECKOUT, params: { receivableId: data.id } })
               )
             }
           >

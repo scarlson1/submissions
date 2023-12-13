@@ -40,11 +40,11 @@ import {
   CreateAccount,
   Home,
   Login,
-  PayableCheckout,
   Policies,
   Policy,
   QuoteBind,
   Quotes,
+  ReceivableCheckout,
   SubmissionNew,
   SubmissionNewPortfolio,
   Submissions,
@@ -70,11 +70,11 @@ import {
   Moratoriums,
   Organization,
   Organizations,
-  Payables,
   PolicyDelivery,
   QuoteEdit,
   QuoteNew,
   QuoteNewFromSub,
+  Receivables,
   SLTaxEdit,
   SLTaxes,
   SLTaxNew,
@@ -83,7 +83,7 @@ import {
   Users,
 } from 'views/admin';
 import { Disclosures } from 'views/admin/Disclosures';
-import { ViewPayables } from 'views/admin/ViewPayables';
+import { ViewReceivables } from 'views/admin/ViewReceivables';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ClaimNew } from 'views/ClaimNew';
 import { EmailVerified } from 'views/EmailVerified';
@@ -128,7 +128,7 @@ export enum ROUTES {
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
   // CLAIM_NEW = '/policies/:policyId/claim/new',
   CLAIM_NEW = '/policies/:policyId/:locationId/claims/new',
-  PAYABLE_CHECKOUT = '/payables/:payableId',
+  PAYABLE_CHECKOUT = '/receivables/:receivableId',
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
   ACCOUNT = '/account',
@@ -169,7 +169,7 @@ export enum ADMIN_ROUTES {
   IMPORT_REVIEW = '/admin/config/imports/:importId',
   EMAIL_ACTIVITY = '/admin/config/email-activity',
   TRANSACTIONS = '/admin/config/transactions',
-  PAYABLES = '/admin/config/payables', // TODO: move to non admin route once permissions fixed
+  PAYABLES = '/admin/config/receivables', // TODO: move to non admin route once permissions fixed
   LOCATIONS = '/admin/locations',
 }
 
@@ -206,7 +206,7 @@ type TArgs =
   | { path: ROUTES.POLICY; params: { policyId: string }; search?: { view: string } }
   | { path: ROUTES.ADD_LOCATION_NEW; params: { policyId: string } }
   | { path: ROUTES.CLAIM_NEW; params: { policyId: string; locationId: string } }
-  | { path: ROUTES.PAYABLE_CHECKOUT; params: { payableId: string } }
+  | { path: ROUTES.PAYABLE_CHECKOUT; params: { receivableId: string } }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
@@ -537,19 +537,19 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.PAYABLE_CHECKOUT,
-            element: <PayableCheckout />,
+            element: <ReceivableCheckout />,
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
                 {
-                  label: 'Payables',
+                  label: 'Receivables',
                   // TODO: add link once route added
                   // link: createPath({
                   //   path: ROUTES.POLICIES,
                   // }),
                 },
                 {
-                  label: `${match?.params?.payableId || ''}`,
+                  label: `${match?.params?.receivableId || ''}`,
                   // link: createPath({
                   //   path: ROUTES.POLICY,
                   //   params: { policyId: `${match?.params?.policyId || ''}` },
@@ -1106,12 +1106,12 @@ export const router = sentryCreateBrowserRouter([
             ),
           },
           {
-            path: 'stripe-test/payables/:policyId',
+            path: 'stripe-test/receivables/:policyId',
             element: (
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <ViewPayables />
+                <ViewReceivables />
               </RequireAuthReactFire>
             ),
           },
@@ -2038,21 +2038,21 @@ export const router = sentryCreateBrowserRouter([
                 },
               },
               {
-                path: 'payables',
+                path: 'receivables',
                 element: (
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <>
-                      <PageMeta title='iDemand - Payables' />
-                      <Payables />
+                      <PageMeta title='iDemand - Receivables' />
+                      <Receivables />
                     </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
                   crumb: (match: CrumbMatch) => [
                     {
-                      label: 'Payables',
+                      label: 'Receivables',
                     },
                   ],
                 },

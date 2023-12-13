@@ -1143,13 +1143,13 @@ export const TransferSummaryZ = z.object({
   // or percentageOfRefundableAmount ??
 });
 
-export const PayableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
-export type TPayableStatus = z.infer<typeof PayableStatus>;
-// keep expired ?? payable should persist when invoice expires ??
+export const ReceivableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
+export type TReceivableStatus = z.infer<typeof ReceivableStatus>;
+// keep expired ?? receivable should persist when invoice expires ??
 // TODO: handle invoice / payment intent expired
 
 // include location summaries ??
-export const PayableZ = z.object({
+export const ReceivableZ = z.object({
   policyId: z.string(),
   stripeCustomerId: z.string(),
   billingEntityDetails: z.object({
@@ -1164,10 +1164,9 @@ export const PayableZ = z.object({
   taxes: z.array(TaxItem), // just store referance to tax calc object ??
   // taxes separate from line items ??
   fees: z.array(FeeItem), // TODO: change value to amount and convert to cents
-  status: PayableStatus, // TODO: might need multiple status fields (mirror stripe charge ??)
+  status: ReceivableStatus, // TODO: might need multiple status fields (mirror stripe charge ??)
   paid: z.boolean(),
   paidOutOfBand: z.boolean(),
-  paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(),
   invoiceNumber: z.string().optional().nullable(),
@@ -1184,10 +1183,10 @@ export const PayableZ = z.object({
   totalAmount: z.number().int().nonnegative(),
   locations: z.record(PolicyLocationZ),
   dueDate: TimestampZ,
-  // set charges ?? array ?? save to payable on charge.complete or charge.created ??
+  // set charges ?? array ?? save to receivable on charge.complete or charge.created ??
   metadata: BaseMetadataZ,
 });
-export type Payable = z.infer<typeof PayableZ>;
+export type Receivable = z.infer<typeof ReceivableZ>;
 
 // export interface Policy extends BaseDoc {
 //   product: TProduct;

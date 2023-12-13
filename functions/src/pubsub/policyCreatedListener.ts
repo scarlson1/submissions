@@ -22,7 +22,7 @@ import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 // TODO: verify only return error if transient error (can't write to db, etc.)
 // TODO: need to verify works with multiple locations
 
-// TODO: refactor to use same calculation data as create payables on bound ??
+// TODO: refactor to use same calculation data as create receivables on bound ??
 
 const reportErr = getReportErrorFn('policyCreatedListener');
 

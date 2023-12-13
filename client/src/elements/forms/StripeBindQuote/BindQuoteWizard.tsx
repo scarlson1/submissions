@@ -81,8 +81,8 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
       console.log('policy created: ', data);
       // set policy id in ref for success step ??
       // TODO: change to use create path (and non-testing path)
-      // TODO: navigate to bind success / payment screen / payables
-      // navigate(`/admin/stripe-test/payables/${data.policyId}`);
+      // TODO: navigate to bind success / payment screen / receivables
+      // navigate(`/admin/stripe-test/receivables/${data.policyId}`);
       // navigate(
       //   createPath({
       //     path: ROUTES.QUOTE_BIND_SUCCESS,

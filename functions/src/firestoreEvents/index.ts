@@ -1,6 +1,5 @@
-import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
-
 import { Collection } from '@idemand/common';
+import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import {
   sendgridApiKey,
   stripeSecretKey,
@@ -10,13 +9,13 @@ import {
 } from '../common/index.js';
 export type { ClaimsDocData } from './mirrorCustomClaims.js';
 
-export const createpayableonpolicycreated = onDocumentCreated(
+export const createreceivableonpolicycreated = onDocumentCreated(
   {
     document: `${Collection.Enum.policies}/{policyId}`,
     secrets: [stripeSecretKey],
   },
   async (event) => {
-    await (await import('./createPayableOnPolicyCreated.js')).default(event);
+    await (await import('./createReceivableOnPolicyCreated.js')).default(event);
   }
 );
 

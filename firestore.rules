@@ -197,7 +197,7 @@ service cloud.firestore {
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
     }
 
-    match /payables/{payableId} {
+    match /receivables/{receivableId} {
       allow read, write: if isSignedIn() && isIDemandAdmin(); // TODO: permissions using existingData().policyId
     }
 

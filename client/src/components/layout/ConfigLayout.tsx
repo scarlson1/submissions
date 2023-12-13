@@ -104,7 +104,7 @@ export const ConfigLayout = () => {
           <LinkTab label='Imports' to={createPath({ path: ADMIN_ROUTES.DATA_IMPORTS })} />
           <LinkTab label='Emails' to={createPath({ path: ADMIN_ROUTES.EMAIL_ACTIVITY })} />
           <LinkTab label='Transactions' to={createPath({ path: ADMIN_ROUTES.TRANSACTIONS })} />
-          <LinkTab label='Payables' to={createPath({ path: ADMIN_ROUTES.PAYABLES })} />
+          <LinkTab label='Receivables' to={createPath({ path: ADMIN_ROUTES.PAYABLES })} />
         </Tabs>
       </Box>
       <Box sx={{ py: { xs: 2, md: 3 } }}>

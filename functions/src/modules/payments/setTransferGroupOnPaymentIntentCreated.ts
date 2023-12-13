@@ -14,7 +14,7 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import { info, warn } from 'firebase-functions/logger';
 import Stripe from 'stripe';
-import { getReportErrorFn, payablesCollection } from '../../common/index.js';
+import { getReportErrorFn, receivablesCollection } from '../../common/index.js';
 import { createTransferGroupId } from '../db/utils.js';
 
 const reportErr = getReportErrorFn('setTransferGroupOnPaymentIntentCreated');
@@ -30,23 +30,23 @@ export const setTransferGroupOnPaymentIntentCreated = async (
   try {
     // if (paymentIntent.invoice) {
     const db = getFirestore();
-    const payablesCol = payablesCollection(db);
+    const receivablesCol = receivablesCollection(db);
     let q;
     if (paymentIntent.invoice) {
-      q = payablesCol.where('invoiceId', '==', paymentIntent.invoice);
+      q = receivablesCol.where('invoiceId', '==', paymentIntent.invoice);
     } else {
-      q = payablesCol.where('paymentIntentId', '==', paymentIntent.id);
+      q = receivablesCol.where('paymentIntentId', '==', paymentIntent.id);
     }
 
     const querySnap = await q.get();
 
     if (!querySnap.empty) {
-      const payableSnap = querySnap.docs[0];
+      const receivableSnap = querySnap.docs[0];
 
-      // const transferGroup = payableSnap.data().transferGroup;
+      // const transferGroup = receivableSnap.data().transferGroup;
       const transferGroup = createTransferGroupId(paymentIntent.id);
 
-      await payableSnap.ref.update({
+      await receivableSnap.ref.update({
         transferGroup,
       });
 
@@ -55,11 +55,11 @@ export const setTransferGroupOnPaymentIntentCreated = async (
       // });
 
       info(
-        `Update payable with transfer group ${transferGroup} from invoice-generated (${paymentIntent.invoice}) payment intent (${paymentIntent.id})`
+        `Update receivable with transfer group ${transferGroup} from invoice-generated (${paymentIntent.invoice}) payment intent (${paymentIntent.id})`
       );
     } else {
       warn(
-        `No payable found matching invoice (${paymentIntent.invoice}) from paymentIntent (${paymentIntent.id}) created event`
+        `No receivable found matching invoice (${paymentIntent.invoice}) from paymentIntent (${paymentIntent.id}) created event`
       );
     }
     // } else {

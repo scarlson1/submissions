@@ -39,7 +39,7 @@ export const Collection = z.enum([
   'versions',
   'permissions', // TODO: rename to privliged or secure etc.
   // 'secure',
-  'payables',
+  'receivables',
 ]);
 export type TCollection = z.infer<typeof Collection>;
 

@@ -4,31 +4,31 @@ import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 import { ROUTES, createPath } from 'router';
 
-import { Claim, Payable, ServerDataGridCollectionProps } from 'common';
+import { Claim, Receivable, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
-import { PAYABLE_COLUMN_VISIBILITY, payableCols } from 'modules/muiGrid/gridColumnDefs';
+import { RECEIVABLE_COLUMN_VISIBILITY, receivableCols } from 'modules/muiGrid/gridColumnDefs';
 
-// requires rxjs query unless iDemand admin ?? get policies by user/agent/org, then fetch payables ??
+// requires rxjs query unless iDemand admin ?? get policies by user/agent/org, then fetch receivables ??
 
-export type PayablesGridProps = ServerDataGridCollectionProps<Payable>;
+export type ReceivablesGridProps = ServerDataGridCollectionProps<Receivable>;
 
-export const PayablesGrid = ({
+export const ReceivablesGrid = ({
   renderActions = () => [],
   additionalColumns,
   ...props
-}: PayablesGridProps) => {
+}: ReceivablesGridProps) => {
   const navigate = useNavigate();
   const { data } = useSigninCheck({ requiredClaims: { [Claim.Enum.iDemandAdmin]: true } });
   const renderShowJson = useGridShowJson(
-    'payables',
+    'receivables',
     { showInMenu: true },
     { requiredClaims: { [Claim.Enum.iDemandAdmin]: true } },
     null,
     null
   );
 
-  const payableColumns: GridColDef<Payable>[] = useMemo(
+  const receivableColumns: GridColDef<Receivable>[] = useMemo(
     () => [
       {
         field: 'actions',
@@ -50,7 +50,7 @@ export const PayablesGrid = ({
           ...renderShowJson(params),
         ],
       },
-      ...payableCols,
+      ...receivableCols,
       ...(additionalColumns || []),
     ],
     [renderActions, renderShowJson, additionalColumns]
@@ -60,14 +60,17 @@ export const PayablesGrid = ({
 
   return (
     <ServerDataGrid
-      colName='payables'
-      columns={payableColumns}
+      colName='receivables'
+      columns={receivableColumns}
       density='compact'
       autoHeight
-      // TODO: change path to view payable details once route added (or use same route and display different components depending on status)
+      // TODO: change path to view receivable details once route added (or use same route and display different components depending on status)
       onRowDoubleClick={(params) =>
         navigate(
-          createPath({ path: ROUTES.PAYABLE_CHECKOUT, params: { payableId: params.id.toString() } })
+          createPath({
+            path: ROUTES.PAYABLE_CHECKOUT,
+            params: { receivableId: params.id.toString() },
+          })
         )
       }
       slotProps={{
@@ -75,7 +78,7 @@ export const PayablesGrid = ({
       }}
       initialState={{
         columns: {
-          columnVisibilityModel: PAYABLE_COLUMN_VISIBILITY,
+          columnVisibilityModel: RECEIVABLE_COLUMN_VISIBILITY,
         },
         sorting: {
           sortModel: [{ field: 'metadata.created', sort: 'desc' }],

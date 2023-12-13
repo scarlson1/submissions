@@ -2,44 +2,47 @@ import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { round } from 'lodash-es';
 import Stripe from 'stripe';
-import { payablesCollection } from '../../common/index.js';
+import { receivablesCollection } from '../../common/index.js';
 import { getDocData } from '../db/index.js';
 
-// process idea - create draft invoice for payable
-// add payables to batch with policy
-// on payable created firestore event --> finalize invoice ?? (currently sending in onPolicyCreated event)
+// process idea - create draft invoice for receivable
+// add receivables to batch with policy
+// on receivable created firestore event --> finalize invoice ?? (currently sending in onPolicyCreated event)
 
-// payment intent created when invoice is finalized (update payable from payment intent created or invoice finalized event ??)
+// payment intent created when invoice is finalized (update receivable from payment intent created or invoice finalized event ??)
 
-// TODO: don't allow creating new invoice if already exists on payable ??
+// TODO: don't allow creating new invoice if already exists on receivable ??
 // or only allow if invoice expired ?? (if already exists --> fetch invoice --> if expired --> create new one)
 // throw error if invoice is paid ??
-// TODO: func for updating payable amounts ?? need to update invoice too - dont allow unless draft or open
+// TODO: func for updating receivable amounts ?? need to update invoice too - dont allow unless draft or open
 
 /**
- * Creates invoice and line items from payable, and adds invoice ID to payable doc
+ * Creates invoice and line items from receivable, and adds invoice ID to receivable doc
  * @param {Stripe} stripe Stripe instance
- * @param {string} payableId payable doc ID
+ * @param {string} receivableId receivable doc ID
  * @param {Omit<Stripe.InvoiceCreateParams, 'customer'>} invoiceOptions add/override invoice properties
  * @returns {string} invoice ID
  */
-export const generateInvoiceForPayable = async (
+export const generateInvoiceForReceivable = async (
   stripe: Stripe,
-  payableId: string,
+  receivableId: string,
   invoiceOptions?: Omit<Stripe.InvoiceCreateParams, 'customer'>
 ) => {
   const db = getFirestore();
-  const payableRef = payablesCollection(db).doc(payableId);
-  const payable = await getDocData(payableRef, `Payable not found (ID: ${payableRef.id})`);
+  const receivableRef = receivablesCollection(db).doc(receivableId);
+  const receivable = await getDocData(
+    receivableRef,
+    `Receivable not found (ID: ${receivableRef.id})`
+  );
 
-  const invoiceDueDate = payable.dueDate;
+  const invoiceDueDate = receivable.dueDate;
   const dueDateSeconds = round(invoiceDueDate.toMillis() / 1000);
 
   const invoice = await stripe.invoices.create({
-    customer: payable.stripeCustomerId,
+    customer: receivable.stripeCustomerId,
 
-    description: `Invoice for policy ${payable.policyId}, billed to ${
-      payable.billingEntityDetails?.name || payable.billingEntityDetails.email
+    description: `Invoice for policy ${receivable.policyId}, billed to ${
+      receivable.billingEntityDetails?.name || receivable.billingEntityDetails.email
     }`,
     collection_method: 'send_invoice',
     payment_settings: {
@@ -61,23 +64,23 @@ export const generateInvoiceForPayable = async (
     // effective_date: When defined, this value replaces the system-generated ‘Date of issue’ printed on the invoice PDF and receipt.
     ...(invoiceOptions || {}),
     metadata: {
-      // transferGroup: payable.transferGroup, // only available once payment intent created
+      // transferGroup: receivable.transferGroup, // only available once payment intent created
       ...(invoiceOptions?.metadata || {}),
-      policyId: payable.policyId,
+      policyId: receivable.policyId,
     },
     currency: 'USD',
     // can add up to 4 custom fields (displayed on invoice)
     custom_fields: [
       {
         name: 'Policy ID',
-        value: payable.policyId,
+        value: receivable.policyId,
       },
       // TODO: add transaction type (new policy, endorsement, etc ) ??
     ],
   });
 
-  info(`Stripe invoice created ${invoice.id} from payable ${payable.id}`, {
-    policyId: payable.policyId,
+  info(`Stripe invoice created ${invoice.id} from receivable ${receivable.id}`, {
+    policyId: receivable.policyId,
   });
 
   // The maximum number of invoice items is 250.
@@ -86,22 +89,22 @@ export const generateInvoiceForPayable = async (
   // https://stripe.com/docs/invoicing/group-line-items
   // item grouping (beta): https://stripe.com/docs/invoicing/line-item-grouping
   const premiumItemPromise = stripe.invoiceItems.create({
-    customer: payable.stripeCustomerId,
-    amount: payable.termPremiumAmount,
+    customer: receivable.stripeCustomerId,
+    amount: receivable.termPremiumAmount,
     invoice: invoice.id,
-    description: `Term premium for policy ${payable.policyId}`,
+    description: `Term premium for policy ${receivable.policyId}`,
   });
-  const feeItemPromises = payable.fees.map((f) =>
+  const feeItemPromises = receivable.fees.map((f) =>
     stripe.invoiceItems.create({
-      customer: payable.stripeCustomerId,
+      customer: receivable.stripeCustomerId,
       amount: f.value * 100,
       invoice: invoice.id,
       description: f.displayName,
     })
   );
-  const taxItemPromises = payable.taxes.map((f) =>
+  const taxItemPromises = receivable.taxes.map((f) =>
     stripe.invoiceItems.create({
-      customer: payable.stripeCustomerId,
+      customer: receivable.stripeCustomerId,
       amount: f.value * 100,
       invoice: invoice.id,
       description: f.displayName,
@@ -117,12 +120,12 @@ export const generateInvoiceForPayable = async (
     info(`${invoiceItem.description} item (ID: ${invoiceItem.id}) added to invoice ${invoice.id}`);
   });
 
-  // set invoice Id on payable
-  await payableRef.update({
+  // set invoice Id on receivable
+  await receivableRef.update({
     invoiceId: invoice.id,
     'metadata.updated': Timestamp.now(),
   });
-  info(`set invoice ID ${invoice.id} on payable doc ${payableRef.id}`);
+  info(`set invoice ID ${invoice.id} on receivable doc ${receivableRef.id}`);
 
   return invoice.id;
 };

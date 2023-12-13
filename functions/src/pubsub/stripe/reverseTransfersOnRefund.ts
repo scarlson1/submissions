@@ -9,6 +9,12 @@ import { getStripe } from '../../services/stripe.js';
 import { verify } from '../../utils/validation.js';
 import { extractPubSubPayload } from '../utils/extractPubSubPayload.js';
 
+// TODO:
+// create refunds collection
+// on refund triggered --> create refund record in DB (aggregate transactions ??)
+// create refund in stripe
+// on refund.created --> get DB refund record --> create tax reversals & transfers
+
 // docs: https://stripe.com/docs/connect/separate-charges-and-transfers#issuing-refunds
 //  It is only possible to reverse a transfer if the connected account’s available balance is greater than the reversal amount or has connected reserves enabled.
 
@@ -37,6 +43,12 @@ export default async (event: CloudEvent<MessagePublishedData<RefundCreatedPayloa
 
   const amount = refund.amount;
   const sourceTransaction = refund.charge;
+
+  // const base = refund.amount - nonRefundableTaxes - nonRefundableFees
+  // const reverseTransferAmount = base * transferPct
+
+  // base = 400 - 20 - 50 = 330
+  // reversalAmount = 330 * 15%
 
   const stripe = getStripe(stripeSecretKey.value());
   const db = getFirestore();
@@ -69,8 +81,8 @@ export default async (event: CloudEvent<MessagePublishedData<RefundCreatedPayloa
       // flat cancel returns everything except inspection fee
       // TODO: need to subtract taxes
       const transferData = transferSnap.data();
-      // TODO: need to calc net of taxes/fees ?? use/check values from payable refundable ??
-      // amount captured will include taxes and fees --> need to look up refundable value from payable
+      // TODO: need to calc net of taxes/fees ?? use/check values from receivable refundable ??
+      // amount captured will include taxes and fees --> need to look up refundable value from receivable
       const transferPct = charge.amount_captured / transferData.amount;
       const transferRefundAmt = floor(amount * transferPct);
       console.log('transfer refund amount: ', transferRefundAmt);

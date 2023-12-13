@@ -19,24 +19,24 @@ import { useNavigate } from 'react-router-dom';
 
 import { PaidRounded } from '@mui/icons-material';
 import { CheckmarkLottie } from 'assets';
-import { Payable, Policy } from 'common';
+import { Policy, Receivable } from 'common';
 import { where } from 'firebase/firestore';
 import { useCollectionData, useDocData } from 'hooks';
 import { ROUTES, createPath } from 'router';
 
 // show success messaging with billing info
-// show payables once loaded
+// show receivables once loaded
 
-// or redirect to policy view & redo policy view to highlight payables ??
+// or redirect to policy view & redo policy view to highlight receivables ??
 
 export const SuccessStep = ({ policyId }: { policyId: string }) => {
   const navigate = useNavigate();
   const { data } = useDocData<Policy>('policies', policyId);
 
-  // TODO: sticky button at bottom to continue to payables view ?? (make wizard button sticky ?? don't use wizard buttons - don't want back button)
+  // TODO: sticky button at bottom to continue to receivables view ?? (make wizard button sticky ?? don't use wizard buttons - don't want back button)
   return (
     <Container maxWidth='sm' disableGutters sx={{ py: { xs: 3, md: 5, lg: 8 } }}>
-      {/* TODO: payables (use collapse or react spring so they enter gradually) */}
+      {/* TODO: receivables (use collapse or react spring so they enter gradually) */}
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -79,25 +79,27 @@ export const SuccessStep = ({ policyId }: { policyId: string }) => {
           >
             Done
           </Button>
-          <Button onClick={() => navigate(`/admin/stripe-test/payables/${policyId}`)}>
+          <Button onClick={() => navigate(`/admin/stripe-test/receivables/${policyId}`)}>
             Payments
           </Button>
         </CardActions>
       </Card>
       <Box sx={{ py: 5 }}>
-        <PayablesList policyId={policyId} />
+        <ReceivablesList policyId={policyId} />
       </Box>
     </Container>
   );
 };
 
-interface PayablesListProps {
+interface ReceivablesListProps {
   policyId: string;
 }
 
-const PayablesList = ({ policyId }: PayablesListProps) => {
+const ReceivablesList = ({ policyId }: ReceivablesListProps) => {
   const navigate = useNavigate();
-  const { data } = useCollectionData<Payable>('payables', [where('policyId', '==', policyId)]);
+  const { data } = useCollectionData<Receivable>('receivables', [
+    where('policyId', '==', policyId),
+  ]);
 
   return (
     <Collapse in={data?.length > 0}>
@@ -113,7 +115,10 @@ const PayablesList = ({ policyId }: PayablesListProps) => {
                   <Button
                     onClick={() =>
                       navigate(
-                        createPath({ path: ROUTES.PAYABLE_CHECKOUT, params: { payableId: p.id } })
+                        createPath({
+                          path: ROUTES.PAYABLE_CHECKOUT,
+                          params: { receivableId: p.id },
+                        })
                       )
                     }
                     variant='contained'

@@ -1,6 +1,6 @@
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
-import { Payable } from 'common';
+import { Receivable } from 'common';
 import {
   billingEntityEmail,
   billingEntityName,
@@ -26,8 +26,8 @@ import {
   updatedCol,
 } from './gridColumns';
 
-export const payableCols: GridColDef<Payable>[] = [
-  { ...idCol, headerName: 'Payable ID' },
+export const receivableCols: GridColDef<Receivable>[] = [
+  { ...idCol, headerName: 'Receivable ID' },
   invoiceNumberCol,
   statusCol,
   paidCol,
@@ -63,7 +63,7 @@ export const payableCols: GridColDef<Payable>[] = [
   updatedCol,
 ];
 
-export const adminPayableCols: GridColDef<Payable>[] = [
+export const adminReceivableCols: GridColDef<Receivable>[] = [
   paidOutOfBandCol,
   invoiceIdCol,
   {
@@ -74,7 +74,7 @@ export const adminPayableCols: GridColDef<Payable>[] = [
   },
 ];
 
-export const PAYABLE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
+export const RECEIVABLE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
   id: false,
   invoiceId: false,
   status: false,

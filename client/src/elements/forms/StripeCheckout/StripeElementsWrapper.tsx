@@ -1,5 +1,5 @@
 import { createPmtIntent } from '.';
-import { StripeElementsWrapper as StripeElementsWrapperPayable } from '../StripePayableCheckout/StripeElementsWrapper';
+import { StripeElementsWrapper as StripeElementsWrapperReceivable } from '../StripeReceivableCheckout/StripeElementsWrapper';
 // payment quick start: https://stripe.com/docs/payments/quickstart
 // docs example: https://stripe.com/docs/payments/finalize-payments-on-the-server?platform=web&type=payment
 
@@ -60,7 +60,7 @@ export const StripeElementsWrapper = ({ paymentIntentResource }: StripeElementsW
 
   if (!clientSecret) return null;
 
-  return <StripeElementsWrapperPayable clientSecret={clientSecret} emailReceipt='' />;
+  return <StripeElementsWrapperReceivable clientSecret={clientSecret} emailReceipt='' />;
 
   // return (
   //   <Container disableGutters maxWidth='sm'>

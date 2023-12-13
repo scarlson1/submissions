@@ -26,7 +26,7 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
   // const db = getFirestore();
   // const policiesCol = policiesCollection(db);
 
-  // update payable with receipt number ??
+  // update receivable with receipt number ??
   // if (invoice.receipt_number)
 
   try {

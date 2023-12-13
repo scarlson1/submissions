@@ -242,9 +242,9 @@ export const TransferSummary = z.object({
   // or percentageOfRefundableAmount ??
 });
 
-export const PayableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
-export type PayableStatus = z.infer<typeof PayableStatus>;
-// keep expired ?? payable should persist when invoice expires ??
+export const ReceivableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
+export type ReceivableStatus = z.infer<typeof ReceivableStatus>;
+// keep expired ?? receivable should persist when invoice expires ??
 // TODO: handle invoice / payment intent expired
 
 // TODO: need discriminating union ?? able to change payment option, etc. after selected ??
@@ -253,7 +253,7 @@ export type PayableStatus = z.infer<typeof PayableStatus>;
 
 // TODO: add more invoice state like paid/paidOutOfBand, etc ?? or fetch receipt for extra details ??
 // TODO: amount due, amount remaining etc. - see how those affect calculations & if we need to take them into account (& impact of account credits)
-export const Payable = z.object({
+export const Receivable = z.object({
   policyId: z.string(),
   stripeCustomerId: z.string(),
   billingEntityDetails: z.object({
@@ -268,10 +268,14 @@ export const Payable = z.object({
   taxes: z.array(TaxItem), // just store referance to tax calc object ??
   // taxes separate from line items ??
   fees: z.array(FeeItem), // TODO: need to add refundable property on feeItem
-  status: PayableStatus,
+  status: ReceivableStatus,
   paid: z.boolean(),
   paidOutOfBand: z.boolean(),
-  paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
+  // mirror stripe invoice fields ?? https://stripe.com/docs/api/invoices/object
+  // amountDue: z.number(),
+  // amountPaid: z.number(),
+  // amountRemaining: z.number(),
+  // paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(), // generated when invoice is finalized
   invoiceNumber: z.string().optional().nullable(),
@@ -288,10 +292,10 @@ export const Payable = z.object({
   totalAmount: z.number().int().nonnegative(),
   locations: z.record(PolicyLocation),
   dueDate: Timestamp,
-  // set charges ?? array ?? save to payable on charge.complete or charge.created ??
+  // set charges ?? array ?? save to receivable on charge.complete or charge.created ??
   metadata: BaseMetadata,
 });
-export type Payable = z.infer<typeof Payable>;
+export type Receivable = z.infer<typeof Receivable>;
 
 export interface EPayVerifiedResponse {
   id: string;

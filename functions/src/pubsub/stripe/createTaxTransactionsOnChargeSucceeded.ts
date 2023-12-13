@@ -4,7 +4,7 @@ import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import Stripe from 'stripe';
-import { Payable, getReportErrorFn, payablesCollection } from '../../common/index.js';
+import { Receivable, getReportErrorFn, receivablesCollection } from '../../common/index.js';
 import { createTaxTrxId, getQueryData } from '../../modules/db/utils.js';
 import { createTaxTrxObjectFromCalc } from '../../modules/taxes/createTaxTrxObjectFromCalc.js';
 import { verify } from '../../utils/validation.js';
@@ -25,30 +25,30 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
   const { charge } = extractPubSubPayload(event, ['charge']);
 
   const db = getFirestore();
-  const payablesCol = payablesCollection(db);
+  const receivablesCol = receivablesCollection(db);
   const taxTrxCol = taxTransactionsCollection(db);
 
   try {
     verify(charge, 'pub sub payload missing charge object');
     info('charge.succeeded data [create tax transactions]: ', charge);
 
-    // TODO: move to function createTaxTransactionsFromCalc(payableId, charge) ?? similar to reversals
+    // TODO: move to function createTaxTransactionsFromCalc(receivableId, charge) ?? similar to reversals
     // easier to test ^^
 
-    // fetch payable by transferGroup, or paymentIntent, or invoice
-    let q = getPayablesQueryFromCharge(payablesCol, charge);
-    const payable = (await getQueryData(q, true))[0];
-    const taxes = payable.taxes;
-    info(`Creating tax transactions from payable (${taxes.length} taxes)...`, { ...payable });
+    // fetch receivable by transferGroup, or paymentIntent, or invoice
+    let q = getReceivablesQueryFromCharge(receivablesCol, charge);
+    const receivable = (await getQueryData(q, true))[0];
+    const taxes = receivable.taxes;
+    info(`Creating tax transactions from receivable (${taxes.length} taxes)...`, { ...receivable });
     if (!taxes.length) return;
 
-    // fetched tax calc, returns tax transaction for each tax in payable
+    // fetched tax calc, returns tax transaction for each tax in receivable
     const trxObjectPromises = taxes.map((tax) =>
       createTaxTrxObjectFromCalc(
         tax.taxCalcId,
         charge as Stripe.Charge,
-        payable.policyId,
-        payable.id
+        receivable.policyId,
+        receivable.id
       )
     );
     const taxTrxObjects = await Promise.all(trxObjectPromises);
@@ -71,15 +71,15 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
   return;
 };
 
-export function getPayablesQueryFromCharge(
-  payablesCol: CollectionReference<Payable>,
+export function getReceivablesQueryFromCharge(
+  receivablesCol: CollectionReference<Receivable>,
   charge: Stripe.Charge
 ) {
   const invoice = charge?.invoice;
   const paymentIntent = charge?.payment_intent;
   // const transferGroup = charge?.transfer_group;
 
-  let q = payablesCol;
+  let q = receivablesCol;
   // TRANSFER GROUP ONLY BEING SET FROM INTENT CREATED EVENT (NOT RELIABLE)
   // if (transferGroup) {
   //   q.where('transferGroup', '==', transferGroup);
@@ -90,7 +90,7 @@ export function getPayablesQueryFromCharge(
     q.where('paymentIntentId', '==', paymentIntent);
   } else {
     throw new Error(
-      'Unable to determine query to fetch payable for successful charge. Failed to determine/create tax transactions'
+      'Unable to determine query to fetch receivable for successful charge. Failed to determine/create tax transactions'
     );
   }
 

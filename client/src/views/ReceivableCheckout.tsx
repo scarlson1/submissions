@@ -14,11 +14,11 @@ import { ReactNode, forwardRef, useMemo, useState } from 'react';
 
 import { CloseRounded } from '@mui/icons-material';
 import { DownloadFilesSVG } from 'assets/images';
-import { Payable, Policy, WithId } from 'common';
+import { Policy, Receivable, WithId } from 'common';
 import { LineItem } from 'components';
 import { FormattedAddress } from 'elements';
 import { Item } from 'elements/cards';
-import StripePayableCheckout from 'elements/forms/StripePayableCheckout';
+import StripeReceivableCheckout from 'elements/forms/StripeReceivableCheckout';
 import { useDocData, useDownloadStream, useSafeParams, useWidth } from 'hooks';
 import {
   compressedToAddress,
@@ -30,15 +30,15 @@ import {
 
 // mobile swipeable drawer: https://mui.com/material-ui/react-drawer/#swipeable-edge
 
-// TODO: get amounts from the actual invoice (incase payable gets calculated wrong) ??
+// TODO: get amounts from the actual invoice (incase receivable gets calculated wrong) ??
 
-// TODO: on success --> redirect back to payables for policy
+// TODO: on success --> redirect back to receivables for policy
 
-export const PayableCheckout = () => {
+export const ReceivableCheckout = () => {
   const { isSmall } = useWidth();
-  const { payableId } = useSafeParams(['payableId']);
-  const { data } = useDocData<Payable>('payables', payableId);
-  if (!data) throw new Error(`Payable not found ${payableId}`);
+  const { receivableId } = useSafeParams(['receivableId']);
+  const { data } = useDocData<Receivable>('receivables', receivableId);
+  if (!data) throw new Error(`Receivable not found ${receivableId}`);
   // TODO: only use drawer on small screens ??
   // const [open, setOpen] = useState(true); // TODO: false on mobile
 
@@ -85,13 +85,13 @@ export const PayableCheckout = () => {
           </Box>
           <Box sx={{ display: { xs: 'block', md: 'none' } }}>
             <MobileDrawer buttonTitle='View Details' anchor='right'>
-              <PayableDetails data={data} />
+              <ReceivableDetails data={data} />
             </MobileDrawer>
           </Box>
           <Divider sx={{ mt: { xs: 2, md: 6 }, mb: { xs: 3, sm: 5, md: 6 } }} />
           {/* TODO: handle async invoice events - either don't display unless paymentIntentId, or show loading indicator ?? */}
           {/* TODO: error boundary to create new invoice depending on error ?? */}
-          <StripePayableCheckout data={data} />
+          <StripeReceivableCheckout data={data} />
         </Container>
       </Box>
       <Box sx={{ flex: '1 1 auto', display: { xs: 'none', md: 'block' } }}>
@@ -103,12 +103,12 @@ export const PayableCheckout = () => {
             background: (theme) => theme.palette.background.paper,
           }}
         >
-          <PayableDetails data={data} />
+          <ReceivableDetails data={data} />
         </Paper>
       </Box>
 
       {/* <Drawer anchor='right' open={open} onClose={toggleDrawer} variant='persistent'>
-        <PayableDetails data={data} />
+        <ReceivableDetails data={data} />
       </Drawer> */}
     </Box>
   );
@@ -154,7 +154,7 @@ function MobileDrawer({
 
 const currentMS = new Date().getTime();
 
-function PayableDetails({ data }: { data: WithId<Payable> }) {
+function ReceivableDetails({ data }: { data: WithId<Receivable> }) {
   const { data: policy } = useDocData<Policy>('policies', data.policyId);
 
   const locationCount = useMemo(
@@ -198,7 +198,7 @@ function PayableDetails({ data }: { data: WithId<Payable> }) {
         />
         {/* <Item label="Term premium" value={data.} /> */}
       </Box>
-      {/* TODO: get line items from actual invoice instead of payable ?? */}
+      {/* TODO: get line items from actual invoice instead of receivable ?? */}
       <Box sx={{ pb: 4 }}>
         {data.lineItems.map((l, i) => (
           <LineItem label={l.displayName} value={l.amount / 100} key={`${l.displayName}-${i}`} />

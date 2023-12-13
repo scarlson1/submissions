@@ -3,14 +3,14 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { round, sumBy } from 'lodash-es';
 import Stripe from 'stripe';
-import { Payable } from '../../common/index.js';
+import { Receivable } from '../../common/index.js';
 import { verify } from '../../utils/index.js';
 
 function toAmt(val: number) {
   return round(val * 100);
 }
 
-export const createPayableObject = async (
+export const createReceivableObject = async (
   stripe: Stripe,
   params: {
     cusId: string;
@@ -20,7 +20,7 @@ export const createPayableObject = async (
     billingEntityLocations: Policy['locations'];
     dueDate: Timestamp;
   }
-): Promise<Payable> => {
+): Promise<Receivable> => {
   const { cusId, policyId, totals, subProducerCommPct, billingEntityLocations, dueDate } = params;
   const customer = await stripe.customers.retrieve(cusId);
   verify(!customer.deleted, `stripe customer deleted ${cusId}`);
@@ -31,9 +31,9 @@ export const createPayableObject = async (
   const transfers = getTransfersForNewPolicy(cusId, totals, subProducerCommPct);
   // console.log('transfers: ', transfers);
 
-  const payableAmounts = getPayableAmounts(totals);
+  const receivableAmounts = getReceivableAmounts(totals);
 
-  const payable: Payable = {
+  const receivable: Receivable = {
     policyId,
     stripeCustomerId: cusId,
     billingEntityDetails: {
@@ -50,8 +50,7 @@ export const createPayableObject = async (
     status: 'outstanding',
     paid: false,
     paidOutOfBand: false,
-    ...payableAmounts,
-    paymentOption: null, // delete ?? create payment intent via invoice ?? derive state from invoiceId ??
+    ...receivableAmounts,
     locations: billingEntityLocations, // getLcnSummariesByCusId(cusId, policyLocations),
     dueDate,
     metadata: {
@@ -60,8 +59,8 @@ export const createPayableObject = async (
     },
   };
 
-  info(`Payable object created for policy ${policyId}`, payable);
-  return payable;
+  info(`Receivable object created for policy ${policyId}`, receivable);
+  return receivable;
 };
 
 // TODO: replace totals by billing entity with line items ?? place total outside lineItems
@@ -109,7 +108,7 @@ function getTransfersForNewPolicy(
   ];
 }
 
-function getPayableAmounts(totals: Totals) {
+function getReceivableAmounts(totals: Totals) {
   const refundableTaxesAmount = toAmt(
     sumBy(
       totals.taxes.filter((t) => t.refundable || t.refundable === undefined),

@@ -172,7 +172,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
       policyId,
     });
 
-    // batch payables too ??
+    // batch receivables too ??
 
     await batch.commit();
 

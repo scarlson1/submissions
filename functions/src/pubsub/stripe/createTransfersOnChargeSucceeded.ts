@@ -4,7 +4,7 @@ import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import {
   getReportErrorFn,
-  payablesCollection,
+  receivablesCollection,
   stripeSecretKey,
   transfersCollection,
 } from '../../common/index.js';
@@ -14,7 +14,7 @@ import { verify } from '../../utils/validation.js';
 import { extractPubSubPayload } from '../utils/extractPubSubPayload.js';
 import {
   ChargeSucceededPayload,
-  getPayablesQueryFromCharge,
+  getReceivablesQueryFromCharge,
 } from './createTaxTransactionsOnChargeSucceeded.js';
 
 const reportErr = getReportErrorFn('createTransfersOnChargeComplete');
@@ -41,17 +41,17 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
 
   const stripe = getStripe(stripeSecretKey.value());
   const db = getFirestore();
-  const payablesCol = payablesCollection(db);
+  const receivablesCol = receivablesCollection(db);
   const transfersCol = transfersCollection(db);
 
   try {
-    let q = getPayablesQueryFromCharge(payablesCol, charge);
-    const payable = (await getQueryData(q, true))[0];
+    let q = getReceivablesQueryFromCharge(receivablesCol, charge);
+    const receivable = (await getQueryData(q, true))[0];
 
-    const transfers = payable.transfers;
-    // TODO: zod validation ?? (when creating payable)
+    const transfers = receivable.transfers;
+    // TODO: zod validation ?? (when creating receivable)
     if (!Array.isArray(transfers) || !transfers.length) {
-      info(`No transfers found on payable ${payable.id}. returning early.`);
+      info(`No transfers found on receivable ${receivable.id}. returning early.`);
       return;
     }
 
@@ -60,11 +60,11 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
     const batch = db.batch();
 
     for (let t of transfers) {
-      // TODO: check if transfer already made ?? or set at payable level ??
+      // TODO: check if transfer already made ?? or set at receivable level ??
       // or set amountTransferred in case of partial payments ??
       // TODO: add transferPct and refundableTransferPct to transfer item
       // should actual calc take into account non-refundable items ??
-      const transferPct = t.amount / payable.totalAmount;
+      const transferPct = t.amount / receivable.totalAmount;
       const transferAmount = transferPct * charge.amount_captured;
       const transfer = await stripe.transfers.create({
         amount: transferAmount, // t.amount, // TODO: NEED TO CALCULATE AS % OF CHARGE
@@ -72,7 +72,7 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
         source_transaction: charge.id, // prevent transfer before funds available
         destination: t.destination,
       });
-      // TODO: update payable transfer with transfer ID for idempotency (check before creating transfer)
+      // TODO: update receivable transfer with transfer ID for idempotency (check before creating transfer)
       // or will it fail from setting source_transaction ?? (ex: not if 15% is transferred < 8 times)
 
       const transferRef = transfersCol.doc(transfer.id);
