@@ -17,6 +17,7 @@ import {
   HourglassBottomRounded,
   HourglassEmptyRounded,
   HourglassTopRounded,
+  LaunchRounded,
   OpenInNewRounded,
   PendingRounded,
   QueryBuilderRounded,
@@ -50,6 +51,7 @@ import {
   CBRSDesignation,
   CancelReason,
   ChangeRequestStatus,
+  Claim,
   Collection,
   CompressedAddress,
   FloodZone,
@@ -71,7 +73,13 @@ import {
   TransactionType,
 } from 'common';
 import { CONSTRUCTION_TYPE } from 'common/constants';
-import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
+import {
+  FileLink,
+  GridCellCopy,
+  LoadingSpinner,
+  renderGridEmail,
+  renderGridPhone,
+} from 'components';
 import {
   GridCellExpand,
   renderCellExpand,
@@ -101,7 +109,8 @@ import {
   numberFormat,
   popUpWasBlocked,
 } from 'modules/utils';
-import { memo } from 'react';
+import { Suspense, memo } from 'react';
+import { useSigninCheck } from 'reactfire';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
 export const copyBaseProps: Partial<GridColDef> = {
@@ -211,6 +220,7 @@ export const policyIdCol: GridColDef = {
           path: ROUTES.POLICY,
           params: { policyId: params.value },
         })}
+        underline='hover'
       >
         <GridCellCopy value={params.value} />
       </Link>
@@ -1310,24 +1320,72 @@ export const userIdCol: GridColDef = {
   ...copyBaseProps,
 };
 
+// TODO: stripe dashboard url env var
+const stripeDashUrl = `https://dashboard.stripe.com${
+  import.meta.env.VITE_EMULATORS === 'true' ? '/test' : ''
+}`;
+
+const GridStripeCustomer = ({ cusId }: { cusId: string }) => {
+  const { data } = useSigninCheck({ requiredClaims: { [Claim.Enum.iDemandAdmin]: true } });
+
+  if (!data.hasRequiredClaims) return <GridCellCopy value={cusId} />;
+  return (
+    <Link
+      href={`${stripeDashUrl}/customers/${cusId}`}
+      variant='body2'
+      underline='hover'
+      target='_blank'
+      rel='noopener'
+    >
+      <GridCellCopy value={cusId} />
+    </Link>
+  );
+};
+
 export const stripeCustomerIdCol: GridColDef = {
+  ...copyBaseProps,
   field: 'stripeCustomerId',
   headerName: 'Stripe Customer ID',
   filterable: false, // true, TODO: enable once index created
   sortable: false,
+  minWidth: 220,
   filterOperators: getGridFirestoreStringOperators(),
-  valueGetter: (params) => params.value || null,
-  ...copyBaseProps,
+  renderCell: ({ value }) => {
+    if (!value) return null;
+
+    return (
+      <Suspense fallback={<LoadingSpinner loading={true} size={16} />}>
+        <GridStripeCustomer cusId={value} />
+      </Suspense>
+    );
+  },
 };
 
 export const stripeAccountIdCol: GridColDef = {
+  ...copyBaseProps,
   field: 'stripeAccountId',
   headerName: 'Stripe Account ID',
   filterable: false, // true, TODO: enable once index created
   sortable: false,
+  minWidth: 220,
   filterOperators: getGridFirestoreStringOperators(),
   valueGetter: (params) => params.value || null,
-  ...copyBaseProps,
+};
+
+export const paidCol: GridColDef = {
+  field: 'paid',
+  headerName: 'Paid',
+  type: 'boolean',
+  filterOperators: getGridFirestoreBooleanOperators(),
+  sortable: false,
+  filterable: true,
+};
+
+export const paidOutOfBandCol: GridColDef = {
+  ...paidCol,
+  field: 'paidOutOfBand',
+  headerName: 'Paid Out of Band',
+  filterable: false,
 };
 
 export const invoiceNumberCol: GridColDef = {
@@ -1336,14 +1394,50 @@ export const invoiceNumberCol: GridColDef = {
   type: 'string',
   sortable: false,
   filterable: false,
-  minWidth: 120,
+  minWidth: 140,
   flex: 0.4,
+};
+
+const GridInvoiceId = ({ invoiceId }: { invoiceId: string }) => {
+  const { data } = useSigninCheck({ requiredClaims: { [Claim.Enum.iDemandAdmin]: true } });
+
+  if (!data.hasRequiredClaims) return <GridCellCopy value={invoiceId} />;
+  return (
+    <Link
+      href={`${stripeDashUrl}/customers/${invoiceId}`}
+      variant='body2'
+      underline='hover'
+      target='_blank'
+      rel='noopener'
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <LaunchRounded fontSize='inherit' color='inherit' sx={{ mr: 2 }} />
+        <GridCellCopy value={invoiceId} />
+      </Box>
+    </Link>
+  );
 };
 
 export const invoiceIdCol: GridColDef = {
   ...idCol,
   field: 'invoiceId',
   headerName: 'Invoice ID',
+  minWidth: 220,
+  renderCell: ({ value }) => {
+    if (!value) return null;
+
+    return <GridInvoiceId invoiceId={value} />;
+  },
+};
+
+export const receiptNumberCol: GridColDef = {
+  field: 'receiptNumber',
+  headerName: 'Receipt',
+  sortable: false,
+  filterable: false,
+  minWidth: 100,
+  flex: 1,
+  // TODO: make linkable if stripe provides receipt URL
 };
 
 export const billingEntityName: GridColDef = {
@@ -1382,6 +1476,7 @@ export const dueDateCol: GridColDef = {
   headerName: 'Due Date',
   sortable: true,
   filterable: true,
+  minWidth: 120,
 };
 
 // TODO: move to component
@@ -1429,7 +1524,6 @@ export const downloadInvoiceCol: GridColDef = {
   filterable: false,
   editable: false,
   minWidth: 200,
-
   flex: 1,
   renderCell: ({ row, value }) => {
     if (!value || !row.invoiceId) return null;
@@ -1442,6 +1536,34 @@ export const downloadInvoiceCol: GridColDef = {
         size='small'
         sx={{ maxHeight: 30 }}
       />
+    );
+  },
+};
+
+export const stripeHostedInvoiceUrlCol: GridColDef = {
+  field: 'hostedInvoiceUrl',
+  headerName: 'Stripe Hosted',
+  minWidth: 200,
+  flex: 1,
+  sortable: false,
+  filterable: false,
+  renderCell: ({ value }) => {
+    if (!value) return null;
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Link
+          href={value}
+          variant='body2'
+          underline='hover'
+          target='_blank'
+          rel='noopener'
+          sx={{ mr: 2 }}
+        >
+          Stripe Invoice
+        </Link>
+        <LaunchRounded fontSize='inherit' />
+      </Box>
     );
   },
 };

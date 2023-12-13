@@ -87,7 +87,7 @@ const PayableCard = ({ data }: PayableCardProps) => {
             data.billingEntityDetails?.email ||
             `Policy ${data.policyId}`
           }
-          subheader={`Invoice #${data.invoiceId || ''}`}
+          subheader={`Invoice #${data.invoiceNumber || ''}`}
           subheaderTypographyProps={{
             sx: {
               overflow: 'hidden',
@@ -123,13 +123,17 @@ const PayableCard = ({ data }: PayableCardProps) => {
         <IconButton size='small' onClick={() => showJson(data.id)}>
           <DataObjectRounded fontSize='inherit' />
         </IconButton>
-        <Button
-          onClick={() =>
-            navigate(createPath({ path: ROUTES.PAYABLE_CHECKOUT, params: { payableId: data.id } }))
-          }
-        >
-          Pay now (checkout)
-        </Button>
+        {data.paymentIntentId ? (
+          <Button
+            onClick={() =>
+              navigate(
+                createPath({ path: ROUTES.PAYABLE_CHECKOUT, params: { payableId: data.id } })
+              )
+            }
+          >
+            Pay now (checkout)
+          </Button>
+        ) : null}
         {data.hostedInvoiceUrl ? (
           <Button
             onClick={() => window.open(data.hostedInvoiceUrl!, '_blank', 'noreferrer noopener')}

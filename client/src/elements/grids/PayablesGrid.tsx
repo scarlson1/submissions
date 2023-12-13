@@ -21,7 +21,7 @@ export const PayablesGrid = ({
   const navigate = useNavigate();
   const { data } = useSigninCheck({ requiredClaims: { [Claim.Enum.iDemandAdmin]: true } });
   const renderShowJson = useGridShowJson(
-    'policies',
+    'payables',
     { showInMenu: true },
     { requiredClaims: { [Claim.Enum.iDemandAdmin]: true } },
     null,
@@ -51,8 +51,9 @@ export const PayablesGrid = ({
         ],
       },
       ...payableCols,
+      ...(additionalColumns || []),
     ],
-    []
+    [renderActions, renderShowJson, additionalColumns]
   );
 
   if (!data.hasRequiredClaims) return null;

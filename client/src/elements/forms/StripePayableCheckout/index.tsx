@@ -32,6 +32,7 @@ interface StripePayableCheckoutProps {
 }
 
 export default function ({ data }: StripePayableCheckoutProps) {
+  // TODO: don't throw ?? handle error case - may be situations where invoice needs to be recreated (void, marked uncollectible, etc.) ??
   if (!data.paymentIntentId) throw new Error('missing payment intent'); // TODO: handle in error boundary
   const { data: clientSecret } = usePaymentIntentSecret(data.paymentIntentId);
 

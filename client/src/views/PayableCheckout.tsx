@@ -1,11 +1,25 @@
-import { Box, Container, Divider, Paper, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Container,
+  Divider,
+  Drawer,
+  DrawerProps,
+  IconButton,
+  Paper,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import { ReactNode, forwardRef, useMemo, useState } from 'react';
+
+import { CloseRounded } from '@mui/icons-material';
 import { DownloadFilesSVG } from 'assets/images';
 import { Payable, Policy, WithId } from 'common';
 import { LineItem } from 'components';
 import { FormattedAddress } from 'elements';
 import { Item } from 'elements/cards';
 import StripePayableCheckout from 'elements/forms/StripePayableCheckout';
-import { useDocData, useDownloadStream, useSafeParams } from 'hooks';
+import { useDocData, useDownloadStream, useSafeParams, useWidth } from 'hooks';
 import {
   compressedToAddress,
   dollarFormat,
@@ -13,13 +27,15 @@ import {
   formatFirestoreTimestamp,
   formatPhoneNumber,
 } from 'modules/utils';
-import { forwardRef, useMemo } from 'react';
 
 // mobile swipeable drawer: https://mui.com/material-ui/react-drawer/#swipeable-edge
 
 // TODO: get amounts from the actual invoice (incase payable gets calculated wrong) ??
 
+// TODO: on success --> redirect back to payables for policy
+
 export const PayableCheckout = () => {
+  const { isSmall } = useWidth();
   const { payableId } = useSafeParams(['payableId']);
   const { data } = useDocData<Payable>('payables', payableId);
   if (!data) throw new Error(`Payable not found ${payableId}`);
@@ -67,26 +83,74 @@ export const PayableCheckout = () => {
               </Box>
             ) : null}
           </Box>
-          <Divider sx={{ my: { xs: 3, sm: 5, md: 6 } }} />
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+            <MobileDrawer buttonTitle='View Details' anchor='right'>
+              <PayableDetails data={data} />
+            </MobileDrawer>
+          </Box>
+          <Divider sx={{ mt: { xs: 2, md: 6 }, mb: { xs: 3, sm: 5, md: 6 } }} />
+          {/* TODO: handle async invoice events - either don't display unless paymentIntentId, or show loading indicator ?? */}
+          {/* TODO: error boundary to create new invoice depending on error ?? */}
           <StripePayableCheckout data={data} />
         </Container>
       </Box>
+      <Box sx={{ flex: '1 1 auto', display: { xs: 'none', md: 'block' } }}>
+        <Paper
+          sx={{
+            // flex: '1 1 auto',
+            height: '100%',
+            p: { xs: 3, sm: 5, md: 8 },
+            background: (theme) => theme.palette.background.paper,
+          }}
+        >
+          <PayableDetails data={data} />
+        </Paper>
+      </Box>
 
-      <Paper
-        sx={{
-          flex: '1 1 auto',
-          p: { xs: 3, sm: 5, md: 8 },
-          background: (theme) => theme.palette.background.paper,
-        }}
-      >
-        <PayableDetails data={data} />
-      </Paper>
       {/* <Drawer anchor='right' open={open} onClose={toggleDrawer} variant='persistent'>
         <PayableDetails data={data} />
       </Drawer> */}
     </Box>
   );
 };
+
+function MobileDrawer({
+  anchor = 'right',
+  buttonTitle,
+  children,
+}: {
+  anchor: DrawerProps['anchor'];
+  buttonTitle: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)} size='small' sx={{ maxHeight: 30 }}>
+        {buttonTitle}
+      </Button>
+      <Drawer anchor={anchor} open={open} onClose={() => setOpen(false)}>
+        <Box
+          sx={{
+            width:
+              anchor === 'top' || anchor === 'bottom'
+                ? 'auto'
+                : { xs: `calc(100vw - 40px)`, sm: 480 },
+            p: { xs: 4, sm: 6 },
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <IconButton onClick={() => setOpen(false)} size='small'>
+              <CloseRounded fontSize='inherit' />
+            </IconButton>
+          </Box>
+          {children}
+        </Box>
+      </Drawer>
+    </>
+  );
+}
 
 const currentMS = new Date().getTime();
 
@@ -208,13 +272,7 @@ const DownloadPDF = forwardRef(function DownloadPDF(
         },
       }}
     >
-      <DownloadFilesSVG
-        height='100%'
-        width='100%'
-        preserveAspectRatio='xMidYMin meet'
-        fill='red'
-        // style={{ fill: 'red' }}
-      />
+      <DownloadFilesSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' />
     </Box>
   );
 });

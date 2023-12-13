@@ -35,7 +35,6 @@ export const generateInvoiceForPayable = async (
   const invoiceDueDate = payable.dueDate;
   const dueDateSeconds = round(invoiceDueDate.toMillis() / 1000);
 
-  // create stripe invoice
   const invoice = await stripe.invoices.create({
     customer: payable.stripeCustomerId,
 
@@ -44,9 +43,8 @@ export const generateInvoiceForPayable = async (
     }`,
     collection_method: 'send_invoice',
     payment_settings: {
-      // TODO: look up difference between ach credit vs debit & us_bank_account
-      // customer_balance for bank transfers
-      payment_method_types: ['us_bank_account', 'customer_balance'], // 'ach_debit', 'customer_balance', 'link' link requires card to be enabled ??
+      payment_method_types: ['us_bank_account', 'customer_balance'],
+      // 'link' link requires card to be enabled ??
       // Err message: "To use 'link' with the PaymentElement, please pass both 'link' and 'card' as payment_method_types."
       payment_method_options: {
         customer_balance: {
@@ -68,6 +66,14 @@ export const generateInvoiceForPayable = async (
       policyId: payable.policyId,
     },
     currency: 'USD',
+    // can add up to 4 custom fields (displayed on invoice)
+    custom_fields: [
+      {
+        name: 'Policy ID',
+        value: payable.policyId,
+      },
+      // TODO: add transaction type (new policy, endorsement, etc ) ??
+    ],
   });
 
   info(`Stripe invoice created ${invoice.id} from payable ${payable.id}`, {

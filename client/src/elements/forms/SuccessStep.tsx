@@ -133,7 +133,7 @@ export const SuccessStep = () => {
   }
 
   return (
-    <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}>
+    <Container maxWidth='sm' disableGutters sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}>
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

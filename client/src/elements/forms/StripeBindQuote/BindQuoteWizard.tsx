@@ -5,7 +5,6 @@ import { FormikProps } from 'formik';
 import { isEqual } from 'lodash';
 import { RefObject, useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import { useFirestore, useFunctions } from 'reactfire';
 
 import { CreatePolicyResponse, createPolicy } from 'api';
@@ -25,6 +24,9 @@ import { SuccessStep } from './SuccessStep';
 // Refactor -- view all locations
 // select billing entity for each location
 // add additional insureds
+
+// make success step separate url ?? /bound
+// or check quote status and set to success step if status === bound ??
 
 const useBindQuote = (
   quoteId: string,
@@ -71,7 +73,7 @@ interface BindQuoteWizardProps {
 }
 
 export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { data: quote } = useDocData<Quote>('quotes', quoteId);
   const { saveValues, bindQuote, formRef } = useBindQuote(
     quoteId,

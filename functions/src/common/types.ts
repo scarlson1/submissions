@@ -252,6 +252,7 @@ export type PayableStatus = z.infer<typeof PayableStatus>;
 // TODO: pass through zod before saving at all times ??
 
 // TODO: add more invoice state like paid/paidOutOfBand, etc ?? or fetch receipt for extra details ??
+// TODO: amount due, amount remaining etc. - see how those affect calculations & if we need to take them into account (& impact of account credits)
 export const Payable = z.object({
   policyId: z.string(),
   stripeCustomerId: z.string(),
@@ -268,6 +269,8 @@ export const Payable = z.object({
   // taxes separate from line items ??
   fees: z.array(FeeItem), // TODO: need to add refundable property on feeItem
   status: PayableStatus,
+  paid: z.boolean(),
+  paidOutOfBand: z.boolean(),
   paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(), // generated when invoice is finalized

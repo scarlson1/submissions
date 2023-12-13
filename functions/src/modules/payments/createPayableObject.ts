@@ -1,5 +1,6 @@
 import { Policy, Totals } from '@idemand/common';
 import { Timestamp } from 'firebase-admin/firestore';
+import { info } from 'firebase-functions/logger';
 import { round, sumBy } from 'lodash-es';
 import Stripe from 'stripe';
 import { Payable } from '../../common/index.js';
@@ -25,10 +26,10 @@ export const createPayableObject = async (
   verify(!customer.deleted, `stripe customer deleted ${cusId}`);
 
   const lineItems = billingEntityTotalsToLineItems(totals, policyId);
-  console.log('billing entity lineItems: ', lineItems);
+  // console.log('billing entity lineItems: ', lineItems);
 
   const transfers = getTransfersForNewPolicy(cusId, totals, subProducerCommPct);
-  console.log('transfers: ', transfers);
+  // console.log('transfers: ', transfers);
 
   const payableAmounts = getPayableAmounts(totals);
 
@@ -47,6 +48,8 @@ export const createPayableObject = async (
     taxes: totals.taxes,
     fees: totals.fees,
     status: 'outstanding',
+    paid: false,
+    paidOutOfBand: false,
     ...payableAmounts,
     paymentOption: null, // delete ?? create payment intent via invoice ?? derive state from invoiceId ??
     locations: billingEntityLocations, // getLcnSummariesByCusId(cusId, policyLocations),
@@ -57,6 +60,7 @@ export const createPayableObject = async (
     },
   };
 
+  info(`Payable object created for policy ${policyId}`, payable);
   return payable;
 };
 

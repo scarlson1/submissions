@@ -14,9 +14,14 @@ import {
   invoiceNumberCol,
   locationAddressesCol,
   locationsCountCol,
+  paidCol,
+  paidOutOfBandCol,
+  policyIdCol,
+  receiptNumberCol,
   statusCol,
   stripeAmountCol,
   stripeCustomerIdCol,
+  stripeHostedInvoiceUrlCol,
   taxesSumCol,
   updatedCol,
 } from './gridColumns';
@@ -24,8 +29,8 @@ import {
 export const payableCols: GridColDef<Payable>[] = [
   { ...idCol, headerName: 'Payable ID' },
   invoiceNumberCol,
-  invoiceIdCol,
   statusCol,
+  paidCol,
   billingEntityName,
   billingEntityEmail,
   billingEntityPhone,
@@ -47,23 +52,26 @@ export const payableCols: GridColDef<Payable>[] = [
   downloadInvoiceCol,
   locationAddressesCol,
   locationsCountCol,
-  stripeCustomerIdCol, // TODO: linkable to stripe ??
+  policyIdCol,
+  stripeCustomerIdCol,
+  stripeHostedInvoiceUrlCol,
+  receiptNumberCol, // TODO: link to receipt ??
+  // TODO: amount totals
+  // TODO: transfers
+  // TODO:  refunded, etc.
+  createdCol,
+  updatedCol,
+];
+
+export const adminPayableCols: GridColDef<Payable>[] = [
+  paidOutOfBandCol,
+  invoiceIdCol,
   {
     ...idCol,
+    minWidth: 220,
     field: 'paymentIntentId',
     headerName: 'Payment Intent',
   },
-  {
-    field: 'receiptNumber',
-    headerName: 'Receipt',
-    sortable: false,
-    filterable: false,
-  },
-  // TODO: hosted invoice URL ?? download PDF (component/button)
-  // TODO: amount totals
-  // TODO: transfers
-  createdCol,
-  updatedCol,
 ];
 
 export const PAYABLE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
@@ -79,4 +87,5 @@ export const PAYABLE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
   paymentIntentId: false,
   receiptNumber: false,
   'metadata.updated': false,
+  paidOutOfBand: false,
 };

@@ -101,6 +101,8 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         taxes: totals.taxes,
         fees: totals.fees,
         status: 'outstanding',
+        paid: false,
+        paidOutOfBand: false,
         ...payableAmounts,
         paymentOption: null,
         locations: billingEntityLocations,

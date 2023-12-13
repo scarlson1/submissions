@@ -1165,6 +1165,8 @@ export const PayableZ = z.object({
   // taxes separate from line items ??
   fees: z.array(FeeItem), // TODO: change value to amount and convert to cents
   status: PayableStatus, // TODO: might need multiple status fields (mirror stripe charge ??)
+  paid: z.boolean(),
+  paidOutOfBand: z.boolean(),
   paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(),
