@@ -143,8 +143,9 @@ export const CreateTenant = () => {
                   alignItems: 'center',
                   position: 'sticky',
                   top: 0,
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'light' ? '#FAFAFB' : theme.palette.background.paper,
+                  // backgroundColor: (theme) =>
+                  //   theme.palette.mode === 'light' ? '#FAFAFB' : theme.palette.background.paper,
+                  backgroundColor: (theme) => theme.palette.background.default,
                   borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                   zIndex: 10,
                   py: 2,
@@ -221,7 +222,11 @@ export const CreateTenant = () => {
                           }}
                         />
                       </Box>
-                      <Box>
+
+                      <Divider sx={{ mt: 3 }} />
+                    </Grid>
+                    <Grid container xs={12}>
+                      <Grid xs={6} sm={4}>
                         <FormikNativeSelect
                           name='type'
                           label='Type'
@@ -230,10 +235,8 @@ export const CreateTenant = () => {
                           variant='standard'
                           required
                         />
-                      </Box>
-                      <Divider sx={{ mt: 3 }} />
-                    </Grid>
-                    <Grid container xs={12}>
+                      </Grid>
+
                       {/* <Grid xs={6} sm={4}>
                         <FormikTextField
                           id='routingNumber'

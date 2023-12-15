@@ -43,6 +43,13 @@ export const SuccessStep = ({ policyId }: { policyId: string }) => {
             <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
               <Box>
                 <Typography variant='overline' color='text.secondary' sx={{ lineHeight: 1.4 }}>
+                  Policy ID
+                </Typography>
+                {/* TODO: don't use paymentStatus ?? too complicated if multiple billing entities */}
+                <Typography variant='subtitle2'>{data.id}</Typography>
+              </Box>
+              <Box>
+                <Typography variant='overline' color='text.secondary' sx={{ lineHeight: 1.4 }}>
                   Payment Status
                 </Typography>
                 {/* TODO: don't use paymentStatus ?? too complicated if multiple billing entities */}

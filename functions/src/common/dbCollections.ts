@@ -96,7 +96,7 @@ export const importSummaryCollection = (db: Firestore) =>
 export const userClaimsCollection = (db: Firestore, orgId: string) =>
   createCollection<ClaimsDocData>(
     db,
-    `${Collection.enum.userClaims}/${orgId}/${Collection.enum.userClaims}`
+    `${Collection.enum.organizations}/${orgId}/${Collection.enum.userClaims}`
   );
 
 export const paymentMethodsCollection = (db: Firestore, userId: string) =>

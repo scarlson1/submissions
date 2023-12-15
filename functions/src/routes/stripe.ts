@@ -361,27 +361,23 @@ async function getAccountId(db: Firestore, orgId: string) {
 app.post(
   '/accountLink',
   // body('orgId').isString().notEmpty(),
-  accountLinkSchema,
+  accountLinkSchema, // TODO: update with returnUrl validation (not required)
   validateRequest,
   async (req: ERequest, res: Response) => {
     try {
       // TODO: require auth middleware
       // require user tenantId == orgId
-      const { orgId } = req.body; // or pass in query param ??
+      const { orgId, returnUrl } = req.body; // or pass in query param & use get method??
       const db = getFirestore();
-      // const orgSnap = await orgsCollection(db).doc(orgId).get();
-      // const accountId = orgSnap.data()?.stripeAccountId;
-      // if (!accountId) throw new Error('Org missing stripe account ID');
       const accountId = await getAccountId(db, orgId);
 
       const type = req.body.type || 'account_onboarding';
 
       const stripe = getStripe(stripeSecretKey.value());
-
       const accountLink = await stripe.accountLinks.create({
         account: accountId,
         refresh_url: `${functionsBaseURL.value()}/stripe/accountLink/${accountId}`,
-        return_url: `${hostingBaseURL.value()}account/org/${orgId}`, // /onboarding
+        return_url: returnUrl || `${hostingBaseURL.value()}/account/org/stripe`,
         type,
         collect: 'eventually_due',
       });
@@ -399,7 +395,7 @@ app.post(
   }
 );
 
-// refresh account link
+// refresh account link (Stripe calls to get new link in some scenarios)
 app.get(
   '/accountLink/:accountId',
   param('accountId').isString().notEmpty(),
@@ -414,7 +410,7 @@ app.get(
       const accountLink = await stripe.accountLinks.create({
         account: accountId,
         refresh_url: `${functionsBaseURL.value()}/stripe/accountLink/${accountId}`, // needs to call account links again to generate a new link
-        return_url: `${hostingBaseURL.value()}account/org`, // ${orgId}/onboarding
+        return_url: `${hostingBaseURL.value()}account/org/stripe`,
         type: 'account_onboarding',
         collect: 'eventually_due',
       });
@@ -450,6 +446,7 @@ app.get(
 
       const stripe = getStripe(stripeSecretKey.value());
       const account = await stripe.accounts.retrieve(accountId);
+      // TODO: check if we need to remove any sensitive info ??
 
       res.send({ ...account });
       return;

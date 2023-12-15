@@ -5,10 +5,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { fetchPaymentIntentSecret } from 'api';
 import { Receivable, WithId } from 'common';
 import { ErrorFallback } from 'components';
+import { CheckoutForm } from '../StripeCheckout/CheckoutForm';
 import { StripeElementsWrapper } from './StripeElementsWrapper';
-
-// REPLACE StripeCheckout WITH THIS COMPONENT ?? should serve as wrapper to pass payment intent from receivable
-// pass in receivable --> fetch receivable --> fetch payment intent client secret from api
 
 // need to pass payment options ??
 function fetchStripeSecret(paymentIntentId: string) {
@@ -32,7 +30,7 @@ interface StripeReceivableCheckoutProps {
 }
 
 export default function ({ data }: StripeReceivableCheckoutProps) {
-  // TODO: don't throw ?? handle error case - may be situations where invoice needs to be recreated (void, marked uncollectible, etc.) ??
+  // TODO: don't throw ?? handle error case - may be situations where invoice needs to be recreated (void, marked un-collectable, etc.) ??
   if (!data.paymentIntentId) throw new Error('missing payment intent'); // TODO: handle in error boundary
   const { data: clientSecret } = usePaymentIntentSecret(data.paymentIntentId);
 
@@ -42,16 +40,16 @@ export default function ({ data }: StripeReceivableCheckoutProps) {
       // onReset={handleReset}
       resetKeys={[data.paymentIntentId, clientSecret]}
     >
-      <StripeElementsWrapper
-        clientSecret={clientSecret}
-        emailReceipt={data.billingEntityDetails?.email || ''}
-        billingDetails={{
-          email: data.billingEntityDetails?.email || '',
-          name: data.billingEntityDetails?.name || '',
-          phone: data.billingEntityDetails?.phone || '',
-          // address: data.billingEntityDetails?.address || ''
-        }}
-      />
+      <StripeElementsWrapper clientSecret={clientSecret}>
+        <CheckoutForm
+          emailReceipt={data.billingEntityDetails?.email || ''}
+          billingDetails={{
+            email: data.billingEntityDetails?.email || '',
+            name: data.billingEntityDetails?.name || '',
+            phone: data.billingEntityDetails?.phone || '',
+          }}
+        />
+      </StripeElementsWrapper>
     </ErrorBoundary>
   );
 }

@@ -148,7 +148,7 @@ export default async (
     const ratingColRef = ratingDataCollection(db);
 
     const ratingDocRef = await ratingColRef.add({
-      submissionId: snap.id,
+      submissionId: event.data?.id || null, //: snap.ref.id, // snap.id,
       deductible: sub.deductible,
       limits: {
         limitA: sub.limits?.limitA,

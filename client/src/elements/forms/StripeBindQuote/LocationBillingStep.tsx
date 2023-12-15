@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import { Form, Formik, useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
+import { useFunctions } from 'reactfire';
 import { object, string } from 'yup';
 
 import { calcTotalsByBillingEntity } from 'api';
@@ -37,7 +38,6 @@ import { FormikFieldArray, FormikNativeSelect, FormikWizardNavButtons } from 'co
 import { SelectOption } from 'components/forms/FormikSelect';
 import { ExpandMoreButton } from 'elements/cards/ExpandMoreButton';
 import { useDocData, useWizard } from 'hooks';
-import { useFunctions } from 'reactfire';
 import { AddBillingEntity } from './AddBillingEntity';
 import { BindQuoteProps } from './NamedInsuredStep';
 
@@ -91,7 +91,6 @@ export const LocationBillingStep = ({
       'namedInsured' | 'billingEntities' | 'defaultBillingEntityId' | 'additionalInterests'
     >
   >(colName, docId);
-  // console.log('doc data: ', data);
 
   const billingEntityOptions = useMemo(
     () =>
@@ -103,28 +102,37 @@ export const LocationBillingStep = ({
     [data]
   );
 
+  const handleUpdateValues = useCallback(
+    async (values: BillingEntityStepValues) => {
+      await onStepSubmit({
+        defaultBillingEntityId: values.defaultBillingEntityId,
+        additionalInterests: values.additionalInterests,
+      });
+
+      // TODO: move to onStepSubmit ?? make component more reusable / separate view from js
+      const { data } = await calcTotalsByBillingEntity(functions, {
+        collection: colName,
+        docId,
+      });
+      console.log('billing entity res: ', data);
+    },
+    [nextStep, functions, colName, docId]
+  );
+
+  // pass to handleUpdateValues b/c formik doesn't handle multiple async functions properly
   const handleSubmit = useCallback(
     async (values: BillingEntityStepValues) => {
       try {
-        console.log('step values: ', values);
-        await onStepSubmit({
-          defaultBillingEntityId: values.defaultBillingEntityId,
-          additionalInterests: values.additionalInterests,
-        });
-
-        // TODO: move to onStepSubmit ?? make component more reusable / separate view from js
-        const { data } = await calcTotalsByBillingEntity(functions, {
-          collection: colName,
-          docId,
-        });
-        console.log('billing entity res: ', data);
+        // console.log('step values: ', values);
+        await handleUpdateValues(values);
 
         await nextStep();
       } catch (err: any) {
         console.log('err: ', err);
+        // TODO onError
       }
     },
-    [nextStep, functions, colName, docId]
+    [nextStep, handleUpdateValues]
   );
 
   return (

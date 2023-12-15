@@ -1,20 +1,19 @@
+import { PubSub } from '@google-cloud/pubsub';
 import { ILocation, Policy } from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
   QUOTE_STATUS,
+  TRX_PUB_SUB_TOPICS,
   getReportErrorFn,
   locationsCollection,
   policiesCollection,
   quotesCollection,
-  stripeSecretKey,
 } from '../common/index.js';
-import { createDocId, getSLLicenseByState } from '../modules/db/index.js';
-import { checkMoratoriums, getStripe } from '../services/index.js';
-import { publishPolicyCreated } from '../services/pubsub/index.js';
+import { createDocId, docExists, getSLLicenseByState } from '../modules/db/index.js';
+import { checkMoratoriums } from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
-import { getStripeCustomer } from '../utils/stripe.js';
 import { getPolicyFromQuote, getPolicyLocationsFromQuote, validate } from './utils/index.js';
 
 // TODO: calc mustBePaidByDate (or in converter) OR use created date ??
@@ -30,6 +29,9 @@ import { getPolicyFromQuote, getPolicyLocationsFromQuote, validate } from './uti
 // state machine for agency status
 
 const reportErr = getReportErrorFn('createPolicy');
+
+// TEMP B/C PUBLISH FN THROWING ERR
+const pubSubClient = new PubSub();
 
 interface CreatePolicyProps {
   quoteId: string;
@@ -128,18 +130,21 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   // TODO: need to validate policy data
   // billing entity has email --> look up to make sure exists in stripe
   // make sure agency has stripe account ID --> verify exists in stripe
-  try {
-    const agencyAccountId = policyData.agency.stripeAccountId;
-    const billingEntityIds = Object.keys(policyData.billingEntities);
-    const stripe = getStripe(stripeSecretKey.value());
 
-    const customers = billingEntityIds.map((cusId) => getStripeCustomer(stripe, cusId, false));
-    const orgConnectedAccount = await stripe.accounts.retrieve(agencyAccountId);
-    await Promise.all([...customers, orgConnectedAccount]);
-  } catch (err: any) {
-    let msg = err?.message || 'agency or customer must be set up in Stripe';
-    throw new HttpsError('failed-precondition', msg);
-  }
+  // PRE_DEPLOY: uncomment stripe once using stripe checkout and quote form updated to force stripe account
+  // commenting out for testing old bind quote form
+  // try {
+  //   const agencyAccountId = policyData.agency.stripeAccountId;
+  //   const billingEntityIds = Object.keys(policyData.billingEntities);
+  //   const stripe = getStripe(stripeSecretKey.value());
+
+  //   const customers = billingEntityIds.map((cusId) => getStripeCustomer(stripe, cusId, false));
+  //   const orgConnectedAccount = await stripe.accounts.retrieve(agencyAccountId);
+  //   await Promise.all([...customers, orgConnectedAccount]);
+  // } catch (err: any) {
+  //   let msg = err?.message || 'agency or customer must be set up in Stripe';
+  //   throw new HttpsError('failed-precondition', msg);
+  // }
 
   try {
     // TODO: use set ?? or get policy to see if it exists. If it does, need to check status
@@ -177,6 +182,8 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
       policyId,
     });
 
+    // check if policy doc already exists (avoid duplicating transactions)
+    const policyAlreadyCreated = await docExists(policyRef);
     // batch receivables too ??
 
     await batch.commit();
@@ -184,9 +191,22 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     info(`POLICY CREATED => policy ID: ${policyRef.id}`, { ...policyData, uid });
 
     try {
-      await publishPolicyCreated({
-        policyId: policyRef.id,
-      });
+      // TODO: better idempotency ?? use policyId_lcnId_new for trx ID ??
+      // only call if creating policy doc
+      if (!policyAlreadyCreated) {
+        const dataBuffer = Buffer.from(JSON.stringify({ policyId }));
+        const topicNameOrId = TRX_PUB_SUB_TOPICS.POLICY_CREATED;
+        info(`Publishing new message to ${topicNameOrId}`, { data });
+        const messageId = await pubSubClient
+          .topic(topicNameOrId)
+          .publishMessage({ data: dataBuffer });
+
+        info(`Message ${messageId} published to ${topicNameOrId}.`);
+        // TODO: debug
+        // await publishPolicyCreated({
+        //   policyId: policyRef.id,
+        // });
+      }
     } catch (err: any) {
       reportErr(
         `Error publishing policy.created pubsub event (${policyRef?.id})`,

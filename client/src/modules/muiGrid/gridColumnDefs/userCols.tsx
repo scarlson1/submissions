@@ -116,11 +116,11 @@ export const userCols: GridColDef[] = [
   lastNameCol,
   emailCol,
   phoneCol,
-  createdCol,
-  updatedCol,
   {
     ...idCol,
     headerName: 'User ID',
   },
   orgIdCol,
+  createdCol,
+  updatedCol,
 ];

@@ -185,7 +185,7 @@ export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
           <Grid xs={12} sm={6}>
             {/* <ConnectItem title='Industry' value={account?.business_profile?.mcc} /> */}
             <ConnectItem
-              title='Employer Identification Number (EIN)'
+              title='EIN Provided'
               value={account?.company?.tax_id_provided ? 'true' : 'false'}
             />
           </Grid>
@@ -293,6 +293,7 @@ const useStripeAccountLink = (orgId: string, type: StripeAccountLinkType) => {
     queryFn: () => fetchAccountLink(orgId, type),
     enabled: claims.iDemandAdmin || claims.orgAdmin,
     throwOnError: false,
+    retry: 3,
     staleTime: 240000, // 4 mins
   });
 };

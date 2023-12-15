@@ -21,7 +21,6 @@ import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // TODO: verify only return error if transient error (can't write to db, etc.)
 // TODO: need to verify works with multiple locations
-
 // TODO: refactor to use same calculation data as create receivables on bound ??
 
 const reportErr = getReportErrorFn('policyCreatedListener');
@@ -99,6 +98,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
       for (const l of chunk) {
         const { id: locationId, ...location } = l;
 
+        // BUG - emitting two events ?? need to fix idempotency
         const trxId = constructTrxId(policyId, locationId, eventId);
         const trxRef = trxCol.doc(trxId);
         info(`Checking for existing trx (${trxId})`);
@@ -129,7 +129,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         }
       }
 
-      info(`committing batch of ${chunk.length} new transactions...`, { policyId });
+      info(`committing batch of ${chunk.length} new transaction(s)...`, { policyId });
       await batch.commit();
     } catch (err: any) {
       reportErr(`Error creating transaction for policy ID ${policyId}`, { policyId, chunk }, err);

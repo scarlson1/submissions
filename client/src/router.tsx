@@ -20,6 +20,7 @@ import { SuccessStep } from 'elements/forms';
 import { LocationChangeWrapper } from 'elements/forms/LocationChangeForm';
 import StripeBindQuote from 'elements/forms/StripeBindQuote';
 import StripeCheckout from 'elements/forms/StripeCheckout';
+import { StripePaymentSuccess } from 'elements/forms/StripeReceivableCheckout/StripePaymentSuccess';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid, ImportsSummaryGrid } from 'elements/grids';
 import { ActiveEventsMap, PoliciesMap } from 'elements/maps';
@@ -1101,7 +1102,7 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <div>TODO: payment success</div>
+                <StripePaymentSuccess />
               </RequireAuthReactFire>
             ),
           },

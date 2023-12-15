@@ -1,6 +1,8 @@
 import { PubSub } from '@google-cloud/pubsub';
 import { error, info } from 'firebase-functions/logger';
 
+// docs: https://cloud.google.com/pubsub/docs/publisher#publish-messages
+
 const pubSubClient = new PubSub();
 
 export async function publishMessage(topicNameOrId: string, data: { [key: string]: any }) {
@@ -17,6 +19,6 @@ export async function publishMessage(topicNameOrId: string, data: { [key: string
   } catch (err: any) {
     error(`Error while publishing pubsub event (${err?.message})`, { err });
     process.exitCode = 1;
-    return Promise.reject(error);
+    return Promise.reject(err);
   }
 }

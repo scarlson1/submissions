@@ -1,18 +1,16 @@
 import { useTheme } from '@mui/material';
 import { Elements } from '@stripe/react-stripe-js';
 import { Appearance, StripeElementsOptions, loadStripe } from '@stripe/stripe-js';
-
-import { CheckoutForm } from '../StripeCheckout/CheckoutForm';
+import { ReactNode } from 'react';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 interface StripeElementsWrapperProps {
   clientSecret: string;
-  billingDetails?: { name?: string; email?: string; phone?: string };
-  emailReceipt: string;
+  children: ReactNode;
 }
 
-export function StripeElementsWrapper({ clientSecret, ...props }: StripeElementsWrapperProps) {
+export function StripeElementsWrapper({ clientSecret, children }: StripeElementsWrapperProps) {
   const { palette, shape } = useTheme();
 
   const appearance: Appearance = {
@@ -49,14 +47,13 @@ export function StripeElementsWrapper({ clientSecret, ...props }: StripeElements
   };
 
   return (
-    // <Container disableGutters maxWidth='sm'>
     <>
       {clientSecret && (
         <Elements stripe={stripePromise} options={options}>
-          <CheckoutForm {...props} />
+          {/* <CheckoutForm {...props} /> */}
+          {children}
         </Elements>
       )}
     </>
-    // </Container>
   );
 }

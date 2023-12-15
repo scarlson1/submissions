@@ -81,10 +81,10 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
     validate(location, 'failed-precondition', 'location not found');
     // validate(PolicyLocation.safeParse(location).success)
 
-    const { annualPremium, effectiveDate } = location;
+    const { annualPremium, termPremium: lcnTermPrem, effectiveDate } = location;
     // recalc term premium / term days
     const { termPremium, termDays } = calcTerm(
-      annualPremium,
+      annualPremium || lcnTermPrem,
       effectiveDate.toDate(),
       requestEffDate.toDate()
     );

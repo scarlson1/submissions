@@ -118,8 +118,10 @@ function useCreateSubmission(
             name: org?.orgName || null, // TODO: org name - save on user doc ?? or rxjs obs ??
             orgId: orgId || null,
             address: org?.address || null, // TODO: agency address
+            stripeAccountId: org?.stripeAccountId || '',
           },
           submittedById: user?.uid ?? null,
+          commSource: 'agent',
           ratingPropertyData: {
             ...propertyDetails,
             ...values.ratingPropertyData,

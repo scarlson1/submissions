@@ -102,7 +102,7 @@ export const UserClaimsGrid = ({
           <GridEditMultiSelectCell {...params} />
         ),
       },
-      ...userCols.filter((c) => c.field === 'id'), // observable using userId as idField
+      ...userCols.filter((c) => c.field !== 'id'), // observable using userId as idField
       {
         ...idCol,
         field: 'userId',
@@ -110,6 +110,8 @@ export const UserClaimsGrid = ({
       },
     ];
   }, [renderActions, signInResult, iDAdminResult]);
+
+  console.log(userColumns);
 
   // OPTION 1: try/catch and returning old row will exit edit mode
   // OPTION 2: pass error to handleProcessRowUpdateError

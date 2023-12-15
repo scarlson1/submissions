@@ -9,6 +9,8 @@ import { usePrevious } from 'hooks/utils';
 import { createResource, logDev } from 'modules/utils';
 import { StripeElementsWrapper } from './StripeElementsWrapper';
 
+// TODO: delete -- replace with stripeReceivablesCheckout
+
 function fetchPaymentIntent(quoteId: string, data: Record<string, any> = {}) {
   return createPaymentIntent(getFunctions(), { docId: quoteId, ...data }).then(
     ({ data }) => data.clientSecret

@@ -1,19 +1,11 @@
-import {
-  Alert,
-  AlertTitle,
-  Box,
-  Container,
-  Unstable_Grid2 as Grid,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Alert, AlertTitle, Box, Container, Stack, Typography } from '@mui/material';
 import { CancellationRequest, ILocation, Policy, WithId } from 'common';
 import { WizardNavButtons } from 'components/forms';
+import { useWizard } from 'hooks';
 import { useFirstRender } from 'hooks/utils';
-import { sumBy } from 'lodash';
 import { getAllById } from 'modules/db';
-import { dollarFormat, dollarFormat2 } from 'modules/utils';
-import { useCallback, useMemo, useState } from 'react';
+import { dollarFormat } from 'modules/utils';
+import { useCallback, useState } from 'react';
 import { useFirestore } from 'reactfire';
 import { LocationCard } from '../LocationChangeForm/ReviewStep';
 
@@ -84,16 +76,25 @@ export interface ReviewStepProps {
 
 export const ReviewStep = ({ onSubmit, changeRequest, policy }: ReviewStepProps) => {
   // const { changeRequest, locations, error } = useChangeRequestReview(changeRequest.policyId, changeRequest);
+  const { handleStep } = useWizard();
   const { locations, error } = useCancelRequestReview(changeRequest);
 
-  const { earnedPremium, estimatedRefundPremium } = useMemo(() => {
-    const lcns = Object.values(changeRequest.policyChanges?.locations || {});
+  handleStep(() => {
+    return onSubmit();
+  });
 
-    const earnedPremium = sumBy(lcns, 'termPremium');
-    const estimatedRefundPremium = policy.termPremium - earnedPremium;
+  // estimatedRefundPremium
+  // const { earnedPremium } = useMemo(() => {
+  //   const lcns = Object.values(changeRequest.policyChanges?.locations || {});
 
-    return { earnedPremium, estimatedRefundPremium };
-  }, [policy, changeRequest]);
+  //   const earnedPremium = sumBy(lcns, 'termPremium');
+  //   // TODO: estimated refund below is wrong for multi-location
+  //   // TODO: calc refund doc and save to refundCalc collection (like taxCalc) and reference in change request --> once approved, look up refund calc doc and create refund
+  //   // const estimatedRefundPremium = policy.termPremium - earnedPremium;
+
+  //   // return { earnedPremium, estimatedRefundPremium };
+  //   return { earnedPremium };
+  // }, [policy, changeRequest]);
 
   if (error)
     return (
@@ -160,7 +161,7 @@ export const ReviewStep = ({ onSubmit, changeRequest, policy }: ReviewStepProps)
           ))}
         </Box>
       </Container>
-      <Grid container spacing={2} sx={{ py: 4 }} disableEqualOverflow>
+      {/* <Grid container spacing={2} sx={{ py: 4 }} disableEqualOverflow>
         <Grid xs={8}>
           <Typography>Term Premium</Typography>
         </Grid>
@@ -177,15 +178,17 @@ export const ReviewStep = ({ onSubmit, changeRequest, policy }: ReviewStepProps)
             {dollarFormat2(earnedPremium)}
           </Typography>
         </Grid>
+        TODO: refund amount (from refund calc doc)
+        
         <Grid xs={8}>
           <Typography>Estimated Refund</Typography>
         </Grid>
-        <Grid xs={4}>
+         <Grid xs={4}>
           <Typography variant='body1' fontWeight='fontWeightMedium' align='right'>
             {dollarFormat2(estimatedRefundPremium)}
           </Typography>
         </Grid>
-      </Grid>
+      </Grid> */}
       <Box sx={{ py: 2 }}>
         <Alert severity='info'>
           The earned premium and refunded amount listed above are estimates and may not reflect the

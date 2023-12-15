@@ -393,6 +393,16 @@ export const orgNameCol: GridColDef = {
   },
 };
 
+export const typeCol: GridColDef = {
+  field: 'type',
+  headerName: 'Type',
+  minWidth: 120,
+  flex: 0.5,
+  sortable: true,
+  filterable: true,
+  editable: false,
+};
+
 export const agencyNameCol: GridColDef = {
   ...orgNameCol,
   field: 'agency.name',

@@ -16,7 +16,7 @@ import {
 import { createResource } from 'modules/utils';
 
 // TODO: omit values from initialValues prop type
-
+// BUG: security rules using doc owner instead of policy owner & not setting user/agent Id on create draft
 function createDraftChangeRequest<T extends BaseChangeRequest = ChangeRequest>(
   policyId: string,
   initialValues?: Partial<T>
