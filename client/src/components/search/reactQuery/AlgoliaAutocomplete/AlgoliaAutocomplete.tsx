@@ -57,13 +57,6 @@ export const AlgoliaAutocomplete = <T,>({
     ...searchOptions,
   });
 
-  // useEffect(() => {
-  //   console.log('autocomplete value: ', value);
-  // }, [value]);
-  // useEffect(() => {
-  //   console.log('autocomplete field.value: ', field.value);
-  // }, [field.value]);
-
   const options = useMemo<readonly Hit<WithBaseHit<T>>[]>(() => {
     // console.log('OPTIONS: ', hits);
     return (hits || []) as Hit<WithBaseHit<T>>[];
@@ -126,7 +119,7 @@ export const AlgoliaAutocomplete = <T,>({
         />
       )}
       renderOption={(props, option) => {
-        console.log('props/option: ', props, option);
+        // console.log('props/option: ', props, option);
         // TODO: word match highlight (option._highlightResult)
         return (
           <li {...props} key={option.objectID}>

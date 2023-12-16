@@ -104,6 +104,7 @@ function getTransfersForNewPolicy(
     {
       amount: toAmt(billingEntityTotals.termPremium * subProducerCommissionPct),
       destination: stripeAccountId,
+      percentOfTermPremium: subProducerCommissionPct,
     },
   ];
 }

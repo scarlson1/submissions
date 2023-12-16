@@ -173,6 +173,7 @@ function getTransfersForNewPolicy(
     {
       amount: billingEntityTotals.termPremium * subProducerCommissionPct,
       destination: stripeAccountId,
+      percentOfTermPremium: subProducerCommissionPct,
     },
   ];
 }

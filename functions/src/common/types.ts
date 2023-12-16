@@ -237,6 +237,7 @@ export const LineItem = z.object({
 export const TransferSummary = z.object({
   amount: z.number().int(), // IN CENTS
   destination: z.string(), // accountId: z.string(),
+  percentOfTermPremium: z.number().nonnegative().max(1),
   // source_transaction - use the charge ID from event handler (will autopopulate transfer_group)
   // percentOfCharge ?? should be percent of total or percent, net taxes/fees
   // or percentageOfRefundableAmount ??
