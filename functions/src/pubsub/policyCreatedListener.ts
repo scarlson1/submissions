@@ -76,7 +76,6 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
 
     verify(locations && locations.length, 'location docs not found');
 
-    // TODO: need to throw if locations.length !== locationIds.length ??
     if (locations.length !== locationIds.length) {
       reportErr(
         `new policy location docs ${locations.length} do not match locationIds (${locationIds.length}). Continuing to create trx for ${locations.length} locations`,
@@ -108,7 +107,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
           const ratingData = await fetchRatingData(db, location.ratingDocId);
           console.log('RATING DATA: ', ratingData);
 
-          // TODO: handle validation
+          // any validation needed ??
 
           const locationTrx = formatPremiumTrx(
             'new',
@@ -135,36 +134,6 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
       reportErr(`Error creating transaction for policy ID ${policyId}`, { policyId, chunk }, err);
     }
   }
-
-  // for (const l of locations) {
-  //   const { id: locationId, ...location } = l;
-  //   try {
-  //     const trxId = constructTrxId(policyId, locationId, eventId);
-  //     const trxRef = trxCol.doc(trxId);
-  //     info(`Checking for existing trx (${trxId})`);
-
-  //     const exists = await docExists(trxRef);
-  //     if (!exists) {
-  //       const ratingData = await fetchRatingData(db, location.ratingDocId);
-  //       console.log('RATING DATA: ', ratingData);
-
-  //       const locationTrx = formatPremiumTrx('new', policy, location, ratingData, eventId);
-
-  //       info(`saving new policy transaction...`, { transaction: locationTrx });
-  //       await trxRef.set({ ...locationTrx });
-
-  //       info(`New transaction saved for location ${locationId}`, { locationTrx });
-  //     } else {
-  //       warn(`skipping trx - transaction already exists (${trxId})`);
-  //     }
-  //   } catch (err: any) {
-  //     reportErr(
-  //       `Error creating transaction for location ID ${locationId}`,
-  //       { policyId, locationId },
-  //       err
-  //     );
-  //   }
-  // }
 
   return;
 };

@@ -70,6 +70,7 @@ app.post(
         console.log('created payment intent: ', createdPaymentIntent);
         // update invoice-generated payment intent with transfer group from receivable doc
         await setTransferGroupOnPaymentIntentCreated(createdPaymentIntent);
+        // TODO: delete ?? cannot update invoice-generated payment intent with transfer group - need to use source_charge directly ??
 
         break;
       // could use webhook to set the transfer group when invoice creates payment intent ??

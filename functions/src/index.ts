@@ -104,6 +104,7 @@ export {
   authrequeststest,
   copytaxes,
   generatepdf,
+  quickbooks,
   sendgrid,
   stripe,
 } from './routes/index.js';

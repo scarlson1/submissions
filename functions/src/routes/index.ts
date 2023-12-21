@@ -5,6 +5,7 @@ import {
   emailVerificationKey,
   exportSDKKey,
   firebaseHashConfig,
+  quickbooksClientSecret,
   // sendGridWebhookVerificationKey,
   sendgridApiKey,
   stripeSecretKey,
@@ -36,6 +37,13 @@ export const copytaxes = functions.https.onRequest(async (request, response) => 
 export const generatepdf = onRequest({ secrets: [exportSDKKey] }, async (request, response) => {
   await (await import('./generatePDF.js')).default(request, response);
 });
+
+export const quickbooks = onRequest(
+  { secrets: [quickbooksClientSecret] },
+  async (request, response) => {
+    await (await import('./quickbooks.js')).default(request, response);
+  }
+);
 
 export const sendgrid = onRequest({ secrets: [sendgridApiKey] }, async (request, response) => {
   await (await import('./sendgrid.js')).default(request, response);

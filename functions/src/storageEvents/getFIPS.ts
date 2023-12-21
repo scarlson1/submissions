@@ -56,7 +56,7 @@ export default async (event: StorageEvent) => {
   try {
     const parsed = await parseStreamToArray<CSVInput, TCSVInput>(
       stream,
-      { headers: transformHeadersSnakeCase },
+      { headers: transformHeadersSnakeCase }, // TODO: use camelCase
       transformRow,
       validateRow
     );
