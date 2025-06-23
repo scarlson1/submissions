@@ -3,7 +3,6 @@ import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
-
 import { ILocation, Policy, WithId } from '@idemand/common';
 import {
   OffsetTransaction,

@@ -145,7 +145,7 @@ app.post(
       case 'customer.created':
         const createdCustomer = event.data.object as Stripe.Customer;
         console.log('customer created', createdCustomer);
-        // ensure exists / set on user doc ??
+        // ensure exists / set on user doc ?? 
 
         break;
       case 'customer.deleted':

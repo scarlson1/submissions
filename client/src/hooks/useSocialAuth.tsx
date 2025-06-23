@@ -1,33 +1,31 @@
-import { useCallback } from 'react';
+import { FirebaseError } from 'firebase/app';
 import {
-  linkWithPopup,
+  AuthProvider,
   GoogleAuthProvider,
   OAuthProvider,
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  linkWithCredential,
-  fetchSignInMethodsForEmail,
+  PopupRedirectResolver,
   UserCredential,
+  fetchSignInMethodsForEmail,
+  getAuth,
+  linkWithCredential,
+  linkWithPopup,
   // MultiFactorError,
   reauthenticateWithPopup,
-  AuthProvider,
-  PopupRedirectResolver,
-  getAuth,
-  // getAdditionalUserInfo,
-  // AdditionalUserInfo,
+  signInWithEmailAndPassword,
+  signInWithPopup,
 } from 'firebase/auth';
-import { FirebaseError } from 'firebase/app';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { setDoc, doc, getFirestore } from 'firebase/firestore';
+import { doc, getFirestore, setDoc } from 'firebase/firestore';
+import { useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // import { auth, db } from 'firebaseConfig';
+import { AuthProviders } from 'common/types';
+import InputDialog from 'components/InputDialog';
 import { useAuth } from 'context/AuthContext';
 import { useConfirmation } from 'context/ConfirmationService';
 import { getProviderForProviderId } from 'modules/utils/getProviderById';
-import { toast } from 'react-hot-toast';
 import { getRedirectPath } from 'modules/utils/helpers';
-import InputDialog from 'components/InputDialog';
-import { AuthProviders } from 'common/types';
+import { toast } from 'react-hot-toast';
 // import { useMultiFactorAuth } from './useMultiFactorAuth';
 
 // TODO: create useLinkAccount hook
@@ -71,6 +69,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
           console.log('email: ', email);
           console.log('cred: ', credential);
 
+          // WILL NOT WORK IF EMAIL ENUMERATIONS PROTECTION IS ENABLED
           const methods = await fetchSignInMethodsForEmail(auth, email);
           console.log('methods: ', methods);
           if (methods[0] === 'password') {
