@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "client:dev": "npm run start:emulators --prefix ./client",
-    "client:live": "npm run start --prefix ./client",
-    "functions:build": "npm run build:watch --prefix ./functions",
+    "client:dev": "pnpm --filter client start:emulators",
+    "client:live": "pnpm --filter client start",
+    "functions:build": "pnpm --filter functions build:watch",
     "emulators:dev": "firebase emulators:start --only functions,auth,firestore,storage,pubsub --import ./emulator-data",
     "emulators:save": "firebase emulators:export ./emulator-data",
     "use:dev": "firebase use dev",
