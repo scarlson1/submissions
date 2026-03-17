@@ -1,0 +1,6 @@
+packages:
+  - 'client'
+
+# Optionally include functions ?? (might be useful for sharing types ??)
+# Use isolate-package (cleanest for monorepos)
+# A tool called isolate-package automates the bundling/isolation step. It works with pnpm and has been used as a proof-of-concept for TypeScript monorepo deployments to Firebase, with parallel branches for npm, classic Yarn, and modern Yarn as well

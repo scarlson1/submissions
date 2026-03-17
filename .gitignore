@@ -43,4 +43,4 @@ ui-debug.log*
 .firebase/*
 
 .env*.local
-emulator-data
+emulator-data/*
