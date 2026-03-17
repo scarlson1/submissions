@@ -4,9 +4,9 @@ import * as Sentry from '@sentry/react';
 import { useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
-  Outlet,
   createRoutesFromChildren,
   matchRoutes,
+  Outlet,
   useLocation,
   useNavigationType,
 } from 'react-router-dom';
@@ -35,7 +35,7 @@ Sentry.init({
         useLocation,
         useNavigationType,
         createRoutesFromChildren,
-        matchRoutes
+        matchRoutes,
       ),
     }),
     // new CaptureConsole({

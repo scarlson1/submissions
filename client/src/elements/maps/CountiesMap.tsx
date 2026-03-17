@@ -1,5 +1,5 @@
 import { useTheme } from '@mui/material';
-import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
+import { GeoJsonLayer, PickingInfo } from 'deck.gl';
 import { useState } from 'react';
 
 import { COUNTIES_URL, FIPSDetails } from 'common';
@@ -11,7 +11,10 @@ export interface CountiesMapProps {
   layerProps?: any;
 }
 
-export const CountiesMap = ({ selectedCounties, layerProps }: CountiesMapProps) => {
+export const CountiesMap = ({
+  selectedCounties,
+  layerProps,
+}: CountiesMapProps) => {
   const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
 
@@ -26,11 +29,18 @@ export const CountiesMap = ({ selectedCounties, layerProps }: CountiesMapProps) 
           ...defaultGeoJsonLayerProps,
           id: `geojson-layer-counties`,
           data: COUNTIES_URL,
-          highlightColor: theme.palette.mode === 'dark' ? [255, 255, 255, 25] : [80, 144, 211, 20],
-          getLineColor: theme.palette.mode === 'dark' ? [255, 255, 255, 200] : [178, 186, 194, 200],
+          highlightColor:
+            theme.palette.mode === 'dark'
+              ? [255, 255, 255, 25]
+              : [80, 144, 211, 20],
+          getLineColor:
+            theme.palette.mode === 'dark'
+              ? [255, 255, 255, 200]
+              : [178, 186, 194, 200],
           getFillColor: (f) =>
             !!selectedCounties?.some(
-              (c: FIPSDetails) => `${c.stateFP}${c.countyFP}` === f.properties?.GEOID
+              (c: FIPSDetails) =>
+                `${c.stateFP}${c.countyFP}` === f.properties?.GEOID,
             )
               ? [0, 125, 255, 50]
               : [255, 255, 255, 20],

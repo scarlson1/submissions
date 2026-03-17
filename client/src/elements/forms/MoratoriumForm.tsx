@@ -1,6 +1,13 @@
 import { LoadingButton } from '@mui/lab';
-import { Box, Card, Chip, Divider, Unstable_Grid2 as Grid, Typography } from '@mui/material';
-import { PickingInfo } from 'deck.gl/typed';
+import {
+  Box,
+  Card,
+  Chip,
+  Divider,
+  Unstable_Grid2 as Grid,
+  Typography,
+} from '@mui/material';
+import { PickingInfo } from 'deck.gl';
 import { Form, Formik, FormikConfig, FormikProps } from 'formik';
 import { Suspense, useCallback, useMemo, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -9,7 +16,11 @@ import { array, date, object, string } from 'yup';
 
 import { FIPSDetails } from 'common';
 import { ErrorFallback } from 'components';
-import { FormikDatePicker, FormikSelect, VirtualizedAutocomplete } from 'components/forms';
+import {
+  FormikDatePicker,
+  FormikSelect,
+  VirtualizedAutocomplete,
+} from 'components/forms';
 import { CountiesMap } from 'elements/maps';
 import { useDocDataOnce } from 'hooks';
 import { getDateShortcutsWeeks } from 'modules/utils';
@@ -25,7 +36,7 @@ const validation = object().shape({
         countyName: string().required(),
         countyFP: string().required(),
         classFP: string(),
-      })
+      }),
     )
     .required('must select at least one county'),
   effectiveDate: date().required(),
@@ -42,13 +53,19 @@ export interface MoratoriumValues {
   reason: string;
 }
 
-export interface MoratoriumFormProps extends Omit<FormikConfig<MoratoriumValues>, 'innerRef'> {
+export interface MoratoriumFormProps extends Omit<
+  FormikConfig<MoratoriumValues>,
+  'innerRef'
+> {
   title: string;
 }
 
 export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
   const formikRef = useRef<FormikProps<MoratoriumValues>>(null);
-  const { data } = useDocDataOnce<{ counties: FIPSDetails[] }>('public', 'fips');
+  const { data } = useDocDataOnce<{ counties: FIPSDetails[] }>(
+    'public',
+    'fips',
+  );
   const counties = useMemo(() => data?.counties || [], [data]);
   // TODO: handle doc doesn't exist ? does suspense catch does not exist ?
 
@@ -57,10 +74,10 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
       e.stopPropagation();
       formikRef.current?.setFieldValue(
         field,
-        fieldVal.filter((v) => v !== removeVal)
+        fieldVal.filter((v) => v !== removeVal),
       );
     },
-    []
+    [],
   );
 
   const handleCountyClicked = useCallback(
@@ -70,16 +87,21 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
 
       if (
         // Already in array, remove from list
-        formikRef.current?.values.locationDetails.some((c) => `${c.stateFP}${c.countyFP}` === fips)
+        formikRef.current?.values.locationDetails.some(
+          (c) => `${c.stateFP}${c.countyFP}` === fips,
+        )
       ) {
         const newArr = formikRef.current?.values.locationDetails.filter(
-          (c) => `${c.stateFP}${c.countyFP}` !== fips
+          (c) => `${c.stateFP}${c.countyFP}` !== fips,
         );
         formikRef.current?.setFieldValue('locationDetails', newArr);
       } else {
         // TODO: get county details with api ??
-        const details = counties.find((e) => `${e.stateFP}${e.countyFP}` === fips);
-        if (!details) return toast.error(`Unable to match county details for ${fips}`);
+        const details = counties.find(
+          (e) => `${e.stateFP}${e.countyFP}` === fips,
+        );
+        if (!details)
+          return toast.error(`Unable to match county details for ${fips}`);
 
         formikRef.current?.setFieldValue('locationDetails', [
           ...formikRef.current?.values.locationDetails,
@@ -87,15 +109,29 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
         ]);
       }
     },
-    [counties]
+    [counties],
   );
 
   return (
     <Box>
       <Formik validationSchema={validation} innerRef={formikRef} {...props}>
-        {({ dirty, isValid, isSubmitting, isValidating, values, handleSubmit, submitForm }) => (
+        {({
+          dirty,
+          isValid,
+          isSubmitting,
+          isValidating,
+          values,
+          handleSubmit,
+          submitForm,
+        }) => (
           <Form onSubmit={handleSubmit}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <Typography variant='h5' sx={{ ml: 4 }}>
                 {title}
               </Typography>
@@ -154,7 +190,11 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
                           key={value}
                           label={value}
                           size='small'
-                          onDelete={handleRemoveChip('product', values.product, value)}
+                          onDelete={handleRemoveChip(
+                            'product',
+                            values.product,
+                            value,
+                          )}
                           onMouseDown={(e) => e.stopPropagation()}
                         />
                       ))}
@@ -210,7 +250,8 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
                           getFillColor: (f: any) =>
                             !!values.locationDetails?.some(
                               (c: FIPSDetails) =>
-                                `${c.stateFP}${c.countyFP}` === f.properties?.GEOID
+                                `${c.stateFP}${c.countyFP}` ===
+                                f.properties?.GEOID,
                             )
                               ? [0, 125, 255, 50]
                               : [255, 255, 255, 20],

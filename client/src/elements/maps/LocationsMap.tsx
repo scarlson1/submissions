@@ -1,17 +1,24 @@
 import { useTheme } from '@mui/material';
-import { IconLayer, IconLayerProps, MapViewState, PickingInfo } from 'deck.gl/typed';
+import { IconLayer, IconLayerProps, MapViewState, PickingInfo } from 'deck.gl';
 import { useEffect, useRef, useState } from 'react';
 
 import { useFlyToBounds } from 'hooks';
 import { CoordObj, getPlaceMarker, svgToDataURL } from 'modules/utils';
 import { DeckMap, DeckMapProps } from './DeckMap';
 
-export interface LocationsMapProps extends Omit<DeckMapProps, 'layers' | 'hoverInfo'> {
+export interface LocationsMapProps extends Omit<
+  DeckMapProps,
+  'layers' | 'hoverInfo'
+> {
   data: CoordObj[];
   layerProps?: Omit<IconLayerProps, 'data' | 'id' | 'getSize' | 'onHover'>;
 }
 
-export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) => {
+export const LocationsMap = ({
+  data,
+  layerProps,
+  ...props
+}: LocationsMapProps) => {
   const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
   const [mapViewState, setMapViewState] = useState<MapViewState>({
@@ -42,8 +49,10 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
           getIcon: (d: CoordObj) => ({
             url: svgToDataURL(
               `${getPlaceMarker(
-                d.cancelEffDate ? theme.palette.primaryDark.main : theme.palette.primary.main
-              )}`
+                d.cancelEffDate
+                  ? theme.palette.primaryDark.main
+                  : theme.palette.primary.main,
+              )}`,
             ),
             width: 36,
             height: 36,

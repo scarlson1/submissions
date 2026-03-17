@@ -10,7 +10,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { IconLayer, IconLayerProps, MapViewState, PickingInfo } from 'deck.gl/typed';
+import { IconLayer, IconLayerProps, MapViewState, PickingInfo } from 'deck.gl';
 import { QueryConstraint, where } from 'firebase/firestore';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // import { DataFilterExtension } from '@deck.gl/extensions';
@@ -43,13 +43,23 @@ interface SubmissionsMapProps {
   layerProps?: Omit<Partial<IconLayerProps>, 'getSize' | 'onHover'>;
 }
 
-export const SubmissionsMap = ({ constraints = [], layerProps }: SubmissionsMapProps) => {
+export const SubmissionsMap = ({
+  constraints = [],
+  layerProps,
+}: SubmissionsMapProps) => {
   const theme = useTheme();
-  const [mapViewState, setMapViewState] = useState<MapViewState>(DEFAULT_INITIAL_VIEW_STATE);
-  const { data: submissionData } = useCollectionData<Submission>('submissions', constraints, {
-    idField: 'id',
-  });
-  const [hoverInfo, setHoverInfo] = useState<TypedPickingInfo<WithId<Submission>>>();
+  const [mapViewState, setMapViewState] = useState<MapViewState>(
+    DEFAULT_INITIAL_VIEW_STATE,
+  );
+  const { data: submissionData } = useCollectionData<Submission>(
+    'submissions',
+    constraints,
+    {
+      idField: 'id',
+    },
+  );
+  const [hoverInfo, setHoverInfo] =
+    useState<TypedPickingInfo<WithId<Submission>>>();
   const flyToBounds = useFlyToBounds(submissionData, setMapViewState, 2000);
   const mapLoaded = useRef(false);
 
@@ -69,7 +79,10 @@ export const SubmissionsMap = ({ constraints = [], layerProps }: SubmissionsMapP
         anchorX: 18,
         anchorY: 36,
       }),
-      getPosition: (d: any) => [d.coordinates?.longitude || 0, d.coordinates?.latitude || 0],
+      getPosition: (d: any) => [
+        d.coordinates?.longitude || 0,
+        d.coordinates?.latitude || 0,
+      ],
       sizeScale: 5,
       getSize: (d) => 5,
       onHover: (info) => setHoverInfo(info),
@@ -106,7 +119,9 @@ export const TestSubmissionsMapWithFilters = ({
   initState = [],
 }: TestSubmissionsMapProps) => {
   const theme = useTheme();
-  const [state, setState] = useState<string[] | null | undefined>([...initState]);
+  const [state, setState] = useState<string[] | null | undefined>([
+    ...initState,
+  ]);
 
   const filters = useMemo(() => {
     let filters = [];
@@ -138,7 +153,7 @@ export const TestSubmissionsMapWithFilters = ({
         setSelected((s) => [...(s || []), info.object]);
       }
     },
-    [selected]
+    [selected],
   );
 
   const handleStateChange = (event: SelectChangeEvent<typeof state>) => {
@@ -147,23 +162,27 @@ export const TestSubmissionsMapWithFilters = ({
     } = event;
     setState(
       // On autofill we get a stringified value.
-      typeof value === 'string' ? value.split(',') : value
+      typeof value === 'string' ? value.split(',') : value,
     );
   };
 
   const pinColor = useMemo(
     () => getRGBAArray(theme.palette.primary.main, 150),
-    [theme.palette.primary.main]
+    [theme.palette.primary.main],
   );
 
   return (
     <Box>
-      <Card sx={{ height: { xs: 300, sm: 400, md: 460, lg: 500 }, width: '100%' }}>
+      <Card
+        sx={{ height: { xs: 300, sm: 400, md: 460, lg: 500 }, width: '100%' }}
+      >
         <SubmissionsMap
           constraints={filters}
           layerProps={{
             getColor: (f: any) =>
-              selected.length && !!selected.find((s) => s.id === f.id) ? [255, 125, 125] : pinColor,
+              selected.length && !!selected.find((s) => s.id === f.id)
+                ? [255, 125, 125]
+                : pinColor,
             onClick: (info) => handleClicked(info),
             updateTriggers: {
               getColor: [selected, pinColor],
@@ -206,7 +225,9 @@ export const TestSubmissionsMapWithFilters = ({
           <Typography
             variant='body2'
             key={s.id}
-            onClick={() => handleClicked({ object: { id: s.id } } as PickingInfo)}
+            onClick={() =>
+              handleClicked({ object: { id: s.id } } as PickingInfo)
+            }
             sx={{ '&:hover': { cursor: 'pointer' } }}
           >{`${s.address?.addressLine1 || ''} (ID: ${s.id})`}</Typography>
         ))}

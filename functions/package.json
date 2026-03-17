@@ -27,7 +27,12 @@
     ]
   },
   "engines": {
-    "node": "18"
+    "node": "22"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/node": "22"
+    }
   },
   "main": "dist/index.js",
   "dependencies": {

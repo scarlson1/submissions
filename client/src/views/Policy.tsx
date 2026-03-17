@@ -28,7 +28,7 @@ import {
   Typography,
 } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 import { where } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
@@ -36,7 +36,13 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 
 import { ILocation, Policy as IPolicy, WithId } from 'common';
-import { ClaimsGuard, ErrorFallback, LoadingSpinner, NotFound, PageMeta } from 'components';
+import {
+  ClaimsGuard,
+  ErrorFallback,
+  LoadingSpinner,
+  NotFound,
+  PageMeta,
+} from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationsMap, PolicyLocationCards } from 'elements';
 import {
@@ -45,7 +51,11 @@ import {
 } from 'elements/ChangeRequestDialog';
 import { SuspenseDialog } from 'elements/SuspenseDialog';
 import { ContactList } from 'elements/forms';
-import { LocationsGrid, PolicyVersionsGrid, TransactionsGrid } from 'elements/grids';
+import {
+  LocationsGrid,
+  PolicyVersionsGrid,
+  TransactionsGrid,
+} from 'elements/grids';
 import {
   DataViewType,
   TDataViewType,
@@ -86,7 +96,7 @@ export const Policy = () => {
   const [locationsView, handleViewChange] = useSearchParamToggle<TDataViewType>(
     'view',
     DataViewType.options,
-    'cards'
+    'cards',
   );
 
   // TODO: use policy converter to get status ?? need to create usePolicy() hook ??
@@ -97,8 +107,11 @@ export const Policy = () => {
   const cancelDialog = useCreateCancelRequest();
 
   const locationConstraints = useMemo(
-    () => [where('policyId', '==', policyId), where('parentType', '==', 'policy')],
-    [policyId]
+    () => [
+      where('policyId', '==', policyId),
+      where('parentType', '==', 'policy'),
+    ],
+    [policyId],
   );
   // BUG: won't work - can only have 50 values in "in" query
   // https://firebase.google.com/docs/firestore/query-data/queries#limits_on_or_queries
@@ -109,19 +122,20 @@ export const Policy = () => {
 
   const handleDownloadPolicy = useCallback(
     () => downloadPolicy(policyId),
-    [downloadPolicy, policyId]
+    [downloadPolicy, policyId],
   );
 
   const handleLocationChangeRequest = useCallback(
-    (location: WithId<ILocation>) => locationChangeDialog(policyId, location.id),
-    [locationChangeDialog, policyId]
+    (location: WithId<ILocation>) =>
+      locationChangeDialog(policyId, location.id),
+    [locationChangeDialog, policyId],
   );
 
   const handleLocationChangeDialog = useCallback(
     (params: GridRowParams) => () => {
       locationChangeDialog(params.row.policyId, params.id.toString());
     },
-    [locationChangeDialog]
+    [locationChangeDialog],
   );
 
   const handleCancelPolicy = useCallback(async () => {
@@ -133,16 +147,19 @@ export const Policy = () => {
       async () => {
         cancelDialog(policyId, id.toString());
       },
-    [cancelDialog, policyId]
+    [cancelDialog, policyId],
   );
 
   const handleNewClaim = useCallback(
     ({ id }: GridRowParams<ILocation>) =>
       () =>
         navigate(
-          createPath({ path: ROUTES.CLAIM_NEW, params: { policyId, locationId: id.toString() } })
+          createPath({
+            path: ROUTES.CLAIM_NEW,
+            params: { policyId, locationId: id.toString() },
+          }),
         ),
-    [navigate, policyId]
+    [navigate, policyId],
   );
 
   const renderLocationGridActions = useCallback(
@@ -178,7 +195,7 @@ export const Policy = () => {
         />,
       ];
     },
-    [handleCancelLocation, handleLocationChangeDialog, handleNewClaim]
+    [handleCancelLocation, handleLocationChangeDialog, handleNewClaim],
   );
 
   const [locations, locationsCount] = useMemo(() => {
@@ -204,7 +221,14 @@ export const Policy = () => {
     <>
       <PageMeta title={`iDemand - Policy ${policyId}`} />
       <Box sx={{ px: { xs: 2, sm: 4, lg: 10 }, py: 5 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 2,
+          }}
+        >
           <Typography
             variant='overline'
             color='text.secondary'
@@ -239,7 +263,10 @@ export const Policy = () => {
                     <Avatar />
                   </Box>
                   <Box sx={{ flex: '1 0 auto' }}>
-                    <Typography variant='h6' sx={{ fontSize: '1.2rem', lineHeight: 1.2 }}>
+                    <Typography
+                      variant='h6'
+                      sx={{ fontSize: '1.2rem', lineHeight: 1.2 }}
+                    >
                       {data?.namedInsured?.displayName}
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
@@ -262,7 +289,7 @@ export const Policy = () => {
                       title='Effective'
                       value={formatDate(
                         data.effectiveDate.toDate(),
-                        isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy'
+                        isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy',
                       )}
                     />
                   ) : null}
@@ -273,14 +300,19 @@ export const Policy = () => {
                     // value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
                   />
                   <StatBox title='Term' value={`${data?.term || ''}`} />
-                  <StatBox title='Locations' value={`${locationsCount || '--'}`} />
+                  <StatBox
+                    title='Locations'
+                    value={`${locationsCount || '--'}`}
+                  />
                 </Stack>
               </Paper>
             </Grid>
             <Grid xs={12} sm='auto'>
               <Card>
                 <CardHeader
-                  avatar={<Avatar {...stringAvatar(`${data?.agent?.name}`)}></Avatar>}
+                  avatar={
+                    <Avatar {...stringAvatar(`${data?.agent?.name}`)}></Avatar>
+                  }
                   // action={
                   //   <IconButton aria-label='settings'>
                   //     <MoreVertIcon />
@@ -310,14 +342,20 @@ export const Policy = () => {
                     items={[
                       {
                         primaryText: `${data?.agency?.name || ''}`,
-                        icon: <AccountBalanceRounded fontSize='small' color='primary' />,
+                        icon: (
+                          <AccountBalanceRounded
+                            fontSize='small'
+                            color='primary'
+                          />
+                        ),
                       },
                       {
                         primaryText: `${data?.agent?.email}`,
                         icon: <EmailRounded fontSize='small' color='primary' />,
                       },
                       {
-                        primaryText: formatPhoneNumber(`${data?.agent?.phone}`) || '',
+                        primaryText:
+                          formatPhoneNumber(`${data?.agent?.phone}`) || '',
                         icon: <PhoneRounded fontSize='small' color='primary' />,
                       },
                     ]}
@@ -358,11 +396,17 @@ export const Policy = () => {
               </ToggleButtonGroup>
             </Box>
           </Box>
-          <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[locationsView]}>
+          <ErrorBoundary
+            FallbackComponent={ErrorFallback}
+            resetKeys={[locationsView]}
+          >
             <Suspense fallback={<LoadingSpinner loading={true} />}>
               {locationsView === 'cards' ? (
                 <Box sx={{ py: 2 }}>
-                  <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} />
+                  <PolicyLocationCards
+                    policyId={policyId}
+                    onEdit={handleLocationChangeRequest}
+                  />
                 </Box>
               ) : null}
               {locationsView === 'grid' ? (
@@ -378,7 +422,10 @@ export const Policy = () => {
                     layerProps={{ pickable: true }}
                     renderTooltipContent={(info: PickingInfo) => (
                       <Box sx={{ px: 2, borderRadius: 0.5 }}>
-                        <Typography variant='body2' fontWeight='fontWeightMedium'>
+                        <Typography
+                          variant='body2'
+                          fontWeight='fontWeightMedium'
+                        >
                           {`${info.object?.address?.s1 || ''}`}
                         </Typography>
                         <Typography variant='body2' sx={{ fontSize: '0.8rem' }}>
@@ -390,7 +437,7 @@ export const Policy = () => {
                             color='text.secondary'
                           >{`Cancelled: ${formatFirestoreTimestamp(
                             info.object?.cancelEffDate,
-                            'date'
+                            'date',
                           )}`}</Typography>
                         ) : null}
                       </Box>
@@ -405,15 +452,23 @@ export const Policy = () => {
           <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
             <Typography variant='body2' component='div' color='text.secondary'>
               {data?.effectiveDate && data?.expirationDate ? (
-                <Typography component='span' variant='body2' color='text.secondary'>
+                <Typography
+                  component='span'
+                  variant='body2'
+                  color='text.secondary'
+                >
                   {`This policy is effective ${formatFirestoreTimestamp(
                     data.effectiveDate,
-                    'date'
+                    'date',
                   )} - ${formatFirestoreTimestamp(data.expirationDate, 'date')}. `}
                 </Typography>
               ) : null}
               You can{' '}
-              <Link component='button' variant='body2' onClick={handleDownloadPolicy}>
+              <Link
+                component='button'
+                variant='body2'
+                onClick={handleDownloadPolicy}
+              >
                 download a copy of your policy
               </Link>
               {/* TODO: uncomment once handler set up */}
@@ -448,7 +503,12 @@ interface StatBoxProps {
 function StatBox({ title, value }: StatBoxProps) {
   return (
     <Box sx={{ width: '100%' }}>
-      <Typography variant='subtitle2' fontWeight={500} fontSize='0.75rem' color='text.secondary'>
+      <Typography
+        variant='subtitle2'
+        fontWeight={500}
+        fontSize='0.75rem'
+        color='text.secondary'
+      >
         {title}
       </Typography>
       <Typography variant='h6' color='primary.main'>
@@ -460,7 +520,8 @@ function StatBox({ title, value }: StatBoxProps) {
 
 function PolicyIconMenu({ policyId }: { policyId: string }) {
   const policyChangeRequest = useCreatePolicyChangeRequest();
-  const { open, handleOpen, handleClose, count } = useViewChangeRequestsDialogProps(policyId);
+  const { open, handleOpen, handleClose, count } =
+    useViewChangeRequestsDialogProps(policyId);
   const [trxOpen, setTrxOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
 
@@ -506,7 +567,11 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
           </ClaimsGuard> */}
         </IconMenu>
       </Badge>
-      <ChangeRequestsDialog open={open} handleClose={handleClose} policyId={policyId} />
+      <ChangeRequestsDialog
+        open={open}
+        handleClose={handleClose}
+        policyId={policyId}
+      />
       <SuspenseDialog
         open={trxOpen}
         onClose={() => setTrxOpen(false)}

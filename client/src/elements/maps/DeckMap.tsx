@@ -1,7 +1,7 @@
-import DeckGL, { DeckGLProps } from '@deck.gl/react/typed';
+import DeckGL, { DeckGLProps } from '@deck.gl/react';
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { LayersList, PickingInfo } from 'deck.gl/typed';
+import { LayersList, PickingInfo } from 'deck.gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ReactNode } from 'react';
 import Map from 'react-map-gl';
@@ -68,7 +68,10 @@ export const DeckMap = ({
         >
           {children}
         </Map>
-        <HoverInfo pickingInfo={hoverInfo} renderTooltipContent={renderTooltipContent} />
+        <HoverInfo
+          pickingInfo={hoverInfo}
+          renderTooltipContent={renderTooltipContent}
+        />
       </DeckGL>
     </Box>
   );
@@ -81,7 +84,11 @@ interface HoverInfoProps {
   children?: ReactNode;
 }
 
-export function HoverInfo({ pickingInfo, renderTooltipContent, children }: HoverInfoProps) {
+export function HoverInfo({
+  pickingInfo,
+  renderTooltipContent,
+  children,
+}: HoverInfoProps) {
   if (!(pickingInfo && pickingInfo.object)) return null;
 
   return (

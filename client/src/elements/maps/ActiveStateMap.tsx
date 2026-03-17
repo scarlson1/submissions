@@ -1,8 +1,8 @@
-import { GeoJsonLayer } from '@deck.gl/layers/typed';
+import { GeoJsonLayer } from '@deck.gl/layers';
 import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useState } from 'react';
 
@@ -41,8 +41,13 @@ export const ActiveStateMap = ({
       renderTooltipContent={(info: PickingInfo) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {info.object.properties?.NAME || ''}
-          {statesValues && !!statesValues[info.object?.properties?.SHORT_NAME] ? (
-            <CheckCircleRounded color='success' fontSize='small' sx={{ ml: 1.5 }} />
+          {statesValues &&
+          !!statesValues[info.object?.properties?.SHORT_NAME] ? (
+            <CheckCircleRounded
+              color='success'
+              fontSize='small'
+              sx={{ ml: 1.5 }}
+            />
           ) : (
             <CancelRounded color='error' fontSize='small' sx={{ ml: 1.5 }} />
           )}
@@ -55,8 +60,14 @@ export const ActiveStateMap = ({
           ...defaultGeoJsonLayerProps,
           id: `geojson-layer-states`,
           data: STATES_URL,
-          highlightColor: theme.palette.mode === 'dark' ? [255, 255, 255, 25] : [80, 144, 211, 20],
-          getLineColor: theme.palette.mode === 'dark' ? [255, 255, 255, 200] : [178, 186, 194, 200],
+          highlightColor:
+            theme.palette.mode === 'dark'
+              ? [255, 255, 255, 25]
+              : [80, 144, 211, 20],
+          getLineColor:
+            theme.palette.mode === 'dark'
+              ? [255, 255, 255, 200]
+              : [178, 186, 194, 200],
           getFillColor: (f) =>
             statesValues && !!statesValues[f.properties?.SHORT_NAME]
               ? [0, 125, 255, 50]

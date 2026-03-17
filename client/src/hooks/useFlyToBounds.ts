@@ -1,4 +1,4 @@
-import { FlyToInterpolator, MapViewState } from 'deck.gl/typed';
+import { FlyToInterpolator, MapViewState } from 'deck.gl';
 import { Dispatch, SetStateAction, useCallback } from 'react';
 
 import { getBoundsViewPort } from 'elements/maps/utils';
@@ -11,7 +11,7 @@ export type FlyToBoundsData = (CoordObj & Record<string, any>)[];
 export const useFlyToBounds = (
   data: FlyToBoundsData,
   setMapViewState: Dispatch<SetStateAction<MapViewState>>,
-  transitionDuration: number = 2000
+  transitionDuration: number = 2000,
 ) => {
   return useCallback(() => {
     if (!data.length) return;

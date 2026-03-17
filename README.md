@@ -1,5 +1,17 @@
 # submissions
 
+## Devlopment
+
+```bash
+git clone git@github.com:scarlson1/submissions.git
+
+pnpm install
+cd client && pnpm install
+cd functions && pnpm install
+```
+
+TODO: env files, etc.
+
 ## Firestore / DB Structure
 
 - submissions
@@ -184,3 +196,9 @@ All:
 ###### beforeSignIn
 
 If _@idemandinsurance.com_ and email is not verified, creates a JWT signed with EMAIL_VERIFICATION_KEY env var, expiring in 10 mins and sends email with link to `{FUNCTIONS_BASE_URL}/authRequests/verify-email/${token}`, which will verify the token and set the email as verified, allowing the iDemandAdmin email address to sign in.
+
+---
+
+### TODOs
+
+- include types module & switch to pnpm workspace

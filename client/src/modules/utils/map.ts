@@ -1,7 +1,7 @@
-import { CSSProperties } from 'react';
-import { max, min, zip } from 'lodash';
+import { PickingInfo } from 'deck.gl';
 import { GeoPoint } from 'firebase/firestore';
-import { PickingInfo } from 'deck.gl/typed';
+import { max, min, zip } from 'lodash';
+import { CSSProperties } from 'react';
 
 // If using svg icon --> data url for IconLayer
 export const getPlaceMarker = (color: CSSProperties['color'] = '#000000') =>
@@ -21,7 +21,12 @@ export const ICON_MAPPING = {
 export function getBoundingBox(points: number[][]) {
   const [xCoords, yCoords] = zip(...points);
   // format: [minLng, minLat, maxLng, maxLat]
-  return [min(yCoords) || -180, min(xCoords) || -90, max(yCoords) || 180, max(xCoords) || 90];
+  return [
+    min(yCoords) || -180,
+    min(xCoords) || -90,
+    max(yCoords) || 180,
+    max(xCoords) || 90,
+  ];
 }
 
 export type CoordObj = Record<string, any> & {

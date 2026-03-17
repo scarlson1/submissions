@@ -8,7 +8,7 @@ import {
   Unstable_Grid2 as Grid,
   Typography,
 } from '@mui/material';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 import { Timestamp, doc, setDoc, where } from 'firebase/firestore';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { capitalize } from 'lodash';
@@ -35,7 +35,9 @@ export const EditActiveStates = () => {
   const firestore = useFirestore();
   let { productId } = useSafeParams(['productId']);
   const { data } = useDocData<{ [key: string]: boolean }>('states', productId);
-  const fetchLicenses = useFetchLicenses([where('surplusLinesProducerOfRecord', '==', true)]);
+  const fetchLicenses = useFetchLicenses([
+    where('surplusLinesProducerOfRecord', '==', true),
+  ]);
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
 
   const { id, ...states } = data; // reactFire adds doc id
@@ -59,7 +61,8 @@ export const EditActiveStates = () => {
 
         for (let state of enabledStates) {
           const licenseMatch = licenses.find((l) => l.state === state);
-          if (!licenseMatch) throw new Error(`No Surplus Lines license found for ${state}`);
+          if (!licenseMatch)
+            throw new Error(`No Surplus Lines license found for ${state}`);
         }
 
         const docRef = doc(statesCollection(firestore), productId);
@@ -74,7 +77,7 @@ export const EditActiveStates = () => {
 
       setSubmitting(false);
     },
-    [firestore, productId, fetchLicenses]
+    [firestore, productId, fetchLicenses],
   );
 
   const handleStateClicked = useCallback((info: PickingInfo, e: any) => {
@@ -194,7 +197,9 @@ export const EditActiveStates = () => {
                       name={s.abbreviation}
                       label={s.name}
                       formControlLabelProps={{
-                        componentsProps: { typography: { variant: 'body2', px: 2 } },
+                        componentsProps: {
+                          typography: { variant: 'body2', px: 2 },
+                        },
                       }}
                     />
                   </Grid>
@@ -202,7 +207,14 @@ export const EditActiveStates = () => {
               </Grid>
 
               <Divider sx={{ my: 3 }} />
-              <Box sx={{ py: { xs: 4, md: 6 }, height: 500, width: '100%', mb: 20 }}>
+              <Box
+                sx={{
+                  py: { xs: 4, md: 6 },
+                  height: 500,
+                  width: '100%',
+                  mb: 20,
+                }}
+              >
                 <ErrorBoundary
                   FallbackComponent={ErrorFallback}
                   onReset={() => (productId = 'flood')}
@@ -210,7 +222,10 @@ export const EditActiveStates = () => {
                 >
                   <Suspense fallback={<CircularProgress color='secondary' />}>
                     <Card sx={{ height: 'inherit', width: 'inherit' }}>
-                      <ActiveStateMap handleClick={handleStateClicked} statesValues={values} />
+                      <ActiveStateMap
+                        handleClick={handleStateClicked}
+                        statesValues={values}
+                      />
                     </Card>
                   </Suspense>
                 </ErrorBoundary>
