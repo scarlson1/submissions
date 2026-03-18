@@ -1,14 +1,14 @@
-import { Tenant, getAuth } from 'firebase-admin/auth';
-import { Firestore, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getAuth, Tenant } from 'firebase-admin/auth';
+import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { kebabCase, random } from 'lodash-es';
 
 import {
   AGENCY_STATUS,
+  agencyApplicationCollection,
   AgencySubmissionStatus,
   CLAIMS,
-  agencyApplicationCollection,
   hostingBaseURL,
   invitesCollection,
   isSingleLetter,
@@ -25,7 +25,7 @@ import { validate } from './utils/index.js';
 export const createInvite = async (
   db: Firestore,
   tenantId: string,
-  inviteInfo: Omit<Invite, 'status' | 'link' | 'orgId' | 'id' | 'metadata'>
+  inviteInfo: Omit<Invite, 'status' | 'link' | 'orgId' | 'id' | 'metadata'>,
 ) => {
   const invitesColRef = invitesCollection(db, tenantId);
   let { firstName, lastName, email } = inviteInfo;
@@ -39,9 +39,9 @@ export const createInvite = async (
   await invitesColRef.doc(email).set({
     ...inviteInfo,
     link: `${hostingBaseURL.value()}/auth/create-account/${tenantId}?email=${encodeURIComponent(
-      email
+      email,
     )}&firstName=${encodeURIComponent(firstName || '')}&lastName=${encodeURIComponent(
-      lastName || ''
+      lastName || '',
     )}`,
     orgId: tenantId,
     status: 'pending',
@@ -63,7 +63,10 @@ const createTenantFromSubmission = async ({
   auth,
 }: CallableRequest<CreateTenantFromSubmissionProps>) => {
   if (!auth || !auth.token || !auth.token[CLAIMS.IDEMAND_ADMIN]) {
-    throw new HttpsError('failed-precondition', 'iDemand Admin permissions required');
+    throw new HttpsError(
+      'failed-precondition',
+      'iDemand Admin permissions required',
+    );
   }
 
   if (!data.docId) {
@@ -79,12 +82,18 @@ const createTenantFromSubmission = async ({
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
-      throw new HttpsError('not-found', `No agency application found with ID ${data.docId}`);
+      throw new HttpsError(
+        'not-found',
+        `No agency application found with ID ${data.docId}`,
+      );
     }
     const docData = docSnap.data();
     console.log('agency app docData: ', docData);
     if (!docData) {
-      throw new HttpsError('not-found', `Data missing from doc ID ${data.docId}`);
+      throw new HttpsError(
+        'not-found',
+        `Data missing from doc ID ${data.docId}`,
+      );
     }
     org = docData;
   } catch (err: any) {
@@ -98,16 +107,27 @@ const createTenantFromSubmission = async ({
   }
 
   if (!org) {
-    throw new HttpsError('not-found', `Agency app not found (ID: ${data.docId})`);
+    throw new HttpsError(
+      'not-found',
+      `Agency app not found (ID: ${data.docId})`,
+    );
   }
 
   try {
-    const orgExistsSnap = await orgsCollection(db).where('orgName', '==', org?.orgName).get();
+    const orgExistsSnap = await orgsCollection(db)
+      .where('orgName', '==', org?.orgName)
+      .get();
     if (!orgExistsSnap.empty) {
-      throw new HttpsError('already-exists', `Org already exists with name ${org?.orgName}`);
+      throw new HttpsError(
+        'already-exists',
+        `Org already exists with name ${org?.orgName}`,
+      );
     }
   } catch (err) {
-    throw new HttpsError('internal', `error checking for existing orgs with same name`);
+    throw new HttpsError(
+      'internal',
+      `error checking for existing orgs with same name`,
+    );
   }
 
   let newTenantId;
@@ -147,7 +167,10 @@ const createTenantFromSubmission = async ({
   }
 
   if (!newTenantId)
-    throw new HttpsError('internal', 'Error creating tenant. Tenant ID not returned.');
+    throw new HttpsError(
+      'internal',
+      'Error creating tenant. Tenant ID not returned.',
+    );
 
   // try {
   // TODO: use batch to set company and invites ??
@@ -177,14 +200,16 @@ const createTenantFromSubmission = async ({
         lastName: org.contact.lastName,
         email: org.contact.email,
         phone: org.contact.phone,
-        userId: null, // TODO: primary contact user id needs to be set at some point
+        userId: '', // TODO: primary contact user id needs to be set at some point
       },
       tenantId: newTenantId,
-      emailDomains: [],
+      // emailDomains: [],
       metadata: {
         created: Timestamp.now(),
         updated: Timestamp.now(),
       },
+      // type: 'agency', // TODO
+      // stripeAccountId: '', // TODO
     });
 
     await createInvite(db, newTenantId, {
@@ -212,7 +237,8 @@ const createTenantFromSubmission = async ({
   } catch (err: any) {
     console.log('ERROR => ', err);
 
-    let msg = 'Tenant successfully created. Error creating org doc and/or invite. ';
+    let msg =
+      'Tenant successfully created. Error creating org doc and/or invite. ';
     if (err.message) msg += ` Error message: ${err.message}`;
 
     throw new HttpsError('internal', msg);
@@ -221,5 +247,5 @@ const createTenantFromSubmission = async ({
 
 export default onCallWrapper<CreateTenantFromSubmissionProps>(
   'createtenantfromsubmission',
-  createTenantFromSubmission
+  createTenantFromSubmission,
 );

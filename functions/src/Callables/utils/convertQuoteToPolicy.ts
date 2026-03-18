@@ -1,4 +1,12 @@
-import { ILocation, License, PaymentStatus, Policy, Quote, State, WithId } from '@idemand/common';
+import {
+  ILocation,
+  License,
+  PaymentStatus,
+  Policy,
+  Quote,
+  State,
+  WithId,
+} from '@idemand/common';
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
@@ -12,18 +20,28 @@ import {
   validateLimits,
 } from '../../modules/rating/index.js';
 import { calcTerm } from '../../modules/transactions/utils.js';
-import { compressAddress, separateAdditionalInterests, verify } from '../../utils/index.js';
+import {
+  compressAddress,
+  separateAdditionalInterests,
+  verify,
+} from '../../utils/index.js';
 
 export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   validateLimits(data.limits);
   verify(data.coordinates, 'missing coordinates');
   verify(data.effectiveDate, 'missing effective date');
-  verify(data.coordinates?.latitude && data.coordinates?.longitude, 'invalid coordinates');
+  verify(
+    data.coordinates?.latitude && data.coordinates?.longitude,
+    'invalid coordinates',
+  );
 
-  const geoHash = geohashForLocation([data.coordinates.latitude, data.coordinates.longitude]);
+  const geoHash = geohashForLocation([
+    data.coordinates.latitude,
+    data.coordinates.longitude,
+  ]);
 
   const { additionalInsureds, mortgageeInterest } = separateAdditionalInterests(
-    data.additionalInterests || []
+    data.additionalInterests || [],
   );
 
   const RCVs = getRCVs(data.ratingPropertyData.replacementCost, data.limits);
@@ -33,7 +51,11 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   const effDate = data.effectiveDate.toDate();
   const expirationDate = add(effDate, { years: 1 });
 
-  const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expirationDate);
+  const { termDays, termPremium } = calcTerm(
+    data.annualPremium,
+    effDate,
+    expirationDate,
+  );
 
   const locationId = createDocId();
   const locations: Record<string, ILocation> = {
@@ -73,7 +95,7 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
 export function getPolicyFromQuote(
   data: WithId<Quote>,
   locations: Record<string, ILocation>,
-  license: License
+  license: License,
 ) {
   verify(data.namedInsured?.firstName, 'missing named insured first name');
   verify(data.namedInsured?.lastName, 'missing named insured last name');
@@ -98,7 +120,10 @@ export function getPolicyFromQuote(
 
   const policyLocations: Policy['locations'] = {};
   for (const [id, location] of Object.entries(locations)) {
-    verify(typeof location.termPremium === 'number', 'location termPremium invalid');
+    verify(
+      typeof location.termPremium === 'number',
+      'location termPremium invalid',
+    );
 
     policyLocations[id] = {
       termPremium: location.termPremium,
@@ -119,7 +144,7 @@ export function getPolicyFromQuote(
     Object.values(policyLocations),
     policyTermPremium,
     data.taxes,
-    data.fees
+    data.fees,
   );
 
   const issuingCarrier = getCarrierByState(data.homeState);
@@ -172,6 +197,19 @@ export function getPolicyFromQuote(
       phone: license.phone ?? '+18889124320',
     },
     issuingCarrier,
+    // TODO: fix carrier types (idemand-common jumped in pnpm update)
+    // carrier: {
+    //   name: issuingCarrier,
+    //   orgId: 'TODO',
+    //   stripeAccountId: 'TODO',
+    //   address: {
+    //     addressLine1: '123 main st.',
+    //     addressLine2: 'Suite 1000',
+    //     city: 'Nashville',
+    //     state: 'TN',
+    //     postal: '37203',
+    //   },
+    // },
     documents: [],
     quoteId: data.id,
     metadata: {

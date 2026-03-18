@@ -1,6 +1,15 @@
 import type { User as TUser } from '@idemand/common';
-import { User, policiesCollection, quotesCollection, submissionsCollection } from '@idemand/common';
-import { DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import {
+  policiesCollection,
+  quotesCollection,
+  submissionsCollection,
+  User,
+} from '@idemand/common';
+import {
+  DocumentSnapshot,
+  getFirestore,
+  Timestamp,
+} from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { isEqual } from 'lodash-es';
@@ -31,7 +40,7 @@ export default async (
     {
       userId: string;
     }
-  >
+  >,
 ) => {
   const { userId } = event.params;
   const beforeData = event?.data?.after.data() as User | undefined;
@@ -60,8 +69,12 @@ export default async (
   try {
     info(`Fetching policies to update with user change ${userId}...`);
     // need an or query ?? namedInsured.userId or userId ??
-    const policySnaps = await policiesCol.where('namedInsured.userId', '==', userId).get();
-    info(`Updating policies with user change ${userId} [COUNT: ${policySnaps.docs.length}]...`);
+    const policySnaps = await policiesCol
+      .where('namedInsured.userId', '==', userId)
+      .get();
+    info(
+      `Updating policies with user change ${userId} [COUNT: ${policySnaps.docs.length}]...`,
+    );
 
     const promises = policySnaps.docs.map(async (snap) => {
       const prevNamedInsured = snap.data()?.namedInsured;
@@ -69,32 +82,42 @@ export default async (
 
       // don't overwrite entity display names with contact name
       const { displayName, firstName, lastName } = prevNamedInsured || {};
-      const displayNameIsName = isEqual(displayName, `${firstName} ${lastName}`);
-      const newDisplayName = displayNameIsName ? user.displayName : prevNamedInsured.displayName;
+      const displayNameIsName = isEqual(
+        displayName,
+        `${firstName} ${lastName}`,
+      );
+      const newDisplayName = displayNameIsName
+        ? user.displayName
+        : prevNamedInsured.displayName;
 
       return snap.ref.update({
-        'namedInsured.displayName': newDisplayName || prevNamedInsured.displayName,
+        'namedInsured.displayName':
+          newDisplayName || prevNamedInsured.displayName,
         'namedInsured.firstName': user.firstName || prevNamedInsured.firstName,
         'namedInsured.lastName': user.lastName || prevNamedInsured.lastName,
         'namedInsured.email': user.email || prevNamedInsured.email,
-        'namedInsured.phone': user.phone || prevNamedInsured.phone, //@ts-ignore
+        'namedInsured.phone': user.phone || prevNamedInsured.phone, // @ts-ignore
         'namedInsured.photoURL': user.photoURL || null,
         'metadata.updated': Timestamp.now(),
       }); // TODO: move .catch to here ?? log/handle error for each update ??
     });
 
     await Promise.all(promises);
-    info(`Successfully updated policies with user changes`);
+    info('Successfully updated policies with user changes');
   } catch (err: any) {
-    let msg = `Error updating policy with user change`;
+    let msg = 'Error updating policy with user change';
     if (err.message) msg += ` ${err.message}`;
     reportErr(msg, { userId, diff }, err);
   }
 
   try {
     info(`Fetching quotes to update with user change ${userId}...`);
-    const quoteSnaps = await quotesCol.where('namedInsured.userId', '==', userId).get();
-    info(`Updating quotes with user change ${userId} [COUNT: ${quoteSnaps.docs.length}]...`);
+    const quoteSnaps = await quotesCol
+      .where('namedInsured.userId', '==', userId)
+      .get();
+    info(
+      `Updating quotes with user change ${userId} [COUNT: ${quoteSnaps.docs.length}]...`,
+    );
 
     const promises = quoteSnaps.docs.map(async (snap) => {
       const prevNI = snap.data()?.namedInsured;
@@ -105,16 +128,16 @@ export default async (
         'namedInsured.firstName': user.firstName || prevNI.firstName,
         'namedInsured.lastName': user.lastName || prevNI.lastName,
         'namedInsured.email': user.email || prevNI.email,
-        'namedInsured.phone': user.phone || prevNI.phone, //@ts-ignore
+        'namedInsured.phone': user.phone || prevNI.phone, // @ts-ignore
         'namedInsured.photoURL': user.photoURL || null,
         'metadata.updated': Timestamp.now(),
       });
     });
 
     await Promise.all(promises);
-    info(`Successfully updated quotes with user changes`);
+    info('Successfully updated quotes with user changes');
   } catch (err: any) {
-    let msg = `Error updating quote with user change`;
+    let msg = 'Error updating quote with user change';
     if (err.message) msg += ` ${err.message}`;
     reportErr(msg, { userId, diff }, err);
   }
@@ -124,8 +147,12 @@ export default async (
   try {
     info(`Fetching policies to update with agent change ${userId}...`);
     // need an or query ?? namedInsured.userId or userId ??
-    const policySnaps = await policiesCol.where('agent.userId', '==', userId).get();
-    info(`Updating policies with agent change ${userId} [COUNT: ${policySnaps.docs.length}]...`);
+    const policySnaps = await policiesCol
+      .where('agent.userId', '==', userId)
+      .get();
+    info(
+      `Updating policies with agent change ${userId} [COUNT: ${policySnaps.docs.length}]...`,
+    );
 
     const promises = policySnaps.docs.map(async (snap) => {
       const prevAgent = snap.data()?.agent;
@@ -140,17 +167,21 @@ export default async (
     });
 
     await Promise.all(promises);
-    info(`Successfully updated policies with agent changes`);
+    info('Successfully updated policies with agent changes');
   } catch (err: any) {
-    let msg = `Error updating policy with agent change`;
+    let msg = 'Error updating policy with agent change';
     if (err.message) msg += ` ${err.message}`;
     reportErr(msg, { userId, diff }, err);
   }
 
   try {
     info(`Fetching quotes to update with agent change ${userId}...`);
-    const quoteSnaps = await quotesCol.where('namedInsured.userId', '==', userId).get();
-    info(`Updating quotes with user change ${userId} [COUNT: ${quoteSnaps.docs.length}]...`);
+    const quoteSnaps = await quotesCol
+      .where('namedInsured.userId', '==', userId)
+      .get();
+    info(
+      `Updating quotes with user change ${userId} [COUNT: ${quoteSnaps.docs.length}]...`,
+    );
 
     const promises = quoteSnaps.docs.map(async (snap) => {
       const prevAgent = snap.data()?.agent;
@@ -165,18 +196,20 @@ export default async (
     });
 
     await Promise.all(promises);
-    info(`Successfully updated quotes with agent changes`);
+    info('Successfully updated quotes with agent changes');
   } catch (err: any) {
-    let msg = `Error updating quote with agent change`;
+    let msg = 'Error updating quote with agent change';
     if (err.message) msg += ` ${err.message}`;
     reportErr(msg, { userId, diff }, err);
   }
 
   try {
     info(`Fetching submissions to update with agent change ${userId}...`);
-    const submissionSnaps = await submissionsCol.where('agent.userId', '==', userId).get();
+    const submissionSnaps = await submissionsCol
+      .where('agent.userId', '==', userId)
+      .get();
     info(
-      `Updating submissions with agent change ${userId} [COUNT: ${submissionSnaps.docs.length}]...`
+      `Updating submissions with agent change ${userId} [COUNT: ${submissionSnaps.docs.length}]...`,
     );
 
     const promises = submissionSnaps.docs.map(async (snap) => {
@@ -192,17 +225,21 @@ export default async (
     });
 
     await Promise.all(promises);
-    info(`Successfully updated submissions with agent changes`);
+    info('Successfully updated submissions with agent changes');
   } catch (err: any) {
-    let msg = `Error updating submissions with agent change`;
+    let msg = 'Error updating submissions with agent change';
     if (err.message) msg += ` ${err.message}`;
     reportErr(msg, { userId, diff }, err);
   }
 
   try {
     info(`Fetching transactions to update with user change ${userId}...`);
-    const trxSnaps = await transactionsCol.where('agent.userId', '==', userId).get();
-    info(`Updating transactions with user change ${userId} [COUNT: ${trxSnaps.docs.length}]...`);
+    const trxSnaps = await transactionsCol
+      .where('agent.userId', '==', userId)
+      .get();
+    info(
+      `Updating transactions with user change ${userId} [COUNT: ${trxSnaps.docs.length}]...`,
+    );
 
     const promises = trxSnaps.docs.map(async (snap) => {
       const prevAgent = snap.data()?.agent;
@@ -217,9 +254,9 @@ export default async (
     });
 
     await Promise.all(promises);
-    info(`Successfully updated transactions with user changes`);
+    info('Successfully updated transactions with user changes');
   } catch (err: any) {
-    let msg = `Error updating transaction with user change`;
+    let msg = 'Error updating transaction with user change';
     if (err.message) msg += ` ${err.message}`;
     reportErr(msg, { userId, diff }, err);
   }

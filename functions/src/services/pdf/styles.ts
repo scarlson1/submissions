@@ -17,17 +17,17 @@ Font.register({
     {
       src: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5vAw.ttf',
       fontWeight: 300,
-      fontStyle: 'light',
+      // fontStyle: 'light',
     },
     {
       src: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9vAw.ttf',
       fontWeight: 500,
-      fontStyle: 'medium',
+      // fontStyle: 'medium',
     },
     {
       src: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlvAw.ttf',
       fontWeight: 600,
-      fontStyle: 'semi-bold',
+      // fontStyle: 'semi-bold',
     },
   ],
 });
@@ -42,17 +42,17 @@ Font.register({
     {
       src: 'https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILxRpg3hIP6sJ7fM7PqPMcMnZFqUwX28DJKQhM4.ttf',
       fontWeight: 300,
-      fontStyle: 'light',
+      // fontStyle: 'light',
     },
     {
       src: 'https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILxRpg3hIP6sJ7fM7PqPMcMnZFqUwX28DP6QhM4.ttf',
       fontWeight: 500,
-      fontStyle: 'medium',
+      // fontStyle: 'medium',
     },
     {
       src: 'https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILxRpg3hIP6sJ7fM7PqPMcMnZFqUwX28DBKXhM4.ttf',
       fontWeight: 600,
-      fontStyle: 'semi-bold',
+      // fontStyle: 'semi-bold',
     },
   ],
 });

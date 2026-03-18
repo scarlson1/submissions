@@ -1,6 +1,11 @@
 import type { Organization as TOrg } from '@idemand/common';
 import { Organization, versionsCollection } from '@idemand/common';
-import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import {
+  DocumentSnapshot,
+  FieldValue,
+  getFirestore,
+  Timestamp,
+} from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
@@ -13,7 +18,7 @@ const VERSION_ORG_DIFF_KEYS: OrgKeys[] = [
   'address',
   'coordinates',
   'defaultCommission',
-  'emailDomains',
+  // 'emailDomains',
   'authProviders',
   'FEIN',
   'EandOURL',
@@ -25,7 +30,10 @@ const VERSION_ORG_DIFF_KEYS: OrgKeys[] = [
 const reportErr = getReportErrorFn('versionOrg');
 
 export default async (
-  event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { orgId: string }>
+  event: FirestoreEvent<
+    Change<DocumentSnapshot> | undefined,
+    { orgId: string }
+  >,
 ) => {
   try {
     const { orgId } = event.params;
@@ -34,7 +42,8 @@ export default async (
     const afterData = event?.data?.after?.data() as Organization | undefined;
 
     const diff = getDifference(beforeData || {}, afterData || {});
-    const shouldVersion = Boolean(beforeData) && hasOne(VERSION_ORG_DIFF_KEYS, Object.keys(diff));
+    const shouldVersion =
+      Boolean(beforeData) && hasOne(VERSION_ORG_DIFF_KEYS, Object.keys(diff));
 
     info('Location version diff', { diff, shouldVersion });
 
@@ -52,7 +61,11 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection<Organization>(db, 'organizations', orgId);
+    const versionsCol = versionsCollection<Organization>(
+      db,
+      'organizations',
+      orgId,
+    );
 
     const batch = db.batch();
 
@@ -63,7 +76,7 @@ export default async (
           version: FieldValue.increment(1),
         },
       },
-      { merge: true }
+      { merge: true },
     );
 
     if (shouldVersion && beforeData) {

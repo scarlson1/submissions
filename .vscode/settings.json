@@ -310,7 +310,15 @@
     "Yuba"
   ],
   "cSpell.ignoreWords": ["SQFT"],
-  "todo-tree.general.tags": ["TODO", "FIXME", "REVIEW", "HACK", "REF", "WARN", "PRE_DEPLOY"],
+  "todo-tree.general.tags": [
+    "TODO",
+    "FIXME",
+    "REVIEW",
+    "HACK",
+    "REF",
+    "WARN",
+    "PRE_DEPLOY"
+  ],
   "todo-tree.highlights.customHighlight": {
     "PRE_DEPLOY": {
       "background": "magenta",
@@ -320,5 +328,6 @@
       "type": "text-and-comment",
       "gutterIcon": true
     }
-  }
+  },
+  "eslint.workingDirectories": ["./functions", "./client"]
 }
