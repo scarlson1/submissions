@@ -38,6 +38,8 @@ export default async (
   try {
     const { orgId } = event.params;
 
+    if (!event.data) return;
+
     const beforeData = event?.data?.before?.data() as Organization | undefined;
     const afterData = event?.data?.after?.data() as Organization | undefined;
 
@@ -70,7 +72,7 @@ export default async (
     const batch = db.batch();
 
     batch.set(
-      event!.data!.after.ref,
+      event.data.after.ref,
       {
         metadata: {
           version: FieldValue.increment(1),

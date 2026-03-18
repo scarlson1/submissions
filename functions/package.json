@@ -31,7 +31,9 @@
   },
   "pnpm": {
     "overrides": {
-      "@types/node": "22"
+      "@types/node": "22",
+      "firebase-admin": "11.11.1",
+      "@google-cloud/firestore": "6.8.0"
     }
   },
   "main": "dist/index.js",

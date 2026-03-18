@@ -96,7 +96,7 @@ export default async (
         'namedInsured.firstName': user.firstName || prevNamedInsured.firstName,
         'namedInsured.lastName': user.lastName || prevNamedInsured.lastName,
         'namedInsured.email': user.email || prevNamedInsured.email,
-        'namedInsured.phone': user.phone || prevNamedInsured.phone, // @ts-ignore
+        'namedInsured.phone': user.phone || prevNamedInsured.phone,
         'namedInsured.photoURL': user.photoURL || null,
         'metadata.updated': Timestamp.now(),
       }); // TODO: move .catch to here ?? log/handle error for each update ??
@@ -128,7 +128,7 @@ export default async (
         'namedInsured.firstName': user.firstName || prevNI.firstName,
         'namedInsured.lastName': user.lastName || prevNI.lastName,
         'namedInsured.email': user.email || prevNI.email,
-        'namedInsured.phone': user.phone || prevNI.phone, // @ts-ignore
+        'namedInsured.phone': user.phone || prevNI.phone,
         'namedInsured.photoURL': user.photoURL || null,
         'metadata.updated': Timestamp.now(),
       });

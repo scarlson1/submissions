@@ -13,14 +13,14 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": "src",
-    "types": ["vite/client"],
-    "preserveSymlinks": true
+    "types": ["vite/client"]
+    // "preserveSymlinks": true // disable for pnpm ??
   },
   "include": ["src"]
 }
