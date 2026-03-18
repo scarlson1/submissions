@@ -1,4 +1,5 @@
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+// import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import * as Sentry from '@sentry/react';
 import { useEffect } from 'react';
@@ -27,20 +28,18 @@ Sentry.init({
   dsn: 'https://4ae7fbd137ef4a5daec92aa57c0c660a@o4505115580694528.ingest.sentry.io/4505115584757760',
   // TODO: lazy load replay: https://docs.sentry.io/platforms/javascript/guides/react/session-replay/?original_referrer=https%3A%2F%2Fduckduckgo.com%2F#lazy-loading-replay
   integrations: [
-    new Sentry.BrowserTracing(),
-    new Sentry.Replay(),
-    new Sentry.BrowserTracing({
-      routingInstrumentation: Sentry.reactRouterV6Instrumentation(
-        useEffect,
-        useLocation,
-        useNavigationType,
-        createRoutesFromChildren,
-        matchRoutes,
-      ),
+    // Sentry.browserTracingIntegration(), TODO: enable
+    // Sentry.replayIntegration(), TODO: enable
+    // Sentry.browserTracingIntegration({
+    Sentry.reactRouterV6BrowserTracingIntegration({
+      // routingInstrumentation: Sentry.reactRouterV6Instrumentation(
+      useEffect,
+      useLocation,
+      useNavigationType,
+      createRoutesFromChildren,
+      matchRoutes,
+      // ),
     }),
-    // new CaptureConsole({
-    //   levels: ['error']
-    // })
   ], // can turn on "maskAllText", etc.
   // Performance Monitoring
   tracesSampleRate: 1.0, // Capture 100% of the transactions, reduce in production!
@@ -60,6 +59,7 @@ Sentry.init({
 function App() {
   return (
     // <ThemeProvider>
+    // </ThemeProvider>
     <ThemeContextCssVars>
       <ErrorBoundary
         FallbackComponent={ErrorFallback}
@@ -82,7 +82,6 @@ function App() {
         <PageViewLogger />
       </ErrorBoundary>
     </ThemeContextCssVars>
-    // </ThemeProvider>
   );
 }
 
