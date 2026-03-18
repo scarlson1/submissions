@@ -10,6 +10,7 @@ import {
 export const minInstances = projectID.equals('PRODUCTION').thenElse(1, 0);
 
 export const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+export const resendApiKey = defineSecret('RESEND_API_KEY');
 // export const sendGridWebhookVerificationKey = defineSecret('SENDGRID_WEBHOOK_VERIFICATION_KEY');
 export const emailVerificationKey = defineSecret('EMAIL_VERIFICATION_KEY');
 export const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
@@ -26,7 +27,9 @@ export const veriskCredsDemo = defineSecret('VERISK_CREDS_DEMO');
 export const firebaseHashConfig = defineSecret('FB_AUTH_HASH_CONFIG');
 export const algoliaAdminKey = defineSecret('ALGOLIA_ADMIN_API_KEY');
 export const algoliaUserBaseKey = defineSecret('ALGOLIA_BASE_USER_SEARCH_KEY');
-export const algoliaIDemandAdminSearchKey = defineSecret('ALGOLIA_IDEMAND_ADMIN_SEARCH_KEY');
+export const algoliaIDemandAdminSearchKey = defineSecret(
+  'ALGOLIA_IDEMAND_ADMIN_SEARCH_KEY',
+);
 export const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');
 export const exportSDKKey = defineSecret('EXPORT_SDK_KEY');
 export const elevationKey = defineSecret('GPXZ_KEY');
@@ -55,15 +58,21 @@ export const swissReAuthScope = defineString('SWISS_RE_AUTH_SCOPE');
 export const swissReAccessTokenURL = defineString('SWISS_RE_ACCESS_TOKEN_URL');
 export const swissReBaseURL = defineString('SWISS_RE_BASE_URL');
 export const signNowBaseURL = defineString('SIGN_NOW_BASE_URL');
-export const pubSubEmulatorHost = defineString('PUBSUB_EMULATOR_HOST', { default: '8085' });
+export const pubSubEmulatorHost = defineString('PUBSUB_EMULATOR_HOST', {
+  default: '8085',
+});
 export const quickbooksClientId = defineString('QUICKBOOKS_CLIENT_ID');
 // export const quickbooksRedirectUri = defineString('QUICKBOOKS_REDIRECT_URI');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });
 export const maxBCD = defineInt('FLOOD_MAX_LIMIT_B_C_D', { default: 1000000 });
-export const minDeductibleFlood = defineInt('FLOOD_MIN_DEDUCTIBLE', { default: 1000 });
-export const defaultCommissionAsInt = defineInt('DEFAULT_COMMISSION_AS_INT', { default: 15 });
+export const minDeductibleFlood = defineInt('FLOOD_MIN_DEDUCTIBLE', {
+  default: 1000,
+});
+export const defaultCommissionAsInt = defineInt('DEFAULT_COMMISSION_AS_INT', {
+  default: 15,
+});
 
 // defineFloat not implemented yet
 // ISSUE REF: https://github.com/firebase/firebase-tools/issues/5433

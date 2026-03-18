@@ -5,11 +5,16 @@ import {
   submissionsCollection,
 } from '@idemand/common';
 import { UserRecord } from 'firebase-admin/auth';
-import { Filter, GrpcStatus, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import {
+  Filter,
+  getFirestore,
+  GrpcStatus,
+  Timestamp,
+} from 'firebase-admin/firestore';
 import { info, warn } from 'firebase-functions/logger';
 import { EventContext } from 'firebase-functions/v1';
 
-import { getReportErrorFn } from '../common';
+import { getReportErrorFn } from '../common/index.js';
 
 const MAX_RETRY_ATTEMPTS = 5;
 
@@ -20,7 +25,10 @@ const reportErr = getReportErrorFn('setUidByEmailOnCreate');
 
 // does converting anonymous account into regular account trigger the beforeCreate blocking function ?? force email verification ??
 
-export default async (user: UserRecord, context: EventContext<Record<string, string>>) => {
+export default async (
+  user: UserRecord,
+  context: EventContext<Record<string, string>>,
+) => {
   info(`New user detected: ${user.email} (${user.uid})`);
   const db = getFirestore();
 
@@ -33,18 +41,25 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
   const quotesCol = quotesCollection(db);
   const policiesCol = policiesCollection(db);
 
-  let bulkWriter = db.bulkWriter();
+  const bulkWriter = db.bulkWriter();
 
   bulkWriter.onWriteResult((ref, result) => {
     info(`Successful write operation on ${ref.path} at ${result}`);
   });
 
   bulkWriter.onWriteError((err) => {
-    if (err.code === GrpcStatus.UNAVAILABLE && err.failedAttempts < MAX_RETRY_ATTEMPTS) {
+    if (
+      err.code === GrpcStatus.UNAVAILABLE &&
+      err.failedAttempts < MAX_RETRY_ATTEMPTS
+    ) {
       return true;
     } else {
       warn(`Failed write at document: ${err.documentRef.path}`, { ...err });
-      reportErr(`Failed write at document: ${err.documentRef.path}`, { user }, err);
+      reportErr(
+        `Failed write at document: ${err.documentRef.path}`,
+        { user },
+        err,
+      );
       return false;
     }
   });
@@ -58,13 +73,15 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
       .where(
         Filter.or(
           Filter.where('contact.email', '==', user.email),
-          Filter.where('agent.email', '==', user.email)
-        )
+          Filter.where('agent.email', '==', user.email),
+        ),
       )
       .get();
 
     // don't override agentId if already exists
-    let filtered = submissionsSnaps.docs.filter((s) => !s.data().agent?.userId);
+    const filtered = submissionsSnaps.docs.filter(
+      (s) => !s.data().agent?.userId,
+    );
     filtered.forEach((snap) => {
       const data = snap.data();
       const orgId = data.agency?.orgId;
@@ -81,16 +98,20 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
       } else {
         reportErr(
           `submission agency.orgId (${data.agency?.orgId}) does not match new user's tenantId (${user.tenantId})`,
-          data
+          data,
         );
       }
     });
 
-    const quoteSnaps = await quotesCol.where('agent.email', '==', user.email).get();
-    let filteredQuoteSnaps = quoteSnaps.docs.filter((s) => !s.data().agent?.userId);
+    const quoteSnaps = await quotesCol
+      .where('agent.email', '==', user.email)
+      .get();
+    const filteredQuoteSnaps = quoteSnaps.docs.filter(
+      (s) => !s.data().agent?.userId,
+    );
 
     filteredQuoteSnaps.forEach((s) => {
-      let data = s.data();
+      const data = s.data();
       const orgId = data.agency?.orgId;
       if (!orgId || orgId === user.tenantId) {
         bulkWriter.update(s.ref, {
@@ -105,17 +126,21 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
       } else {
         reportErr(
           `quote agency.orgId (${data.agency?.orgId}) does not match new user's tenantId (${user.tenantId})`,
-          data
+          data,
         );
       }
     });
 
-    const policySnaps = await policiesCol.where('agent.email', '==', user.email).get();
-    const filteredPolicies = policySnaps.docs.filter((s) => !s.data().agent?.userId);
+    const policySnaps = await policiesCol
+      .where('agent.email', '==', user.email)
+      .get();
+    const filteredPolicies = policySnaps.docs.filter(
+      (s) => !s.data().agent?.userId,
+    );
 
     filteredPolicies.forEach((s) => {
-      let policy = s.data();
-      let orgId = policy.agency?.orgId;
+      const policy = s.data();
+      const orgId = policy.agency?.orgId;
       if (orgId === user.tenantId) {
         bulkWriter.update(s.ref, {
           'agent.userId': user.uid,
@@ -126,13 +151,17 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
       } else {
         reportErr(
           `policy agency.orgId (${policy.agency?.orgId}) does not match new user's tenantId (${user.tenantId})`,
-          policy
+          policy,
         );
       }
     });
   } else {
-    const submissionsSnaps = await submissionsCol.where('contact.email', '==', user.email).get();
-    const subSnaps = submissionsSnaps.docs.filter((s) => !s.data().contact?.userId);
+    const submissionsSnaps = await submissionsCol
+      .where('contact.email', '==', user.email)
+      .get();
+    const subSnaps = submissionsSnaps.docs.filter(
+      (s) => !s.data().contact?.userId,
+    );
 
     subSnaps.forEach((s) => {
       bulkWriter.update(s.ref, {
@@ -141,8 +170,12 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
       });
     });
 
-    const quoteSnaps = await quotesCol.where('namedInsured.email', '==', user.email).get();
-    const filteredQuoteSnaps = quoteSnaps.docs.filter((s) => !s.data().namedInsured.userId);
+    const quoteSnaps = await quotesCol
+      .where('namedInsured.email', '==', user.email)
+      .get();
+    const filteredQuoteSnaps = quoteSnaps.docs.filter(
+      (s) => !s.data().namedInsured.userId,
+    );
 
     filteredQuoteSnaps.forEach((s) => {
       bulkWriter.update(s.ref, {
@@ -151,8 +184,12 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
       });
     });
 
-    const policySnaps = await policiesCol.where('namedInsured.email', '==', user.email).get();
-    const filteredPolicies = policySnaps.docs.filter((s) => !s.data().namedInsured.userId);
+    const policySnaps = await policiesCol
+      .where('namedInsured.email', '==', user.email)
+      .get();
+    const filteredPolicies = policySnaps.docs.filter(
+      (s) => !s.data().namedInsured.userId,
+    );
 
     filteredPolicies.forEach((s) => {
       bulkWriter.update(s.ref, {

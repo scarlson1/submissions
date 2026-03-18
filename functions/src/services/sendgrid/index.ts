@@ -2,6 +2,7 @@ import { EmailData } from '@sendgrid/helpers/classes/email-address';
 import { MailData } from '@sendgrid/helpers/classes/mail';
 import sgMail, { MailDataRequired } from '@sendgrid/mail';
 import { projectID } from 'firebase-functions/params';
+import { Resend } from 'resend';
 
 // TODO: https://docs.sendgrid.com/for-developers/sending-email/personalizations
 // TODO: switch to dynamic templates
@@ -62,7 +63,7 @@ function uniqueEmails(to: EmailData | EmailData[]) {
   if (Array.isArray(to)) {
     const objs: EmailJSON[] = [];
 
-    for (let e of to) {
+    for (const e of to) {
       if (typeof e === 'string') {
         objs.push({ email: e });
       } else {
@@ -96,8 +97,10 @@ const createMsgContent = ({
 };
 
 type CustomArgs = { emailType: EmailTemplates } & Record<string, any>;
-export interface ExtraSendGridArgs
-  extends Omit<CreateMsgContentProps, 'to' | 'from' | 'subject' | 'html' | 'attachments'> {
+export interface ExtraSendGridArgs extends Omit<
+  CreateMsgContentProps,
+  'to' | 'from' | 'subject' | 'html' | 'attachments'
+> {
   customArgs: CustomArgs;
 }
 
@@ -115,18 +118,22 @@ export const sendSubmissionReceivedConfirmation = async (
   to: string | string[],
   toName: string | undefined | null,
   addressLine1: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
-  const html = submissionReceived({ toName: toName, addressLine1, createAccountLink });
+  const html = submissionReceived({
+    toName: toName,
+    addressLine1,
+    createAccountLink,
+  });
   sgMail.setApiKey(key);
 
   await sgMail.send(
     createMsgContent({
       html,
-      subject: `We've received your submission!`,
+      subject: "We've received your submission!",
       to,
       ...getCustomArgs(sgArgs),
-    })
+    }),
   );
 };
 
@@ -137,13 +144,18 @@ export const sendNewSubmissionAdminNotification = async (
   city: string,
   state: string,
   to: string | string[],
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminNewSubmission({ link, addressLine1, city, state });
   sgMail.setApiKey(key);
 
   await sgMail.send(
-    createMsgContent({ html, subject: `New submission!`, to, ...getCustomArgs(sgArgs) })
+    createMsgContent({
+      html,
+      subject: 'New submission!',
+      to,
+      ...getCustomArgs(sgArgs),
+    }),
   );
 };
 
@@ -152,14 +164,26 @@ export const sendEmailConfirmation = async (
   link: string,
   to: string | string[],
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  // sgArgs?: ExtraSendGridArgs
 ) => {
+  const resend = new Resend(key);
   const html = emailConfirmation({ toName, link });
-  sgMail.setApiKey(key);
 
-  await sgMail.send(
-    createMsgContent({ html, subject: 'Please confirm your email', to, ...getCustomArgs(sgArgs) })
-  );
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: 'Please confirm your email',
+    html,
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+  // sgMail.setApiKey(key);
+
+  // await sgMail.send(
+  //   createMsgContent({ html, subject: 'Please confirm your email', to, ...getCustomArgs(sgArgs) })
+  // );
 };
 
 export const sendUserInvite = async (
@@ -169,7 +193,7 @@ export const sendUserInvite = async (
   toName: string | null | undefined = undefined,
   fromName: string | null | undefined = undefined,
   config?: Partial<CreateMsgContentProps>, // TODO: replace with sgArgs ??
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = userInvite({ toName, fromName, link });
   sgMail.setApiKey(key);
@@ -183,7 +207,7 @@ export const sendUserInvite = async (
         subject: 'Create an account',
         to,
         ...getCustomArgs(sgArgs),
-      })
+      }),
     );
 };
 
@@ -192,13 +216,18 @@ export const sendNewAgencySubmissionAdminNotification = async (
   link: string,
   orgName: string,
   to: string | string[],
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminNewAgencySubmission({ link, orgName });
   sgMail.setApiKey(key);
 
   await sgMail.send(
-    createMsgContent({ html, subject: `New submission!`, to, ...getCustomArgs(sgArgs) })
+    createMsgContent({
+      html,
+      subject: 'New submission!',
+      to,
+      ...getCustomArgs(sgArgs),
+    }),
   );
 };
 
@@ -208,13 +237,18 @@ export const sendNewQuoteEmail = async (
   to: string | string[],
   addressLine1?: string,
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = newQuote({ link, toName, addressLine1 });
   sgMail.setApiKey(key);
 
   await sgMail.send(
-    createMsgContent({ html, subject: `Here's your quote!`, to, ...getCustomArgs(sgArgs) })
+    createMsgContent({
+      html,
+      subject: "Here's your quote!",
+      to,
+      ...getCustomArgs(sgArgs),
+    }),
   );
 };
 
@@ -224,7 +258,7 @@ export const sendPolicyDocDelivery = async (
   attachments: AttachmentJSON[],
   toName?: string,
   addressName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = policyDelivery({ toName, addressName });
   sgMail.setApiKey(sgKey);
@@ -232,11 +266,11 @@ export const sendPolicyDocDelivery = async (
   await sgMail.send(
     createMsgContent({
       html,
-      subject: `Congrats! Here's your new policy`,
+      subject: "Congrats! Here's your new policy",
       to,
       attachments,
       ...getCustomArgs(sgArgs),
-    })
+    }),
   );
 };
 
@@ -247,9 +281,14 @@ export const sendAdminPaidNotification = async (
   policyId: string,
   transactionLink: string,
   transactionId: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
-  const html = adminPaymentReceived({ policyLink, policyId, transactionLink, transactionId });
+  const html = adminPaymentReceived({
+    policyLink,
+    policyId,
+    transactionLink,
+    transactionId,
+  });
   sgMail.setApiKey(sgKey);
 
   await sgMail.send(
@@ -258,7 +297,7 @@ export const sendAdminPaidNotification = async (
       subject: `Payment received (${transactionId})`,
       to,
       ...getCustomArgs(sgArgs),
-    })
+    }),
   );
 };
 
@@ -271,12 +310,12 @@ export const sendAgencyAppApprovedNotification = async (
   firstName?: string | null,
   lastName?: string | null,
   message?: string | null,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const link = `${hostingBaseURL.value()}/auth/create-account/${encodeURIComponent(
-    tenantId
+    tenantId,
   )}?email=${encodeURIComponent(email)}&firstName=${encodeURIComponent(
-    firstName || ''
+    firstName || '',
   )}&lastName=${encodeURIComponent(lastName || '')}`;
 
   const html = agencyAppApproved({ firstName, orgName, link, message });
@@ -289,7 +328,7 @@ export const sendAgencyAppApprovedNotification = async (
       html,
       subject: 'Finish setting up your account',
       ...getCustomArgs(sgArgs),
-    })
+    }),
   );
 
   return { link };
@@ -302,7 +341,7 @@ export const sendAdminChangeRequestNotification = async (
   requestType: string,
   entityId: string,
   changes: Record<string, any>,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminChangeRequest({
     link,
@@ -318,7 +357,7 @@ export const sendAdminChangeRequestNotification = async (
       html,
       subject: 'Change request received',
       ...getCustomArgs(sgArgs),
-    })
+    }),
   );
 };
 
@@ -331,7 +370,7 @@ export const sendAdminPolicyImportNotification = async (
   fileName: string,
   link?: string | null | undefined,
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminImportNotification({
     successCount,
@@ -349,7 +388,7 @@ export const sendAdminPolicyImportNotification = async (
       html,
       subject: 'Policy import staged',
       ...getCustomArgs(sgArgs),
-    })
+    }),
   );
 };
 
@@ -359,7 +398,7 @@ export const sendQuoteExpiringSoonNotification = async (
   link: string,
   addressLine1: string,
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = quoteExpiringSoon({
     link,
@@ -374,7 +413,7 @@ export const sendQuoteExpiringSoonNotification = async (
       html,
       subject: 'Quote expires tomorrow',
       ...getCustomArgs(sgArgs),
-    })
+    }),
   );
 };
 
@@ -384,7 +423,7 @@ export const sendMessage = async (
   msgBody: string,
   subject: string,
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = blankHTML({ toName, content: msgBody });
   sgMail.setApiKey(key);
@@ -394,7 +433,7 @@ export const sendMessage = async (
       html,
       subject,
       ...getCustomArgs(sgArgs),
-    })
+    }),
   );
 };
 
@@ -404,7 +443,7 @@ export const moveTenantVerification = async (
   link: string,
   toName?: string,
   toOrgName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = moveToTenantConfirmation({
     toName,
@@ -419,6 +458,6 @@ export const moveTenantVerification = async (
       html,
       subject: 'Confirm org migration',
       ...getCustomArgs(sgArgs),
-    })
+    }),
   );
 };
