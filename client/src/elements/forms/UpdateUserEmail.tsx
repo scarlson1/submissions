@@ -1,31 +1,30 @@
 import { LoadingButton } from '@mui/lab';
 import { Box, Unstable_Grid2 as Grid } from '@mui/material';
-import * as Sentry from '@sentry/react';
-import { usersCollection } from 'common';
-import { RHFTextField } from 'components/forms';
-import { useAuthActions } from 'context';
-import { Firestore, doc, setDoc } from 'firebase/firestore';
-import { useAsyncToast } from 'hooks';
 import { useCallback, useEffect } from 'react';
 import { SubmitHandler, useForm, useFormState } from 'react-hook-form';
 import { useFirestore, useUser } from 'reactfire';
 
-async function updateDBEmail(
-  firestore: Firestore,
-  userId: string,
-  email: string,
-  onError?: (msg: string, err: any) => void
-) {
-  try {
-    const userRef = doc(usersCollection(firestore), userId);
-    await setDoc(userRef, { email }, { merge: true });
-  } catch (err: any) {
-    let msg = `Error updating email in database`;
-    if (err.message) msg += ` (${err.message})`;
-    Sentry.captureException(err);
-    if (onError) onError(msg, err);
-  }
-}
+import { User } from 'common';
+import { RHFTextField } from 'components/forms';
+import { useAuthActions } from 'context';
+import { useAsyncToast, useUpdateDoc } from 'hooks';
+
+// async function updateDBUser(
+//   firestore: Firestore,
+//   userId: string,
+//   values: Partial<User>, // email: string,
+//   onError?: (msg: string, err: any) => void
+// ) {
+//   try {
+//     const userRef = doc(usersCollection(firestore), userId);
+//     await setDoc(userRef, values, { merge: true });
+//   } catch (err: any) {
+//     let msg = `Error updating user in database`;
+//     if (err.message) msg += ` (${err.message})`;
+//     Sentry.captureException(err);
+//     if (onError) onError(msg, err);
+//   }
+// }
 
 type UserEmailInputs = {
   email: string;
@@ -36,6 +35,11 @@ export function UpdateUserEmail() {
   const toast = useAsyncToast();
   const { data: user } = useUser();
   const { updateUserEmail } = useAuthActions();
+  const { update: updateUserDoc } = useUpdateDoc<User>(
+    'users',
+    () => toast.success('email updated!'),
+    () => toast.error('error updating email') // need to handle db out of sync with auth ?? could fail if user db doc doesn't exist (hook is using update method)
+  );
 
   const {
     handleSubmit,
@@ -71,9 +75,10 @@ export function UpdateUserEmail() {
 
       try {
         await updateUserEmail(data.email, async (msg: string) => {
-          await updateDBEmail(firestore, user!.uid, data.email, console.log);
+          // await updateDBUser(firestore, user!.uid, {email: data.email}, console.log);
+          await updateUserDoc(user!.uid, { email: data.email }); // doesn't throw --> move toast to handlers
 
-          toast.success(msg);
+          // toast.success(msg);
         });
       } catch (err) {
         toast.error('Error updating email');

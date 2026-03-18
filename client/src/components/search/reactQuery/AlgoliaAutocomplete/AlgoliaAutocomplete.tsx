@@ -4,10 +4,12 @@ import {
   Unstable_Grid2 as Grid,
   Autocomplete as MuiAutocomplete,
   TextField,
+  TextFieldProps,
   Typography,
 } from '@mui/material';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
+import { useField } from 'formik';
 import { UseAlgoliaOptions, useAlgolia } from 'hooks/useAlgolia';
 import { useDebounce } from 'hooks/utils';
 import { BaseHit } from '..';
@@ -24,16 +26,24 @@ interface AlgoliaAutocompleteProps<T>
   > {
   onSelectItem: (val: WithBaseHit<T>) => void;
   searchOptions?: Omit<UseAlgoliaOptions, 'query' | 'indexName'>;
+  name: string;
+  label?: string;
+  resetFields?: () => void;
+  textFieldProps?: Omit<TextFieldProps, 'value' | 'onChange'>;
 }
 
 export const AlgoliaAutocomplete = <T,>({
   searchOptions,
   onSelectItem,
+  name,
+  resetFields,
+  textFieldProps,
   ...props
 }: AlgoliaAutocompleteProps<WithBaseHit<T>>) => {
   const [value, setValue] = useState<WithBaseHit<T> | null>(null);
-  const [query, setQuery] = useState('');
-  const debouncedQuery = useDebounce<string>(query, 100);
+  // const [query, setQuery] = useState('');
+  const [field, meta, helpers] = useField(name);
+  const debouncedQuery = useDebounce<string>(field.value, 100);
 
   const active = useRef(false);
 
@@ -47,29 +57,31 @@ export const AlgoliaAutocomplete = <T,>({
     ...searchOptions,
   });
 
-  useEffect(() => {
-    console.log('autocomplete value: ', value);
-  }, [value]);
-
   const options = useMemo<readonly Hit<WithBaseHit<T>>[]>(() => {
-    console.log('OPTIONS: ', hits);
+    // console.log('OPTIONS: ', hits);
     return (hits || []) as Hit<WithBaseHit<T>>[];
   }, [hits]);
 
   const optionsWithVal = useMemo(() => {
     return value ? [value, ...options] : options;
-    // let o: (Hit<WithBaseHit<T>> | WithBaseHit<T>)[] = [...options];
-    // if (value) o.push(value);
-    // return o;
   }, [options, value]);
+
+  const handleSelect = useCallback(
+    (newValue: WithBaseHit<T> | null) => {
+      console.log('newValue:', newValue);
+      setValue(newValue);
+      // set formik values in onSelectItem fn
+      onSelectItem && newValue && onSelectItem(newValue);
+    },
+    [onSelectItem]
+  );
 
   return (
     <MuiAutocomplete
-      sx={{ width: 300 }}
+      // sx={{ width: 300 }}
       // getOptionLabel={(option) => (typeof option === 'string' ? option : option.searchTitle)}
       getOptionLabel={(option) => option?.searchTitle ?? null}
       filterOptions={(x) => x}
-      // options={options}
       options={optionsWithVal}
       autoComplete
       includeInputInList
@@ -77,24 +89,38 @@ export const AlgoliaAutocomplete = <T,>({
       value={value}
       noOptionsText='No options'
       loading={isFetching}
-      onChange={(event: any, newValue: WithBaseHit<T> | null) => {
-        console.log('newValue:', newValue);
-        // setOptions(newValue ? [newValue, ...options] : options); // TODO: handle selection
-        setValue(newValue);
-        onSelectItem && newValue && onSelectItem(newValue);
+      onChange={(event: any, newValue: WithBaseHit<T> | null, reason) => {
+        event.stopPropagation();
+
+        if (reason === 'clear' && resetFields) resetFields();
+        if (reason === 'clear' || reason === 'selectOption') handleSelect(newValue);
       }}
+      inputValue={field.value}
       onInputChange={(event, newInputValue) => {
-        setQuery(newInputValue);
+        helpers.setValue(newInputValue);
       }}
       onOpen={() => {
         active.current = true;
       }}
       onClose={(event, reason) => {
-        console.log(`onClose (${reason})`);
+        // console.log(`onClose (${reason})`);
         active.current = false;
       }}
-      renderInput={(params) => <TextField {...params} label='Search' fullWidth />}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label='Search'
+          autoComplete='off'
+          fullWidth
+          error={Boolean(meta) && meta.touched && Boolean(meta.error)}
+          onBlur={() => helpers.setTouched(true)}
+          {...textFieldProps}
+          helperText={(meta && meta.touched && meta.error) ?? meta.error}
+        />
+      )}
       renderOption={(props, option) => {
+        // console.log('props/option: ', props, option);
+        // TODO: word match highlight (option._highlightResult)
         return (
           <li {...props} key={option.objectID}>
             <Grid container spacing={2} alignItems='center' disableEqualOverflow>

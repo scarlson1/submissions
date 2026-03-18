@@ -12,6 +12,7 @@ import {
   sendgridApiKey,
 } from '../common/index.js';
 import { sendAdminPaidNotification } from '../services/sendgrid/index.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 export interface PaymentCompletePayload {
   transactionId: string;
@@ -21,14 +22,16 @@ export interface PaymentCompletePayload {
 export default async (event: CloudEvent<MessagePublishedData<PaymentCompletePayload>>) => {
   info('MSG JSON: ', event.data.message.json);
 
-  let transactionId = null;
-  let policyId = null;
-  try {
-    transactionId = event.data.message.json?.transactionId;
-    policyId = event.data.message.json?.policyId;
-  } catch (e) {
-    console.error('PubSub message was not JSON', e);
-  }
+  // let transactionId = null;
+  // let policyId = null;
+  // try {
+  //   transactionId = event.data.message.json?.transactionId;
+  //   policyId = event.data.message.json?.policyId;
+  // } catch (e) {
+  //   console.error('PubSub message was not JSON', e);
+  // }
+  const { policyId, transactionId } = extractPubSubPayload(event, ['policyId', 'transactionId']);
+
   console.log(`PAYMENT COMPLETE - TRX ID: ${transactionId} - POLICY ID: ${policyId}`);
   if (!(transactionId && policyId)) return console.error('Missing transaction or policy id');
 

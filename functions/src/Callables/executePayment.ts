@@ -90,7 +90,7 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
 
     let ePayFees = paymentMethodDetails.transactionType === 'Ach' ? 0 : round(price * feePct, 2);
 
-    const total = price + ePayFees;
+    const total = round(price + ePayFees, 2);
     info(`PRICE (${price}) + EPAY_FEES (${ePayFees}) = TOTAL (${total})`);
 
     // delete validation ?? could be less that 100 if shorter term
@@ -177,6 +177,7 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
       );
     }
 
+    // if card -->
     if (status === FIN_TRANSACTION_STATUS.SUCCEEDED) {
       try {
         await publishPaymentComplete({

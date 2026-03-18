@@ -6,13 +6,13 @@ import {
   getBillingEntityId,
   getBillingEntityTotals,
 } from '../../utils/index.js';
+import { getTrxTaxesAndFees } from '../taxes/index.js';
 import {
   getBookingDate,
   getDailyPremium,
   getNetDWP,
   getTermDays,
   getTermProratedPct,
-  getTrxTaxesAndFees,
 } from './index.js';
 
 export function formatPremiumTrx(

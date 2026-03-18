@@ -134,7 +134,14 @@ export const BindQuoteForm = () => {
       // values.billingEntities.forEach((e) => (newBillingEntities['namedInsured'] = e));
 
       const billingEntities = {
-        namedInsured: values.billingEntities[0],
+        namedInsured: values.billingEntities?.length
+          ? values.billingEntities[0]
+          : {
+              displayName: `${values.namedInsured?.firstName || ''} ${
+                values.namedInsured?.lastName || ''
+              }`.trim(),
+              email: values.namedInsured?.email || '',
+            },
       };
 
       await updateDoc(quoteRef, {

@@ -73,7 +73,8 @@ const useEditQuote = (
           fees: numFees || [], // newValues?.fees || [],
           taxes: numTaxes || [], //  newValues?.taxes || [],
           annualPremium: newValues.annualPremium,
-          subproducerCommission: newValues?.subproducerCommission,
+          commSource: newValues.commSource,
+          // subproducerCommission: newValues?.subproducerCommission,
           cardFee: round(newValues.quoteTotal * CARD_FEE_RATE, 2),
           quoteTotal: round(newValues.quoteTotal, 2),
           mailingAddress: {
@@ -89,6 +90,7 @@ const useEditQuote = (
           agency: {
             orgId: newValues?.agency?.orgId || null,
             name: newValues?.agency?.name || null,
+            stripeAccountId: newValues?.agency?.stripeAccountId || null,
             address: newValues?.agency?.address || null,
           },
           userId: newValues?.namedInsured?.userId || null,
@@ -194,7 +196,8 @@ export const QuoteEdit = () => {
           rate: `${t.rate ?? ''}`,
         })) || [],
       annualPremium: quoteData?.annualPremium ?? null,
-      subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
+      // subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
+      commSource: quoteData?.commSource ?? 'agent',
       quoteTotal: quoteData?.quoteTotal ?? null,
       namedInsured: {
         firstName: quoteData?.namedInsured?.firstName ?? '',
@@ -218,6 +221,19 @@ export const QuoteEdit = () => {
           state: '',
           postal: '',
         },
+      },
+      carrier: {
+        name: quoteData?.carrier?.name || '',
+        orgId: quoteData?.carrier?.orgId || '',
+        stripeAccountId: quoteData?.carrier?.stripeAccountId || '',
+        address: quoteData?.carrier?.address || {
+          addressLine1: '',
+          addressLine2: '',
+          city: '',
+          state: '',
+          postal: '',
+        },
+        photoURL: quoteData?.carrier?.photoURL || '',
       },
       ratingPropertyData: {
         CBRSDesignation: quoteData?.ratingPropertyData?.CBRSDesignation ?? '',
@@ -295,5 +311,8 @@ function getRatingInputsFromQuote(data: Partial<Quote> | null) {
     inlandAAL: data?.AALs?.inland, // @ts-ignore
     surgeAAL: data?.AALs?.surge, // @ts-ignore
     tsunamiAAL: data?.AALs?.tsunami,
+    commSource: data?.commSource,
+    agentId: data?.agent?.userId,
+    orgId: data?.agency?.orgId,
   };
 }

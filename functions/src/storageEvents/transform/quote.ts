@@ -5,6 +5,7 @@ import { geohashForLocation } from 'geofire-common';
 import {
   Basement,
   CBRSDesignation,
+  CommSource,
   FloodZone,
   PriorLossCount,
   Product,
@@ -126,6 +127,15 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     orgId: row.orgId,
   };
 
+  // TODO: add carrier to import row type
+  const carrier: Quote['carrier'] = {
+    // @ts-ignore
+    name: row.carrierName || '',
+    address: null, // @ts-ignore
+    orgId: row.carrierOrgId || '', // @ts-ignore
+    stripeAccountId: row.carrierStripeAccountId || '',
+  };
+
   const fees = getFormattedFees(row);
 
   const effDate = row.effectiveDate
@@ -169,6 +179,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     namedInsured,
     agent,
     agency,
+    carrier,
     additionalInterests: [],
     billingEntities: {
       namedInsured: {
@@ -186,6 +197,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     imageURLs: null,
     imagePaths: null,
     submissionId: row.submissionId || null,
+    commSource: (row.commSource || 'default') as CommSource,
     exclusions: [],
     metadata: {
       created: Timestamp.now(),

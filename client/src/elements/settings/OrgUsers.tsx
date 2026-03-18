@@ -1,7 +1,8 @@
 import { Box, Typography } from '@mui/material';
+
 import { ClaimsGuard } from 'components';
 import { AddUsersDialog } from 'elements/forms';
-import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
+import { UserClaimsGrid } from 'elements/grids';
 import { useClaims } from 'hooks';
 
 export const OrgUsers = () => {
@@ -15,11 +16,11 @@ export const OrgUsers = () => {
   return (
     <Box>
       <Box sx={{ pb: 2, width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
-        <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
+        <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']} requireAll={false}>
           <AddUsersDialog orgId={orgId} />
         </ClaimsGuard>
       </Box>
-      <AdminManageUsersGrid
+      <UserClaimsGrid
         orgId={orgId}
         columnVisibilityModel={{
           displayName: false,

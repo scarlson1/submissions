@@ -161,7 +161,8 @@ export const ServerDataGrid = <
   // );
 
   return (
-    <Box sx={{ height: 500, width: '100%' }}>
+    // <Box sx={{ height: 500, width: '100%' }}>
+    <Box sx={{ width: '100%' }}>
       <DataGrid
         apiRef={apiRef}
         // TODO: move to theme overrides ??

@@ -4,6 +4,8 @@ import {
   AgencyDetails,
   AgentDetails,
   CancelReason,
+  CarrierDetails,
+  CommSource,
   Deductible,
   FeeItem,
   Limits,
@@ -41,6 +43,7 @@ export const ParsedPolicyRow = z.object({
   userId: z.string().nullable(),
   agent: AgentDetails,
   agency: AgencyDetails,
+  carrier: CarrierDetails,
   // surplusLinesProducerOfRecord: SLProdOfRecordDetails,
   issuingCarrier: z.string().optional(),
   quoteId: z.string().optional(),
@@ -62,6 +65,7 @@ export const ParsedPolicyRow = z.object({
   techPremium: ValueByRiskType,
   billingEntityId: z.string(),
   billingEntityName: z.string(),
+  commSource: CommSource,
 });
 export type ParsedPolicyRow = z.infer<typeof ParsedPolicyRow>;
 

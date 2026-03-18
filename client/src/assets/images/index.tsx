@@ -9,6 +9,7 @@ import ChillingSVG from './chilling.svg?react';
 import ChoosingHouseSVG from './choosing_house.svg?react';
 import CoffeeSVG from './coffee.svg?react';
 import ConfirmedSVG from './confirmed.svg?react';
+import DownloadFilesSVG from './download_files.svg?react';
 import LocationReviewSVG from './location_review.svg?react';
 import LocationSearchSVG from './location_search.svg?react';
 import NotFoundSVG from './not_found.svg?react';
@@ -38,6 +39,7 @@ export {
   ChoosingHouseSVG,
   CoffeeSVG,
   ConfirmedSVG,
+  DownloadFilesSVG,
   LocationReviewSVG,
   LocationSearchSVG,
   NotFoundSVG,

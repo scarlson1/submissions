@@ -21,6 +21,7 @@ export { PolicyDelivery } from './PolicyDelivery';
 export { QuoteEdit } from './QuoteEdit';
 export { QuoteNew, QuoteNewFromSub } from './QuoteNew';
 export { Quotes } from './Quotes';
+export { Receivables } from './Receivables';
 export { SLTaxEdit } from './SLTaxEdit';
 export { SLTaxNew } from './SLTaxNew';
 export { SLTaxes } from './SLTaxes';

@@ -20,6 +20,7 @@ interface ImportMetaEnv {
   readonly VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY: string;
   readonly VITE_DEV: string;
   readonly VITE_RECAPTCHA_ENTERPRISE_KEY: string;
+  readonly VITE_STRIPE_PUBLISHABLE_KEY: string;
 }
 
 interface ImportMeta {

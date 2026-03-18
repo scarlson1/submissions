@@ -30,6 +30,8 @@ export const algoliaIDemandAdminSearchKey = defineSecret('ALGOLIA_IDEMAND_ADMIN_
 export const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');
 export const exportSDKKey = defineSecret('EXPORT_SDK_KEY');
 export const elevationKey = defineSecret('GPXZ_KEY');
+export const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
+export const quickbooksClientSecret = defineSecret('QUICKBOOKS_CLIENT_SECRET');
 
 export const audience = defineString('AUDIENCE');
 export const hostingBaseURL = defineString('HOSTING_BASE_URL');
@@ -54,6 +56,8 @@ export const swissReAccessTokenURL = defineString('SWISS_RE_ACCESS_TOKEN_URL');
 export const swissReBaseURL = defineString('SWISS_RE_BASE_URL');
 export const signNowBaseURL = defineString('SIGN_NOW_BASE_URL');
 export const pubSubEmulatorHost = defineString('PUBSUB_EMULATOR_HOST', { default: '8085' });
+export const quickbooksClientId = defineString('QUICKBOOKS_CLIENT_ID');
+// export const quickbooksRedirectUri = defineString('QUICKBOOKS_REDIRECT_URI');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });

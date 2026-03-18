@@ -1,6 +1,6 @@
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info } from 'firebase-functions/logger';
+import { info } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { isValid } from 'date-fns';
@@ -18,6 +18,7 @@ import {
   getReinstatementTrx,
 } from '../modules/transactions/index.js';
 import { verify } from '../utils/index.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // reinstatement trxEffDate = cancellation date (from cancellation trx)
 // booking date ??
@@ -36,15 +37,16 @@ export default async (event: CloudEvent<MessagePublishedData<ReinstatementPayloa
   info('POLICY REINSTATEMENT EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
 
   const eventId = event.id;
-  let policyId = null;
-  let effDateMS = null;
+  // let policyId = null;
+  // let effDateMS = null;
 
-  try {
-    policyId = event.data?.message?.json?.policyId;
-    effDateMS = event.data?.message?.json?.effDateMS;
-  } catch (e) {
-    error('PubSub message was not JSON', e);
-  }
+  // try {
+  //   policyId = event.data?.message?.json?.policyId;
+  //   effDateMS = event.data?.message?.json?.effDateMS;
+  // } catch (e) {
+  //   error('PubSub message was not JSON', e);
+  // }
+  const { policyId, effDateMS } = extractPubSubPayload(event, ['policyId', 'effDateMS']);
 
   if (!policyId || typeof policyId !== 'string') {
     reportErr(`Missing policy ID. Returning early.`, { policyId });

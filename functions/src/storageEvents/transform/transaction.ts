@@ -9,10 +9,11 @@ import {
   PriorLossCount,
   Product,
   RatingPropertyData,
+  State,
   TaxItem,
   Totals,
 } from '@idemand/common';
-import { GeoPoint } from 'firebase-admin/firestore';
+import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import {
   AmendmentTransaction,
   BaseTransaction,
@@ -127,8 +128,23 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       value: extractNumberNeg(row.billingEntitySurplusLinesTax),
       rate: 0, // TODO: fix
       subjectBase: ['premium'], // TODO: fix
+      subjectBaseAmount: 0, // TODO: fix
       resultRoundType: 'nearest',
-      id: '', // TODO: fix type
+      taxId: '', // TODO: fix type
+      taxCalcId: '', // TODO
+      state: row.homeState as State,
+      refundable: true,
+      transactionTypes: [
+        'new',
+        'endorsement',
+        'amendment',
+        'cancellation',
+        'flat_cancel',
+        'reinstatement',
+        'renewal',
+      ],
+      expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+      calcDate: Timestamp.now(),
     });
   }
   if (row.billingEntitySurplusLinesRegulatoryFee) {
@@ -137,20 +153,37 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       value: extractNumberNeg(row.billingEntitySurplusLinesRegulatoryFee),
       rate: 0, // TODO: fix
       subjectBase: ['premium'], // TODO: fix
+      subjectBaseAmount: 0, // TODO: fix
       resultRoundType: 'nearest',
-      id: '',
+      taxId: '', // TODO: fix type
+      taxCalcId: '', // TODO
+      state: row.homeState as State,
+      refundable: true,
+      transactionTypes: [
+        'new',
+        'endorsement',
+        'amendment',
+        'cancellation',
+        'flat_cancel',
+        'reinstatement',
+        'renewal',
+      ],
+      expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+      calcDate: Timestamp.now(),
     });
   }
   if (row.billingEntityInspectionFee) {
     billingEntityFees.push({
       displayName: 'Inspection Fee',
       value: extractNumberNeg(row.billingEntityInspectionFee),
+      refundable: false,
     });
   }
   if (row.billingEntityMgaFee) {
     billingEntityFees.push({
       displayName: 'MGA Fee',
       value: extractNumberNeg(row.billingEntityMgaFee),
+      refundable: true,
     });
   }
   // TODO: billing entity totals (issues getting all fees/taxes ?? need to use same format as policy import ??)
@@ -293,6 +326,7 @@ function csvRowCommon(row: TrxRow): DeepNullable<Omit<BaseTransaction, 'metadata
     agency: {
       name: null,
       orgId: null,
+      stripeAccountId: null, // TODO: fix (loop up ??)
       address: null,
     },
     mailingAddress: {

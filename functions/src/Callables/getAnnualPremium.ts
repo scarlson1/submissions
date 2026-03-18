@@ -15,19 +15,29 @@ import {
   GetAALRes,
   GetPremiumCalcResult,
   getAALs,
+  getComm,
   getPremium,
   validateAALs,
   validateBasement,
-  validateCommission,
   validateFloodZone,
   validateGetAALsProps,
   validatePriorLossCount,
 } from '../modules/rating/index.js';
 // import { GetAALRes } from '../modules/rating/getAALs';
 // import { GetPremiumCalcResult } from '../modules/rating/getPremium';
-import { Basement, FloodZone, Limits, PriorLossCount, ValueByRiskType } from '@idemand/common';
+import {
+  Basement,
+  CommSource,
+  FloodZone,
+  Limits,
+  PriorLossCount,
+  ValueByRiskType,
+} from '@idemand/common';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims } from './utils/index.js';
+
+// only called from quote stage --> create quote in draft state ?? pass quoteId ??
+// instead of passing data ??
 
 interface GetAnnualPremiumRequest {
   coordinates: Coordinates;
@@ -39,10 +49,13 @@ interface GetAnnualPremiumRequest {
   state: string;
   floodZone?: string;
   basement?: string;
-  commissionPct?: number;
+  // commissionPct?: number;
   submissionId?: string | null;
   locationId?: string | null;
   externalId?: string | null;
+  commSource: CommSource;
+  orgId?: string | null;
+  agentId?: string | null;
 }
 
 export interface GetAnnualPremiumResponse {
@@ -51,7 +64,6 @@ export interface GetAnnualPremiumResponse {
   ratingDocId?: string;
 }
 
-// export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
 const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
   const db = getFirestore();
   info('GET ANNUAL PREMIUM CALLED', data);
@@ -68,10 +80,13 @@ const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremium
     floodZone = defaultFloodZone.value(),
     state,
     basement = 'unknown',
-    commissionPct = 0.15,
+    // commissionPct = 0.15,
     submissionId,
     locationId = null,
     externalId = null,
+    commSource,
+    orgId,
+    agentId,
   } = data;
 
   try {
@@ -82,13 +97,16 @@ const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremium
     validatePriorLossCount(priorLossCount);
     validateFloodZone(floodZone);
     validateBasement(basement);
-    validateCommission(commissionPct);
+    // validateCommission(commissionPct);
   } catch (err: any) {
     error('INVALID PROPS: ', { err });
     const msg = err?.message || 'request body validation failed';
 
     throw new HttpsError('failed-precondition', msg);
   }
+
+  const commData = await getComm(commSource, orgId, agentId, 'flood');
+  const commissionPct = commData.subproducerCommissionPct;
 
   let AALsRes: GetAALRes | undefined;
   try {

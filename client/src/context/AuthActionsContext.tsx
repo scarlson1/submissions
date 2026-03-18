@@ -145,6 +145,25 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
     [reauthIfRequired, user]
   );
 
+  // TODO: requires recaptcha and verification code
+  // const updateUserPhone = useCallback(async () => {
+  //   if (!user) throw new Error('no user authenticated')
+
+  //   await reauthIfRequired();
+
+  //   // const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
+  //   // const provider = new PhoneAuthProvider(auth);
+  //   // const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
+  //   // // Obtain the verificationCode from the user.
+  //   // const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+
+  //   // await updatePhoneNumber(user)
+  //   // const enrolledFactors = multiFactor(user).enrolledFactors;
+  //   // if (enrolledFactors.length) {
+  //   //   await verifyBeforeUpdateEmail(user, )
+  //   // }
+  // }, [])
+
   /**
    * Change password dialog for already authenticated users.
    * @param {string} newPassword - new password for current user.
@@ -166,6 +185,7 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
       sendVerification,
       sendPasswordReset,
       updateUserEmail,
+      // updateUserPhone,
       updateUserPassword,
       loading,
     }),
@@ -175,6 +195,7 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
       sendVerification,
       sendPasswordReset,
       updateUserEmail,
+      // updateUserPhone,
       updateUserPassword,
       loading,
     ]

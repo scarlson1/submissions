@@ -92,6 +92,8 @@ interface ChangeRequestsDialogProps {
   policyId?: string; // optionally narrow to single policy
 }
 
+// TODO: use useConfirmAndUpdate hook ??
+
 export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequestsDialogProps) {
   const { claims } = useAuth();
   const { isSmall } = useWidth();
@@ -112,7 +114,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
   const { previewChange: previewChangeFn } = usePreviewChangeRequest((msg) => toast.error(msg));
 
   const { getEditRowModeActions, getEditModeProps } = useGridEditMode<ChangeRequest>({
-    // @ts-ignore TODO: fix type
+    // @ts-ignore
     editableCells: ['status', 'requestEffDate', 'underwriterNotes'],
   });
 

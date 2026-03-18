@@ -13,6 +13,7 @@ import {
   usersCollection,
 } from '@idemand/common';
 import { CollectionReference, DocumentData, Firestore } from 'firebase-admin/firestore';
+import Stripe from 'stripe';
 import {
   AgencyApplication,
   ChangeRequest,
@@ -23,6 +24,7 @@ import {
   PolicyClaim,
   PropertyDataRes,
   RatingData,
+  Receivable,
   StageImportRecord,
   Transaction,
 } from '../common/index.js';
@@ -51,30 +53,20 @@ export const createCollection = <T = DocumentData>(
   return db.collection(collectionPath) as CollectionReference<T>;
 };
 
-// export const usersCollection = (db: Firestore) => createCollection<User>(db, COLLECTIONS.USERS);
+export const transfersCollection = (db: Firestore) =>
+  createCollection<Stripe.Transfer | Stripe.TransferReversal>(db, 'transfers');
 
-// export const orgsCollection = (db: Firestore) =>
-//   createCollection<Organization>(db, COLLECTIONS.ORGANIZATIONS);
-
-// export const submissionsCollection = (db: Firestore) =>
-//   createCollection<Submission>(db, COLLECTIONS.SUBMISSIONS);
-
-// export const locationsCollection = (db: Firestore) =>
-//   createCollection<ILocation>(db, COLLECTIONS.LOCATIONS);
+export const receivablesCollection = (db: Firestore) =>
+  createCollection<Receivable>(db, 'receivables');
 
 export const ratingDataCollection = (db: Firestore) =>
   createCollection<RatingData>(db, 'ratingData');
-
-// export const quotesCollection = (db: Firestore) => createCollection<Quote>(db, COLLECTIONS.QUOTES);
 
 export const propertyDataResCollection = (db: Firestore) =>
   createCollection<PropertyDataRes>(db, 'propertyDataRes');
 
 export const finTrxCollection = (db: Firestore) =>
   createCollection<Charge>(db, 'financialTransactions');
-
-// export const policiesCollection = (db: Firestore) =>
-//   createCollection<Policy>(db, COLLECTIONS.POLICIES);
 
 export const policyClaimsCollection = (db: Firestore, policyId: string) =>
   createCollection<PolicyClaim>(
@@ -85,20 +77,11 @@ export const policyClaimsCollection = (db: Firestore, policyId: string) =>
 export const transactionsCollection = (db: Firestore) =>
   createCollection<Transaction>(db, 'transactions');
 
-// export const swissReResCollection = (db: Firestore) =>
-//   createCollection<SRResWithAAL | SRRes>(db, 'swissReRes');
-
 export const agencyApplicationCollection = (db: Firestore) =>
   createCollection<AgencyApplication>(db, 'agencySubmissions');
 
-// export const licensesCollection = (db: Firestore) =>
-//   createCollection<License>(db, COLLECTIONS.LICENSES);
-
 export const emailActivityCollection = (db: Firestore) =>
   createCollection<any>(db, 'emailActivity');
-
-// export const moratoriumsCollection = (db: Firestore) =>
-//   createCollection<Moratorium>(db, COLLECTIONS.MORATORIUMS);
 
 export const disclosuresCollection = (db: Firestore) =>
   createCollection<Disclosure>(db, 'disclosures');
@@ -110,16 +93,10 @@ export const importSummaryCollection = (db: Firestore) =>
 // export const notificationsCollection = (db: Firestore, userId: string) =>
 //   createCollection<Notification>(db, `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.NOTIFICATIONS}`);
 
-// export const invitesCollection = (db: Firestore, orgId: string) =>
-//   createCollection<Invite>(
-//     db,
-//     `${Collection.enum.organizations}/${orgId}/${Collection.enum.invitations}`
-//   );
-
 export const userClaimsCollection = (db: Firestore, orgId: string) =>
   createCollection<ClaimsDocData>(
     db,
-    `${Collection.enum.userClaims}/${orgId}/${Collection.enum.userClaims}`
+    `${Collection.enum.organizations}/${orgId}/${Collection.enum.userClaims}`
   );
 
 export const paymentMethodsCollection = (db: Firestore, userId: string) =>
@@ -145,6 +122,6 @@ export const stagedImportsCollection = (db: Firestore, importId: string) =>
 
 export const versionsCollection = <T extends DocumentData>(
   db: Firestore,
-  parentCollection: Collection, // keyof typeof COLLECTIONS,
+  parentCollection: Collection,
   parentId: string
 ) => createCollection<T>(db, `${parentCollection}/${parentId}/${Collection.enum.versions}`);

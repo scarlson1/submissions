@@ -11,6 +11,11 @@ export { moratoriumCols } from './moratoriumCols';
 export { orgCols } from './orgCols';
 export { POLICY_COLUMN_VISIBILITY, policyCols } from './policyCols';
 export { QUOTE_COLUMN_VISIBILITY, quoteCols } from './quoteCols';
+export {
+  RECEIVABLE_COLUMN_VISIBILITY,
+  adminReceivableCols,
+  receivableCols,
+} from './receivableCols';
 export { SUBMISSION_COLUMN_VISIBILITY, submissionCols } from './submissionCols';
 export { taxCols } from './taxCols';
 export { TRANSACTION_COLUMN_VISIBILITY, transactionCols } from './transactionCols';

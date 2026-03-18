@@ -3,19 +3,12 @@ import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, SUBMISSION_STATUS, Submission } from 'common';
-import { ServerDataGrid, ServerDataGridProps } from 'components';
+import { CLAIMS, SUBMISSION_STATUS, ServerDataGridCollectionProps, Submission } from 'common';
+import { ServerDataGrid } from 'components';
 import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
 import { SUBMISSION_COLUMN_VISIBILITY, statusCol, submissionCols } from 'modules/muiGrid';
 
-export interface SubmissionsGridProps
-  extends Omit<
-    ServerDataGridProps,
-    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
-  > {
-  renderActions?: (params: GridRowParams) => JSX.Element[];
-  additionalColumns?: GridColDef<any, any, any>[];
-}
+export type SubmissionsGridProps = ServerDataGridCollectionProps<Submission, Submission>;
 
 export const SubmissionsGrid = ({
   renderActions = () => [],

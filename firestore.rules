@@ -91,6 +91,12 @@ service cloud.firestore {
         allow update: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
         allow delete: if false;
       }
+
+      match /secure/rating {
+        allow read: if isSignedIn() && (isPolicyOrgUser(policyId) || isIDemandAdmin())
+        allow write: if isSignedIn() && isIDemandAdmin()
+        allow delete: if false;
+      }
     }
 
     // TODO: use isUserOrAgentOrAdminOfDocData instead ??
@@ -98,7 +104,18 @@ service cloud.firestore {
       let policy = getPolicy(policyId);
       let policyData = policy.data;
 
-      return policyId != null && (isUser(policyData.userId) || isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null)))
+      return (
+      	isUser(policyData.get('userId', null)) 
+        || isUser(policyData.get(['agency', 'userId'], null)) 
+        || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId'], null)))
+      )
+    }
+
+    function isPolicyOrgUser(policyId) {
+      let policy = getPolicy(policyId);
+      let policyData = policy.data;
+
+      return policyId != null && (isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null)))
     }
 
     // TODO: temp - might want diff rules for policy/location vs submission
@@ -129,6 +146,7 @@ service cloud.firestore {
         (parentType == 'submission' && subRule) 
         || (parentType == 'quote' && quoteRule) 
         || (parentType == 'policy' && policyRule)
+        || !parentType
       )
     }
 
@@ -141,6 +159,7 @@ service cloud.firestore {
 
     // TODO: force email verification for change requests ??
     // required for collection group queries (https://firebase.google.com/docs/firestore/security/rules-query#collection_group_queries_and_security_rules)
+    // TODO: redo rules to allow change request base on policy permissions
     match /{path=**}/changeRequests/{requestId} {
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
     }
@@ -148,6 +167,7 @@ service cloud.firestore {
     function getPolicy(policyId) {
       return get(/databases/$(database)/documents/policies/$(policyId))
     }
+
     function getPolicyData(policyId) {
       return getPolicy(policyId).data
     }
@@ -184,6 +204,10 @@ service cloud.firestore {
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
     }
 
+    match /receivables/{receivableId} {
+      allow read, write: if isSignedIn() && isIDemandAdmin(); // TODO: permissions using existingData().policyId
+    }
+
     // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)
     match /transactions/{trxId} {
       allow read: if isDocUser() || isIDemandAdmin() 
@@ -203,6 +227,7 @@ service cloud.firestore {
         allow read: if isSignedIn() && (isUser(userId) || request.auth.uid in existingData().agentIds || request.auth.token.firebase.tenant in existingData().orgIds) // || isIDemandAdmin()
       }
     }
+
     // for collection group queries
     match /{path=**}/permissions/{docId} {
       allow list: if isSignedIn() && (isUser(existingData().get(userId, null)) || request.auth.uid in existingData().get(agentIds, [])|| request.auth.token.firebase.tenant in existingData().get(orgIds, [])) || isIDemandAdmin()
@@ -258,12 +283,6 @@ service cloud.firestore {
     }
 
     match /propertyDataRes/{docId} {
-      allow read: if isIDemandAdmin()
-      allow create: if false
-      allow update, delete: if false
-    }
-
-    match /spatialKey/{skDocId} {
       allow read: if isIDemandAdmin()
       allow create: if false
       allow update, delete: if false

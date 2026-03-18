@@ -8,6 +8,8 @@ import {
 
 import { CLAIMS, TProduct } from 'common';
 import { PageMeta, RequireAuth, RouterErrorBoundary } from 'components';
+// import { StripePmtIntentWrapper } from 'components/forms/StripeCheckout/StripeElementsWrapper';
+import { ConnectPayments, ConnectPayouts } from '@stripe/react-connect-js';
 import { ConfigLayout, Layout, SettingsLayout } from 'components/layout';
 import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
@@ -16,6 +18,9 @@ import { AuthActionsProvider } from 'context';
 import { ActionHandler } from 'elements';
 import { SuccessStep } from 'elements/forms';
 import { LocationChangeWrapper } from 'elements/forms/LocationChangeForm';
+import StripeBindQuote from 'elements/forms/StripeBindQuote';
+import StripeCheckout from 'elements/forms/StripeCheckout';
+import { StripePaymentSuccess } from 'elements/forms/StripeReceivableCheckout/StripePaymentSuccess';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid, ImportsSummaryGrid } from 'elements/grids';
 import { ActiveEventsMap, PoliciesMap } from 'elements/maps';
@@ -27,6 +32,8 @@ import {
   UserDetails as UserDetailsNew,
   UserSecurity,
 } from 'elements/settings';
+import { CurrentUserOrgStripeConnectOnboarding } from 'elements/settings/OrgStripeConnectOnboarding';
+import { StripeConnectViewsLayout } from 'elements/StripeConnectViewsLayout';
 import {
   AddLocation,
   AgencyNew,
@@ -38,6 +45,7 @@ import {
   Policy,
   QuoteBind,
   Quotes,
+  ReceivableCheckout,
   SubmissionNew,
   SubmissionNewPortfolio,
   Submissions,
@@ -67,6 +75,7 @@ import {
   QuoteEdit,
   QuoteNew,
   QuoteNewFromSub,
+  Receivables,
   SLTaxEdit,
   SLTaxes,
   SLTaxNew,
@@ -75,6 +84,7 @@ import {
   Users,
 } from 'views/admin';
 import { Disclosures } from 'views/admin/Disclosures';
+import { ViewReceivables } from 'views/admin/ViewReceivables';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ClaimNew } from 'views/ClaimNew';
 import { EmailVerified } from 'views/EmailVerified';
@@ -119,6 +129,7 @@ export enum ROUTES {
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
   // CLAIM_NEW = '/policies/:policyId/claim/new',
   CLAIM_NEW = '/policies/:policyId/:locationId/claims/new',
+  PAYABLE_CHECKOUT = '/receivables/:receivableId',
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
   ACCOUNT = '/account',
@@ -159,6 +170,7 @@ export enum ADMIN_ROUTES {
   IMPORT_REVIEW = '/admin/config/imports/:importId',
   EMAIL_ACTIVITY = '/admin/config/email-activity',
   TRANSACTIONS = '/admin/config/transactions',
+  PAYABLES = '/admin/config/receivables', // TODO: move to non admin route once permissions fixed
   LOCATIONS = '/admin/locations',
 }
 
@@ -178,6 +190,7 @@ export enum ACCOUNT_ROUTES {
   USER_SETTING = '/account/user/:setting',
   ORG_SETTINGS = '/account/org',
   ORG_SETTING = '/account/org/:setting',
+  // ORG_STRIPE_ONBOARDING = '/account/org/:orgId/stripe', // onboarding
 }
 
 type TArgs =
@@ -201,6 +214,7 @@ type TArgs =
     }
   | { path: ROUTES.ADD_LOCATION_NEW; params: { policyId: string } }
   | { path: ROUTES.CLAIM_NEW; params: { policyId: string; locationId: string } }
+  | { path: ROUTES.PAYABLE_CHECKOUT; params: { receivableId: string } }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
@@ -245,6 +259,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.IMPORT_REVIEW; params: { importId: string } }
   | { path: ADMIN_ROUTES.EMAIL_ACTIVITY }
   | { path: ADMIN_ROUTES.TRANSACTIONS }
+  | { path: ADMIN_ROUTES.PAYABLES }
   | { path: ADMIN_ROUTES.LOCATIONS }
   | {
       path: AUTH_ROUTES.CREATE_ACCOUNT;
@@ -281,6 +296,7 @@ type TArgs =
   | { path: ACCOUNT_ROUTES.USER_SETTING; params: { setting: string } }
   | { path: ACCOUNT_ROUTES.ORG_SETTINGS }
   | { path: ACCOUNT_ROUTES.ORG_SETTING; params: { setting: string } };
+// | { path: ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING; params: { orgId: string } };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
 
@@ -550,6 +566,29 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
+            path: ROUTES.PAYABLE_CHECKOUT,
+            element: <ReceivableCheckout />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Receivables',
+                  // TODO: add link once route added
+                  // link: createPath({
+                  //   path: ROUTES.POLICIES,
+                  // }),
+                },
+                {
+                  label: `${match?.params?.receivableId || ''}`,
+                  // link: createPath({
+                  //   path: ROUTES.POLICY,
+                  //   params: { policyId: `${match?.params?.policyId || ''}` },
+                  // }),
+                },
+              ],
+            },
+          },
+          {
             path: ROUTES.AGENCY_NEW,
             element: (
               <>
@@ -769,6 +808,14 @@ export const router = sentryCreateBrowserRouter([
                         //   params: { setting: 'security' },
                         // }),
                       },
+                      {
+                        title: 'Payouts',
+                        route: 'stripe',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.ORG_SETTING,
+                        //   params: { setting: 'security' },
+                        // }),
+                      },
                     ]}
                   />
                 ),
@@ -797,6 +844,19 @@ export const router = sentryCreateBrowserRouter([
                     // or explicitly specify each setting page in router ??
                     path: 'security',
                     element: <OrgSecurity />,
+                  },
+                  {
+                    path: 'stripe', // ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING,
+                    element: (
+                      <RequireAuth requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                        <CurrentUserOrgStripeConnectOnboarding />
+                      </RequireAuth>
+                    ),
+                    // element: (
+                    //   <RequireAuthReactFire requiredClaims>
+                    //     <OrgStripeConnectOnboarding />
+                    //   </RequireAuthReactFire>
+                    // ),
                   },
                 ],
               },
@@ -1063,7 +1123,68 @@ export const router = sentryCreateBrowserRouter([
               </RequireAuthReactFire>
             ),
           },
-
+          {
+            path: 'stripe-test/:quoteId',
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <StripeCheckout />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: 'stripe-test/success',
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <StripePaymentSuccess />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: 'stripe-test/receivables/:policyId',
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <ViewReceivables />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: 'stripe-test/data',
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <StripeConnectViewsLayout />
+              </RequireAuthReactFire>
+            ),
+            children: [
+              {
+                path: 'payments',
+                element: <ConnectPayments />,
+              },
+              {
+                path: 'payouts',
+                element: <ConnectPayouts />,
+              },
+              // {
+              //   path: 'payouts',
+              //   element: <OrgStripeConnectOnboarding orgId={orgId} />,
+              // },
+            ],
+          },
+          {
+            path: 'stripe-test/quote/bind/:quoteId',
+            element: (
+              <RequireAuthReactFire>
+                <StripeBindQuote />
+              </RequireAuthReactFire>
+            ),
+          },
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
@@ -2016,6 +2137,26 @@ export const router = sentryCreateBrowserRouter([
                   crumb: (match: CrumbMatch) => [
                     {
                       label: 'Transactions',
+                    },
+                  ],
+                },
+              },
+              {
+                path: 'receivables',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                  >
+                    <>
+                      <PageMeta title='iDemand - Receivables' />
+                      <Receivables />
+                    </>
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => [
+                    {
+                      label: 'Receivables',
                     },
                   ],
                 },

@@ -5,6 +5,7 @@ export { AddressStep } from './AddressStep';
 export { AddressStepQuote } from './AddressStepQuote';
 export { AgencyBankingStep, TooltipContent } from './AgencyBankingStep';
 export { AgencyReviewStep, ContactList, DisplayFilename } from './AgencyReviewStep';
+// export { ConnectOnboarding } from './ConnectOnboarding';
 export { ContactForm } from './ContactForm';
 export { ContactStep } from './ContactStep';
 export { DeductibleStep } from './DeductibleStep';
@@ -29,6 +30,7 @@ export { SuccessStep } from './SuccessStep';
 export { TaxForm } from './TaxForm';
 export { UpdatePasswordForm } from './UpdatePasswordForm';
 export { UpdateUserEmail } from './UpdateUserEmail';
+export { UpdateUserPhone } from './UpdateUserPhone';
 export { UserDetailsForm } from './UserDetailsForm';
 
 export type { AddLocationValues } from './AddLocation/AddLocationWizard';

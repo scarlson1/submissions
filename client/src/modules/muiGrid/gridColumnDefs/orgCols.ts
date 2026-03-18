@@ -21,11 +21,13 @@ import {
   percentColBaseProps,
   phoneCol,
   statusCol,
+  typeCol,
   updatedCol,
 } from './gridColumns';
 
 export const orgCols: GridColDef<Organization>[] = [
   orgNameCol,
+  typeCol,
   {
     ...statusCol,
     valueOptions: ['active', 'inactive'], // TODO org status enum (zod)

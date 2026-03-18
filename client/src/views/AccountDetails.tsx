@@ -31,7 +31,7 @@ import {
   UpdateUserEmail,
   UserDetailsForm,
 } from 'elements/forms';
-import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
+import { UserClaimsGrid } from 'elements/grids';
 import { useClaims, useCollectionData } from 'hooks';
 import { AUTH_ROUTES, createPath } from 'router';
 
@@ -200,11 +200,11 @@ export const AccountDetails = () => {
               {orgId ? (
                 <Box>
                   <Box sx={{ pb: 2, width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
-                    <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
+                    <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']} requireAll={false}>
                       <AddUsersDialog orgId={orgId} />
                     </ClaimsGuard>
                   </Box>
-                  <AdminManageUsersGrid
+                  <UserClaimsGrid
                     orgId={orgId}
                     columnVisibilityModel={{
                       displayName: false,
@@ -261,7 +261,7 @@ export const AccountDetails = () => {
         </Box>
       </Paper>
 
-      <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
+      <ClaimsGuard requiredClaims={['iDemandAdmin']}>
         <Box sx={{ p: 1 }}>
           <InitializeFIPS />
         </Box>

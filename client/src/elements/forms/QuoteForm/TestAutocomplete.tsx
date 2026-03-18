@@ -59,7 +59,7 @@ export const TestAutocomplete = () => {
   // const userOptions = useUserOptions(constraints);
 
   const { data: userOptions } = useUsers();
-  console.log('test: ', userOptions);
+  // console.log('test: ', userOptions);
 
   return (
     <Box>

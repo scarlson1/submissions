@@ -26,7 +26,7 @@ export const ApiClient = axios.create({
 interface TaxResLineItem
   extends Omit<WithId<TTax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
   displayName: TTaxItemName;
-  calculatedTaxBase: number | null; // null if fixed rate ($10)
+  taxBaseAmount: number | null; // null if fixed rate ($10)
   rate: number | null; // null if fixed rate
   value: number;
   effectiveDate: string;

@@ -1,17 +1,10 @@
 import { Box } from '@mui/material';
-import { GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { ServerDataGridCollectionProps } from 'common';
 
-import { ServerDataGrid, ServerDataGridProps } from 'components';
+import { ServerDataGrid } from 'components';
 import { emailCols } from 'modules/muiGrid/gridColumnDefs';
 
-export interface EmailGridProps
-  extends Omit<
-    ServerDataGridProps,
-    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
-  > {
-  renderActions?: (params: GridRowParams) => JSX.Element[];
-  additionalColumns?: GridColDef<any, any, any>[];
-}
+export type EmailGridProps = ServerDataGridCollectionProps;
 
 export const EmailsGrid = ({ renderActions, additionalColumns, ...props }: EmailGridProps) => {
   return (

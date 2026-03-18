@@ -115,8 +115,10 @@ export function getPolicyFromQuote(
   const locationData = Object.values(locations);
   verify(locationData && locationData.length > 0, 'missing location data');
   const singleLocation = locationData[0];
-  const billingEntityId = Object.keys(data.billingEntities)[0];
-  verify(billingEntityId, 'missing billing entity');
+  // use defaultBillingEntityId ?? could have added another billing entity
+  // const billingEntityId = Object.keys(data.billingEntities)[0];
+  verify(data.defaultBillingEntityId, 'missing billing entity ID');
+  const billingEntityId = data.defaultBillingEntityId; // use default as selected billing entity while only single location
 
   const policyLocations: Policy['locations'] = {};
   for (const [id, location] of Object.entries(locations)) {
@@ -147,6 +149,7 @@ export function getPolicyFromQuote(
     data.fees,
   );
 
+  // TODO: getting carrier from quote (add states to carrier org doc ?? or create config file the state: carrierId mapping )
   const issuingCarrier = getCarrierByState(data.homeState);
   verify(issuingCarrier, 'error determining issuingCarrier');
 
@@ -182,14 +185,24 @@ export function getPolicyFromQuote(
       name: data.agent?.name,
       email: data.agent?.email,
       phone: data.agent?.phone || '',
+      photoURL: data.agent?.photoURL || '',
     },
     agency: {
       orgId: data.agency?.orgId,
+      stripeAccountId: data.agency?.stripeAccountId || '', // TODO: validate
       name: data.agency?.name,
       address: data.agency?.address,
+      photoURL: data.agency?.photoURL || '',
+    },
+    carrier: {
+      name: data.carrier?.name,
+      orgId: data.carrier?.orgId,
+      stripeAccountId: data.carrier?.stripeAccountId,
+      address: data.carrier?.address || null,
+      photoURL: data.carrier?.photoURL || '',
     },
     billingEntities: data.billingEntities,
-    defaultBillingEntityId: data.defaultBillingEntityId || 'namedInsured',
+    defaultBillingEntityId: data.defaultBillingEntityId,
     surplusLinesProducerOfRecord: {
       name: `${license.licensee} ${license.state} Surplus Lines Producer of Record License`.trim(),
       licenseNum: license.licenseNumber,
@@ -197,19 +210,7 @@ export function getPolicyFromQuote(
       phone: license.phone ?? '+18889124320',
     },
     issuingCarrier,
-    // TODO: fix carrier types (idemand-common jumped in pnpm update)
-    // carrier: {
-    //   name: issuingCarrier,
-    //   orgId: 'TODO',
-    //   stripeAccountId: 'TODO',
-    //   address: {
-    //     addressLine1: '123 main st.',
-    //     addressLine2: 'Suite 1000',
-    //     city: 'Nashville',
-    //     state: 'TN',
-    //     postal: '37203',
-    //   },
-    // },
+    commSource: data.commSource,
     documents: [],
     quoteId: data.id,
     metadata: {

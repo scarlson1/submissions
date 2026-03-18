@@ -6,14 +6,16 @@ import {
   TaxItem,
   TaxItemName,
   TransactionType,
-  WithId,
 } from '@idemand/common';
 import axios, { AxiosResponse } from 'axios';
 import { isDate } from 'date-fns';
+import { Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
 import { submissionsApiBaseURL } from '../../common/index.js';
-import { sumFeesByType } from '../transactions/index.js';
+import { sumFeesByType } from '../taxes/index.js';
+
+// TODO: move to taxes folder ??
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItem, 'fixedFee' | 'noFee'>, number>;
 
@@ -23,23 +25,41 @@ interface StateTaxRequest extends SubjectBaseKeyVal {
   quoteNumber?: string | null;
   effectiveDate?: Date | string;
   lineOfBusiness?: LineOfBusiness;
+  stripeCustomerId?: string;
 }
 
+// interface TaxResLineItem
+//   extends Omit<WithId<Tax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
+//   displayName: TaxItemName;
+//   taxBaseAmount: number | null; // null if fixed rate ($10)
+//   rate: number | null; // null if fixed rate ($10)
+//   value: number;
+//   effectiveDate: string;
+//   expirationDate: string | null;
+// }
+
 interface TaxResLineItem
-  extends Omit<WithId<Tax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
+  extends Omit<Tax, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
   displayName: TaxItemName;
-  calculatedTaxBase: number | null; // null if fixed rate ($10)
+  taxBaseAmount: number | null; // null if fixed rate ($10)
   rate: number | null; // null if fixed rate ($10)
   value: number;
   effectiveDate: string;
   expirationDate: string | null;
+  taxId: string;
+  taxCalcId: string;
 }
 
 export interface StateTaxResponse {
   lineItems: TaxResLineItem[];
 }
 
-export async function fetchTaxes(quote: Quote, transactionType: TransactionType, effDate?: Date) {
+export async function fetchTaxes(
+  quote: Quote,
+  transactionType: TransactionType,
+  effDate?: Date,
+  stripeCustomerId?: string
+) {
   const fees = quote?.fees;
   const state = quote?.homeState;
   const annualPremium = quote?.annualPremium; // TODO: switch to termPremium ?? add termPremium & annualPremium to quote interface
@@ -67,6 +87,7 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType,
     mgaFees,
     inspectionFees,
     transactionType,
+    stripeCustomerId,
   };
   if (effDate) body['effectiveDate'] = effDate;
 
@@ -80,14 +101,21 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType,
   let newTaxes: TaxItem[] = [];
   if (data && data.lineItems?.length > 0) {
     newTaxes = data.lineItems.map((t) => ({
+      state: t.state,
       displayName: t.displayName || '',
       rate: t.rate || t.value,
       value: t.value,
       subjectBase: t.subjectBase || [],
+      subjectBaseAmount: t.taxBaseAmount as number, // TODO: delete as once common updated
+      refundable: t.refundable,
       baseDigits: t.baseDigits,
       resultDigits: t.resultDigits,
       resultRoundType: t.resultRoundType,
-      id: t.id,
+      taxId: t.taxId,
+      transactionTypes: t.transactionTypes,
+      expirationDate: t.expirationDate ? Timestamp.fromDate(new Date('01/01/2050')) : null,
+      calcDate: Timestamp.now(), // t.calcDate || Timestamp.now(),
+      taxCalcId: t.taxCalcId || '',
     }));
   }
 

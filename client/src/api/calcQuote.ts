@@ -1,6 +1,6 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import { Limits, ValueByRiskType } from 'common';
+import { Limits, TCommSource, ValueByRiskType } from 'common';
 
 export interface CalcQuoteRequest {
   limits: Limits;
@@ -12,7 +12,10 @@ export interface CalcQuoteRequest {
   priorLossCount: string;
   submissionId?: string | null;
   basement?: string;
-  commissionPct?: number;
+  // commissionPct?: number;
+  commSource: TCommSource;
+  agentId: string | null;
+  orgId: string | null;
 }
 
 export interface CalcQuoteResponse {

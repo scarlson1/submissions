@@ -11,6 +11,7 @@ export { Policies } from './Policies';
 export { Policy } from './Policy';
 export { QuoteBind } from './QuoteBind';
 export { Quotes } from './Quotes';
+export { ReceivableCheckout } from './ReceivableCheckout';
 export { SubmissionNew } from './SubmissionNew';
 export { SubmissionNewPortfolio } from './SubmissionNewPortfolio';
 export { Submissions } from './Submissions';

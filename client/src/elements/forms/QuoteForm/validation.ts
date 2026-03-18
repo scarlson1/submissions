@@ -1,6 +1,6 @@
 import { endOfToday, startOfToday } from 'date-fns';
 import { isEqual } from 'lodash';
-import * as yup from 'yup';
+import { array, boolean, date, number, object, string } from 'yup';
 
 import { SubjectBaseKeyVal } from 'api';
 import {
@@ -10,6 +10,7 @@ import {
   addressValidationActiveStates,
   agencyValidation,
   agentValidation,
+  carrierValidation,
   limitsValidation,
   namedInsuredValidationNotRequired,
 } from 'common';
@@ -25,40 +26,36 @@ const minDate = addToDate({ days: 15 }, startOfToday());
 const maxDate = addToDate({ days: 60 }, endOfToday());
 
 export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
-  yup.object().shape({
+  object().shape({
     address: addressValidationActiveStates(activeStates), // addressValidation,
-    homeState: yup.string().required('home state required'),
+    homeState: string().required('home state required'),
     limits: limitsValidation,
-    effectiveExceptionRequested: yup.boolean().typeError('eff. exception (boolean)'),
-    effectiveDate: yup.date().when('effectiveExceptionRequested', {
+    effectiveExceptionRequested: boolean().typeError('eff. exception (boolean)'),
+    effectiveDate: date().when('effectiveExceptionRequested', {
       is: true,
-      then: () => yup.date().required(), // .min(minDate, 'Effective must be 15+ days'),
+      then: () => date().required(), // .min(minDate, 'Effective must be 15+ days'),
       otherwise: () =>
-        yup
-          .date()
+        date()
           .typeError('effective date (date)')
           .min(minDate, 'effective date must be at least 15 days from now')
           .max(maxDate, 'effective date must be within 60 days'),
     }),
-    deductible: yup.number().min(1000).required(),
-    fees: yup.array().of(
-      yup.object().shape({
-        displayName: yup.string().typeError('fee name required').required('fee name is required'),
-        value: yup
-          .string()
-          .typeError('fee value required (string)')
-          .required('fee value is required'),
+    deductible: number().min(1000).required(),
+    fees: array().of(
+      object().shape({
+        displayName: string().typeError('fee name required').required('fee name is required'),
+        value: string().typeError('fee value required (string)').required('fee value is required'),
+        // refundable: number().required('refundable is required'),
+        refundable: boolean(),
       })
     ),
-    taxes: yup.array().of(
-      yup.object().shape({
-        displayName: yup
-          .string()
+    taxes: array().of(
+      object().shape({
+        displayName: string()
           .typeError('tax name required')
           .required('tax display name is required'),
-        rate: yup.number().typeError('tax rate must be a number'),
-        value: yup
-          .number()
+        rate: number().typeError('tax rate must be a number'),
+        value: number()
           .typeError('tax value required')
           .test(
             'fee-val-current',
@@ -116,26 +113,24 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
             }
           )
           .required('tax value is required'),
-        subjectBase: yup.array().of(yup.string().typeError('subject base (string)')),
+        subjectBase: array().of(string().typeError('subject base (string)')),
       })
     ),
-    annualPremium: yup
-      .number()
+    annualPremium: number()
       .typeError('annual premium required (number)')
       .min(100)
       .required('annual premium is required'),
-    subproducerCommission: yup
-      .number()
-      .typeError('subproducer commission required (number)')
-      .required('commission is required'),
-    quoteTotal: yup
-      .number()
+    // subproducerCommission:
+    //   .number()
+    //   .typeError('subproducer commission required (number)')
+    //   .required('commission is required'),
+    quoteTotal: number()
       .typeError('quote total required')
       .min(100, 'total must be above 100')
       .test('correct-total', 'total ≠ premium + fees + taxes', (val, ctx) => {
-        const { fees, taxes, annualPremium } = ctx.parent;
+        const { fees, taxes: t, annualPremium } = ctx.parent;
 
-        const total = sumFeesTaxesPremium(fees, taxes, annualPremium || 0);
+        const total = sumFeesTaxesPremium(fees, t, annualPremium || 0);
 
         if (total !== val) return false;
 
@@ -143,47 +138,43 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
       }),
     // TODO: named insured, agent, agency validation
     namedInsured: namedInsuredValidationNotRequired,
-    agent: agentValidation,
-    agency: agencyValidation,
+    agent: agentValidation, // TODO: need to save agent orgId in order to validate matches agency
+    agency: agencyValidation.concat(
+      object().shape({
+        stripeAccountId: string().required('connect account ID required'),
+      })
+    ),
+    carrier: carrierValidation,
+    commSource: string().required('commission source required'),
     // TODO: reusable rating data validation
-    ratingPropertyData: yup.object().shape({
-      CBRSDesignation: yup
-        .string()
-        .typeError('CBRS required')
-        .required(`CBRS designation is required`),
-      basement: yup
-        .string()
-        .typeError('basement required (string)')
-        .required(`basement is required`),
-      distToCoastFeet: yup.number().typeError('dist to coast (string)').min(1), // .required(`distance to coast is required`),
-      floodZone: yup
-        .string()
+    ratingPropertyData: object().shape({
+      CBRSDesignation: string().typeError('CBRS required').required(`CBRS designation is required`),
+      basement: string().typeError('basement required (string)').required(`basement is required`),
+      distToCoastFeet: number().typeError('dist to coast (string)').min(1), // .required(`distance to coast is required`),
+      floodZone: string()
         .typeError('flood zone required (string)')
         .required(`flood zone is required`),
-      numStories: yup
-        .number()
+      numStories: number()
         .typeError('# of stories required (number)')
         .required(`# of stories is required`)
         .min(1, 'min of 1 story')
         .max(10, 'max 10 stories'),
-      propertyCode: yup.string().required(`property code is required`),
-      replacementCost: yup
-        .number()
+      propertyCode: string().required(`property code is required`),
+      replacementCost: number()
         .typeError('replacement cost required (number)')
         .required(`replacement cost is required`)
         .min(80000, `RCV must be at least $80,000`),
-      sqFootage: yup.number().required(`square footage is required`),
-      yearBuilt: yup
-        .number()
+      sqFootage: number().required(`square footage is required`),
+      yearBuilt: number()
         .typeError('year built required (number)')
         .required(`year built is required`)
         .min(1900, 'Must be after 1900')
         .max(new Date().getFullYear(), `Year cannot exceed ${new Date().getFullYear()}`),
-      priorLossCount: yup.string().typeError('prior loss count (string)'),
+      priorLossCount: string().typeError('prior loss count (string)'),
     }),
-    notes: yup.array().of(
-      yup.object().shape({
-        note: yup.string(),
+    notes: array().of(
+      object().shape({
+        note: string(),
       })
     ),
   });

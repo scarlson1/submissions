@@ -1,10 +1,11 @@
 // BUG: load form when eff exception req = true, then turn it off and select valid date ==> validation fails
 
 import { Box, Collapse, Typography } from '@mui/material';
-import { FormikCheckbox, FormikDatePicker, FormikNativeSelect } from 'components/forms';
 import { useFormikContext } from 'formik';
 import { useEffect } from 'react';
 import { boolean, date, object, string } from 'yup';
+
+import { FormikCheckbox, FormikDatePicker, FormikNativeSelect } from 'components/forms';
 import { policyEffShortcuts } from '../QuoteForm/constants';
 import { BindQuoteValues } from './BindQuoteForm';
 import { LogAnalyticsProps } from './NamedInsuredStep';
@@ -21,7 +22,7 @@ export const getEffectiveDateValidation = (minEffDate: Date, maxEffDate: Date) =
           .max(maxEffDate, 'Effective date must be within 60 days of binding coverage'),
     }),
     effectiveExceptionReason: string().when('effectiveExceptionRequested', {
-      is: true,
+      is: (val: boolean) => val == true, /// (r: boolean) => !!r, // true,
       then: () => string().required('Please select an option'),
       otherwise: () => string().notRequired(),
     }),
@@ -99,7 +100,7 @@ export const EffectiveDateStep = ({
                   value: 'new_home_lender_required',
                 },
                 {
-                  label: 'UW waived',
+                  label: 'Underwriting waived',
                   value: 'uw_waived',
                 },
                 {

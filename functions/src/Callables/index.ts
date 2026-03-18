@@ -12,11 +12,16 @@ import {
   sendgridApiKey,
   signNowCreds,
   signNowUserCreds,
+  stripeSecretKey,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../common/index.js';
 import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom.js';
+
+export const addbillingentity = onCall({ secrets: [stripeSecretKey] }, async (request) => {
+  return (await import('./addBillingEntity.js')).default(request);
+});
 
 export const approvechangerequest = onCall(async (request) => {
   return (await import('./approveChangeRequest.js')).default(request);
@@ -63,11 +68,19 @@ export const calcquote = onCall(async (request) => {
   return (await import('./calcQuote.js')).default(request);
 });
 
+export const calctotalsbybillingentity = onCall(async (request) => {
+  return (await import('./calcTotalsByBillingEntity.js')).default(request);
+});
+
 // export const convertpolicyschema = onCall(async (request) => {
 //   return (await import('./convertPolicySchema.js')).default(request);
 // });
 
-export const createpolicy = onCall(async (request) => {
+export const createpaymentintent = onCall({ secrets: [stripeSecretKey] }, async (request) => {
+  return (await import('./createPaymentIntent.js')).default(request);
+});
+
+export const createpolicy = onCall({ secrets: [stripeSecretKey] }, async (request) => {
   return (await import('./createPolicy.js')).default(request);
 });
 
@@ -84,6 +97,10 @@ export const deliveragencyagreement = onCall(
 
 export const executepayment = onCall({ secrets: [ePayCreds] }, async (request) => {
   return (await import('./executePayment.js')).default(request);
+});
+
+export const fetchpaymentintentsecret = onCall({ secrets: [stripeSecretKey] }, async (request) => {
+  return (await import('./fetchPaymentIntentSecret.js')).default(request);
 });
 
 export const generatesearchkey = onCall(
@@ -178,6 +195,10 @@ export const sendpolicydoc = onCall(
     return (await import('./sendPolicyDoc.js')).default(request);
   }
 );
+
+export const setquoteuserid = onCall(async (request) => {
+  return (await import('./setQuoteUserId.js')).default(request);
+});
 
 export const submitclaim = onCall(
   {

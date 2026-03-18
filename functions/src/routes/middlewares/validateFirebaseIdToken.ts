@@ -54,7 +54,7 @@ export const validateFirebaseIdToken = async (
     }
 
     try {
-      info(`ID TOKEN FOUND`, { idToken });
+      info(`ID TOKEN FOUND`); // , { idToken }
       const decodedIdToken = await auth.verifyIdToken(idToken);
       info('ID Token correctly decoded: ', { decodedIdToken });
       // if (decodedIdToken.firebase.tenant === 'TENANT-ID1') {

@@ -1,4 +1,4 @@
-import { AgentDetails } from '@idemand/common';
+import { AgentDetails, CommSource } from '@idemand/common';
 import invariant from 'tiny-invariant';
 import { DeepNullable, Limits } from '../../common/index.js';
 import {
@@ -82,6 +82,8 @@ export function validateQuoteRow(row: DeepNullable<CSVTransformedQuote>): boolea
     );
 
     invariant(row.AALs && Object.values(row.AALs).every((aal) => typeof aal === 'number'));
+
+    invariant(CommSource.safeParse(row.commSource).success, 'invalid commSource');
 
     return true;
   } catch (err: any) {

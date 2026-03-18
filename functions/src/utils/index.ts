@@ -1,5 +1,6 @@
 export * from './algolia.js';
 export * from './arrays.js';
+export * from './createStripeConnectAccount.js';
 export * from './customDeepMerge.js';
 export { EDITOR_EXTENSION_DEFAULTS } from './editorExtensions.js';
 export * from './errorHelpers.js';
@@ -9,6 +10,7 @@ export * from './getZodObjPaths.js';
 export * from './helpers.js';
 export * from './policy.js';
 export * from './storage.js';
+export * from './stripe.js';
 export * from './transform.js';
 export * from './validateCoords.js';
 export * from './validation.js';

@@ -13,7 +13,7 @@ import {
   useSigninCheck,
 } from 'reactfire';
 
-import { CLAIMS } from 'common';
+import { CLAIMS, TClaim } from 'common';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: needs to use the same auth status source as used in components
@@ -106,24 +106,27 @@ type Claims = IdTokenResult['claims'];
  * @return {{ hasRequiredClaims: boolean }} returns validation function that returns true if user has at lease one of the required claims
  */
 export const getRequiredClaimValidator =
-  (requiredClaims: CustomClaimKeys[]): ClaimsValidator =>
-  (userClaims: Claims) => {
-    // check each required claim, returns true if all claims are missing
-    let notAuthorized = true;
+  // (requiredClaims: CustomClaimKeys[]): ClaimsValidator =>
 
-    // If user has any of the requiredClaims, they're authorized
-    requiredClaims.forEach((key) => {
-      const claim = CLAIMS[key];
-      if (!!userClaims[claim]) notAuthorized = false;
-    });
+    (requiredClaims: TClaim[]): ClaimsValidator =>
+    (userClaims: Claims) => {
+      // check each required claim, returns true if all claims are missing
+      let notAuthorized = true;
 
-    const errors: ClaimCheckErrors = {};
-    if (!!notAuthorized) errors.claims = ['Must have at least one of the required claims.'];
+      // If user has any of the requiredClaims, they're authorized
+      requiredClaims.forEach((key) => {
+        const claim = key; // CLAIMS[key];
+        if (!!userClaims[claim]) notAuthorized = false;
+      });
 
-    return {
-      hasRequiredClaims: !notAuthorized,
-      errors,
+      const errors: ClaimCheckErrors = {};
+      if (!!notAuthorized) errors.claims = ['Must have at least one of the required claims.'];
+
+      return {
+        hasRequiredClaims: !notAuthorized,
+        errors,
+      };
     };
-  };
 
-export const hasAdminClaimsValidator = getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']);
+// export const hasAdminClaimsValidator = getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']);
+export const hasAdminClaimsValidator = getRequiredClaimValidator(['orgAdmin', 'iDemandAdmin']);

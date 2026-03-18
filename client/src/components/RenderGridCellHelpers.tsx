@@ -25,6 +25,8 @@ import {
   percentFormat,
 } from 'modules/utils/helpers';
 
+// TODO: need to move exports to their own file b/c switch to vite ??
+
 export const renderGridPhone = ({ value }: GridRenderCellParams<any, any, any>) => {
   if (value == null) return '';
 
@@ -89,6 +91,7 @@ export const GridCellCopy = ({ value }: { value?: string | number | null }) => {
 
   const handleCopy = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
       e.stopPropagation();
       copy(value);
       toast.success('Copied!');

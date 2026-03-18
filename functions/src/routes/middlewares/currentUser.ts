@@ -36,7 +36,7 @@ export const currentUser = async (req: RequestUserAuth, res: Response, next: Nex
   if (!idToken) return next();
 
   try {
-    info(`ID TOKEN FOUND`, { idToken });
+    info(`ID TOKEN FOUND`); // { idToken }
     const decodedIdToken = await auth.verifyIdToken(idToken);
 
     const tenantId = decodedIdToken.firebase.tenant;

@@ -1,13 +1,30 @@
-import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
-
 import { Collection } from '@idemand/common';
+import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import {
   sendgridApiKey,
+  stripeSecretKey,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../common/index.js';
 export type { ClaimsDocData } from './mirrorCustomClaims.js';
+
+export const createreceivableonpolicycreated = onDocumentCreated(
+  {
+    document: `${Collection.Enum.policies}/{policyId}`,
+    secrets: [stripeSecretKey],
+  },
+  async (event) => {
+    await (await import('./createReceivableOnPolicyCreated.js')).default(event);
+  }
+);
+
+export const createstripeaccount = onDocumentCreated(
+  { document: `${Collection.enum.organizations}/{orgId}`, secrets: [stripeSecretKey] },
+  async (event) => {
+    await (await import('./createStripeAccount.js')).default(event);
+  }
+);
 
 export const getstaticsubmissionimg = onDocumentCreated(
   `${Collection.enum.submissions}/{submissionId}`,

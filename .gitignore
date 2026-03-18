@@ -36,7 +36,7 @@ ui-debug.log*
 **/.runtimeconfig.json
 **/package-lock.json
 # keep the root package-lock so that tools are consistent
-!/package-lock.json
+# !/package-lock.json
 **/ui-debug.log
 **/database-debug.log
 **/firebase-debug.log
@@ -47,3 +47,6 @@ ui-debug.log*
 
 .env*.local
 emulator-data
+
+# switched to pnpm (ignore npm lock files)
+package-lock.json

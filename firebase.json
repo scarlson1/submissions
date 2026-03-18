@@ -42,6 +42,10 @@
         "function": "sendgrid"
       },
       {
+        "source": "/stripe",
+        "function": "stripe"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
@@ -59,6 +63,15 @@
       {
         "source": "/service-worker.js",
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "source": "/api/state-tax{,/**}",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }
+        ]
       }
     ]
   },

@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from 'reactfire';
 
 import { Collection, Moratorium } from 'common';
-import { ClaimsGuard, FlexCard, FlexCardContent, IconButtonMenu } from 'components';
+import { FlexCard, FlexCardContent, IconButtonMenu } from 'components';
 import {
   Query,
   Timestamp,
@@ -82,9 +82,6 @@ export const Home = () => {
           />
         </Grid>
       </Grid>
-      <ClaimsGuard requiredClaims={['AGENT', 'IDEMAND_ADMIN']}>
-        <div>test</div>
-      </ClaimsGuard>
     </Box>
   );
 };

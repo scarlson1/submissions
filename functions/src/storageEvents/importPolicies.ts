@@ -1,13 +1,3 @@
-import { Firestore, GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { getStorage } from 'firebase-admin/storage';
-import { error, info } from 'firebase-functions/logger';
-import { StorageEvent } from 'firebase-functions/v2/storage';
-import fs from 'fs';
-import { geohashForLocation } from 'geofire-common';
-import { round } from 'lodash-es';
-import { tmpdir } from 'os';
-import path from 'path';
-
 import {
   Address,
   Collection,
@@ -19,6 +9,15 @@ import {
   State,
   ValueByRiskType,
 } from '@idemand/common';
+import { Firestore, GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
+import { error, info } from 'firebase-functions/logger';
+import { StorageEvent } from 'firebase-functions/v2/storage';
+import fs from 'fs';
+import { geohashForLocation } from 'geofire-common';
+import { round } from 'lodash-es';
+import { tmpdir } from 'os';
+import path from 'path';
 import {
   CancellationReason,
   RatingData,
@@ -100,7 +99,6 @@ export default async (event: StorageEvent) => {
       { headers: transformHeadersCamelCase },
       transformPolicyRow,
       validatePolicyRowZod
-      // validatePolicyRow
     );
 
     dataArr = [...parsed.dataArr];
@@ -460,10 +458,12 @@ async function getPolicyWithoutLocation(
     userId: data.userId,
     agent: data.agent,
     agency: data.agency,
+    carrier: data.carrier,
     surplusLinesProducerOfRecord: SLPofR,
     issuingCarrier: getCarrierByState(data.homeState),
     documents: [],
     quoteId: data.quoteId || null,
+    commSource: data.commSource || 'default',
     metadata: {
       created: ts,
       updated: ts,

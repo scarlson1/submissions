@@ -57,6 +57,7 @@ export default async (
       };
       const groups: VisibleByTypes[] = ['user', 'orgAdmin', 'orgUser'];
       const visibleBy = getVisibleBy(ids, groups);
+      const isOrgUser = Boolean(newValue.orgId);
 
       const records: Record<string, any>[] = [
         {
@@ -66,6 +67,7 @@ export default async (
           userId: docId,
           docType: 'user',
           collectionName: Collection.enum.users,
+          isOrgUser,
           searchTitle,
           searchSubtitle,
           metadata: {

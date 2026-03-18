@@ -211,6 +211,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
 
       validateAALs(AALsRes?.AALs);
 
+      // TODO: get subproducer commission from policy ??
       getPremiumInputs = getGetPremProps(
         lcn,
         limits,
@@ -232,7 +233,10 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
 
     // calc location premium
     info('endorsement rating "getPremiumInputs"', { ...getPremiumInputs });
-    const result = getPremium(getPremiumInputs);
+    const result = getPremium({
+      ...getPremiumInputs,
+      isPortfolio: Object.keys(policy.locations).length > 1,
+    });
 
     RCVs = {
       ...RCVs,

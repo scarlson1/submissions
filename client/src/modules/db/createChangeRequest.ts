@@ -16,7 +16,7 @@ import {
 import { createResource } from 'modules/utils';
 
 // TODO: omit values from initialValues prop type
-
+// BUG: security rules using doc owner instead of policy owner & not setting user/agent Id on create draft
 function createDraftChangeRequest<T extends BaseChangeRequest = ChangeRequest>(
   policyId: string,
   initialValues?: Partial<T>
@@ -35,7 +35,8 @@ function createDraftChangeRequest<T extends BaseChangeRequest = ChangeRequest>(
     },
   } as unknown as Partial<T>;
 
-  return addDoc<Partial<T>>(colRef, initialData);
+  // @ts-ignore TODO: fix type - don't use generic ?? or also use generic for colRef
+  return addDoc<Partial<T>, Partial<T>>(colRef, initialData);
 }
 
 export function createChangeRequest<T extends BaseChangeRequest = ChangeRequest>(
@@ -65,7 +66,7 @@ function createDraftClaim(
     },
   };
 
-  return addDoc<Partial<DraftPolicyClaim>>(colRef, initialData);
+  return addDoc<Partial<DraftPolicyClaim>, Partial<DraftPolicyClaim>>(colRef, initialData);
 }
 
 export function createClaim(

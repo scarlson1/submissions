@@ -4,21 +4,14 @@ import { capitalize } from 'lodash';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { CLAIMS, ImportSummary, WithId } from 'common';
-import { ServerDataGrid, ServerDataGridProps } from 'components';
+import { CLAIMS, ImportSummary, ServerDataGridCollectionProps, WithId } from 'common';
+import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
 import { importSummaryCols } from 'modules/muiGrid';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
 
-export interface ImportSummaryGridProps
-  extends Omit<
-    ServerDataGridProps<ImportSummary>,
-    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
-  > {
-  renderActions?: (params: GridRowParams) => JSX.Element[];
-  // additionalColumns?: GridColDef<any, any, any>[];
-}
+export type ImportSummaryGridProps = ServerDataGridCollectionProps<ImportSummary>;
 
 export const ImportsSummaryGrid = ({
   renderActions = () => [],

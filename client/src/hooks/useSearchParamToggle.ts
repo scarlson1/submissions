@@ -2,8 +2,6 @@ import { useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 
-import { logDev } from 'modules/utils';
-
 import { useLocalStorage } from './useLocalStorage';
 
 export const DataViewType = z.enum(['cards', 'grid', 'map']);
@@ -23,9 +21,9 @@ const getInitTabView = <T extends string>(
     if (!storageVal) localStorage.setItem(queryKey, defaultValue);
   } catch (e) {}
   let val = searchParam || storageVal;
-  logDev(
-    `GET INIT TAB VIEW (search, defaultValue, storage): ${searchParam}, ${defaultValue}, ${storageVal}`
-  );
+  // logDev(
+  //   `GET INIT TAB VIEW (search, defaultValue, storage): ${searchParam}, ${defaultValue}, ${storageVal}`
+  // );
   return options.includes(val || '') ? (val as T) : defaultValue;
 };
 

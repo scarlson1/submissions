@@ -1,24 +1,27 @@
-import ReactJson from '@microlink/react-json-view';
 import { PersonAddRounded } from '@mui/icons-material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { Box, Tab, Typography } from '@mui/material';
-import { collection, doc, query, where } from 'firebase/firestore';
+import { where } from 'firebase/firestore';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useFirestore } from 'reactfire';
 
 import { Organization as Org } from 'common';
 import { ClaimsGuard, ErrorFallback, PageMeta } from 'components';
 import { LoadingComponent } from 'components/layout';
+import { StripeConnectViewsLocalTabs } from 'elements/StripeConnectViewsLayout';
 import { AddUsersDialog } from 'elements/forms';
-import { InvitesGrid, PoliciesGrid, QuotesGrid, SubmissionsGrid, UsersGrid } from 'elements/grids';
-import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
-import { useDocData, useJsonTheme } from 'hooks';
-import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
-import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
+import {
+  InvitesGrid,
+  PoliciesGrid,
+  QuotesGrid,
+  SubmissionsGrid,
+  UserClaimsGrid,
+} from 'elements/grids';
+import { useDocData } from 'hooks';
 
 // TODO: org details tab (address, default commissions, etc.)
+// TODO: payments, payouts, etc.
 
 const MIN_TAB_HEIGHT = 40;
 
@@ -70,15 +73,12 @@ export const Organization = () => {
                 <Tab label='Submissions' value='submissions' />
                 {/* <Tab label='Insureds' value='insureds' /> */}
                 <Tab label='Team' value='team' />
+                {/* <Tab label='Admin Users (test)' value='test' /> */}
                 <Tab label='Invites' value='invites' />
-                <Tab label='Admin Users (test)' value='test' />
+
+                <Tab label='Stripe' value='stripe' />
               </TabList>
             </Box>
-            <TabPanel value='test'>
-              <Suspense fallback={<LoadingComponent />}>
-                <AdminManageUsersGrid orgId={orgId} />
-              </Suspense>
-            </TabPanel>
             <TabPanel value='policies'>
               <Suspense fallback={<LoadingComponent />}>
                 <PoliciesGrid constraints={[where('agency.orgId', '==', orgId)]} />
@@ -113,14 +113,20 @@ export const Organization = () => {
             </TabPanel> */}
             <TabPanel value='team'>
               <Suspense fallback={<LoadingComponent />}>
-                <UsersGrid constraints={[where('orgId', '==', orgId)]} />
+                <UserClaimsGrid orgId={orgId} />
               </Suspense>
             </TabPanel>
+            {/* <TabPanel value='team'>
+              <Suspense fallback={<LoadingComponent />}>
+                <UsersGrid constraints={[where('orgId', '==', orgId)]} />
+              </Suspense>
+            </TabPanel> */}
+
             <TabPanel value='invites'>
               <>
                 <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[tabValue]}>
                   <Suspense fallback={<LoadingComponent />}>
-                    <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                    <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']}>
                       <Box
                         sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', pb: 2 }}
                       >
@@ -140,6 +146,15 @@ export const Organization = () => {
                 </ErrorBoundary>
               </>
             </TabPanel>
+            <TabPanel value='stripe'>
+              <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[tabValue]}>
+                <Suspense fallback={<LoadingComponent />}>
+                  <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']}>
+                    <StripeConnectViewsLocalTabs orgId={orgId} />
+                  </ClaimsGuard>
+                </Suspense>
+              </ErrorBoundary>
+            </TabPanel>
           </TabContext>
         </Box>
       </Box>
@@ -147,145 +162,145 @@ export const Organization = () => {
   );
 };
 
-export function TestAgencyInsureds({ orgId }: { orgId: string }) {
-  const theme = useJsonTheme();
-  const firestore = useFirestore();
+// export function TestAgencyInsureds({ orgId }: { orgId: string }) {
+//   const theme = useJsonTheme();
+//   const firestore = useFirestore();
 
-  // SEARCHES POLICIES COLLECTION FOR orgId === orgId -- delete ?? use observable
-  const { policies, users } = useAgencyInsureds(orgId);
-  // const { policies, users } = useAgencyInsureds('123');
+//   // SEARCHES POLICIES COLLECTION FOR orgId === orgId -- delete ?? use observable
+//   const { policies, users } = useAgencyInsureds(orgId);
+//   // const { policies, users } = useAgencyInsureds('123');
 
-  // const q = query(collection(firestore, 'policies'), where('orgId', '==', '123'));
-  const q = query(collection(firestore, 'policies'), where('orgId', '==', orgId));
+//   // const q = query(collection(firestore, 'policies'), where('orgId', '==', '123'));
+//   const q = query(collection(firestore, 'policies'), where('orgId', '==', orgId));
 
-  // NOT WORKING ?? GROUPS POLICIES RESULT BY USER ID RETURNING:
-  // { userId: uid, policies: Policy[] }
-  const { data, status } = useRx(q, { idField: 'policyId', suspense: false });
+//   // NOT WORKING ?? GROUPS POLICIES RESULT BY USER ID RETURNING:
+//   // { userId: uid, policies: Policy[] }
+//   const { data, status } = useRx(q, { idField: 'policyId', suspense: false });
 
-  // WORKS FOR SINGLE DOCUMENT (NOT COLLECTION QUERY)
-  // Looks at userId field from policy and retrieves the users/{userId} doc
-  // works like mongoose "populate"
-  const pRef = doc(firestore, 'policies', 'YBdp0k6fji8acPQVBgvG');
-  // const pRef = doc(getFirestore(), 'policies', 'YBdp0k6fji8'); // test - not doc with matching id
-  const { data: docJoinData, status: docJoinStatus } = useRxDocJoin(
-    pRef,
-    { userId: 'users' },
-    { idField: 'policyId', suspense: false }
-  );
+//   // WORKS FOR SINGLE DOCUMENT (NOT COLLECTION QUERY)
+//   // Looks at userId field from policy and retrieves the users/{userId} doc
+//   // works like mongoose "populate"
+//   const pRef = doc(firestore, 'policies', 'YBdp0k6fji8acPQVBgvG');
+//   // const pRef = doc(getFirestore(), 'policies', 'YBdp0k6fji8'); // test - not doc with matching id
+//   const { data: docJoinData, status: docJoinStatus } = useRxDocJoin(
+//     pRef,
+//     { userId: 'users' },
+//     { idField: 'policyId', suspense: false }
+//   );
 
-  console.log('DOC JOIN DATA: ', docJoinData);
+//   console.log('DOC JOIN DATA: ', docJoinData);
 
-  // Joins policy doc with all submissions where userId matches userId
-  // user = { userId: '123', ...rest }
-  // policy = { userId: '123', ...rest }
-  // --> returns: { ...user, [collectionName]: [ ...docsWithMatchingUserId ]}
-  // TODO: include id in joined data
-  // TODO: observable idField not working
-  const { data: innerJoinData, status: innerJoinStatus } = useCollectionDataInnerJoin(
-    q,
-    'userId',
-    { root: 'submissions' },
-    { suspense: false, idField: 'policyId' }
-  );
+//   // Joins policy doc with all submissions where userId matches userId
+//   // user = { userId: '123', ...rest }
+//   // policy = { userId: '123', ...rest }
+//   // --> returns: { ...user, [collectionName]: [ ...docsWithMatchingUserId ]}
+//   // TODO: include id in joined data
+//   // TODO: observable idField not working
+//   const { data: innerJoinData, status: innerJoinStatus } = useCollectionDataInnerJoin(
+//     q,
+//     'userId',
+//     { root: 'submissions' },
+//     { suspense: false, idField: 'policyId' }
+//   );
 
-  return (
-    <>
-      <Typography sx={{ py: 3 }} variant='h6'>
-        Test agency insureds
-      </Typography>
-      <Typography sx={{ py: 2 }}>RxJs Observable - Policy combined with user (docJoin)</Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
-        (hard coded policyId "YBdp0k6fji8acPQVBgvG" for testing)
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {docJoinStatus === 'loading' ? (
-          <div>loading docJoin Observable...</div>
-        ) : (
-          // <pre>{JSON.stringify(docJoinData, null, 2)}</pre>
-          <ReactJson
-            src={docJoinData as object}
-            style={{ backgroundColor: 'inherit' }}
-            theme={theme}
-            iconStyle='circle'
-            // enableClipboard={(data) => copy(data.src, true)}
-            enableClipboard={false}
-            collapseStringsAfterLength={30}
-          />
-        )}
-      </Typography>
-      <hr />
-      <Typography sx={{ py: 2 }}>
-        RxJs Observable - Policy combined with submissions, joined on userId (innerJoin)
-      </Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
-        (hard coded orgId "123" for testing)
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {innerJoinStatus === 'loading' ? (
-          <div>loading innerJoin Observable...</div>
-        ) : (
-          // <pre>{JSON.stringify(innerJoinData, null, 2)}</pre>
-          <ReactJson
-            src={innerJoinData as object}
-            style={{ backgroundColor: 'inherit' }}
-            theme={theme}
-            iconStyle='circle'
-            enableClipboard={false}
-            collapseStringsAfterLength={30}
-          />
-        )}
-      </Typography>
-      <hr />
-      <Typography sx={{ py: 2 }}>
-        RxJs Observable - Policy combined with user (not working - only returns first policy)
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {status === 'loading' ? (
-          <div>loading...</div>
-        ) : (
-          // <pre>{JSON.stringify(data, null, 2)}</pre>
-          <ReactJson
-            src={data as object}
-            style={{ backgroundColor: 'inherit' }}
-            theme={theme}
-            iconStyle='circle'
-            enableClipboard={false}
-            collapseStringsAfterLength={30}
-          />
-        )}
-      </Typography>
-      <hr />
-      <Typography sx={{ py: 2 }}>
-        Hook - fetches policies, then fetch users (uses useEffect, not rxjs observable)
-      </Typography>
-      <Typography variant='subtitle2' sx={{ py: 1 }}>
-        Users
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {/* <pre>{JSON.stringify(users, null, 2)}</pre> */}
-        <ReactJson
-          src={users as object}
-          style={{ backgroundColor: 'inherit' }}
-          theme={theme}
-          iconStyle='circle'
-          enableClipboard={false}
-          collapseStringsAfterLength={30}
-        />
-      </Typography>
-      <Typography variant='subtitle2' sx={{ py: 1 }}>
-        Policies
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {/* <pre>{JSON.stringify(policies, null, 2)}</pre> */}
-        <ReactJson
-          src={policies as object}
-          style={{ backgroundColor: 'inherit' }}
-          theme={theme}
-          iconStyle='circle'
-          enableClipboard={false}
-          collapseStringsAfterLength={30}
-        />
-      </Typography>
-    </>
-  );
-}
+//   return (
+//     <>
+//       <Typography sx={{ py: 3 }} variant='h6'>
+//         Test agency insureds
+//       </Typography>
+//       <Typography sx={{ py: 2 }}>RxJs Observable - Policy combined with user (docJoin)</Typography>
+//       <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
+//         (hard coded policyId "YBdp0k6fji8acPQVBgvG" for testing)
+//       </Typography>
+//       <Typography variant='body2' color='text.secondary' component='div'>
+//         {docJoinStatus === 'loading' ? (
+//           <div>loading docJoin Observable...</div>
+//         ) : (
+//           // <pre>{JSON.stringify(docJoinData, null, 2)}</pre>
+//           <ReactJson
+//             src={docJoinData as object}
+//             style={{ backgroundColor: 'inherit' }}
+//             theme={theme}
+//             iconStyle='circle'
+//             // enableClipboard={(data) => copy(data.src, true)}
+//             enableClipboard={false}
+//             collapseStringsAfterLength={30}
+//           />
+//         )}
+//       </Typography>
+//       <hr />
+//       <Typography sx={{ py: 2 }}>
+//         RxJs Observable - Policy combined with submissions, joined on userId (innerJoin)
+//       </Typography>
+//       <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
+//         (hard coded orgId "123" for testing)
+//       </Typography>
+//       <Typography variant='body2' color='text.secondary' component='div'>
+//         {innerJoinStatus === 'loading' ? (
+//           <div>loading innerJoin Observable...</div>
+//         ) : (
+//           // <pre>{JSON.stringify(innerJoinData, null, 2)}</pre>
+//           <ReactJson
+//             src={innerJoinData as object}
+//             style={{ backgroundColor: 'inherit' }}
+//             theme={theme}
+//             iconStyle='circle'
+//             enableClipboard={false}
+//             collapseStringsAfterLength={30}
+//           />
+//         )}
+//       </Typography>
+//       <hr />
+//       <Typography sx={{ py: 2 }}>
+//         RxJs Observable - Policy combined with user (not working - only returns first policy)
+//       </Typography>
+//       <Typography variant='body2' color='text.secondary' component='div'>
+//         {status === 'loading' ? (
+//           <div>loading...</div>
+//         ) : (
+//           // <pre>{JSON.stringify(data, null, 2)}</pre>
+//           <ReactJson
+//             src={data as object}
+//             style={{ backgroundColor: 'inherit' }}
+//             theme={theme}
+//             iconStyle='circle'
+//             enableClipboard={false}
+//             collapseStringsAfterLength={30}
+//           />
+//         )}
+//       </Typography>
+//       <hr />
+//       <Typography sx={{ py: 2 }}>
+//         Hook - fetches policies, then fetch users (uses useEffect, not rxjs observable)
+//       </Typography>
+//       <Typography variant='subtitle2' sx={{ py: 1 }}>
+//         Users
+//       </Typography>
+//       <Typography variant='body2' color='text.secondary' component='div'>
+//         {/* <pre>{JSON.stringify(users, null, 2)}</pre> */}
+//         <ReactJson
+//           src={users as object}
+//           style={{ backgroundColor: 'inherit' }}
+//           theme={theme}
+//           iconStyle='circle'
+//           enableClipboard={false}
+//           collapseStringsAfterLength={30}
+//         />
+//       </Typography>
+//       <Typography variant='subtitle2' sx={{ py: 1 }}>
+//         Policies
+//       </Typography>
+//       <Typography variant='body2' color='text.secondary' component='div'>
+//         {/* <pre>{JSON.stringify(policies, null, 2)}</pre> */}
+//         <ReactJson
+//           src={policies as object}
+//           style={{ backgroundColor: 'inherit' }}
+//           theme={theme}
+//           iconStyle='circle'
+//           enableClipboard={false}
+//           collapseStringsAfterLength={30}
+//         />
+//       </Typography>
+//     </>
+//   );
+// }

@@ -20,6 +20,7 @@ import {
   Basement,
   CBRSDesignation,
   CancelReason,
+  CommSource,
   DefaultCommission,
   FeeItemName,
   FloodZone,
@@ -35,6 +36,7 @@ import {
   TAgencySubmissionStatus,
   TChangeRequestStatus,
   TChangeRequestTrxType,
+  TCommSource,
   TDisclosureType,
   TInviteStatus,
   TLicenseOwner,
@@ -186,7 +188,6 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
-  // rcvSourceUser?: boolean;
   rcvSourceUser?: number | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   elevationData?: ElevationResult | null;
@@ -198,18 +199,12 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   blurHash?: TLocationImages | null;
   AALs?: Nullable<ValueByRiskType>;
   annualPremium?: number;
-  subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
+  commSource: TCommSource;
+  // commDocId?: string;
+  // subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
   notes?: Note[];
   metadata: BaseMetadata;
 }
-
-// const FishEnum = z.enum(["Salmon", "Tuna", "Trout"]);
-// type FishEnum = z.infer<typeof FishEnum>;
-// // 'Salmon' | 'Tuna' | 'Trout
-
-// export const ProductEnum = z.enum(['flood', 'wind']);
-// export type Product = z.infer<typeof ProductEnum>;
-// export type Product = 'flood' | 'wind';
 
 export type LimitKeys = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
@@ -367,13 +362,16 @@ export const AgentDetailsZ = z.object({
   email: z.string().email().trim().toLowerCase(),
   phone: PhoneZ.nullable(),
   userId: z.string(), // TODO: userId --> use z.uuid() ??
+  photoURL: z.string().optional().nullable(),
 });
 export type AgentDetails = z.infer<typeof AgentDetailsZ>;
 
 export const AgencyDetailsZ = z.object({
   name: z.string().trim(),
   orgId: z.string(),
+  stripeAccountId: z.string(),
   address: AddressZ,
+  photoURL: z.string().optional().nullable(),
 });
 export type AgencyDetails = z.infer<typeof AgencyDetailsZ>;
 
@@ -383,6 +381,15 @@ export const AdditionalInsuredZ = z.object({
   address: z.nullable(AddressZ).optional().nullable(),
 });
 export type AdditionalInsured = z.infer<typeof AdditionalInsuredZ>;
+
+export const CarrierDetailsZ = z.object({
+  orgId: z.string(),
+  stripeAccountId: z.string(),
+  name: z.string(),
+  address: AddressZ.optional().nullable(),
+  photoURL: z.string().optional().nullable(),
+});
+export type CarrierDetails = z.infer<typeof CarrierDetailsZ>;
 
 export const MortgageeZ = z.object({
   name: z.string().trim(),
@@ -416,6 +423,8 @@ export interface NamedInsuredDetails {
   email: string;
   phone: string;
   userId?: string | null;
+  stripeCustomerId?: string | null;
+  photoURL?: string | null;
 }
 
 // export interface IndividualNamedInsured {
@@ -448,6 +457,7 @@ export const NamedInsuredZ = z.object({
   phone: PhoneZ, // .optional(), // allow optional/null ??
   userId: z.string().nullable().optional(),
   orgId: z.string().nullable().optional(),
+  stripeCustomerId: z.string().optional().nullable(),
 });
 export type NamedInsured = z.infer<typeof NamedInsuredZ>;
 
@@ -499,11 +509,13 @@ export const TaxItem = z.object({
   resultDigits: z.number().int().optional(), // .default(2),
   baseRoundType: RoundingType.optional(),
   resultRoundType: RoundingType.default('nearest'),
-  id: z.string(),
+  // id: z.string(),
+  taxId: z.string(),
+  taxCalcId: z.string(),
 });
 export type TTaxItem = z.infer<typeof TaxItem>;
 
-export const Tax = TaxItem.omit({ value: true }).and(
+export const Tax = TaxItem.omit({ value: true, taxCalcId: true }).and(
   z.object({
     state: State,
     effectiveDate: TimestampZ,
@@ -517,6 +529,43 @@ export const Tax = TaxItem.omit({ value: true }).and(
   })
 );
 export type TTax = z.infer<typeof Tax>;
+
+export const TaxTransactionType = z.enum(['transaction', 'reversal']);
+export type TaxTransactionType = z.infer<typeof TaxTransactionType>;
+
+export const TaxOgTransactionZ = z.object({
+  type: z.literal(TaxTransactionType.Enum.transaction),
+  taxId: z.string(),
+  chargeAmount: z.number().nonnegative(),
+  taxAmount: z.number().nonnegative(),
+  stripeCustomerId: z.string().nullable(),
+  customerDetails: z
+    .object({
+      taxIds: z.array(z.string()),
+      address: AddressZ.optional().nullable(),
+    })
+    .nullable(),
+  policyId: z.string(),
+  taxDate: TimestampZ,
+  reversal: z.null(),
+  metadata: BaseMetadataZ,
+});
+export type TaxOgTransaction = z.infer<typeof TaxOgTransactionZ>;
+
+export const TaxReversalTransactionZ = TaxOgTransactionZ.omit({ type: true, reversal: true }).and(
+  z.object({
+    type: z.literal(TaxTransactionType.Enum.reversal),
+    reversal: z.object({
+      originalTransactionId: z.string(),
+    }),
+    chargeAmount: z.number().nonpositive(),
+    taxAmount: z.number().nonpositive(),
+  })
+);
+export type TaxReversalTransaction = z.infer<typeof TaxReversalTransactionZ>;
+
+export const TaxTransactionZ = z.union([TaxOgTransactionZ, TaxReversalTransactionZ]);
+export type TaxTransaction = z.infer<typeof TaxTransactionZ>;
 
 export interface ElevationResult {
   elevation: number;
@@ -564,12 +613,9 @@ type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 export const FeeItem = z.object({
   displayName: FeeItemName,
   value: z.number(),
+  refundable: z.boolean(),
 });
 export type TFeeItem = z.infer<typeof FeeItem>;
-// export interface FeeItem {
-//   displayName: TFeeItemName;
-//   value: number;
-// }
 
 // TODO: require name, email, phone
 // TODO: refactor billing entity - payment method relationship
@@ -594,7 +640,7 @@ const PaymentMethodZ = z.object({
   maskedAccountNumber: z.string(),
 });
 
-export const BillingType = z.enum(['checkout', 'invoice', 'mortgagee']);
+export const BillingType = z.enum(['checkout', 'invoice']); // 'mortgagee'
 export type TBillingType = z.infer<typeof BillingType>;
 
 export const BillingEntity = z.object({
@@ -620,7 +666,7 @@ export interface Quote {
   fees: TFeeItem[];
   taxes: TTaxItem[];
   annualPremium: number;
-  subproducerCommission: number; // TODO: remove ??
+  // subproducerCommission: number; // TODO: remove ??
   quoteTotal?: number;
   cardFee: number; // TODO: keep ?? delete ?? add security rules ??
   effectiveDate?: Timestamp;
@@ -646,8 +692,10 @@ export interface Quote {
   mailingAddress: MailingAddress;
   agent: Nullable<AgentDetails>; // TODO: REMOVE NULLABLE
   agency: Nullable<AgencyDetails>; // TODO: REMOVE NULLABLE ??
+  carrier: CarrierDetails;
   billingEntities: Record<string, TBillingEntity>;
   defaultBillingEntityId: string;
+  // TODO: add totalsByBillingEntity?: TotalsByBillingEntity | null;
   status: QUOTE_STATUS;
   submissionId?: string | null;
   imageURLs?: TLocationImages | null;
@@ -655,6 +703,8 @@ export interface Quote {
   blurHash?: TLocationImages | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   ratingDocId: string;
+  // commDocId: string;
+  commSource: TCommSource;
   geoHash?: Geohash | null;
   notes?: Note[];
   statusTransitions: {
@@ -749,6 +799,11 @@ export interface RatingData extends BaseDoc {
   secondaryFactorMults: SecondaryFactorMults;
   address?: Address | null;
   coordinates: GeoPoint | null;
+}
+
+export interface PrivilegedPolicyData {
+  subproducerCommissionPct: number;
+  metadata: BaseMetadata;
 }
 
 // TODO: change request interfaces (not live quoting)
@@ -974,14 +1029,25 @@ export type ILocation = z.infer<typeof ILocationZ>;
 //   version?: number; // TODO: remove optional
 // }
 
-export const TotalsByBillingEntityZ = z.record(
-  z.object({
-    termPremium: z.number(),
-    taxes: z.array(TaxItem),
-    fees: z.array(FeeItem),
-    price: z.number(),
-  })
-);
+export const BillingEntityZ = z.object({
+  displayName: z.string(),
+  email: z.string().email(),
+  phone: PhoneZ,
+  billingType: BillingType,
+  selectedPaymentMethodId: z.string().optional().nullable(),
+  paymentMethods: z.array(PaymentMethodZ),
+});
+export type BillingEntity = z.infer<typeof BillingEntityZ>;
+
+export const TotalsZ = z.object({
+  termPremium: z.number(),
+  taxes: z.array(TaxItem),
+  fees: z.array(FeeItem),
+  price: z.number(),
+});
+export type Totals = z.infer<typeof TotalsZ>;
+
+export const TotalsByBillingEntityZ = z.record(TotalsZ);
 export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntityZ>;
 
 export const PolicyLocationZ = z.object({
@@ -1027,6 +1093,8 @@ export const PolicyZ = z.object({
   // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
   issuingCarrier: z.string(),
   quoteId: z.string().nullable(),
+  // commDocId: z.string(),
+  commSource: CommSource,
   // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
   documents: z
     .array(
@@ -1050,6 +1118,75 @@ export const PolicyWithStatusZ = PolicyZ.and(
   })
 );
 export type PolicyWithStatus = z.infer<typeof PolicyWithStatusZ>;
+
+export const StripeAddressZ = z.object({
+  line1: z.string().nullable(),
+  line2: z.string().nullable(),
+  city: z.string().nullable(),
+  state: z.string().nullable(),
+  postal_code: z.string().nullable(),
+  country: z.string().nullable(),
+});
+export type StripeAddress = z.infer<typeof StripeAddressZ>;
+
+export const LineItemZ = z.object({
+  displayName: z.string(),
+  amount: z.number(),
+  descriptor: z.string().optional(),
+});
+
+export const TransferSummaryZ = z.object({
+  amount: z.number().int(), // IN CENTS
+  destination: z.string(), // accountId: z.string(),
+  // source_transaction - use the charge ID from event handler (will autopopulate transfer_group)
+  // percentOfCharge ?? should be percent of total or percent, net taxes/fees
+  // or percentageOfRefundableAmount ??
+});
+
+export const ReceivableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
+export type TReceivableStatus = z.infer<typeof ReceivableStatus>;
+// keep expired ?? receivable should persist when invoice expires ??
+// TODO: handle invoice / payment intent expired
+
+// include location summaries ??
+export const ReceivableZ = z.object({
+  policyId: z.string(),
+  stripeCustomerId: z.string(),
+  billingEntityDetails: z.object({
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    phone: z.string().nullable(),
+    address: StripeAddressZ.nullable(),
+  }), // rename stripeCustomerDetails ?? (email, etc.)
+  lineItems: z.array(LineItemZ),
+  transfers: z.array(TransferSummaryZ), // create before ?? need to update if revered ??
+  transferGroup: z.string(), // passed to payment intent - not available on invoice ??
+  taxes: z.array(TaxItem), // just store referance to tax calc object ??
+  // taxes separate from line items ??
+  fees: z.array(FeeItem), // TODO: change value to amount and convert to cents
+  status: ReceivableStatus, // TODO: might need multiple status fields (mirror stripe charge ??)
+  paid: z.boolean(),
+  paidOutOfBand: z.boolean(),
+  invoiceId: z.string().optional().nullable(),
+  paymentIntentId: z.string().optional().nullable(),
+  invoiceNumber: z.string().optional().nullable(),
+  receiptNumber: z.string().optional().nullable(),
+  hostedInvoiceUrl: z.string().optional().nullable(),
+  invoicePdfUrl: z.string().optional().nullable(),
+  refundableTaxesAmount: z.number().int(),
+  totalTaxesAmount: z.number().int().nonnegative(),
+  refundableFeesAmount: z.number().int(), // inspection fees not refundable, unless flat_cancel
+  totalFeesAmount: z.number().int(),
+  totalRefundableAmount: z.number().int().nonnegative(), // rename subtotalRefundableAmount or termPremiumRefundableAmount // total - nonRefundableFees - nonRefundableTaxes
+  // totalAmountWithoutTaxesAndFees: z.number().int().nonnegative(), // or name subtotalAmount ?? or totalTermPremium ??
+  termPremiumAmount: z.number().int().nonnegative(),
+  totalAmount: z.number().int().nonnegative(),
+  locations: z.record(PolicyLocationZ),
+  dueDate: TimestampZ,
+  // set charges ?? array ?? save to receivable on charge.complete or charge.created ??
+  metadata: BaseMetadataZ,
+});
+export type Receivable = z.infer<typeof ReceivableZ>;
 
 // export interface Policy extends BaseDoc {
 //   product: TProduct;
@@ -1383,7 +1520,7 @@ export interface User extends BaseDoc {
   email?: string | null;
   phone?: string;
   photoURL?: string | null;
-  stripe_customer_id?: string;
+  stripeCustomerId?: string;
   insuredOfAgency?: string[];
   tenantId?: string | null;
   orgId?: string | null; // org doc id (not always tenant (ex 'idemand'))
@@ -1406,6 +1543,7 @@ export interface UserAccess extends BaseDoc {
 }
 
 export interface AgencyApplication extends BaseDoc {
+  type: TOrgType;
   orgName: string;
   address: Address;
   coordinates?: GeoPoint | null;
@@ -1480,12 +1618,17 @@ export type AuthProviders = z.infer<typeof AuthProvidersZ>;
 export const AgencyStatus = z.enum(['submitted', 'active', 'inactive', 'pending_info']);
 export type AgencyStatus = z.infer<typeof AgencyStatus>;
 
+export const OrgType = z.enum(['agency', 'carrier']);
+export type TOrgType = z.infer<typeof OrgType>;
+
 export const OrganizationZ = z.object({
+  type: OrgType,
   address: AddressZ.optional(),
   coordinates: GeoPointZ.nullable().optional(),
   orgName: z.string().min(2, 'orgName must be at least 2 characters'),
   orgId: z.string().min(5, 'orgId must be at least 5 characters'),
   tenantId: z.string().nullable(),
+  stripeAccountId: z.string().nullable(),
   primaryContact: AgentDetailsZ.omit({ name: true })
     .extend({
       firstName: z.string(),
@@ -1512,6 +1655,7 @@ export const OrganizationZ = z.object({
   defaultCommission: DefaultCommission,
   authProviders: z.array(AuthProvidersZ),
   photoURL: z.string().optional().nullable(),
+  website: z.string().url().optional().nullable(),
   metadata: BaseMetadataZ,
 });
 export type Organization = z.infer<typeof OrganizationZ>;

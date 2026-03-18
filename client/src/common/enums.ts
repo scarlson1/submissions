@@ -1,44 +1,5 @@
 import { z } from 'zod';
 
-// export enum COLLECTIONS {
-//   SUBMISSIONS = 'submissions',
-//   PORTFOLIO_SUBMISSIONS = 'portfolioSubmissions',
-//   QUOTES = 'quotes',
-//   LOCATIONS = 'locations',
-//   RATING_DATA = 'ratingData',
-//   USERS = 'users',
-//   BILLING_ENTITIES = 'billingEntities',
-//   POLICIES = 'policies',
-//   CHANGE_REQUESTS = 'changeRequests',
-//   CLAIMS = 'claims',
-//   ORGANIZATIONS = 'organizations',
-//   USER_CLAIMS = 'userClaims',
-//   INVITES = 'invitations',
-//   QUOTE_HISTORY = 'quoteHistory',
-//   RATING_DATA_HISTORY = 'ratingDataHistory',
-//   PROPERTY_DATA_RES = 'propertyDataRes',
-//   SK_RES = 'spatialKey',
-//   SR_RES = 'swissRe',
-//   PAYMENT_METHODS = 'paymentMethods',
-//   TRANSACTIONS = 'transactions',
-//   FIN_TRANSACTIONS = 'financialTransactions',
-//   AGENCY_APPLICATIONS = 'agencySubmissions',
-//   LICENSES = 'licenses',
-//   NOTIFICATIONS = 'notifications',
-//   NOTIFY_REGISTRATION = 'notifyRegistration',
-//   TAXES = 'surplusLinesTaxes',
-//   ACTIVE_STATES = 'states',
-//   MORATORIUMS = 'moratoriums',
-//   PUBLIC = 'public',
-//   DISCLOSURES = 'disclosures',
-//   EMAIL_ACTIVITY = 'emailActivity',
-//   DATA_IMPORTS = 'dataImports',
-//   STAGED_RECORDS = 'stagedDocs',
-//   TASKS = 'tasks', // TODO: DELETE
-//   VERSIONS = 'versions',
-//   PERMISSIONS = 'permissions',
-// }
-
 export const Collection = z.enum([
   'submissions',
   'portfolioSubmissions',
@@ -60,6 +21,7 @@ export const Collection = z.enum([
   'paymentMethods',
   'transactions',
   'financialTransactions',
+  'taxTransactions',
   'agencySubmissions',
   'licenses',
   'notifications',
@@ -75,7 +37,9 @@ export const Collection = z.enum([
   'stagedDocs',
   'tasks', // TODO: DELETE
   'versions',
-  'permissions',
+  'permissions', // TODO: rename to privliged or secure etc.
+  // 'secure',
+  'receivables',
 ]);
 export type TCollection = z.infer<typeof Collection>;
 
@@ -198,6 +162,9 @@ export const DefaultCommission = z.object({
 });
 export type TDefaultCommission = z.infer<typeof DefaultCommission>;
 
+export const CommSource = z.enum(['agent', 'org', 'default']);
+export type TCommSource = z.infer<typeof CommSource>;
+
 export enum UW_NOTE_CODE {
   REQUIRES_REVIEW = 'requires-review',
   NOT_RATABLE = 'not-ratable',
@@ -288,6 +255,9 @@ export enum CLAIMS {
   IDEMAND_ADMIN = 'iDemandAdmin',
   AGENT = 'agent',
 }
+
+export const Claim = z.enum(['iDemandAdmin', 'iDemandUser', 'orgAdmin', 'agent']);
+export type TClaim = z.infer<typeof Claim>;
 
 export enum LOCAL_STORAGE {
   USER_SEARCH_KEY = 'userSearchKey',

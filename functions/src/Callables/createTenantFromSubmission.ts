@@ -4,6 +4,7 @@ import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { kebabCase, random } from 'lodash-es';
 
+import { Invite } from '@idemand/common';
 import {
   AGENCY_STATUS,
   agencyApplicationCollection,
@@ -16,9 +17,8 @@ import {
 } from '../common/index.js';
 // import { AGENCY_STATUS, AgencySubmissionStatus, CLAIMS, Invite } from '../common';
 // import { Invite } from '../common';
-import { Invite } from '@idemand/common';
 import { onCallWrapper } from '../services/sentry/index.js';
-import { validate } from './utils/index.js';
+import { requireIDemandAdminClaims, validate } from './utils/index.js';
 
 // TODO: tenant ID ?? not reusable for idemand ??
 
@@ -62,16 +62,8 @@ const createTenantFromSubmission = async ({
   data,
   auth,
 }: CallableRequest<CreateTenantFromSubmissionProps>) => {
-  if (!auth || !auth.token || !auth.token[CLAIMS.IDEMAND_ADMIN]) {
-    throw new HttpsError(
-      'failed-precondition',
-      'iDemand Admin permissions required',
-    );
-  }
-
-  if (!data.docId) {
-    throw new HttpsError('invalid-argument', 'Missing application document ID');
-  }
+  requireIDemandAdminClaims(auth?.token);
+  validate(data.docId, 'invalid-argument', 'Missing application document ID');
 
   let org;
   let docRef;
@@ -80,21 +72,15 @@ const createTenantFromSubmission = async ({
   try {
     docRef = agencyApplicationCollection(db).doc(data.docId);
     const docSnap = await docRef.get();
+    validate(
+      docSnap.exists,
+      'not-found',
+      `No agency application found with ID ${data.docId}`,
+    );
 
-    if (!docSnap.exists) {
-      throw new HttpsError(
-        'not-found',
-        `No agency application found with ID ${data.docId}`,
-      );
-    }
     const docData = docSnap.data();
     console.log('agency app docData: ', docData);
-    if (!docData) {
-      throw new HttpsError(
-        'not-found',
-        `Data missing from doc ID ${data.docId}`,
-      );
-    }
+    validate(docData, 'not-found', `Data missing from doc ID ${data.docId}`);
     org = docData;
   } catch (err: any) {
     let msg = `Agency app not found (ID: ${data.docId})`;
@@ -106,29 +92,16 @@ const createTenantFromSubmission = async ({
     throw new HttpsError('not-found', msg);
   }
 
-  if (!org) {
-    throw new HttpsError(
-      'not-found',
-      `Agency app not found (ID: ${data.docId})`,
-    );
-  }
-
-  try {
-    const orgExistsSnap = await orgsCollection(db)
-      .where('orgName', '==', org?.orgName)
-      .get();
-    if (!orgExistsSnap.empty) {
-      throw new HttpsError(
-        'already-exists',
-        `Org already exists with name ${org?.orgName}`,
-      );
-    }
-  } catch (err) {
-    throw new HttpsError(
-      'internal',
-      `error checking for existing orgs with same name`,
-    );
-  }
+  validate(org, 'not-found', `Agency app not found (ID: ${data.docId})`);
+  validate(org.orgName, 'failed-precondition', 'orgName required');
+  const orgExistsSnap = await orgsCollection(db)
+    .where('orgName', '==', org.orgName)
+    .get();
+  validate(
+    orgExistsSnap.empty,
+    'already-exists',
+    `Org already exists with name ${org.orgName}`,
+  );
 
   let newTenantId;
   let createdTenant: Tenant | undefined;
@@ -162,7 +135,7 @@ const createTenantFromSubmission = async ({
     let msg = 'Error creating Tenant';
     if (err?.message) msg = err.message;
 
-    error(`Error creating tenant`, { err });
+    error('Error creating tenant', { err });
     throw new HttpsError('internal', msg);
   }
 
@@ -178,14 +151,16 @@ const createTenantFromSubmission = async ({
   try {
     const orgRef = orgsCollection(db).doc(newTenantId);
     await orgRef.set({
+      type: org.type || 'agency',
       orgId: newTenantId,
       orgName: org.orgName,
       address: org.address,
       coordinates: org.coordinates || null,
+      stripeAccountId: null, // create from onCreate firestore event
       // ...coords,
       // coordinates: undefined, // docData.coordinates, TODO: fix. currently storing lat lon at top level on agency application instead of in coordinates
-      FEIN: org.FEIN || undefined,
-      EandOURL: org.EandO || undefined,
+      FEIN: org.FEIN || '',
+      EandOURL: org.EandO || '',
       // accountNumber: docData.accountNumber || undefined,
       // routingNumber: docData.routingNumber || undefined,
       status: AGENCY_STATUS.ACTIVE,
@@ -208,8 +183,6 @@ const createTenantFromSubmission = async ({
         created: Timestamp.now(),
         updated: Timestamp.now(),
       },
-      // type: 'agency', // TODO
-      // stripeAccountId: '', // TODO
     });
 
     await createInvite(db, newTenantId, {

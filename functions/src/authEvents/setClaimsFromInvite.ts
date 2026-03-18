@@ -20,6 +20,7 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
       const inviteData = inviteSnap.data();
       const claims = inviteData?.customClaims || {};
 
+      // TODO: batch ??
       info(`updating user claims for ${user.email}: ${JSON.stringify(claims)}`);
       await userClaimsCollection(db, user.tenantId)
         .doc(user.uid)

@@ -450,7 +450,7 @@ export const maskStringShowLast = (
 };
 
 export const readableFirebaseCode = (err: AuthError | FirestoreError) => {
-  return err?.code?.split('/')[1].split('-').join(' ');
+  return err?.code?.split('/')[1]?.split('-').join(' ');
 };
 
 export function getAddressComponent(

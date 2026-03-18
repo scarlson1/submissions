@@ -12,7 +12,9 @@ import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/
 import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
 import { ROUTES, createPath } from 'router';
 
-// TODO: decide whether to pass along submission data ??
+// TODO: decide whether to pass along submission data ?? refactor to use locations collection & get rating data from rating doc
+// TODO: suspense / throw promise to create new quote doc ??
+// TODO: get property data on address change
 
 interface QuoteNewProps {
   submissionId?: string | null | undefined;
@@ -101,7 +103,7 @@ export const QuoteNewFromSub = () => {
       fees: [],
       taxes: [],
       annualPremium: submissionData?.annualPremium ?? null,
-      subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
+      commSource: submissionData?.commSource ?? 'agent',
       quoteTotal: null,
       namedInsured: {
         firstName: '',
@@ -119,6 +121,12 @@ export const QuoteNewFromSub = () => {
         orgId: submissionData?.agency?.orgId || '',
         name: submissionData?.agency?.name || '',
         address: submissionData?.agency?.address || '',
+      },
+      carrier: {
+        name: '',
+        orgId: '',
+        stripeAccountId: '',
+        address: null,
       },
       ratingPropertyData: {
         CBRSDesignation: submissionData?.ratingPropertyData?.CBRSDesignation ?? '',

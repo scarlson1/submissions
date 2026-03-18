@@ -8,12 +8,16 @@ export { calcPolicyCancelChanges } from './calcPolicyCancelChanges';
 export { calcPolicyChanges } from './calcPolicyChanges';
 export { calcQuote } from './calcQuote';
 // export { convertPolicySchema } from './convertPolicySchema';
+export { addBillingEntity } from './addBillingEntity';
+export { calcTotalsByBillingEntity } from './calcTotalsByBillingEntity';
 export * from './cloudRunApi';
+export { createPaymentIntent } from './createPaymentIntent';
 export { createPolicy } from './createPolicy';
 export { createTenantFromSubmission } from './createTenantFromSubmission';
 export { deliverAgencyAgreement } from './deliverAgencyAgreement';
 export { ePayInstance } from './ePayInstance';
 export { executePayment } from './executePayment';
+export { fetchPaymentIntentSecret } from './fetchPaymentIntentSecret';
 export { functionsInstance } from './functionsOnRequest';
 export { generateSearchKey } from './generateSearchKey';
 export { getAnnualPremium } from './getAnnualPremium';
@@ -23,9 +27,11 @@ export { getTenantIdFromEmail } from './getTenantIdFromEmail';
 export { inviteUsers } from './inviteUsers';
 export { moveUserToTenant } from './moveUserToTenant';
 export { sendEmail } from './sendEmail';
+export { setQuoteUserId } from './setQuoteUserId';
 export { submitClaim } from './submitClaim';
 export { verifyEPayToken } from './verifyEPayToken';
 
+export type { AddBillingEntityRequest, AddBillingEntityResponse } from './addBillingEntity';
 export type { ApproveChangeRequest, ApproveChangeResponse } from './approveChangeRequest';
 export type { ApproveImportRequest, ApproveImportResponse } from './approveImport';
 export type { AssignQuoteRequest, AssignQuoteResponse } from './assignQuote';
@@ -36,6 +42,10 @@ export type {
 } from './calcLocationChanges';
 export type { CalcPolicyChangesRequest, CalcPolicyChangesResponse } from './calcPolicyChanges';
 export type { CalcQuoteRequest, CalcQuoteResponse } from './calcQuote';
+export type {
+  CreatePaymentIntentRequest,
+  CreatePaymentIntentResponse,
+} from './createPaymentIntent';
 export type { CreatePolicyRequest, CreatePolicyResponse } from './createPolicy';
 export type { CreateTenantRequest, CreateTenantResponse } from './createTenantFromSubmission';
 export type { ExecutePmtRequest, ExecutePmtResponse } from './executePayment';

@@ -21,6 +21,7 @@ import { doc } from 'firebase/firestore';
 import { Formik, FormikConfig, FormikErrors, FormikProps, setNestedObjectValues } from 'formik';
 import { isEmpty, pick } from 'lodash';
 import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
@@ -30,6 +31,8 @@ import {
   AgentDetails,
   Basement,
   CBRSDesignation,
+  CarrierDetails,
+  CommSource,
   Coordinates,
   FloodZone,
   Limits,
@@ -41,6 +44,7 @@ import {
   RatingPropertyData,
   State,
   Submission,
+  TCommSource,
   TFeeItem,
   TProduct,
   TTaxItem,
@@ -67,6 +71,7 @@ import {
 import { LoadingComponent } from 'components/layout';
 import { UserSearchDialog } from 'components/search/Search';
 import AlgoliaAutocomplete from 'components/search/reactQuery/AlgoliaAutocomplete';
+import { FormattedAddress } from 'elements/FormattedAddress';
 import {
   RatingInputsWithAAL,
   extractRatingInputsFromValues,
@@ -77,24 +82,25 @@ import {
   useRateQuote,
 } from 'hooks';
 import { Obj, dollarFormat, getData, sumFeesTaxesPremium, truthyOrZero } from 'modules/utils';
-import { ErrorBoundary } from 'react-error-boundary';
 import { ROUTES, createPath } from 'router';
 import { AddressStepQuote } from '../AddressStepQuote';
 import { FormikAddressLite } from '../FormikAddressLite';
 import { LimitsStep } from '../LimitsStep';
-import { TestAutocomplete } from './TestAutocomplete';
-import {
-  DEFAULT_VALUES,
-  RATING_FIELDS,
-  commOptions,
-  gridProps,
-  policyEffShortcuts,
-} from './constants';
+import { DEFAULT_VALUES, RATING_FIELDS, gridProps, policyEffShortcuts } from './constants';
 import { getQuoteValidation } from './validation';
+
+// BUG: setting agency name - gets cleared by autocomplete b/c local autocomplete state does not have option in values/options
+// must be free solo ??
+
+// TODO: require agency ID and stripeAccountId - must have for billing purposes
+
+// TODO: need to save agent orgId in order to validate matches agency (or fetch user doc in validation / onsubmit) or use firestore rule
 
 // TODO: move quote type to field (new, renewal, etc.) ??
 // TODO: must geocode if address is manually entered (add button if missing coordinates ??)
 // TODO: search for named insured
+
+// TODO: store subproducer comm /policies/{policyId}/secure/rating (switch to dev branch ??)
 
 export interface QuoteValues {
   address: Address;
@@ -107,11 +113,13 @@ export interface QuoteValues {
   fees: TFeeItem[];
   taxes: TTaxItem[];
   annualPremium: number | null;
-  subproducerCommission: number;
+  // subproducerCommission: number;
+  commSource: TCommSource;
   quoteTotal: number | null;
   namedInsured: NamedInsuredDetails;
   agent: AgentDetails;
   agency: AgencyDetails;
+  carrier: CarrierDetails;
   ratingPropertyData: Nullable<RatingPropertyData>;
   AALs: Nullable<ValueByRiskType>;
   ratingDocId: string;
@@ -284,11 +292,15 @@ export const QuoteForm = ({
       const setFieldValue = formikRef.current?.setFieldValue;
       if (!setFieldValue) return toast.error('form error - missing formik ref');
 
+      // TODO: pass product as prop ??
       const newComm = agent?.defaultCommission?.flood ?? org?.defaultCommission?.flood;
       if (newComm) {
-        setFieldValue('subproducerCommission', newComm);
-        formikRef.current?.setFieldTouched('subproducerCommission', true, true);
+        // setFieldValue('subproducerCommission', newComm);
+        // formikRef.current?.setFieldTouched('subproducerCommission', true, true);
+
         const source = agent?.defaultCommission?.flood ? 'agent' : 'org';
+        setFieldValue('commSource', source);
+        formikRef.current?.setFieldTouched('commSource', true, true);
         toast.info(`commission → ${source} default (${newComm * 100}%)`, {
           duration: 6000,
         });
@@ -311,6 +323,24 @@ export const QuoteForm = ({
     setTouched(keys);
   }, []);
 
+  const handleAgencySelected = useCallback(async (org: Organization & { objectID: string }) => {
+    await setValues({
+      agency: {
+        name: org.orgName || '',
+        orgId: org.objectID || '',
+        stripeAccountId: org.stripeAccountId || '',
+        address: {
+          addressLine1: org.address?.addressLine1 || '',
+          addressLine2: org.address?.addressLine2 || '',
+          city: org.address?.city || '',
+          state: org.address?.state || '',
+          postal: org.address?.postal || '',
+        },
+        photoURL: org.photoURL || '',
+      },
+    });
+  }, []);
+
   const handleAgentSelected = useCallback(
     async (agentUser: User & { objectID: string }) => {
       await setValues({
@@ -319,6 +349,7 @@ export const QuoteForm = ({
           email: agentUser.email || '',
           phone: agentUser.phone || '',
           userId: agentUser.objectID || '',
+          photoURL: agentUser.photoURL || '',
         },
       });
 
@@ -330,10 +361,12 @@ export const QuoteForm = ({
         const orgRef = doc(orgsCollection(firestore), orgId);
         org = await getData<Organization>(orgRef, `Org not found (ID: ${orgId})`);
 
+        // TODO: use handleAgencySelected
         await setValues({
           agency: {
             name: org.orgName || '',
             orgId: orgId || '',
+            stripeAccountId: org.stripeAccountId || '',
             address: {
               addressLine1: org.address?.addressLine1 || '',
               addressLine2: org.address?.addressLine2 || '',
@@ -341,6 +374,7 @@ export const QuoteForm = ({
               state: org.address?.state || '',
               postal: org.address?.postal || '',
             },
+            photoURL: org.photoURL || '',
           },
         });
       } catch (err: any) {
@@ -351,7 +385,9 @@ export const QuoteForm = ({
         const clearedAgency = {
           name: '',
           orgId: '',
+          stripeAccountId: '',
           address: setNestedObjectValues<Address>(DEFAULT_VALUES.agency.address, ''),
+          photoURL: '',
         };
         await setValues({
           agency: clearedAgency,
@@ -363,6 +399,24 @@ export const QuoteForm = ({
       setTouched(keys);
     },
     [firestore, toast, setValues, setTouched, setSubComm]
+  );
+
+  const handleCarrierSelected = useCallback(
+    async (carrier: Organization & { objectID: string }) => {
+      await setValues({
+        carrier: {
+          orgId: carrier.orgId,
+          name: carrier.orgName || '',
+          stripeAccountId: carrier.stripeAccountId || '',
+          address: carrier.address || null,
+          photoURL: carrier.photoURL || '',
+        },
+      });
+
+      const keys = ['carrier'] as (keyof FormikErrors<QuoteValues>)[];
+      setTouched(keys);
+    },
+    [setValues, setTouched]
   );
 
   const handleCancel = useCallback(() => {
@@ -885,10 +939,12 @@ export const QuoteForm = ({
                 sx={{ width: '100%' }}
               >
                 <FormikNativeSelect
-                  name='subproducerCommission'
-                  label='Subproducer Commission'
-                  selectOptions={commOptions}
-                  convertToNumber={true}
+                  // name='subproducerCommission'
+                  name='commSource'
+                  label='Preferred Subproducer Commission'
+                  selectOptions={CommSource.options}
+                  // selectOptions={commOptions}
+                  // convertToNumber={true}
                   sx={{ mt: 3 }}
                 />
               </Badge>
@@ -930,7 +986,7 @@ export const QuoteForm = ({
                           { label: 'MGA Fee', value: 'MGA Fee' },
                           { label: 'UW Adjustment', value: 'UW Adjustment' },
                         ],
-                        gridProps: { xs: 6, sm: 6, md: 6 },
+                        gridProps: { xs: 6, sm: 6, md: 4, lg: 4 },
                         componentProps: {
                           sx: { minWidth: 50 },
                         },
@@ -940,11 +996,55 @@ export const QuoteForm = ({
                         label: 'Value',
                         required: false,
                         inputType: 'dollar',
-                        gridProps: { xs: 6, sm: 6, md: 6 },
+                        gridProps: { xs: 6, sm: 6, md: 4, lg: 4 },
                         componentProps: {
                           allowNegative: true,
                         },
                       },
+                      {
+                        name: 'refundable',
+                        label: 'Refundable',
+                        inputType: 'checkbox',
+                        required: false,
+                        gridProps: {
+                          xs: 6,
+                          sm: 4,
+                          md: 4,
+                          lg: 4,
+                          sx: {
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                          },
+                        },
+                        componentProps: {
+                          sx: { minWidth: 100 },
+                        },
+                      },
+                      // {
+                      //   name: 'refundable',
+                      //   label: 'Refundable',
+                      //   inputType: 'select',
+                      //   selectOptions: [
+                      //     { label: 'yes', value: 1 },
+                      //     { label: 'no', value: 0 },
+                      //   ],
+                      //   required: true,
+                      //   gridProps: {
+                      //     xs: 6,
+                      //     sm: 6,
+                      //     md: 4,
+                      //     lg: 4,
+                      //     sx: {
+                      //       display: 'flex',
+                      //       flexDirection: 'column',
+                      //       justifyContent: 'center',
+                      //     },
+                      //   },
+                      //   componentProps: {
+                      //     sx: { minWidth: 100 },
+                      //   },
+                      // },
                     ]}
                     values={values}
                     errors={errors}
@@ -1063,6 +1163,7 @@ export const QuoteForm = ({
             </Grid>
             <Grid xs={6} md={3}>
               <FormikTextField name='namedInsured.firstName' label='Insured first name' fullWidth />
+              {/* TODO: use autocomplete instead of dialog */}
             </Grid>
             <Grid xs={6} md={3}>
               <FormikTextField name='namedInsured.lastName' label='Insured last name' fullWidth />
@@ -1090,7 +1191,7 @@ export const QuoteForm = ({
                 >
                   Agent & Agency
                 </Typography>
-                <UserSearchDialog
+                {/* <UserSearchDialog
                   onSelect={handleAgentSelected}
                   indexTitle='Agents'
                   translations={{
@@ -1101,11 +1202,35 @@ export const QuoteForm = ({
                   }}
                   shortcutKey='u'
                   placeholder='Search agents by name, email, or orgId...'
-                />
+                /> */}
               </Box>
             </Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField name='agent.name' label='Agent name' required fullWidth />
+              {/* <FormikTextField name='agent.name' label='Agent name' required fullWidth /> */}
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <AlgoliaAutocomplete<User>
+                    name='agent.name'
+                    textFieldProps={{
+                      label: 'Agent name',
+                      required: true,
+                      fullWidth: true,
+                      sx: { minWidth: 120 },
+                    }}
+                    searchOptions={{ filters: 'collectionName:users AND isOrgUser:true' }}
+                    onSelectItem={(org) =>
+                      handleAgentSelected(org as any as User & { objectID: string })
+                    }
+                    resetFields={() => {
+                      // reset agency too ??
+                      setFieldValue('agent.userId', '');
+                      setFieldValue('agent.email', '');
+                      setFieldValue('agent.name', '');
+                      setFieldValue('agent.phone', '');
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </Grid>
             <Grid xs={6} sm={3}>
               <FormikTextField name='agent.email' label='Agent email' required fullWidth />
@@ -1127,12 +1252,32 @@ export const QuoteForm = ({
             </Grid>
             <Grid xs={12}></Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField name='agency.name' label='Agency Name' fullWidth />
+              {/* <FormikTextField name='agency.name' label='Agency Name' fullWidth /> */}
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <AlgoliaAutocomplete<Organization>
+                    name='agency.name'
+                    textFieldProps={{
+                      label: 'Agency name',
+                      required: true,
+                      fullWidth: true,
+                    }}
+                    searchOptions={{ filters: 'collectionName:organizations AND type:agency' }}
+                    onSelectItem={(org) =>
+                      handleAgencySelected(org as any as Organization & { objectID: string })
+                    }
+                    resetFields={() => {
+                      setFieldValue('agency.orgId', '');
+                      setFieldValue('agency.stripeAccountId', '');
+                      setFieldValue('agency.name', '');
+                      setFieldValue('agency.address', null);
+                      setFieldValue('agency.photoURL', '');
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </Grid>
-            <Grid xs={6} sm={3}>
-              <FormikTextField name='agency.orgId' label='Agency ID' fullWidth />
-            </Grid>
-            <Grid xs={12} sm={6}>
+            <Grid xs={12} sm={6} md={3}>
               <FormikAddressLite
                 names={{
                   addressLine1: 'agency.address.addressLine1',
@@ -1149,6 +1294,70 @@ export const QuoteForm = ({
                 }}
               />
             </Grid>
+            <Grid xs={6} sm={3} md={3}>
+              {/* <FormikTextField name='agency.orgId' label='Agency ID' fullWidth /> */}
+              <Typography variant='overline' color='text.secondary'>
+                Agency Id*
+              </Typography>
+              <Typography>{values.agency?.orgId}</Typography>
+            </Grid>
+            <Grid xs={6} sm={3} md={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Stripe Id*
+              </Typography>
+              <Typography>{values.agency?.stripeAccountId}</Typography>
+            </Grid>
+
+            <Grid xs={12}>
+              <Divider sx={{ my: 3 }} />
+              <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
+                Carrier
+              </Typography>
+            </Grid>
+            <Grid xs={12} sm={3}>
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <AlgoliaAutocomplete<Organization>
+                    name='carrier.name'
+                    textFieldProps={{
+                      label: 'Carrier',
+                      required: true,
+                    }}
+                    searchOptions={{ filters: 'collectionName:organizations AND type:carrier' }}
+                    onSelectItem={(org) =>
+                      handleCarrierSelected(org as any as Organization & { objectID: string })
+                    }
+                    resetFields={() => {
+                      setFieldValue('carrier.orgId', '');
+                      setFieldValue('carrier.address', null);
+                      setFieldValue('carrier.name', '');
+                      setFieldValue('carrier.stripeAccountId', '');
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Address
+              </Typography>
+              {values.carrier?.address ? (
+                <FormattedAddress address={values.carrier.address} />
+              ) : null}
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Org Id*
+              </Typography>
+              <Typography>{values.carrier?.orgId}</Typography>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Stripe Id*
+              </Typography>
+              <Typography>{values.carrier?.stripeAccountId}</Typography>
+            </Grid>
+
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />
               <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
@@ -1177,23 +1386,6 @@ export const QuoteForm = ({
                 gridProps={{ sx: { px: 0 } }}
                 addButtonText='Add Note'
               />
-            </Grid>
-            <Grid xs={12}>
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense>
-                  <TestAutocomplete />
-                </Suspense>
-              </ErrorBoundary>
-            </Grid>
-            <Grid xs={12}>
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense>
-                  <AlgoliaAutocomplete
-                    onSelectItem={console.log}
-                    searchOptions={{ filters: 'collectionName:users' }}
-                  />
-                </Suspense>
-              </ErrorBoundary>
             </Grid>
           </Grid>
         </>
@@ -1249,6 +1441,9 @@ export function getRatingInputsFromSubmission(subData?: Partial<Submission> | nu
     state: subData?.address?.state,
     floodZone: subData?.ratingPropertyData?.floodZone,
     basement: subData?.ratingPropertyData?.basement?.toLowerCase(),
-    commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from client if idemand admin (need to fetch from rating doc instead of storing on submission)
+    commSource: subData?.commSource || 'default',
+    agentId: subData?.agent?.userId,
+    orgId: subData?.agency?.orgId,
+    // commissionPct: subData?.subproducerCommission || 0.15,
   };
 }

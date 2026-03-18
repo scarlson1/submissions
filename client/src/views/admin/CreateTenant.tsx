@@ -16,10 +16,11 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { object, string } from 'yup';
 
-import { EandOVal, FEINVal, addressValidation, contactValidation } from 'common';
+import { EandOVal, FEINVal, OrgType, TOrgType, addressValidation, contactValidation } from 'common';
 import {
   FormikDragDrop,
   FormikMaskField,
+  FormikNativeSelect,
   FormikTextField,
   IMask,
   feinMaskProps,
@@ -32,7 +33,10 @@ import { AgencyAppValues } from 'views/AgencyNew';
 
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
 
-const INITIAL_VALUES: AgencyAppValues = {
+type CreateTenantValues = AgencyAppValues & { type: TOrgType };
+
+const INITIAL_VALUES: CreateTenantValues = {
+  type: '' as TOrgType,
   orgName: '',
   address: {
     addressLine1: '',
@@ -58,6 +62,7 @@ const INITIAL_VALUES: AgencyAppValues = {
 };
 
 const validation = object().shape({
+  type: string().required(),
   orgName: string().required(),
   address: addressValidation,
   contact: contactValidation,
@@ -76,7 +81,7 @@ export const CreateTenant = () => {
   );
 
   const handleSubmit = useCallback(
-    async (values: AgencyAppValues, helpers: FormikHelpers<AgencyAppValues>) => {
+    async (values: CreateTenantValues, helpers: FormikHelpers<CreateTenantValues>) => {
       toast.dismiss();
       toast.loading('creating agency doc...');
       console.log('values => ', values);
@@ -87,9 +92,8 @@ export const CreateTenant = () => {
         // TODO: set status to something other than submitted ??
         // upload E and O and create submission doc
         let agencyId = await handleSubmission(values, false);
-        if (!agencyId) {
-          throw new Error('Error creating submission. See console for details.');
-        }
+        if (!agencyId) throw new Error('Error creating submission. See console for details.');
+
         toast.success(`Agency app doc created (ID: ${agencyId})`);
 
         // toast.updateLoadingMsg('creating tenant ...');
@@ -113,13 +117,8 @@ export const CreateTenant = () => {
     [handleSubmission, createTenant, toast]
   );
 
-  // const handleSaveDraft = useCallback(() => {
-  //   alert('save draft not implemented yet.');
-  //   // CREATE SUBMISSION -> REDIRECT TO EDIT SUBMISSION ??
-  // }, []);
-
   const handleCancel = useCallback(
-    (setValues: (values: AgencyAppValues) => void) => {
+    (setValues: (values: CreateTenantValues) => void) => {
       setValues(INITIAL_VALUES);
       navigate(createPath({ path: ADMIN_ROUTES.AGENCY_APPS }));
     },
@@ -144,8 +143,9 @@ export const CreateTenant = () => {
                   alignItems: 'center',
                   position: 'sticky',
                   top: 0,
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'light' ? '#FAFAFB' : theme.palette.background.paper,
+                  // backgroundColor: (theme) =>
+                  //   theme.palette.mode === 'light' ? '#FAFAFB' : theme.palette.background.paper,
+                  backgroundColor: (theme) => theme.palette.background.default,
                   borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                   zIndex: 10,
                   py: 2,
@@ -222,9 +222,21 @@ export const CreateTenant = () => {
                           }}
                         />
                       </Box>
+
                       <Divider sx={{ mt: 3 }} />
                     </Grid>
                     <Grid container xs={12}>
+                      <Grid xs={6} sm={4}>
+                        <FormikNativeSelect
+                          name='type'
+                          label='Type'
+                          selectOptions={OrgType.options}
+                          sx={{ minWidth: 120 }}
+                          variant='standard'
+                          required
+                        />
+                      </Grid>
+
                       {/* <Grid xs={6} sm={4}>
                         <FormikTextField
                           id='routingNumber'

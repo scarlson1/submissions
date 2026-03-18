@@ -9,7 +9,6 @@ import {
   linkWithCredential,
   sendEmailVerification,
   updateProfile,
-  validatePassword,
 } from 'firebase/auth';
 import { Timestamp, doc, getFirestore, setDoc } from 'firebase/firestore';
 import { useCallback, useMemo, useState } from 'react';
@@ -86,8 +85,9 @@ export const useCreateAccount = () => {
 
       try {
         // TODO: implement password validation in google auth
-        const validPassword = await validatePassword(auth, 'some-password').catch(console.log);
-        console.log('password val: ', validPassword);
+        // const validPassword = await validatePassword(auth, 'some-password').catch(console.log);
+        // console.log('password val: ', validPassword);
+
         // don't link if new user is tenant user ?? (for now - requires backend)
         if (isAnonymous && isSignedIn && user && !auth.tenantId) {
           logDev('linking anonymous user');

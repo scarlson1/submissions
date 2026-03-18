@@ -1,11 +1,10 @@
+import { Collection } from '@idemand/common';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { AuthBlockingEvent } from 'firebase-functions/v2/identity';
 import { HttpsError } from 'firebase-functions/v2/identity';
 import jwt from 'jsonwebtoken';
-
-import { Collection } from '@idemand/common';
 import { inviteConverter } from '../common/converters/index.js';
 import {
   CLAIMS,
