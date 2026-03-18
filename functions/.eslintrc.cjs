@@ -52,6 +52,7 @@ module.exports = {
     'operator-linebreak': 'off',
     'new-cap': 'warn',
     semi: 'warn',
+    'comma-dangle': 'off',
     'require-jsdoc': [
       'warn',
       {

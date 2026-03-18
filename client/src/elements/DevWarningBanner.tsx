@@ -1,5 +1,5 @@
 import { CloseRounded } from '@mui/icons-material';
-import { Alert, Box, Collapse, IconButton, Link } from '@mui/material';
+import { Alert, Box, Collapse, IconButton } from '@mui/material';
 import { memo } from 'react';
 import { create } from 'zustand';
 
@@ -36,10 +36,11 @@ export const DevWarningBanner = memo(() => {
           // sx={{ mb: 2 }}
         >
           {/* <AlertTitle>This is the dev site</AlertTitle> */}
-          This site is for development. If you're looking for the production site, visit{' '}
+          This site is for development.
+          {/* If you're looking for the production site, visit{' '}
           <Link href='https://idemand-submissions.web.app' underline='hover' variant='body2'>
             the production site.
-          </Link>
+          </Link> */}
         </Alert>
       </Collapse>
     </Box>

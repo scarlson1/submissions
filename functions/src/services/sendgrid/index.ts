@@ -1,8 +1,8 @@
 import { EmailData } from '@sendgrid/helpers/classes/email-address';
 import { MailData } from '@sendgrid/helpers/classes/mail';
-import sgMail, { MailDataRequired } from '@sendgrid/mail';
+import { MailDataRequired } from '@sendgrid/mail';
 import { projectID } from 'firebase-functions/params';
-import { Resend } from 'resend';
+import { Resend, type Tag } from 'resend';
 
 // TODO: https://docs.sendgrid.com/for-developers/sending-email/personalizations
 // TODO: switch to dynamic templates
@@ -81,7 +81,7 @@ const createMsgContent = ({
   from = { name: 'iDemand Insurance', email: 'Hello@idemandinsurance.com' },
   subject,
   html,
-  attachments,
+  // attachments,
   ...rest
 }: CreateMsgContentProps): MailDataRequired => {
   const uniqueTo = uniqueEmails(to);
@@ -91,7 +91,7 @@ const createMsgContent = ({
     from,
     subject,
     html,
-    attachments,
+    // attachments,
     ...rest,
   };
 };
@@ -112,6 +112,13 @@ function getCustomArgs(args?: Record<string, any> | undefined) {
   };
 }
 
+function customArgsToResendTags(args: Record<string, unknown>): Tag[] {
+  return Object.entries(args).map((k, v) => ({
+    name: String(k),
+    value: typeof v === 'string' ? v : String(v),
+  }));
+}
+
 export const sendSubmissionReceivedConfirmation = async (
   key: string,
   createAccountLink: string,
@@ -125,16 +132,29 @@ export const sendSubmissionReceivedConfirmation = async (
     addressLine1,
     createAccountLink,
   });
-  sgMail.setApiKey(key);
+  // sgMail.setApiKey(key);
+  const resend = new Resend(key);
 
-  await sgMail.send(
-    createMsgContent({
-      html,
-      subject: "We've received your submission!",
-      to,
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: "We've received your submission!",
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+
+  // await sgMail.send(
+  //   createMsgContent({
+  //     html,
+  //     subject: "We've received your submission!",
+  //     to,
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendNewSubmissionAdminNotification = async (
@@ -147,16 +167,30 @@ export const sendNewSubmissionAdminNotification = async (
   sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminNewSubmission({ link, addressLine1, city, state });
-  sgMail.setApiKey(key);
 
-  await sgMail.send(
-    createMsgContent({
-      html,
-      subject: 'New submission!',
-      to,
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: 'New submission!',
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+  // sgMail.setApiKey(key);
+
+  // await sgMail.send(
+  //   createMsgContent({
+  //     html,
+  //     subject: 'New submission!',
+  //     to,
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendEmailConfirmation = async (
@@ -164,7 +198,7 @@ export const sendEmailConfirmation = async (
   link: string,
   to: string | string[],
   toName?: string,
-  // sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const resend = new Resend(key);
   const html = emailConfirmation({ toName, link });
@@ -174,7 +208,21 @@ export const sendEmailConfirmation = async (
     to,
     subject: 'Please confirm your email',
     html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
   });
+
+  // TODO: use templates:
+  // await resend.emails.send({
+  //   from: 'Acme <onboarding@resend.dev>',
+  //   to: 'delivered@resend.dev',
+  //   template: {
+  //     id: 'order-confirmation',
+  //     variables: {
+  //       PRODUCT: 'Vintage Macintosh',
+  //       PRICE: 499,
+  //     },
+  //   },
+  // });
 
   if (error) throw new Error(error.message);
 
@@ -196,19 +244,33 @@ export const sendUserInvite = async (
   sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = userInvite({ toName, fromName, link });
-  sgMail.setApiKey(key);
 
-  await sgMail
-    // .sendMultiple(msg)
-    .send(
-      createMsgContent({
-        ...config,
-        html,
-        subject: 'Create an account',
-        to,
-        ...getCustomArgs(sgArgs),
-      }),
-    );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: 'Create an account',
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+  // sgMail.setApiKey(key);
+
+  // await sgMail
+  //   // .sendMultiple(msg)
+  //   .send(
+  //     createMsgContent({
+  //       ...config,
+  //       html,
+  //       subject: 'Create an account',
+  //       to,
+  //       ...getCustomArgs(sgArgs),
+  //     }),
+  //   );
 };
 
 export const sendNewAgencySubmissionAdminNotification = async (
@@ -219,16 +281,30 @@ export const sendNewAgencySubmissionAdminNotification = async (
   sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminNewAgencySubmission({ link, orgName });
-  sgMail.setApiKey(key);
 
-  await sgMail.send(
-    createMsgContent({
-      html,
-      subject: 'New submission!',
-      to,
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: 'New submission!',
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+  // sgMail.setApiKey(key);
+
+  // await sgMail.send(
+  //   createMsgContent({
+  //     html,
+  //     subject: 'New submission!',
+  //     to,
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendNewQuoteEmail = async (
@@ -240,20 +316,34 @@ export const sendNewQuoteEmail = async (
   sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = newQuote({ link, toName, addressLine1 });
-  sgMail.setApiKey(key);
 
-  await sgMail.send(
-    createMsgContent({
-      html,
-      subject: "Here's your quote!",
-      to,
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: "Here's your quote!",
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+  // sgMail.setApiKey(key);
+
+  // await sgMail.send(
+  //   createMsgContent({
+  //     html,
+  //     subject: "Here's your quote!",
+  //     to,
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendPolicyDocDelivery = async (
-  sgKey: string,
+  key: string,
   to: string | string[],
   attachments: AttachmentJSON[],
   toName?: string,
@@ -261,21 +351,36 @@ export const sendPolicyDocDelivery = async (
   sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = policyDelivery({ toName, addressName });
-  sgMail.setApiKey(sgKey);
 
-  await sgMail.send(
-    createMsgContent({
-      html,
-      subject: "Congrats! Here's your new policy",
-      to,
-      attachments,
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: "Congrats! Here's your new policy",
+    html,
+    attachments,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+  // sgMail.setApiKey(sgKey);
+
+  // await sgMail.send(
+  //   createMsgContent({
+  //     html,
+  //     subject: "Congrats! Here's your new policy",
+  //     to,
+  //     attachments,
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendAdminPaidNotification = async (
-  sgKey: string,
+  key: string,
   to: string | string[],
   policyLink: string,
   policyId: string,
@@ -289,16 +394,30 @@ export const sendAdminPaidNotification = async (
     transactionLink,
     transactionId,
   });
-  sgMail.setApiKey(sgKey);
 
-  await sgMail.send(
-    createMsgContent({
-      html,
-      subject: `Payment received (${transactionId})`,
-      to,
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: "Congrats! Here's your new policy",
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+  // sgMail.setApiKey(sgKey);
+
+  // await sgMail.send(
+  //   createMsgContent({
+  //     html,
+  //     subject: `Payment received (${transactionId})`,
+  //     to,
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendAgencyAppApprovedNotification = async (
@@ -320,16 +439,28 @@ export const sendAgencyAppApprovedNotification = async (
 
   const html = agencyAppApproved({ firstName, orgName, link, message });
 
-  sgMail.setApiKey(key);
+  const resend = new Resend(key);
 
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Finish setting up your account',
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const { error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: 'Finish setting up your account',
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  // sgMail.setApiKey(key);
+
+  // await sgMail.send(
+  //   createMsgContent({
+  //     to,
+  //     html,
+  //     subject: 'Finish setting up your account',
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 
   return { link };
 };
@@ -350,15 +481,29 @@ export const sendAdminChangeRequestNotification = async (
     changes,
   });
 
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Change request received',
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: 'Change request received',
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+
+  // sgMail.setApiKey(key);
+  // await sgMail.send(
+  //   createMsgContent({
+  //     to,
+  //     html,
+  //     subject: 'Change request received',
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendAdminPolicyImportNotification = async (
@@ -381,15 +526,29 @@ export const sendAdminPolicyImportNotification = async (
     toName,
   });
 
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Policy import staged',
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: 'Policy import staged',
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+
+  // sgMail.setApiKey(key);
+  // await sgMail.send(
+  //   createMsgContent({
+  //     to,
+  //     html,
+  //     subject: 'Policy import staged',
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendQuoteExpiringSoonNotification = async (
@@ -406,15 +565,29 @@ export const sendQuoteExpiringSoonNotification = async (
     toName,
   });
 
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Quote expires tomorrow',
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: 'Quote expires tomorrow',
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+
+  // sgMail.setApiKey(key);
+  // await sgMail.send(
+  //   createMsgContent({
+  //     to,
+  //     html,
+  //     subject: 'Quote expires tomorrow',
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendMessage = async (
@@ -426,15 +599,30 @@ export const sendMessage = async (
   sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = blankHTML({ toName, content: msgBody });
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject,
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject,
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+  // sgMail.setApiKey(key);
+
+  // await sgMail.send(
+  //   createMsgContent({
+  //     to,
+  //     html,
+  //     subject,
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const moveTenantVerification = async (
@@ -451,13 +639,27 @@ export const moveTenantVerification = async (
     link,
   });
 
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Confirm org migration',
-      ...getCustomArgs(sgArgs),
-    }),
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to,
+    subject: 'Confirm org migration',
+    html,
+    tags: customArgsToResendTags(getCustomArgs(sgArgs)),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+
+  // sgMail.setApiKey(key);
+  // await sgMail.send(
+  //   createMsgContent({
+  //     to,
+  //     html,
+  //     subject: 'Confirm org migration',
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
