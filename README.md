@@ -202,3 +202,7 @@ If _@idemandinsurance.com_ and email is not verified, creates a JWT signed with 
 ### TODOs
 
 - include types module & switch to pnpm workspace
+- deploy via github workflow (& validate secrets, variables, etc.)
+- documentation
+  - agency management
+  - admin - moratorium, active states, licenses, etc.

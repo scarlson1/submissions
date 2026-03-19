@@ -34,7 +34,7 @@ import { useAuth } from 'context/AuthContext';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import { useAnalyticsEvent } from 'hooks';
 import { dollarFormat2 } from 'modules/utils/helpers';
-import { AUTH_ROUTES, ROUTES, createPath } from 'router';
+import { AUTH_ROUTES, createPath, ROUTES } from 'router';
 
 interface FAQ {
   title: React.ReactNode;
@@ -62,12 +62,18 @@ const generalFaqs: FAQ[] = [
 interface FaqAccordionProps {
   q: FAQ;
   expanded: string | boolean;
-  handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void;
+  handleChange: (
+    panel: string,
+  ) => (event: React.SyntheticEvent, isExpanded: boolean) => void;
 }
 
 const FaqAccordion = ({ q, expanded, handleChange }: FaqAccordionProps) => {
   return (
-    <Accordion expanded={expanded === q.id} onChange={handleChange(q.id)} key={q.id}>
+    <Accordion
+      expanded={expanded === q.id}
+      onChange={handleChange(q.id)}
+      key={q.id}
+    >
       <AccordionSummary
         expandIcon={<ExpandMore />}
         aria-controls={`${q.id}-content`}
@@ -92,26 +98,37 @@ const FaqAccordion = ({ q, expanded, handleChange }: FaqAccordionProps) => {
 const SubmissionFAQs = () => {
   const [expanded, setExpanded] = useState<string | false>(false);
 
-  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : false);
-  };
+  const handleChange =
+    (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpanded(isExpanded ? panel : false);
+    };
 
   return (
     <Box>
       <Divider sx={{ mt: 4, mb: 2 }}>
         <Typography variant='h6' color='text.secondary' sx={{ px: 3 }}>
-          Questions on your mind?
+          Questions?
         </Typography>
       </Divider>
 
       <Box sx={{ py: 3 }}>
-        <Typography variant='overline' color='text.secondary' sx={{ pl: 4, mb: 3 }}>
+        <Typography
+          variant='overline'
+          color='text.secondary'
+          sx={{ pl: 4, mb: 3 }}
+        >
           General FAQs
         </Typography>
         {generalFaqs.map((q) => (
-          <FaqAccordion q={q} expanded={expanded} handleChange={handleChange} key={q.id} />
+          <FaqAccordion
+            q={q}
+            expanded={expanded}
+            handleChange={handleChange}
+            key={q.id}
+          />
         ))}
       </Box>
+      {/* TODO: contact us button */}
     </Box>
   );
 };
@@ -123,9 +140,10 @@ export const SuccessStep = () => {
   if (!submissionId) throw new Error('missing submissionId');
 
   const firestore = useFirestore();
-  const submissionRef = doc(submissionsCollection(firestore), submissionId).withConverter(
-    withIdConverter<Submission>()
-  );
+  const submissionRef = doc(
+    submissionsCollection(firestore),
+    submissionId,
+  ).withConverter(withIdConverter<Submission>());
   const { status, data } = useFirestoreDocData(submissionRef);
 
   if (status === 'loading') {
@@ -133,16 +151,38 @@ export const SuccessStep = () => {
   }
 
   return (
-    <Container maxWidth='sm' disableGutters sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}>
+    <Container
+      maxWidth='sm'
+      disableGutters
+      sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}
+    >
       <Card>
         <CardContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+              }}
+            >
               <Box>
-                <Typography variant='overline' color='text.secondary' sx={{ lineHeight: 1.4 }}>
+                <Typography
+                  variant='overline'
+                  color='text.secondary'
+                  sx={{ lineHeight: 1.4 }}
+                >
                   Status
                 </Typography>
-                <Typography variant='subtitle2'>{data.status}</Typography>
+                <Typography variant='subtitle2'>
+                  {data.status as string}
+                </Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
                 <Typography
@@ -153,7 +193,11 @@ export const SuccessStep = () => {
                 >
                   Address
                 </Typography>
-                <FormattedAddress address={data?.address} variant='subtitle2' textAlign='right' />
+                <FormattedAddress
+                  address={data?.address}
+                  variant='subtitle2'
+                  textAlign='right'
+                />
               </Box>
             </Box>
             <Divider flexItem sx={{ my: 3 }} />
@@ -166,10 +210,18 @@ export const SuccessStep = () => {
               Submission Received!
             </Typography>
 
-            <Typography variant='body2' color='text.secondary' sx={{ p: 4 }} gutterBottom>
-              {data.contact.firstName ? `Thanks, ${data.contact.firstName}! ` : 'Thank you!'} We'll
-              send the quote for your review shortly. If you have any questions or need to get in
-              touch, please don't hesitate to reach out.
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ p: 4 }}
+              gutterBottom
+            >
+              {data.contact.firstName
+                ? `Thanks, ${data.contact.firstName}! `
+                : 'Thank you!'}{' '}
+              We'll send the quote for your review shortly. If you have any
+              questions or need to get in touch, please don't hesitate to reach
+              out.
             </Typography>
             <Divider flexItem sx={{ mt: 3, mb: -4 }} />
           </Box>
@@ -181,13 +233,15 @@ export const SuccessStep = () => {
                 onClick={() =>
                   navigate(
                     {
-                      pathname: createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }),
+                      pathname: createPath({
+                        path: AUTH_ROUTES.CREATE_ACCOUNT,
+                      }),
                       search: createSearchParams({
                         email: data.contact.email,
                         firstName: data.contact.firstName,
                         lastName: data.contact.lastName,
                       }).toString(),
-                    }
+                    },
                     // { replace: true }
                   )
                 }
@@ -199,9 +253,12 @@ export const SuccessStep = () => {
             <Button
               onClick={() =>
                 navigate(
-                  createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
+                  createPath({
+                    path: ROUTES.SUBMISSION_NEW,
+                    params: { productId: 'flood' },
+                  }),
 
-                  { replace: true }
+                  { replace: true },
                 )
               }
               sx={{ ml: 2 }}
@@ -242,11 +299,14 @@ export const useFetchTransaction = (id: string) => {
       },
       (err) => {
         setError(err.message);
-      }
+      },
     );
   }, [id]);
 
-  return useMemo(() => ({ transaction, loading, error }), [transaction, loading, error]);
+  return useMemo(
+    () => ({ transaction, loading, error }),
+    [transaction, loading, error],
+  );
 };
 
 // TODO: redo component (not using card)
@@ -296,7 +356,11 @@ export const BindSuccess = () => {
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Box>
-              <Typography variant='overline' color='text.secondary' lineHeight={2}>
+              <Typography
+                variant='overline'
+                color='text.secondary'
+                lineHeight={2}
+              >
                 Quote&nbsp;ID
               </Typography>
               <Typography variant='body2' fontSize='0.775rem'>
@@ -304,7 +368,12 @@ export const BindSuccess = () => {
               </Typography>
             </Box>
             <Box>
-              <Typography variant='overline' color='text.secondary' align='right' lineHeight={2}>
+              <Typography
+                variant='overline'
+                color='text.secondary'
+                align='right'
+                lineHeight={2}
+              >
                 TRX.&nbsp;ID
               </Typography>
               <Typography variant='body2' align='right' fontSize='0.775rem'>
@@ -312,12 +381,17 @@ export const BindSuccess = () => {
               </Typography>
             </Box>
           </Box>
-          <Typography variant='h5' align='center' sx={{ my: { xs: 3, md: 4, lg: 5 } }}>
+          <Typography
+            variant='h5'
+            align='center'
+            sx={{ my: { xs: 3, md: 4, lg: 5 } }}
+          >
             Thank you!
           </Typography>
           <Typography variant='body2' color='text.secondary' sx={{ pb: 5 }}>
-            We're excited to have your with us! You will receive email with your policy attached in
-            the next 24 hours. If you have any questions, please don't hesitate to reach out.
+            We're excited to have your with us! You will receive email with your
+            policy attached in the next 24 hours. If you have any questions,
+            please don't hesitate to reach out.
           </Typography>
           {/* <Typography>
             TODO: transaction amount, status, receipt email, payer, etc. (and insured address, name,
@@ -325,9 +399,10 @@ export const BindSuccess = () => {
           </Typography> */}
           {transaction && (
             <Box>
-              <Typography variant='body2' color='text.secondary'>{`Amount: ${dollarFormat2(
-                transaction.amount
-              )}`}</Typography>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+              >{`Amount: ${dollarFormat2(transaction.amount)}`}</Typography>
               <Typography
                 variant='body2'
                 color='text.secondary'
@@ -339,7 +414,9 @@ export const BindSuccess = () => {
             </Box>
           )}
         </CardContent>
-        <CardActions sx={{ borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
+        <CardActions
+          sx={{ borderTop: (theme) => `1px solid ${theme.palette.divider}` }}
+        >
           <Button onClick={() => navigate('/')}>Home</Button>
         </CardActions>
       </Card>
@@ -351,7 +428,11 @@ export const BindSuccess = () => {
               typography: 'body2',
               color: 'text.secondary',
               display: 'inline-block',
-              '&:hover': { textDecoration: 'underline', cursor: 'pointer', fontWeight: 500 },
+              '&:hover': {
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                fontWeight: 500,
+              },
               transition: 'fontWeight 200ms',
             }}
             onClick={() => navigate(createPath({ path: ROUTES.CONTACT }))}

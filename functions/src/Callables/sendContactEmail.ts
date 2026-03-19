@@ -12,7 +12,10 @@ interface SendContactEmailProps {
   body: any;
 }
 
-const sendContactEmail = async ({ data, auth }: CallableRequest<SendContactEmailProps>) => {
+const sendContactEmail = async ({
+  data,
+  auth,
+}: CallableRequest<SendContactEmailProps>) => {
   info('data: ', data);
   info('User ID: ', auth?.uid);
   const { userEmail, subject, body } = data;
@@ -22,10 +25,14 @@ const sendContactEmail = async ({ data, auth }: CallableRequest<SendContactEmail
 
   try {
     sgMail.setApiKey(sendgridApiKey.value());
-    const html = newContactMessage({ toName: 'Admin', fromEmail: userEmail, body });
+    const html = newContactMessage({
+      toName: 'Admin',
+      fromEmail: userEmail,
+      body,
+    });
 
-    const to = ['spencer.carlson@idemandinsurance.com'];
-    if (audience.value() !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
+    const to = ['spencer@s-carlson.com'];
+    if (audience.value() !== 'LOCAL HUMANS') to.push('roreply@s-carlson.com');
     // TODO: optional cc emails
     await sgMail.send({
       html,
@@ -46,4 +53,7 @@ const sendContactEmail = async ({ data, auth }: CallableRequest<SendContactEmail
   }
 };
 
-export default onCallWrapper<SendContactEmailProps>('sendcontactemail', sendContactEmail);
+export default onCallWrapper<SendContactEmailProps>(
+  'sendcontactemail',
+  sendContactEmail,
+);

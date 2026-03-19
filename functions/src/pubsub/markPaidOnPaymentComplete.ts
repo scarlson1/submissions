@@ -19,7 +19,9 @@ export interface PaymentCompletePayload {
   policyId: string;
 }
 
-export default async (event: CloudEvent<MessagePublishedData<PaymentCompletePayload>>) => {
+export default async (
+  event: CloudEvent<MessagePublishedData<PaymentCompletePayload>>,
+) => {
   info('MSG JSON: ', event.data.message.json);
 
   // let transactionId = null;
@@ -30,10 +32,16 @@ export default async (event: CloudEvent<MessagePublishedData<PaymentCompletePayl
   // } catch (e) {
   //   console.error('PubSub message was not JSON', e);
   // }
-  const { policyId, transactionId } = extractPubSubPayload(event, ['policyId', 'transactionId']);
+  const { policyId, transactionId } = extractPubSubPayload(event, [
+    'policyId',
+    'transactionId',
+  ]);
 
-  console.log(`PAYMENT COMPLETE - TRX ID: ${transactionId} - POLICY ID: ${policyId}`);
-  if (!(transactionId && policyId)) return console.error('Missing transaction or policy id');
+  console.log(
+    `PAYMENT COMPLETE - TRX ID: ${transactionId} - POLICY ID: ${policyId}`,
+  );
+  if (!(transactionId && policyId))
+    return console.error('Missing transaction or policy id');
 
   const db = getFirestore();
   const policyRef = policiesCollection(db).doc(policyId);
@@ -51,10 +59,12 @@ export default async (event: CloudEvent<MessagePublishedData<PaymentCompletePayl
     paymentStatus: PaymentStatus.enum.paid,
     'metadata.updated': Timestamp.now(),
   });
-  console.log(`POLICY ${policyId} STATUS UPDATED TO PAID - TRX ID: ${transactionId}`);
+  console.log(
+    `POLICY ${policyId} STATUS UPDATED TO PAID - TRX ID: ${transactionId}`,
+  );
 
-  const to = ['spencer.carlson@idemandinsurance.com'];
-  if (audience.value() !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
+  const to = ['spencer@s-carlson.com'];
+  if (audience.value() !== 'LOCAL HUMANS') to.push('roreply@s-carlson.com');
 
   const policyLink = `${hostingBaseURL.value()}/admin/policies/${policyId}/delivery`;
 
@@ -72,7 +82,7 @@ export default async (event: CloudEvent<MessagePublishedData<PaymentCompletePayl
         firebaseEventId: event.id,
         emailType: 'payment_complete', // TODO: use zod from email type & args to sendAdminNotification
       },
-    }
+    },
   );
 
   return;

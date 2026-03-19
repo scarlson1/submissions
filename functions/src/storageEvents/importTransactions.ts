@@ -39,7 +39,8 @@ export default async (event: StorageEvent) => {
   const filePath = event.data.name;
   const filename = basename(filePath || '');
 
-  if (shouldReturnEarly(event, TRX_IMPORT_FOLDER, 'text/csv', 'processed')) return;
+  if (shouldReturnEarly(event, TRX_IMPORT_FOLDER, 'text/csv', 'processed'))
+    return;
 
   if (eventOlderThan(event)) return; // return if event older than 1 min
 
@@ -53,26 +54,35 @@ export default async (event: StorageEvent) => {
 
   await bucket.file(filePath).download({ destination: tempFilePath });
 
-  let dataArr: ParseStreamToArrayRes<Omit<Transaction, 'metadata'>>['dataArr'] = [];
-  let invalidRows: ParseStreamToArrayRes<Omit<Transaction, 'metadata'>>['invalidRows'] = [];
+  let dataArr: ParseStreamToArrayRes<Omit<Transaction, 'metadata'>>['dataArr'] =
+    [];
+  let invalidRows: ParseStreamToArrayRes<
+    Omit<Transaction, 'metadata'>
+  >['invalidRows'] = [];
 
   const stream = createReadStream(tempFilePath);
 
   try {
-    const parsed = await parseStreamToArray<TrxRow, Omit<Transaction, 'metadata'>>(
+    const parsed = await parseStreamToArray<
+      TrxRow,
+      Omit<Transaction, 'metadata'>
+    >(
       stream,
       { headers: transformHeadersCamelCase },
       transformTrxRow,
-      validateTrxRow
+      validateTrxRow,
     );
 
     dataArr = [...parsed.dataArr];
     invalidRows = [...parsed.invalidRows];
 
-    info(`${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`, {
-      invalidRows,
-      dataArr,
-    });
+    info(
+      `${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`,
+      {
+        invalidRows,
+        dataArr,
+      },
+    );
   } catch (err: any) {
     let msg = `Error parsing transactions from csv: ${filename}`;
     if (err?.message) msg += ` (${err.message})`;
@@ -110,10 +120,13 @@ export default async (event: StorageEvent) => {
     }
   }
 
-  info(`Imported ${trxIds.length} transactions with ${importErrors.length} failures`, {
-    trxIds,
-    importErrors,
-  });
+  info(
+    `Imported ${trxIds.length} transactions with ${importErrors.length} failures`,
+    {
+      trxIds,
+      importErrors,
+    },
+  );
 
   try {
     await importSummaryRef.set({
@@ -131,11 +144,11 @@ export default async (event: StorageEvent) => {
   }
 
   try {
-    const to = ['spencer.carlson@idemandinsurance.com'];
+    const to = ['spencer@s-carlson.com'];
     let link;
 
     if (audience.value() !== 'LOCAL HUMANS') {
-      to.push('ron.carlson@idemandinsurance.com');
+      to.push('roreply@s-carlson.com');
       link = `${hostingBaseURL.value}/admin/config/imports/${importSummaryRef.id}`;
     }
 
@@ -153,10 +166,14 @@ export default async (event: StorageEvent) => {
           firebaseEventId: event.id,
           emailType: 'trx_import',
         },
-      }
+      },
     );
   } catch (err: any) {
-    reportErr('Error sending transaction import summary admin notification', {}, err);
+    reportErr(
+      'Error sending transaction import summary admin notification',
+      {},
+      err,
+    );
   }
 
   return;

@@ -28,10 +28,21 @@ import {
   transformHeadersCamelCase,
   writeArrayToStorage as writeToStorage,
 } from '../modules/storage/index.js';
-import { generateSRAccessToken, getSwissReInstance } from '../services/index.js';
+import {
+  generateSRAccessToken,
+  getSwissReInstance,
+} from '../services/index.js';
 import { sendMessage } from '../services/sendgrid/index.js';
-import { randomFileName, splitChunks, unlinkFile, waitMilliSeconds } from '../utils/index.js';
-import { RatePortfolioInputRow, TransformedRatePortfolioRow } from './models/index.js';
+import {
+  randomFileName,
+  splitChunks,
+  unlinkFile,
+  waitMilliSeconds,
+} from '../utils/index.js';
+import {
+  RatePortfolioInputRow,
+  TransformedRatePortfolioRow,
+} from './models/index.js';
 import {
   FlattenedPremData,
   flattenPremData,
@@ -99,9 +110,12 @@ const calcPrem = (data: TRowWithAAL[]) => {
     } catch (err: any) {
       const errMsg = err?.message || null;
       if (errMsg !== 'skip row')
-        error(`ERROR (location: ${r.locationId || r.addressLine1 || '"no addressLine1"'}): `, {
-          errMsg,
-        });
+        error(
+          `ERROR (location: ${r.locationId || r.addressLine1 || '"no addressLine1"'}): `,
+          {
+            errMsg,
+          },
+        );
 
       const flattenedRatingData = flattenRatingData(r);
       // TODO: fix type (TRowWithAAL)
@@ -189,7 +203,9 @@ const calcPrem = (data: TRowWithAAL[]) => {
   return result;
 };
 
-function getSRPromise(data: TransformedRatePortfolioRow): Promise<AxiosResponse<SRRes, any>> {
+function getSRPromise(
+  data: TransformedRatePortfolioRow,
+): Promise<AxiosResponse<SRRes, any>> {
   if (data.skip) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -218,14 +234,18 @@ type GetAALsRes = TransformedRatePortfolioRow & AALsWithErrMsg;
  * @param {TransformedRatePortfolioRow[]} parsedData chunk of rows
  * @returns {Promise<GetAALsRes[]>} promise which resolves to the parsed data array with AALs appended to each item (inland, surge, tsunami, errMsg) aals -1 if error
  */
-async function getAALs(parsedData: TransformedRatePortfolioRow[]): Promise<GetAALsRes[]> {
+async function getAALs(
+  parsedData: TransformedRatePortfolioRow[],
+): Promise<GetAALsRes[]> {
   try {
     // Catch error so promise.all doesn't cause all requests to fail
     const promises = parsedData.map((r, i) =>
       getSRPromise(r).catch((err: any) => {
         let errMsg = 'Error fetching AALs from Swiss Re.';
-        if (err?.message && typeof err.message === 'string') errMsg = err.message;
-        if (err?.response?.data) errMsg += ` ${[JSON.stringify(err.response.data)]}`;
+        if (err?.message && typeof err.message === 'string')
+          errMsg = err.message;
+        if (err?.response?.data)
+          errMsg += ` ${[JSON.stringify(err.response.data)]}`;
 
         error(`Error fetching AALs for row index ${i}`, {
           errMsg,
@@ -238,7 +258,7 @@ async function getAALs(parsedData: TransformedRatePortfolioRow[]): Promise<GetAA
           data: undefined,
           errMsg,
         };
-      })
+      }),
     ) as Promise<
       | AxiosResponse<SRRes, any>
       | {
@@ -302,10 +322,11 @@ async function splitAndRate(data: TransformedRatePortfolioRow[]) {
       printObj(errorRows);
 
       info(
-        `RATED CHUNK (${currChunk}/${chunks.length}) [SUCCESS COUNT: ${ratedChunk.length}; ERROR COUNT: ${errorRows.length}]: `
+        `RATED CHUNK (${currChunk}/${chunks.length}) [SUCCESS COUNT: ${ratedChunk.length}; ERROR COUNT: ${errorRows.length}]: `,
       );
 
-      if (currChunk !== chunks.length) await waitMilliSeconds(SR_WAIT_MS, 'space out SR API calls');
+      if (currChunk !== chunks.length)
+        await waitMilliSeconds(SR_WAIT_MS, 'space out SR API calls');
 
       ratedArray = [...ratedArray, ...ratedChunk];
       // Add error rows to "retry" chunk
@@ -328,7 +349,10 @@ export default async (event: StorageEvent) => {
   info('FILE UPLOAD DETECTED: ', { fileName });
   // TODO: better filtering to only run on wanted uploads & idempotency
 
-  if (shouldReturnEarly(event, PORTFOLIO_UPLOAD_FOLDER, 'text/csv', 'processed')) return;
+  if (
+    shouldReturnEarly(event, PORTFOLIO_UPLOAD_FOLDER, 'text/csv', 'processed')
+  )
+    return;
 
   // TODO: check metadata for processed status ??
   const eventAge = Date.now() - Date.parse(event.time);
@@ -344,14 +368,20 @@ export default async (event: StorageEvent) => {
   const clientSecret = swissReClientSecret.value();
   const subKey = swissReSubscriptionKey.value();
 
-  swissReInstance = swissReInstance || getSwissReInstance(clientId, clientSecret, subKey);
+  swissReInstance =
+    swissReInstance || getSwissReInstance(clientId, clientSecret, subKey);
 
   const shouldGenerateNewToken =
-    !swissReInstanceTimestamp || new Date().getTime() - swissReInstanceTimestamp > tenMins;
+    !swissReInstanceTimestamp ||
+    new Date().getTime() - swissReInstanceTimestamp > tenMins;
 
-  if (!swissReInstance.defaults.headers.common.Authorization || shouldGenerateNewToken) {
+  if (
+    !swissReInstance.defaults.headers.common.Authorization ||
+    shouldGenerateNewToken
+  ) {
     let accessToken = await generateSRAccessToken(clientId, clientSecret);
-    swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    swissReInstance.defaults.headers.common['Authorization'] =
+      `Bearer ${accessToken}`;
     swissReInstanceTimestamp = new Date().getTime();
   }
 
@@ -363,30 +393,35 @@ export default async (event: StorageEvent) => {
   info(`File downloaded locally: ${tempFilePath}`);
 
   const storageFile = bucket.file(
-    `${PORTFOLIO_UPLOAD_FOLDER}/processed_${fileName}`
+    `${PORTFOLIO_UPLOAD_FOLDER}/processed_${fileName}`,
   ) as unknown as File;
 
   try {
     const stream = fs.createReadStream(tempFilePath);
-    const parsed = await parseStreamToArray<RatePortfolioInputRow, TransformedRatePortfolioRow>(
+    const parsed = await parseStreamToArray<
+      RatePortfolioInputRow,
+      TransformedRatePortfolioRow
+    >(
       stream,
       { headers: transformHeadersCamelCase },
       transformRatePortfolioRowZod,
-      validateRatePortfolioRowZod
+      validateRatePortfolioRowZod,
     );
     const dataArray = parsed.dataArr;
     const invalidRows = parsed.invalidRows;
 
     await unlinkFile(tempFilePath);
     info(
-      `FINISHED PARSING FILE (${dataArray.length} VALID ROWS - ${invalidRows.length} INVALID ROWS)`
+      `FINISHED PARSING FILE (${dataArray.length} VALID ROWS - ${invalidRows.length} INVALID ROWS)`,
     );
 
     const ratedArray = await splitAndRate(dataArray);
 
     await writeToStorage(storageFile, ratedArray, { headers: true });
 
-    await bucket.file(filePath).setMetadata({ metadata: { status: 'processed' } });
+    await bucket
+      .file(filePath)
+      .setMetadata({ metadata: { status: 'processed' } });
 
     try {
       await notifyAdmin(sendgridApiKey.value(), storageFile, fileName);
@@ -400,12 +435,20 @@ export default async (event: StorageEvent) => {
   } catch (err: any) {
     error('ERROR: ', { err });
     await unlinkFile(tempFilePath);
-    reportErr(`Error handling portfolio rating (${fileName})`, { fileName }, err);
+    reportErr(
+      `Error handling portfolio rating (${fileName})`,
+      { fileName },
+      err,
+    );
     return;
   }
 };
 
-async function notifyAdmin(sgKey: string, storageFile: File, fileName: string = 'File') {
+async function notifyAdmin(
+  sgKey: string,
+  storageFile: File,
+  fileName: string = 'File',
+) {
   const storageLink = `https://console.cloud.google.com/storage/browser/_details/${storageBucket.value()}/${
     storageFile.name
   };tab=live_object?project=${projectID.value()}`;
@@ -416,8 +459,8 @@ async function notifyAdmin(sgKey: string, storageFile: File, fileName: string = 
     expires: addDays(new Date(), 7),
   });
 
-  const to = ['spencer.carlson@idemandinsurance.com'];
-  if (audience.value() === 'PROD HUMANS') to.push('ron.carlson@idemandinsurance.com');
+  const to = ['spencer@s-carlson.com'];
+  if (audience.value() === 'PROD HUMANS') to.push('roreply@s-carlson.com');
 
   const msgBody = `<div>
       <p>
@@ -428,9 +471,16 @@ async function notifyAdmin(sgKey: string, storageFile: File, fileName: string = 
       </div>
     </div>`;
 
-  await sendMessage(sgKey, to, msgBody, 'Portfolio rating complete', undefined, {
-    customArgs: {
-      emailType: 'portfolio_rating_complete',
+  await sendMessage(
+    sgKey,
+    to,
+    msgBody,
+    'Portfolio rating complete',
+    undefined,
+    {
+      customArgs: {
+        emailType: 'portfolio_rating_complete',
+      },
     },
-  });
+  );
 }

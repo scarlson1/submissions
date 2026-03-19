@@ -27,11 +27,17 @@ const sendAgencyApprovedNotification = async ({
     const msg = data.message || null;
 
     if (!auth || !auth.token || !auth.token.iDemandAdmin) {
-      throw new HttpsError('failed-precondition', 'iDemand Admin permissions required');
+      throw new HttpsError(
+        'failed-precondition',
+        'iDemand Admin permissions required',
+      );
     }
 
     if (!applicationDocId || !data.tenantId) {
-      throw new HttpsError('invalid-argument', 'Missing application document ID or tenantId');
+      throw new HttpsError(
+        'invalid-argument',
+        'Missing application document ID or tenantId',
+      );
     }
     // TODO: verify tenant actually exists
 
@@ -40,7 +46,10 @@ const sendAgencyApprovedNotification = async ({
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
-      throw new HttpsError('not-found', `No agency applications found with ID ${applicationDocId}`);
+      throw new HttpsError(
+        'not-found',
+        `No agency applications found with ID ${applicationDocId}`,
+      );
     }
     const docData = docSnap.data();
     if (!docData) return;
@@ -52,7 +61,10 @@ const sendAgencyApprovedNotification = async ({
       throw new HttpsError('invalid-argument', 'Missing contact email');
     }
     if (!contact.firstName || !orgName) {
-      throw new HttpsError('invalid-argument', 'Missing contact first name or company name');
+      throw new HttpsError(
+        'invalid-argument',
+        'Missing contact first name or company name',
+      );
     }
 
     const inviteRef = invitesCollection(db, data.tenantId).doc(contact.email);
@@ -61,13 +73,16 @@ const sendAgencyApprovedNotification = async ({
     if (!inviteSnap.exists) {
       throw new HttpsError(
         'failed-precondition',
-        `No invite found under ${data.tenantId} for ${contact.email}`
+        `No invite found under ${data.tenantId} for ${contact.email}`,
       );
     }
 
     const to = [contact.email];
-    if (audience.value() === 'LOCAL HUMANS' || audience.value() === 'DEV HUMANS') {
-      to.push('spencer.carlson@idemandinsurance.com');
+    if (
+      audience.value() === 'LOCAL HUMANS' ||
+      audience.value() === 'DEV HUMANS'
+    ) {
+      to.push('spencer@s-carlson.com');
     }
 
     await sendAgencyAppApprovedNotification(
@@ -83,7 +98,7 @@ const sendAgencyApprovedNotification = async ({
         customArgs: {
           emailType: 'agency_approved',
         },
-      }
+      },
     );
     info('Invites sent', { to, orgName });
 
@@ -101,5 +116,5 @@ const sendAgencyApprovedNotification = async ({
 
 export default onCallWrapper<SendAgencyApprovedNotificationProps>(
   'sendAgencyApprovedNotification',
-  sendAgencyApprovedNotification
+  sendAgencyApprovedNotification,
 );

@@ -21,10 +21,14 @@ export async function sendContact(sgKey: string, args: SendContactProps) {
   try {
     const { userEmail, subject, body } = args;
     sgMail.setApiKey(sgKey);
-    const html = newContactMessage({ toName: 'Admin', fromEmail: userEmail, body });
+    const html = newContactMessage({
+      toName: 'Admin',
+      fromEmail: userEmail,
+      body,
+    });
 
-    const to = ['spencer.carlson@idemandinsurance.com'];
-    if (audience.value() !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
+    const to = ['spencer@s-carlson.com'];
+    if (audience.value() !== 'LOCAL HUMANS') to.push('roreply@s-carlson.com');
     // TODO: optional cc emails
     await sgMail.send({
       html,

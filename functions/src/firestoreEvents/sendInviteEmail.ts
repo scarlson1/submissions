@@ -16,7 +16,7 @@ export default async (
       orgId: string;
       inviteId: string;
     }
-  >
+  >,
 ) => {
   const { inviteId, orgId } = event.params;
   const snap = event.data;
@@ -30,7 +30,8 @@ export default async (
   const alreadySent = data.sent || false;
 
   let logMsg = `New invite detected. Initiating invite email (${event.params.inviteId})...`;
-  if (alreadySent) logMsg = `New invite detected. Returning early - sent status: ${data.sent}`;
+  if (alreadySent)
+    logMsg = `New invite detected. Returning early - sent status: ${data.sent}`;
 
   info(logMsg, {
     inviteId,
@@ -49,7 +50,7 @@ export default async (
 
   let to = [data.email];
   if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS')
-    to.push('spencer.carlson@idemandinsurance.com');
+    to.push('spencer@s-carlson.com');
 
   try {
     await sendUserInvite(
@@ -63,10 +64,13 @@ export default async (
           firebaseEventId: event.id,
           emailType: 'user_invite',
         },
-      }
+      },
     );
     await markSent(inviteRef);
-    info(`Invite for org ${data.orgId} (${data.orgName}) sent to ${JSON.stringify(to)}`, { link });
+    info(
+      `Invite for org ${data.orgId} (${data.orgName}) sent to ${JSON.stringify(to)}`,
+      { link },
+    );
   } catch (err: any) {
     error(`Error sending invite email to ${data.email} for org ${data.orgId}`, {
       errMsg: err?.message,

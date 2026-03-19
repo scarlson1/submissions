@@ -23,7 +23,10 @@ interface SubmitClaimProps {
   claimId: string;
 }
 
-const submitClaim = async ({ data, auth }: CallableRequest<SubmitClaimProps>) => {
+const submitClaim = async ({
+  data,
+  auth,
+}: CallableRequest<SubmitClaimProps>) => {
   const { policyId, claimId } = data;
 
   requireAuth(auth);
@@ -40,32 +43,44 @@ const submitClaim = async ({ data, auth }: CallableRequest<SubmitClaimProps>) =>
     const [policySnap, claimSnap] = await db.getAll(policyRef, claimRef);
     const policy = policySnap.data();
     const claim = claimSnap.data();
-    validate(policySnap.exists && policy, 'not-found', `policy not found (${policyId})`);
+    validate(
+      policySnap.exists && policy,
+      'not-found',
+      `policy not found (${policyId})`,
+    );
     validate(
       claimSnap.exists && claim,
       'not-found',
-      `Claim ${claimId} does not exist under policy ${policyId}`
+      `Claim ${claimId} does not exist under policy ${policyId}`,
     );
     validate(
       claim.status === 'draft',
       'failed-precondition',
-      'Invalid claim status. Please create a new claim.'
+      'Invalid claim status. Please create a new claim.',
     );
-    validate(claim.locationId, 'failed-precondition', 'claim missing locationId');
+    validate(
+      claim.locationId,
+      'failed-precondition',
+      'claim missing locationId',
+    );
 
-    const locationSnap = await locationsCollection(db).doc(claim.locationId).get();
+    const locationSnap = await locationsCollection(db)
+      .doc(claim.locationId)
+      .get();
     const location = locationSnap.data();
     validate(
       locationSnap.exists && location,
       'not-found',
-      `location not found ${claim.locationId}`
+      `location not found ${claim.locationId}`,
     );
 
     // TODO: use zod to validate draft claim
     // if (!DraftPolicyClaim.safeParse(claim).success) {...}
 
     // TODO: wrap notifications and updating status in transaction ??
-    const orgId = token.firebase.tenant ?? (token.email?.endsWith(`@idemandinsurance.com`) || null);
+    const orgId =
+      token.firebase.tenant ??
+      (token.email?.endsWith(`@idemandinsurance.com`) || null);
     await claimRef.update({
       status: 'submitted',
       submittedBy: {
@@ -95,30 +110,37 @@ const submitClaim = async ({ data, auth }: CallableRequest<SubmitClaimProps>) =>
     if (claim.contact?.email) to.push(claim.contact?.email);
 
     try {
-      const insuredNotificationPromise = sendClaimSubmitted(sendgridApiKey.value(), {
-        to,
-        templateId: 'claim_submitted',
-        policyId: policyId as string,
-        claimId: claimId as string,
-        locationId: claim.locationId as string,
-        externalId: claim.externalId as string,
-        // contact: claim.contact
-        contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
-      });
+      const insuredNotificationPromise = sendClaimSubmitted(
+        sendgridApiKey.value(),
+        {
+          to,
+          templateId: 'claim_submitted',
+          policyId: policyId as string,
+          claimId: claimId as string,
+          locationId: claim.locationId as string,
+          externalId: claim.externalId as string,
+          // contact: claim.contact
+          contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
+        },
+      );
       // TODO: pull idemand to emails up to function or integrating into sendgrid flow
       const adminTo: EmailData[] = ['spencercarlson@idemandinsurance.com'];
-      if (audience.value() !== 'PROD HUMANS') adminTo.push('ron.carlson@idemandinsurance.com');
+      if (audience.value() !== 'PROD HUMANS')
+        adminTo.push('roreply@s-carlson.com');
 
-      const adminNotificationPromise = sendClaimSubmitted(sendgridApiKey.value(), {
-        to: adminTo,
-        templateId: 'claim_submitted',
-        policyId: policyId as string,
-        claimId: claimId as string,
-        locationId: claim.locationId as string,
-        externalId: claim.externalId as string,
-        // contact: claim.contact
-        contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
-      });
+      const adminNotificationPromise = sendClaimSubmitted(
+        sendgridApiKey.value(),
+        {
+          to: adminTo,
+          templateId: 'claim_submitted',
+          policyId: policyId as string,
+          claimId: claimId as string,
+          locationId: claim.locationId as string,
+          externalId: claim.externalId as string,
+          // contact: claim.contact
+          contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
+        },
+      );
       await Promise.all([insuredNotificationPromise, adminNotificationPromise]);
     } catch (err: any) {
       reportErr('error sending email notifications', data, err);
