@@ -14,7 +14,8 @@
     "use:dev": "firebase use dev",
     "use:prod": "firebase use prod",
     "test": "jest",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "ngrok": "ngrok http --url=wondrous-opossum-sensible.ngrok-free.app 5001"
   },
   "jest": {
     "transform": {

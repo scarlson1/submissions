@@ -5,9 +5,12 @@ import jwt from 'jsonwebtoken';
 import {
   emailVerificationKey,
   functionsBaseURL,
-  sendgridApiKey,
+  resendKey,
 } from '../common/index.js';
-import { sendEmailConfirmation } from '../services/sendgrid/index.js';
+import {
+  sendEmailConfirmation,
+  type ExtraSendGridArgs,
+} from '../services/sendgrid/index.js';
 
 // TODO: consider using auth event to update DB user email ??
 // https://stackoverflow.com/a/47933914/10887890
@@ -22,24 +25,24 @@ export default async (event: AuthBlockingEvent) => {
     if (!user.emailVerified) {
       try {
         const verificationKey = emailVerificationKey.value();
-        const sgKey = sendgridApiKey.value();
+        const key = resendKey.value();
 
         await sendAdminVerificationEmail(
           verificationKey,
-          sgKey,
+          key,
           user.uid,
           user.email,
           user.tenantId,
           user.displayName,
           // TODO: switch to resend templates ?? need to update admin email grid to use resend
-          // {
-          //   customArgs: {
-          //     firebaseEventId: event.eventId,
-          //     emailType: 'email_verification',
-          //     projectId: projectID.value(),
-          //     environment: env.value(),
-          //   },
-          // }
+          {
+            customArgs: {
+              firebaseEventId: event.eventId,
+              emailType: 'email_verification',
+              // projectId: projectID.value(),
+              // environment: env.value(),
+            },
+          },
         );
 
         throw new HttpsError(
@@ -73,7 +76,7 @@ async function sendAdminVerificationEmail(
   email: string | undefined,
   tenantId: string | null | undefined,
   displayName?: string,
-  // sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) {
   if (!email) throw new HttpsError('failed-precondition', 'missing email');
 
@@ -91,7 +94,7 @@ async function sendAdminVerificationEmail(
 
   info(`Verification link: ${link}`);
 
-  await sendEmailConfirmation(sgKey, link, email, displayName || '');
+  await sendEmailConfirmation(sgKey, link, email, displayName || '', sgArgs);
 
   info(`iDemand admin verification email sent to ${email}`);
 }

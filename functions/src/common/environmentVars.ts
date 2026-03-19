@@ -10,7 +10,8 @@ import {
 export const minInstances = projectID.equals('PRODUCTION').thenElse(1, 0);
 
 export const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-export const resendApiKey = defineSecret('RESEND_API_KEY');
+export const resendKey = defineSecret('RESEND_API_KEY');
+export const resendSecret = defineSecret('RESEND_SECRET');
 // export const sendGridWebhookVerificationKey = defineSecret('SENDGRID_WEBHOOK_VERIFICATION_KEY');
 export const emailVerificationKey = defineSecret('EMAIL_VERIFICATION_KEY');
 export const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');

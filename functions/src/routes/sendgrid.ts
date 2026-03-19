@@ -1,10 +1,16 @@
-import { CollectionReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import {
+  CollectionReference,
+  getFirestore,
+  Timestamp,
+} from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
 import { Response } from 'firebase-functions/v1';
 import { Request } from 'firebase-functions/v2/https';
 import { v4 as uuid } from 'uuid';
 
 import { emailActivityCollection } from '../common/index.js';
+
+// REPLACED BY RESEND
 
 // local webhook url: https://5d548ca8c480-3444825649922910484.ngrok-free.app/idemand-submissions-dev/us-central1/sendgrid/event
 // dev url ??: ${hosingURL}/sendgrid/event
@@ -22,7 +28,10 @@ import { emailActivityCollection } from '../common/index.js';
 
 // verifying request example: https://github.com/sendgrid/sendgrid-nodejs/blob/main/docs/use-cases/event-webhook.md
 
-const saveEvent = async (eventColRef: CollectionReference<any>, data: Record<string, any>) => {
+const saveEvent = async (
+  eventColRef: CollectionReference<any>,
+  data: Record<string, any>,
+) => {
   try {
     const docId = data.sg_event_id || uuid();
     const eventRef = eventColRef.doc(docId);
@@ -41,14 +50,14 @@ const saveEvent = async (eventColRef: CollectionReference<any>, data: Record<str
 
     info(`Saved sendgrid event (ID: ${docId})`, { data });
   } catch (err: any) {
-    error(`Error saving sendgrid event to db (ID: )`, { err, data });
+    error('Error saving sendgrid event to db (ID: )', { err, data });
   }
 };
 
 export default async (req: Request, res: Response) => {
   // app.post('/event', async (req: Request, res: Response) => {
   // TODO: enable signature verification
-  var events = req.body as SGWebhookBody;
+  const events = req.body as SGWebhookBody;
   info('New sendgrid event received', { events });
 
   const db = getFirestore();
@@ -63,7 +72,7 @@ export default async (req: Request, res: Response) => {
         `Ignoring sendgrid event because projectId does not match "idemand-submissions" (projectId: ${event.projectId})`,
         {
           ...event,
-        }
+        },
       );
     }
   });

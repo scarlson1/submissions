@@ -13,7 +13,7 @@ import {
   TypographyProps,
 } from '@mui/material';
 import { GridRenderCellParams } from '@mui/x-data-grid';
-import { MouseEvent, memo, useCallback, useRef, useState } from 'react';
+import { memo, MouseEvent, useCallback, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 import { useCopyToClipboard } from 'hooks';
@@ -27,7 +27,9 @@ import {
 
 // TODO: need to move exports to their own file b/c switch to vite ??
 
-export const renderGridPhone = ({ value }: GridRenderCellParams<any, any, any>) => {
+export const renderGridPhone = ({
+  value,
+}: GridRenderCellParams<any, any, any>) => {
   if (value == null) return '';
 
   return (
@@ -37,16 +39,31 @@ export const renderGridPhone = ({ value }: GridRenderCellParams<any, any, any>) 
   );
 };
 
-export const renderGridEmail = ({ value }: GridRenderCellParams<any, any, any>) => {
+export const renderGridEmail = ({
+  value,
+}: GridRenderCellParams<any, any, any>) => {
   if (!value) return null; // ''
+  let emails = Array.isArray(value) ? value : [value];
 
   return (
     <Box
-      sx={{ overflow: 'auto', whiteSpace: 'nowrap', '&::-webkit-scrollbar': { display: 'none' } }}
+      sx={{
+        overflow: 'auto',
+        whiteSpace: 'nowrap',
+        '&::-webkit-scrollbar': { display: 'none' },
+      }}
     >
-      <Link href={`mailto:${value}`} underline='hover' onClick={(e) => e.stopPropagation()}>
-        {value}
-      </Link>
+      {emails.map((e) => (
+        <Link
+          key={e}
+          href={`mailto:${value}`}
+          underline='hover'
+          onClick={(e) => e.stopPropagation()}
+          sx={{ pr: 1 }}
+        >
+          {value}
+        </Link>
+      ))}
     </Box>
   );
 };
@@ -56,8 +73,8 @@ export const renderChips = (
   chipProps: ChipProps = {},
   propsGetterFunc: (
     props: any,
-    params: GridRenderCellParams<any, any, any>
-  ) => Partial<ChipProps> | void = () => {}
+    params: GridRenderCellParams<any, any, any>,
+  ) => Partial<ChipProps> | void = () => {},
 ) => {
   if (!params.value || params.value.length < 1) return null;
 
@@ -74,13 +91,28 @@ export const renderChips = (
     <Stack
       spacing={1}
       direction='row'
-      sx={{ overflow: 'auto', whiteSpace: 'nowrap', '&::-webkit-scrollbar': { display: 'none' } }}
+      sx={{
+        overflow: 'auto',
+        whiteSpace: 'nowrap',
+        '&::-webkit-scrollbar': { display: 'none' },
+      }}
     >
       {vals.map((i: string) => (
-        <Chip key={i} label={i} size='small' {...chipProps} {...propsGetterFunc(i, params)} />
+        <Chip
+          key={i}
+          label={i}
+          size='small'
+          {...chipProps}
+          {...propsGetterFunc(i, params)}
+        />
       ))}
       {andMoreCount > 0 ? (
-        <Chip label={`+ ${andMoreCount} more`} size='small' {...chipProps} color='primary' />
+        <Chip
+          label={`+ ${andMoreCount} more`}
+          size='small'
+          {...chipProps}
+          color='primary'
+        />
       ) : null}
     </Stack>
   );
@@ -96,7 +128,7 @@ export const GridCellCopy = ({ value }: { value?: string | number | null }) => {
       copy(value);
       toast.success('Copied!');
     },
-    [copy, value]
+    [copy, value],
   );
 
   if (value === undefined || value === null) return null;
@@ -117,7 +149,11 @@ export const GridCellCopy = ({ value }: { value?: string | number | null }) => {
       >
         {value}
       </Typography>
-      <IconButton size='small' onClick={(e) => handleCopy(e)} sx={{ flex: '0 0 auto' }}>
+      <IconButton
+        size='small'
+        onClick={(e) => handleCopy(e)}
+        sx={{ flex: '0 0 auto' }}
+      >
         <CopyAllRounded fontSize='inherit' />
       </IconButton>
     </Box>
@@ -130,11 +166,17 @@ interface GridCellExpandProps {
 }
 
 function isOverflown(element: Element): boolean {
-  return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
+  return (
+    element.scrollHeight > element.clientHeight ||
+    element.scrollWidth > element.clientWidth
+  );
 }
 
 // TODO: use for formatted address
-export const GridCellExpand = memo(function GridCellExpand({ width, value }: GridCellExpandProps) {
+export const GridCellExpand = memo(function GridCellExpand({
+  width,
+  value,
+}: GridCellExpandProps) {
   const wrapper = useRef<HTMLDivElement | null>(null);
   const cellDiv = useRef(null);
   const cellValue = useRef(null);
@@ -201,7 +243,11 @@ export const GridCellExpand = memo(function GridCellExpand({ width, value }: Gri
       />
       <Box
         ref={cellValue}
-        sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+        sx={{
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
       >
         {value}
       </Box>
@@ -211,7 +257,10 @@ export const GridCellExpand = memo(function GridCellExpand({ width, value }: Gri
           anchorEl={anchorEl}
           style={{ width, marginLeft: -17 }}
         >
-          <Paper elevation={1} style={{ minHeight: wrapper.current!.offsetHeight - 3 }}>
+          <Paper
+            elevation={1}
+            style={{ minHeight: wrapper.current!.offsetHeight - 3 }}
+          >
             <Typography variant='body2' style={{ padding: 8 }}>
               {value}
             </Typography>
@@ -240,7 +289,7 @@ export function renderFormattedValue({
 
 export function renderNumber(
   { value }: GridRenderCellParams<any, any, any>,
-  typographyProps?: TypographyProps
+  typographyProps?: TypographyProps,
 ) {
   if (!value && value !== 0) return null;
 
@@ -254,7 +303,7 @@ export function renderNumber(
 export function renderCurrency(
   { value }: GridRenderCellParams<any, any, any>,
   withDecimals: boolean = true,
-  typographyProps?: TypographyProps
+  typographyProps?: TypographyProps,
 ) {
   if (!value && value !== 0) return null;
 
@@ -269,7 +318,7 @@ export function renderCurrency(
 export function renderPercent(
   { value }: GridRenderCellParams<any, any, any>,
   round?: number,
-  typographyProps?: TypographyProps
+  typographyProps?: TypographyProps,
 ) {
   if (!value && value !== 0) return null;
 
@@ -287,15 +336,22 @@ export function renderPercent(
 export function renderChip(
   { value }: GridRenderCellParams<any, any, any>,
   chipProps: ChipProps = {},
-  propsGetterFunc: (props: any) => Partial<ChipProps> | void = () => {}
+  propsGetterFunc: (props: any) => Partial<ChipProps> | void = () => {},
 ) {
   if (!value) return null;
-  return <Chip label={value} size='small' {...chipProps} {...propsGetterFunc({ value })} />;
+  return (
+    <Chip
+      label={value}
+      size='small'
+      {...chipProps}
+      {...propsGetterFunc({ value })}
+    />
+  );
 }
 
 export function renderSplitSnakeCase(
   { value }: GridRenderCellParams<any, any, any>,
-  props?: TypographyProps
+  props?: TypographyProps,
 ) {
   if (!value || typeof value !== 'string') return null;
 
@@ -308,7 +364,7 @@ export function renderSplitSnakeCase(
 
 export const renderJoinArray = (
   { value }: GridRenderCellParams<any, any, any>,
-  typographyProps?: Partial<TypographyProps>
+  typographyProps?: Partial<TypographyProps>,
 ) => {
   if (!value || !Array.isArray(value)) return null;
 
