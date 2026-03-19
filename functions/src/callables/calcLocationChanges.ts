@@ -1,0 +1,402 @@
+import { ILocation } from '@idemand/common';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { isEmpty } from 'lodash-es';
+import {
+  DeepPartial,
+  LocationChangeValues,
+  PolicyChangeRequest,
+  changeRequestsCollection,
+  getReportErrorFn,
+  locationsCollection,
+  policiesCollection,
+  ratingDataCollection,
+  swissReClientId,
+  swissReClientSecret,
+  swissReSubscriptionKey,
+} from '../common/index.js';
+import { createDocId } from '../modules/db/index.js';
+import {
+  GetPremiumProps,
+  calcPolicyEndorsementChanges,
+  getAALs,
+  getGetPremProps,
+  getPremium,
+  requiresRerate,
+  validateAALs,
+  validateCoords,
+  validateDeductible,
+  validateLimits,
+  validateRCVs,
+  validateReplacementCost,
+} from '../modules/rating/index.js';
+import { calcTerm } from '../modules/transactions/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import {
+  combineToAdditionalInterests,
+  getDifference,
+  hasAny,
+  separateAdditionalInterests,
+  verify,
+} from '../utils/index.js';
+import { requireAuth, validate } from './utils/index.js';
+
+// called before review step --> runs for all change types or just  ??
+// determine if only amendment --> skip rating
+// if cancel or endorsement --> call different "mergeLocation/formValues" functions, then rest of rating is the same (aside from setting exp date on location)
+
+// TODO:  should add key for each trx type ??
+// have approval function split into transactions (both by location and transaction type)
+
+// ex: { endorsementChanges: { [lcnId]: { ...endorsementChanges}, amendmentChanges: { [lcnId]: { ...amendmentChanges}  }
+// then have approval function split into different transactions ??
+
+const reportErr = getReportErrorFn('calclocationchanges');
+
+interface CalcLocationChangesProps {
+  requestId: string;
+  policyId: string;
+}
+
+const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationChangesProps>) => {
+  info(`Calc location changes called`, { ...data });
+
+  requireAuth(auth);
+
+  const { requestId, policyId } = data;
+  validate(requestId, 'failed-precondition', 'requestId required');
+  validate(policyId, 'failed-precondition', 'policyId required');
+
+  const db = getFirestore();
+  const policiesCol = policiesCollection(db);
+  const changeRequestCol = changeRequestsCollection<PolicyChangeRequest>(db, policyId);
+  // const locationsCol = locationsCollection(db);
+  const ratingCol = ratingDataCollection(db);
+
+  const policyRef = policiesCol.doc(policyId);
+  const changeReqRef = changeRequestCol.doc(requestId);
+  const [policySnap, changeReqSnap] = await Promise.all([policyRef.get(), changeReqRef.get()]);
+
+  const policy = policySnap.data();
+  const changeRequest = changeReqSnap.data();
+
+  validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
+  validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
+  validate(
+    changeRequest.status === 'draft',
+    'failed-precondition',
+    'change request already submitted. please create a new one.'
+  );
+  const { trxType, scope, requestEffDate } = changeRequest;
+
+  // TODO: finish validate fields (location(s), etc.)
+  // might need different validation functions depending on trxType, scope, etc. ??
+  // remove once using new schema ??
+  validate(trxType, 'failed-precondition', 'transaction type required');
+  validate(scope, 'failed-precondition', 'scope required');
+  validate(requestEffDate, 'failed-precondition', 'request effective date required');
+
+  // TODO: delete once moved to multi-location interface
+  if (scope !== 'location') throw new HttpsError('internal', 'scope must be "location"');
+  const lcnId = changeRequest.locationId;
+  validate(lcnId, 'failed-precondition', 'missing locationId');
+  if (trxType !== 'endorsement')
+    throw new HttpsError('unimplemented', 'only set up to handle trxType = "endorsement"');
+
+  try {
+    // TODO: loop through form values for each location (once stored as array)
+    // get all location docs
+    // switch to getAll ?? getAllById limit to 50 IDs
+    // const locationSnaps = await getAllById(locationsCol, [lcnId]);
+    // let locationsObj: Record<string, ILocation> = {};
+    // locationSnaps.forEach((l) => {
+    //   locationsObj[l.id] = l.data();
+    // });
+    // const locations = await getAll(db, 'locations', [lcnId]);
+    const locationsCol = locationsCollection(db);
+    const docIds = [lcnId];
+    const locationRefs = docIds.map((id) => locationsCol.doc(id));
+
+    const snaps = await db.getAll(...locationRefs);
+
+    let locationsObj: Record<string, ILocation> = {};
+    snaps.forEach((s) => {
+      if (s.exists) locationsObj[s.id] = s.data() as ILocation;
+    });
+
+    info(`Location docs retrieved - calculating location rating`, { locationsObj });
+
+    // once using multi-location schema
+    let endorsementChanges: Record<string, DeepPartial<ILocation>> = {};
+    let amendmentChanges: Record<string, AmendmentChangesProvided> = {};
+
+    let lcn = locationsObj[lcnId];
+    validate(lcn, 'not-found', `location doc not found (${lcnId})`);
+    let lcnChanges: DeepPartial<ILocation> = {}; // TODO: update type Pick<ILocation, 'limits' | 'deductible' etc.>
+
+    // TODO: need to call this fn for each location once using multi-location
+    // separate out endorsement and amendment changes from form values
+    const { providedEndorsementChanges, providedAmendmentChanges } =
+      changeReqFormValuesToLocationChanges(changeRequest.formValues, lcn);
+
+    // add to "endorsementChanges" and "amendmentChanges" object (for multi-location purposes)
+    if (!isEmpty(providedEndorsementChanges))
+      endorsementChanges[lcnId] = providedEndorsementChanges;
+    if (!isEmpty(providedAmendmentChanges)) amendmentChanges[lcnId] = providedAmendmentChanges;
+
+    // check for limit or deductible change
+    const requireReratingEntries = Object.entries(endorsementChanges).filter(([lcnId, l]) =>
+      requiresRerate(Object.keys(l))
+    );
+
+    // return early if only amendment changes (no rerating required)
+    if (!requireReratingEntries.length) {
+      await changeReqRef.set(
+        {
+          endorsementChanges, // does endorsement changes overwrite existing object when merges = true ??
+          amendmentChanges,
+        },
+        { merge: true }
+      );
+      return amendmentChanges;
+    }
+
+    // temp variable while not using multi-location
+    lcnChanges = endorsementChanges[lcnId];
+
+    // endorsement values for premium calc:
+    let AALsRes;
+    let getPremiumInputs: GetPremiumProps;
+
+    // if SR api call required --> group AAL call
+    // TODO: handle multiple locations (promise all) loop through endorsementChanges & check requiresRerate
+
+    const prevRatingSnap = await ratingCol.doc(lcn.ratingDocId).get();
+    const prevRatingData = prevRatingSnap.data();
+
+    let RCVs = {
+      ...lcn.RCVs,
+      ...(prevRatingData?.RCVs || {}),
+    };
+
+    if (requireReratingEntries.length) {
+      const limits = lcnChanges?.limits || {};
+      // const limits = { ...lcn.limits, ...(lcnChanges?.limits || {}) };
+      // TODO: ensure saving all limits instead of diff so combining is not necessary
+      const RCVs = lcn.RCVs;
+
+      validateRCVs(RCVs);
+      validateLimits(limits);
+      validateDeductible(lcnChanges?.deductible);
+      validateReplacementCost(RCVs.building);
+      validateCoords(lcn.coordinates);
+
+      try {
+        AALsRes = await getAALs({
+          srClientId: swissReClientId.value(),
+          srClientSecret: swissReClientSecret.value(),
+          srSubKey: swissReSubscriptionKey.value(),
+          replacementCost: RCVs.building,
+          limits,
+          deductible: lcnChanges.deductible, // || lcn.deductible,
+          coordinates: { latitude: lcn.coordinates.latitude, longitude: lcn.coordinates.longitude },
+          numStories: lcn.ratingPropertyData?.numStories || 1,
+        });
+      } catch (err: any) {
+        if (err?.response) console.log('ERROR: ', err.response.data);
+        // error('Error getting AALs from SR', { err });
+        throw new Error('Error getting AALs from SR');
+      }
+
+      validateAALs(AALsRes?.AALs);
+
+      // TODO: get subproducer commission from policy ??
+      getPremiumInputs = getGetPremProps(
+        lcn,
+        limits,
+        AALsRes.AALs,
+        prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15
+      );
+    } else {
+      // TODO: unreachable ?? eff/exp dates removed from change request
+      const AALs = prevRatingData?.AALs;
+      validateAALs(AALs);
+
+      getPremiumInputs = getGetPremProps(
+        lcn,
+        lcn.limits,
+        AALs,
+        prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15
+      );
+    }
+
+    // calc location premium
+    info('endorsement rating "getPremiumInputs"', { ...getPremiumInputs });
+    const result = getPremium({
+      ...getPremiumInputs,
+      isPortfolio: Object.keys(policy.locations).length > 1,
+    });
+
+    RCVs = {
+      ...RCVs,
+      ...(AALsRes?.RCVs || {}),
+    };
+
+    const { premiumData } = result;
+    verify(premiumData?.annualPremium && premiumData?.annualPremium > 100, 'premium < 100');
+    // TODO: validate results (premium, etc.)
+
+    // new location term premium
+    const { termPremium, termDays } = calcTerm(
+      premiumData.annualPremium,
+      requestEffDate.toDate(),
+      lcn.expirationDate.toDate()
+    );
+
+    // TODO: reusable function createRatingDoc(location, premResult, ...rest) rest = optional overrides for stuff like deductible, etc.
+    const ratingDocRef = ratingCol.doc(createDocId());
+    const ratingDocData = {
+      submissionId: prevRatingData?.submissionId || null,
+      locationId: lcnId,
+      deductible: lcnChanges.deductible || lcn.deductible,
+      limits: getPremiumInputs.limits,
+      TIV: result.tiv,
+      RCVs,
+      ratingPropertyData: lcn.ratingPropertyData,
+      AALs: getPremiumInputs.AALs,
+      premiumCalcData: result.premiumData,
+      PM: result.pm,
+      riskScore: result.riskScore,
+      stateMultipliers: result.stateMultipliers,
+      secondaryFactorMults: result.secondaryFactorMults,
+      coordinates: lcn.coordinates,
+      metadata: {
+        created: Timestamp.now(),
+        updated: Timestamp.now(),
+      },
+    };
+
+    const locationChangesWithRating = {
+      // : PolicyChangeRequest['endorsementChanges']
+      ...(lcnChanges as ILocation),
+      annualPremium: premiumData.annualPremium,
+      ratingDocId: ratingDocRef.id || lcn.ratingDocId,
+      TIV: result.tiv,
+      termPremium,
+      termDays,
+      RCVs,
+    };
+
+    // TODO: switch to multi-location interface (or remove ??)
+    // const locationChanges: Record<string, DeepPartial<ILocation>> = {
+    //   [lcnId]: locationChangesWithRating,
+    // };
+    const locationChanges: DeepPartial<ILocation> = {
+      ...locationChangesWithRating,
+      ...(amendmentChanges[lcnId] || {}),
+    };
+    info('LOCATION CHANGES: ', { locationChanges });
+
+    // calc policy changes
+    let policyChanges = {};
+    if (!isEmpty(endorsementChanges)) {
+      policyChanges = calcPolicyEndorsementChanges(
+        policy,
+        {
+          [lcnId]: locationChanges,
+        },
+        requestEffDate
+      );
+    }
+    info(`policy changes (policy ID: ${policyId})`, policyChanges);
+
+    const updates: Partial<PolicyChangeRequest> = {
+      // TODO: TEMP FIX WHILE CONVERTING TO NEW TYPE
+      // NEED TO CHANGE locationChanges FROM SINGLE LOCATION TO OBJECT OF LOCATIONS
+      // @ts-ignore
+      locationChanges,
+      endorsementChanges: {
+        [lcnId]: locationChangesWithRating,
+      },
+      amendmentChanges,
+      policyChanges,
+      policyChangesCalcVersion: policy?.metadata?.version ?? null,
+    };
+
+    const batch = db.batch();
+    batch.set(ratingDocRef, ratingDocData);
+    batch.set(changeReqRef, updates, { merge: true });
+    // await changeReqRef.set(updates, { merge: true });
+    info('batching rating data and change request updates...', {
+      ratingDocData,
+      changeRequestUpdates: updates,
+    });
+    await batch.commit();
+
+    // return location changes
+    return locationChanges;
+  } catch (err: any) {
+    let msg = 'Error calculating location changes';
+    if (err?.message) msg += ` (${err.message})`;
+    reportErr(msg, {}, err);
+    throw new HttpsError('internal', msg);
+  }
+};
+
+export default onCallWrapper<CalcLocationChangesProps>('calclocationchanges', calcLocationChanges);
+
+const lcnEndKeys = [
+  'limits',
+  'deductible',
+  'effectiveDate',
+  // 'additionalInterests',
+]; // as unknown as keyof EndorsementChangesProvided;
+function isLcnEndKey(k: string): k is keyof EndorsementChangesProvided {
+  return lcnEndKeys.includes(k);
+}
+
+export type EndorsementChangesProvided = DeepPartial<
+  Pick<ILocation, 'limits' | 'deductible' | 'effectiveDate'>
+>;
+export type AmendmentChangesProvided = Partial<
+  Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>
+>;
+
+function changeReqFormValuesToLocationChanges(values: LocationChangeValues, location: ILocation) {
+  let providedEndorsementChanges: EndorsementChangesProvided = {};
+  let providedAmendmentChanges: AmendmentChangesProvided = {};
+
+  const { requestEffDate, ...newValues } = values;
+  const diff = getDifference(getFormValuesFromLocation(location), newValues);
+  const hasEndorsements = hasAny(Object.keys(diff), lcnEndKeys);
+  const hasAmendments = Object.keys(diff).includes('additionalInterests');
+
+  for (let [key, val] of Object.entries(values)) {
+    if (key === 'additionalInterests' && hasAmendments) {
+      const { additionalInsureds, mortgageeInterest } = separateAdditionalInterests(val);
+      providedAmendmentChanges['additionalInsureds'] = additionalInsureds;
+      providedAmendmentChanges['mortgageeInterest'] = mortgageeInterest;
+    }
+
+    if (isLcnEndKey(key) && hasEndorsements) {
+      providedEndorsementChanges[key] = val;
+    }
+  }
+
+  return { providedEndorsementChanges, providedAmendmentChanges };
+}
+
+function getFormValuesFromLocation(
+  lcn: ILocation
+): Omit<LocationChangeValues, 'requestEffDate' | 'externalId'> {
+  return {
+    limits: lcn.limits,
+    deductible: lcn.deductible,
+    // effectiveDate: lcn.effectiveDate.toDate(),
+    additionalInterests: combineToAdditionalInterests(
+      lcn.additionalInsureds,
+      lcn.mortgageeInterest
+    ),
+  };
+}
