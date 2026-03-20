@@ -84,4 +84,6 @@ export const cardFeePct = defineString('CARD_FEE_PCT', { default: '0.035' });
 // TODO: default commission
 
 export const emulators = defineBoolean('EMULATORS');
-export const mockSwissRe = defineBoolean('MOCK_SWISS_RE');
+export const mockSwissRe = defineBoolean('MOCK_SWISS_RE', {
+  // default: true,
+});

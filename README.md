@@ -204,7 +204,30 @@ If _@idemandinsurance.com_ and email is not verified, creates a JWT signed with 
 - include types module & switch to pnpm workspace (cloud run api, @idemand/common types, client, functions, etc.)
 - deploy via github workflow (& validate secrets, variables, etc.)
 - documentation
-  - agency management
+  - agency management (onboarding, permissions)
   - admin - moratorium, active states, licenses, etc.
   - quote flow
   - environment variables
+- Switch search from algolia to typesense
+
+## Screenshots
+
+![quote address](docs/quote-address.png)
+
+![quote limits](docs/quote-limits.png)
+
+![quote review](docs/quote-review.png)
+
+![submissions cards](docs/submissions-cards.png)
+
+![taxes](docs/taxes.png)
+
+![disclosures](docs/disclosures.png)
+
+![admin quote](docs/admin-quote.png)
+
+![active states](docs/active-states.png)
+
+![licenses](docs/licenses.png)
+
+![add license](docs/add-license.png)

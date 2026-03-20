@@ -26,13 +26,6 @@ export interface GetAALsProps extends GetAALRequest {
   srSubKey: string;
 }
 
-// export const AALs = z.object({
-//   inland: z.number().nullable(),
-//   surge: z.number().nullable(),
-//   tsunami: z.number().nullable(),
-// });
-// export type AALs = z.infer<typeof AALs>;
-
 export const GetAALRes = z.object({
   AALs: ValueByRiskType, // AALs,
   srRes: SRRes,
@@ -42,6 +35,7 @@ export type GetAALRes = z.infer<typeof GetAALRes>;
 
 // TODO: zod error handling
 export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
+  console.log('MOCK: ', mockSwissRe.value());
   if (mockSwissRe.value()) return mockedGetAALs(props);
 
   const { srClientId, srClientSecret, srSubKey, ...rest } = props;
@@ -237,17 +231,24 @@ function mockedGetAALs(props: GetAALsProps): GetAALRes {
     20,
   );
 
-  const aalInland = round(clamp((pmInland * RCVs.total) / 1000, 50, 25000), 2);
-  const aalSurge = round(clamp((pmSurge * RCVs.total) / 1000, 50, 25000), 2);
-  const aalTsunami = round(
-    clamp((pmTsunami * RCVs.total) / 1000, 50, 25000),
-    2,
-  );
+  const aalInland = round(clamp((pmInland * RCVs.total) / 10000, 50, 10000), 2);
+  const aalSurge = round(clamp((pmSurge * RCVs.total) / 10000, 0, 20000), 2);
+  const aalTsunami = round(clamp((pmTsunami * RCVs.total) / 10000, 0, 5), 2);
 
-  const expectedLosses = [
-    { perilCode: '300', preCatLoss: aalInland, tiv: 0, fguLoss: 0 },
-    { perilCode: '200', preCatLoss: aalSurge, tiv: 0, fguLoss: 0 },
-    { perilCode: '104', preCatLoss: aalTsunami, tiv: 0, fguLoss: 0 },
+  const expectedLosses: GetAALRes['srRes']['expectedLosses'] = [
+    {
+      perilCode: '300',
+      preCatLoss: aalInland,
+      tiv: RCVs.total,
+      fguLoss: 0,
+    },
+    { perilCode: '200', preCatLoss: aalSurge, tiv: RCVs.total, fguLoss: 0 },
+    {
+      perilCode: '104',
+      preCatLoss: aalTsunami,
+      tiv: RCVs.total,
+      fguLoss: 0,
+    },
   ];
 
   const AALs = extractSRAALs(expectedLosses);
@@ -257,12 +258,8 @@ function mockedGetAALs(props: GetAALsProps): GetAALRes {
     srRes: {
       expectedLosses,
       correlationId: 'mock',
-      bound: true,
-      message: {
-        text: 'mock',
-        type: 'mock',
-        severity: 'mock',
-      },
+      bound: false,
+      // message: [],
     },
     AALs,
     RCVs: RCVs,

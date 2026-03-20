@@ -36,7 +36,7 @@ export const DevWarningBanner = memo(() => {
           // sx={{ mb: 2 }}
         >
           {/* <AlertTitle>This is the dev site</AlertTitle> */}
-          This site is for development.
+          This site is for development. Rating API is mocked.
           {/* If you're looking for the production site, visit{' '}
           <Link href='https://idemand-submissions.web.app' underline='hover' variant='body2'>
             the production site.
