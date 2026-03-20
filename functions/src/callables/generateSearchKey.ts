@@ -1,6 +1,7 @@
 import algoliasearch from 'algoliasearch';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { Client } from 'typesense';
 
 import {
   algoliaAdminKey,
@@ -8,10 +9,117 @@ import {
   algoliaIDemandAdminSearchKey,
   algoliaIndex,
   algoliaUserBaseKey,
+  typesenseAdminKey,
+  typesenseHost,
+  typesenseIDemandAdminSearchKey,
+  typesensePort,
+  typesenseProtocol,
+  typesenseUserSearchKey,
 } from '../common/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { visibleType } from '../utils/index.js';
 import { validate } from './utils/index.js';
+
+// https://typesense.org/docs/29.0/api/api-keys.html#generate-scoped-search-key
+/*
+- You can index data from multiple users/customers in a single Typesense collection (aka multi-tenancy) and create scoped search keys with embedded filter_by parameters that only allow users access to their own subset of data.
+- You can embed any search parameters (for eg: exclude_fields or limit_hits) to prevent users from being able to modify it client-side.
+*/
+
+let typesenseClient: Client;
+
+function getTypesenseClient(apiKey: string) {
+  if (typesenseClient) return typesenseClient;
+  typesenseClient = new Client({
+    nodes: [
+      {
+        host: typesenseHost.value(),
+        port: typesensePort.value(),
+        protocol: typesenseProtocol.value(),
+      },
+    ],
+    apiKey: apiKey,
+    connectionTimeoutSeconds: 30,
+  });
+  return typesenseClient;
+}
+
+const generateSearchKey = async ({ auth }: CallableRequest) => {
+  // const appId = algoliaAppId.value();
+  const apiKey = typesenseAdminKey.value();
+  // const searchBaseKey = algoliaUserBaseKey.value();
+  validate(apiKey, 'failed-precondition', 'missing typesense credentials');
+
+  const client = getTypesenseClient(apiKey);
+  if (!client) throw new Error('Typesense client initialization failed');
+
+  const userId = auth?.uid;
+  const isAnon = auth?.token.firebase.sign_in_provider === 'anonymous';
+  const tenantId = auth?.token.firebase.tenant;
+  const isIDemandAdmin = auth?.token.iDemandAdmin || false;
+  const isOrgAdmin = auth?.token.orgAdmin || false;
+  const isAgent = auth?.token.agent || false;
+
+  if (isIDemandAdmin) {
+    const iDemandAdminSearchKey = typesenseIDemandAdminSearchKey.value();
+    validate(
+      iDemandAdminSearchKey,
+      'internal',
+      'missing iDemand Admin search key in Secret Manager',
+    );
+
+    info(
+      `RETURNING ADMIN SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
+    );
+    return {
+      key: iDemandAdminSearchKey,
+    };
+  }
+
+  // docs: https://typesense.org/docs/30.1/api/search.html#filter-parameters
+  // is :=[val1, val2] OR exclusive in typesense ?
+  const visibleBy = [visibleType.all];
+
+  if (userId) visibleBy.push(visibleType.user(userId));
+
+  if (isAnon) visibleBy.push(visibleType.anon);
+
+  if (userId && !isAnon) visibleBy.push(visibleType.authed);
+
+  if (tenantId && userId) {
+    visibleBy.push(visibleType.orgUser(tenantId));
+
+    if (isAgent) visibleBy.push(visibleType.agent(userId));
+
+    if (isOrgAdmin) visibleBy.push(visibleType.orgAdmin(tenantId));
+  }
+
+  try {
+    // Make sure that the parent search key you use to generate a scoped search key
+    //  has no other permissions besides `documents:search`
+    const searchBaseKey = typesenseUserSearchKey.value();
+    const securedApiKey = client.keys().generateScopedSearchKey(searchBaseKey, {
+      filter_by: `visibleBy:=${visibleBy}`,
+      // expires_at: 1906054106,
+    });
+
+    info(
+      `RETURNING TYPESENSE SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
+      {
+        filter_by: `visibleBy:=${visibleBy}`,
+      },
+    );
+
+    return {
+      key: securedApiKey,
+    };
+  } catch (err) {
+    throw new HttpsError(
+      'internal',
+      'Error generating user-restricted api key',
+    );
+  }
+};
 
 // VISIBLE BY: https://www.algolia.com/doc/guides/security/api-keys/how-to/user-restricted-access-to-data/#generating-a-secured-api-key
 
@@ -36,7 +144,7 @@ import { validate } from './utils/index.js';
 
 // "We limit filters expressions to a conjunction (ANDs) of disjunctions (ORs). For example you can use filters1 AND (filters2 OR filters3)), but not ORs of ANDs (e.g. filters1 OR (filters2 AND filters3)."
 
-const generateSearchKey = async ({ auth }: CallableRequest) => {
+const generateSearchKeyOld = async ({ auth }: CallableRequest) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
   const searchBaseKey = algoliaUserBaseKey.value();
@@ -44,7 +152,7 @@ const generateSearchKey = async ({ auth }: CallableRequest) => {
   validate(
     appId && adminKey && searchBaseKey,
     'failed-precondition',
-    'missing algolia credentials'
+    'missing algolia credentials',
   );
 
   const client = algoliasearch(appId, adminKey);
@@ -62,10 +170,12 @@ const generateSearchKey = async ({ auth }: CallableRequest) => {
     validate(
       iDemandAdminSearchKey,
       'internal',
-      'missing iDemand Admin search key in Secret Manager'
+      'missing iDemand Admin search key in Secret Manager',
     );
 
-    info(`RETURNING ADMIN ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`);
+    info(
+      `RETURNING ADMIN ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
+    );
     return {
       key: iDemandAdminSearchKey,
     };
@@ -90,7 +200,8 @@ const generateSearchKey = async ({ auth }: CallableRequest) => {
 
     if (isAgent) filters += ` OR visibleBy:${visibleType.agent(userId)}`;
 
-    if (isOrgAdmin) filters += ` OR visibleBy:${visibleType.orgAdmin(tenantId)}`;
+    if (isOrgAdmin)
+      filters += ` OR visibleBy:${visibleType.orgAdmin(tenantId)}`;
   }
 
   try {
@@ -99,16 +210,22 @@ const generateSearchKey = async ({ auth }: CallableRequest) => {
       filters,
     });
 
-    info(`RETURNING ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`, {
-      ...keyConfig,
-      filters,
-    });
+    info(
+      `RETURNING ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
+      {
+        ...keyConfig,
+        filters,
+      },
+    );
 
     return {
       key: securedApiKey,
     };
   } catch (err) {
-    throw new HttpsError('internal', 'Error generating user-restricted api key');
+    throw new HttpsError(
+      'internal',
+      'Error generating user-restricted api key',
+    );
   }
 };
 
@@ -254,7 +371,9 @@ export declare type SearchOptions = {
   /**
    * List of alternatives that should be considered an exact match by the exact ranking criterion.
    */
-  alternativesAsExact?: ReadonlyArray<'ignorePlurals' | 'singleWordSynonym' | 'multiWordsSynonym'>;
+  alternativesAsExact?: ReadonlyArray<
+    'ignorePlurals' | 'singleWordSynonym' | 'multiWordsSynonym'
+  >;
   /**
    * Whether rules should be globally enabled.
    */
@@ -413,7 +532,11 @@ export declare type SearchOptions = {
   /**
    * When Dynamic Re-Ranking is enabled, only records that match these filters will be impacted by Dynamic Re-Ranking.
    */
-  reRankingApplyfilters?: string | string[] | ReadonlyArray<string[] | string> | null;
+  reRankingApplyfilters?:
+    | string
+    | string[]
+    | ReadonlyArray<string[] | string>
+    | null;
   /**
    * Sets the languages to be used by language-specific settings and functionalities such as ignorePlurals, removeStopWords, and CJK word-detection.
    */
