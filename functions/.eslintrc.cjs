@@ -53,6 +53,7 @@ module.exports = {
     'new-cap': 'warn',
     semi: 'warn',
     'comma-dangle': 'off',
+    'arrow-parens': 'off',
     'require-jsdoc': [
       'warn',
       {

@@ -105,7 +105,7 @@ export {
   copytaxes,
   generatepdf,
   quickbooks,
-  sendgrid,
+  resend,
   stripe,
 } from './routes/index.js';
 export { checkachstatus } from './scheduler/index.js';

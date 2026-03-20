@@ -21,6 +21,7 @@ import { useFirestore, useFirestoreDocData } from 'reactfire';
 
 import { CheckmarkLottie } from 'assets';
 import {
+  Address,
   ANALYTICS_EVENTS,
   Charge,
   fallbackImages,
@@ -150,6 +151,10 @@ export const SuccessStep = () => {
     return <span>loading...</span>;
   }
 
+  if (!data) return null;
+  const submission = data as unknown as Submission;
+  const formattedAddress = submission.address as Partial<Address>;
+
   return (
     <Container
       maxWidth='sm'
@@ -180,9 +185,7 @@ export const SuccessStep = () => {
                 >
                   Status
                 </Typography>
-                <Typography variant='subtitle2'>
-                  {data.status as string}
-                </Typography>
+                <Typography variant='subtitle2'>{submission.status as string}</Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
                 <Typography
@@ -194,7 +197,7 @@ export const SuccessStep = () => {
                   Address
                 </Typography>
                 <FormattedAddress
-                  address={data?.address}
+                  address={formattedAddress}
                   variant='subtitle2'
                   textAlign='right'
                 />
@@ -216,8 +219,8 @@ export const SuccessStep = () => {
               sx={{ p: 4 }}
               gutterBottom
             >
-              {data.contact.firstName
-                ? `Thanks, ${data.contact.firstName}! `
+              {submission.contact.firstName
+                ? `Thanks, ${submission.contact.firstName}! `
                 : 'Thank you!'}{' '}
               We'll send the quote for your review shortly. If you have any
               questions or need to get in touch, please don't hesitate to reach
@@ -237,9 +240,9 @@ export const SuccessStep = () => {
                         path: AUTH_ROUTES.CREATE_ACCOUNT,
                       }),
                       search: createSearchParams({
-                        email: data.contact.email,
-                        firstName: data.contact.firstName,
-                        lastName: data.contact.lastName,
+                        email: submission.contact.email,
+                        firstName: submission.contact.firstName,
+                        lastName: submission.contact.lastName,
                       }).toString(),
                     },
                     // { replace: true }
