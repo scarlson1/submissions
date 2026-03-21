@@ -67,3 +67,9 @@ export const pubsubhelper = functions.https.onRequest(
     await (await import('./pubSubHelper.js')).default(request, response);
   },
 );
+
+export const typesensesetup = functions.https.onRequest(
+  async (request, response) => {
+    await (await import('./typesenseSetup.js')).default(request, response);
+  },
+);

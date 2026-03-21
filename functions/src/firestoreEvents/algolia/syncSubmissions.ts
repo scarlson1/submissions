@@ -1,11 +1,15 @@
-import algoliasearch from 'algoliasearch';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { Collection, Submission } from '@idemand/common';
-import { algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
-import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
+import { algoliaAdminKey, algoliaAppId } from '../../common/index.js';
+import {
+  ensureCollections,
+  getTypesenseClient,
+} from '../../services/typesense/index.js';
+import { getVisibleBy, VisibleByTypes } from '../../utils/index.js';
+import { removeTypesenseRecord } from './syncPolicies.js';
 
 export default async (
   event: FirestoreEvent<
@@ -13,7 +17,7 @@ export default async (
     {
       submissionId: string;
     }
-  >
+  >,
 ) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
@@ -23,8 +27,11 @@ export default async (
     return;
   }
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
+
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.submissionId;
 
@@ -33,8 +40,9 @@ export default async (
   if (!newValue) {
     try {
       info(`DELETING DOC ${docId} FROM ALGOLIA SUBMISSIONS INDEX...`);
-      const res = await index.deleteObject(docId);
-      info(`SUCCESSFULLY DELETED ${docId} FROM SUBMISSIONS INDEX (taskId: ${res.taskID})`);
+      // const res = await index.deleteObject(docId);
+      await removeTypesenseRecord(Collection.enum.submissions, docId);
+      info(`SUCCESSFULLY DELETED ${docId} FROM SUBMISSIONS INDEX`);
       return;
     } catch (err: any) {
       error('ERROR DELETING USER FROM ALGOLIA SUBMISSIONS INDEX: ', { ...err });
@@ -81,13 +89,17 @@ export default async (
       }
       info(`SAVING SUBMISSION CHANGE TO ALGOLIA INDEX ${docId}...`);
 
-      const { objectIDs } = await index.saveObjects(records, {
-        autoGenerateObjectIDIfNotExist: false,
-      });
+      // const { objectIDs } = await index.saveObjects(records, {
+      //   autoGenerateObjectIDIfNotExist: false,
+      // });
+      await client
+        .collections(Collection.enum.submissions)
+        .documents()
+        .upsert(records[0]);
 
-      info(`ALGOLIA DOC UPDATED: ${JSON.stringify(objectIDs)}`);
+      info('ALGOLIA DOC UPDATED');
     } catch (err: any) {
-      error(`ERROR SAVING SUBMISSION UPDATES TO ALGOLIA INDEX`, { ...err });
+      error('ERROR SAVING SUBMISSION UPDATES TO ALGOLIA INDEX', { ...err });
       // TODO: report to sentry ??
     }
   }

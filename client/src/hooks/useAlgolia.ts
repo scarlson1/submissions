@@ -3,7 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { search } from 'components/search/reactQuery';
-import { useAlgoliaStore } from './useAlgoliaStore';
+import { useAlgoliaStore, useTypesenseStore } from './useAlgoliaStore';
 
 export interface UseAlgoliaOptions extends SearchOptions {
   indexName: string;
@@ -29,7 +29,14 @@ export function useAlgolia<TData>({
   const queryInfo = useInfiniteQuery({
     queryKey: ['algolia', indexName, query, hitsPerPage, props?.filters || ''],
     queryFn: ({ pageParam }) =>
-      search<TData>({ indexName, query, pageParam, hitsPerPage, apiKey, ...props }),
+      search<TData>({
+        indexName,
+        query,
+        pageParam,
+        hitsPerPage,
+        apiKey,
+        ...props,
+      }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage?.nextPage,
     staleTime,
@@ -41,4 +48,36 @@ export function useAlgolia<TData>({
     const hits = queryInfo.data?.pages.map((page) => page.hits).flat();
     return { ...queryInfo, hits };
   }, [queryInfo]);
+}
+
+export function useTypesense<TData>({
+  indexName,
+  query,
+  hitsPerPage = 10,
+  staleTime,
+  gcTime,
+  enabled,
+  ...props
+}: UseAlgoliaOptions) {
+  const apiKey = useTypesenseStore((state) => state.apiKey);
+  if (!apiKey) throw new Error('missing search api key');
+
+  // useQuery or useInfiniteQuery ??
+  const queryInfo = useInfiniteQuery({
+    queryKey: ['algolia', indexName, query, hitsPerPage, props?.filters || ''],
+    queryFn: ({ pageParam }) =>
+      search<TData>({
+        indexName,
+        query,
+        pageParam,
+        hitsPerPage,
+        apiKey,
+        ...props,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage?.nextPage,
+    staleTime,
+    gcTime,
+    enabled,
+  });
 }

@@ -31,6 +31,11 @@ export const algoliaUserBaseKey = defineSecret('ALGOLIA_BASE_USER_SEARCH_KEY');
 export const algoliaIDemandAdminSearchKey = defineSecret(
   'ALGOLIA_IDEMAND_ADMIN_SEARCH_KEY',
 );
+export const typesenseAdminKey = defineSecret('TYPESENSE_ADMIN_KEY');
+export const typesenseIDemandAdminSearchKey = defineSecret(
+  'TYPESENSE_IDEMAND_ADMIN_SEARCH_KEY',
+);
+export const typesenseUserSearchKey = defineSecret('TYPESENSE_USER_SEARCH_KEY');
 export const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');
 export const exportSDKKey = defineSecret('EXPORT_SDK_KEY');
 export const elevationKey = defineSecret('GPXZ_KEY');
@@ -64,7 +69,13 @@ export const pubSubEmulatorHost = defineString('PUBSUB_EMULATOR_HOST', {
 });
 export const quickbooksClientId = defineString('QUICKBOOKS_CLIENT_ID');
 // export const quickbooksRedirectUri = defineString('QUICKBOOKS_REDIRECT_URI');
+export const typesenseHost = defineString('TYPESENSE_HOST');
 
+export const typesenseProtocol = defineString('TYPESENSE_PROTOCOL', {
+  default: 'https',
+});
+
+export const typesensePort = defineInt('TYPESENSE_PORT', { default: 443 });
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });
 export const maxBCD = defineInt('FLOOD_MAX_LIMIT_B_C_D', { default: 1000000 });

@@ -8,13 +8,13 @@ import { logDev } from 'modules/utils';
 
 // use useSyncExternalStore ??
 
-interface AlgoliaStore {
+interface SearchStore {
   apiKey: string | undefined;
   generateKey: (functions: Functions) => Promise<void>;
   resetKey: () => void;
 }
 
-export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
+export const useAlgoliaStore = create<SearchStore>((set) => ({
   apiKey: import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY,
   generateKey: async (functions: Functions) => {
     try {
@@ -25,7 +25,25 @@ export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
       console.log('ERROR GENERATING SEARCH KEY: ', err);
     }
   },
-  resetKey: () => set(() => ({ apiKey: import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY })),
+  resetKey: () =>
+    set(() => ({ apiKey: import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY })),
+}));
+
+export const useTypesenseStore = create<SearchStore>((set) => ({
+  apiKey: import.meta.env.VITE_TYPESENSE_NOT_AUTHED_SEARCH_KEY,
+  generateKey: async (functions: Functions) => {
+    try {
+      const { data } = await generateSearchKey(functions);
+      logDev('SEARCH API KEY RES: ', data);
+      if (data?.key) set({ apiKey: data.key });
+    } catch (err: any) {
+      console.log('ERROR GENERATING SEARCH KEY: ', err);
+    }
+  },
+  resetKey: () =>
+    set(() => ({
+      apiKey: import.meta.env.VITE_TYPESENSE_NOT_AUTHED_SEARCH_KEY,
+    })),
 }));
 
 // const apiKey = useAlgoliaStore((state) => state.apiKey);

@@ -1,10 +1,14 @@
 import { Collection, Quote } from '@idemand/common';
-import algoliasearch from 'algoliasearch';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
-import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
+import { algoliaAdminKey, algoliaAppId } from '../../common/index.js';
+import {
+  ensureCollections,
+  getTypesenseClient,
+} from '../../services/typesense/index.js';
+import { getVisibleBy, VisibleByTypes } from '../../utils/index.js';
+import { removeTypesenseRecord } from './syncPolicies.js';
 
 export default async (
   event: FirestoreEvent<
@@ -12,7 +16,7 @@ export default async (
     {
       quoteId: string;
     }
-  >
+  >,
 ) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
@@ -22,8 +26,11 @@ export default async (
     return;
   }
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
+
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.quoteId;
 
@@ -32,9 +39,10 @@ export default async (
   if (!newValue) {
     try {
       info(`DELETING DOC ${docId} FROM ALGOLIA QUOTES INDEX`);
-      const res = await index.deleteObject(docId);
+      // const res = await index.deleteObject(docId);
+      await removeTypesenseRecord(Collection.enum.quotes, docId);
 
-      info(`SUCCESSFULLY DELETED ${docId} FROM QUOTES INDEX (taskId: ${res.taskID})`);
+      info(`SUCCESSFULLY DELETED ${docId} FROM QUOTES INDEX`);
       return;
     } catch (err: any) {
       error('ERROR DELETING USER FROM ALGOLIA QUOTES INDEX: ', { ...err });
@@ -84,11 +92,14 @@ export default async (
       }
       info(`SAVING QUOTE CHANGE TO ALGILIA INDEX (${docId})`);
 
-      const { objectIDs } = await index.saveObjects(records, {
-        autoGenerateObjectIDIfNotExist: false,
-      });
-
-      info(`ALGOLIA DOC UPDATED: ${JSON.stringify(objectIDs)}`);
+      // const { objectIDs } = await index.saveObjects(records, {
+      //   autoGenerateObjectIDIfNotExist: false,
+      // });
+      await client
+        .collections(Collection.enum.quotes)
+        .documents()
+        .upsert(records[0]);
+      info('ALGOLIA DOC UPDATED [quotes]');
     } catch (err: any) {
       error(`ERROR SAVING QUOTE TO ALGOLIA INDEX (${docId})`, { ...err });
       // TODO: report to sentry ??

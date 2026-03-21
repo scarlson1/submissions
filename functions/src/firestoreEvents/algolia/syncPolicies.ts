@@ -1,18 +1,26 @@
-import algoliasearch, { SearchIndex } from 'algoliasearch';
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { capitalize } from 'lodash-es';
 
 import { Collection, Policy } from '@idemand/common';
-import { algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
+import { algoliaAdminKey, algoliaAppId } from '../../common/index.js';
+import {
+  ensureCollections,
+  getTypesenseClient,
+} from '../../services/typesense/index.js';
 import { getVisibleBy } from '../../utils/index.js';
 
-export async function removeAlgoliaRecord(index: SearchIndex, id: string) {
+export async function removeTypesenseRecord(index: string, id: string) {
   try {
-    const res = await index.deleteObject(id);
-    info(`ALGOLIA - SUCCESSFULLY DELETED RECORD (taskId: ${res.taskID})`, { id });
-  } catch (err: any) {
+    // const res = await index.deleteObject(id);
+    const client = getTypesenseClient();
+    await client.collections('companies').documents(id).delete();
+    info('ALGOLIA - SUCCESSFULLY DELETED RECORD', {
+      // (taskId: ${res.taskID})
+      id,
+    });
+  } catch (err: unknown) {
     error(`ERROR DELETING RECORD FROM ALGOLIA INDEX (ID: ${id})`, {
       id,
       err,
@@ -26,7 +34,7 @@ export default async (
     {
       policyId: string;
     }
-  >
+  >,
 ) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
@@ -36,8 +44,11 @@ export default async (
     return;
   }
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
+
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.policyId;
 
@@ -52,12 +63,12 @@ export default async (
   // const removedLocationIds = prevLocationIds.filter((lcnId) => newLocationIds.includes(lcnId));
 
   // for (let lcnId of removedLocationIds) {
-  //   await removeAlgoliaRecord(index, lcnId);
+  //   await removeTypesenseRecord(index, lcnId);
   // }
 
   if (!newData) {
     // Delete policy record
-    await removeAlgoliaRecord(index, docId);
+    await removeTypesenseRecord(Collection.enum.policies, docId);
   } else {
     try {
       // Visible to agent, user, and orgAdmins
@@ -78,9 +89,10 @@ export default async (
 
         searchTitle += ` - ${firstAddress.s1} ${firstAddress.c}, ${firstAddress.st}`;
 
-        if (locations.length > 1) searchTitle += ` and ${locations.length - 1} other locations`;
+        if (locations.length > 1)
+          searchTitle += ` and ${locations.length - 1} other locations`;
 
-        for (let loc of locations) {
+        for (const loc of locations) {
           if (loc.coords)
             _geoloc.push({
               lat: loc.coords?.latitude,
@@ -125,11 +137,15 @@ export default async (
         ...records,
       });
 
-      const { objectIDs } = await index.saveObjects(records, {
-        autoGenerateObjectIDIfNotExist: false,
-      });
+      // const { objectIDs } = await index.saveObjects(records, {
+      //   autoGenerateObjectIDIfNotExist: false,
+      // });
+      await client
+        .collections(Collection.enum.policies)
+        .documents()
+        .upsert(records[0]);
 
-      info(`ALGOLIA DOC UPDATED: ${JSON.stringify(objectIDs)}`);
+      info('ALGOLIA DOC UPDATED [policies]');
     } catch (err: any) {
       error(`ERROR UPDATING ALGOLIA POLICY ${docId}`, { ...err });
       // TODO: report to sentry ??

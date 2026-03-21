@@ -1,4 +1,3 @@
-import algoliasearch from 'algoliasearch';
 import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { info, warn } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
@@ -6,18 +5,25 @@ import { capitalize } from 'lodash-es';
 
 import { Collection, ILocation, Policy } from '@idemand/common';
 import {
-  StagedPolicyImport,
   algoliaAdminKey,
   algoliaAppId,
-  algoliaIndex,
   getReportErrorFn,
   importSummaryCollection,
   policiesCollection,
   quotesCollection,
+  StagedPolicyImport,
   submissionsCollection,
 } from '../../common/index.js';
-import { getFormattedAddress, getVisibleBy, verify } from '../../utils/index.js';
-import { removeAlgoliaRecord } from './syncPolicies.js';
+import {
+  ensureCollections,
+  getTypesenseClient,
+} from '../../services/typesense/index.js';
+import {
+  getFormattedAddress,
+  getVisibleBy,
+  verify,
+} from '../../utils/index.js';
+import { removeTypesenseRecord } from './syncPolicies.js';
 
 const reportErr = getReportErrorFn('syncLocations');
 
@@ -27,7 +33,7 @@ export default async (
     {
       locationId: string;
     }
-  >
+  >,
 ) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
@@ -37,8 +43,11 @@ export default async (
     return;
   }
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
+
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.locationId;
 
@@ -46,7 +55,7 @@ export default async (
   // const prevData = event?.data?.before.data() as ILocation | undefined;
 
   if (!newData) {
-    await removeAlgoliaRecord(index, docId);
+    await removeTypesenseRecord(Collection.enum.locations, docId);
   } else {
     try {
       const db = getFirestore();
@@ -88,13 +97,16 @@ export default async (
         .where('importDocIds', 'array-contains', parentDocId)
         .get();
 
-      verify(parent || !stagedSummarySnap.empty, 'parent record (or staged import) not found');
+      verify(
+        parent || !stagedSummarySnap.empty,
+        'parent record (or staged import) not found',
+      );
 
       let parentData = parent;
       if (!parentData) {
         const stagedPolicySnap = (await db
           .doc(
-            `${Collection.enum.dataImports}/${stagedSummarySnap.docs[0].id}/${Collection.enum.stagedDocs}/${parentDocId}`
+            `${Collection.enum.dataImports}/${stagedSummarySnap.docs[0].id}/${Collection.enum.stagedDocs}/${parentDocId}`,
           )
           .get()) as DocumentSnapshot<StagedPolicyImport>;
 
@@ -106,7 +118,9 @@ export default async (
       // delete if not current location or set tag ??
       let hidden = false;
       if (newData.parentType === 'policy') {
-        const locationSummary = (parentData as Policy).locations[newData.locationId];
+        const locationSummary = (parentData as Policy).locations[
+          newData.locationId
+        ];
         if (!locationSummary) hidden = true;
       }
 
@@ -121,19 +135,24 @@ export default async (
 
       const visibleBy = getVisibleBy(ids, ['agent', 'orgAdmin', 'user']);
 
-      let searchTitle = getFormattedAddress(newData.address) || `Location ID ${docId}`;
-      let searchSubtitle = `${
+      const searchTitle =
+        getFormattedAddress(newData.address) || `Location ID ${docId}`;
+      const searchSubtitle = `${
         newData.parentType ? capitalize(newData.parentType) : ''
       } ${parentDocId}`.trim();
 
       const _geoloc = [];
       if (newData.coordinates && newData.coordinates.latitude)
-        _geoloc.push({ lat: newData.coordinates.latitude, lng: newData.coordinates.longitude });
+        _geoloc.push({
+          lat: newData.coordinates.latitude,
+          lng: newData.coordinates.longitude,
+        });
 
       const records: Record<string, any>[] = [
         {
           ...newData,
-          objectID: docId,
+          // objectID: docId,
+          id: docId,
           docType: 'location',
           collectionName: Collection.enum.locations,
           searchTitle,
@@ -151,11 +170,15 @@ export default async (
         },
       ];
 
-      const { objectIDs } = await index.saveObjects(records, {
-        autoGenerateObjectIDIfNotExist: false,
-      });
+      // const { objectIDs } = await index.saveObjects(records, {
+      //   autoGenerateObjectIDIfNotExist: false,
+      // });
+      await client
+        .collections(Collection.enum.locations)
+        .documents()
+        .upsert(records[0]);
 
-      info(`ALGOLIA LOCATION DOC UPDATED`, { objectIDs });
+      info('ALGOLIA LOCATION DOC UPDATED');
     } catch (err: any) {
       reportErr('Error syncing location record in Algolia', { docId }, err);
     }

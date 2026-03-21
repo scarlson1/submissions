@@ -1,17 +1,14 @@
-import algoliasearch from 'algoliasearch';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { Collection } from '@idemand/common';
+import { Charge, dollarFormat, typesenseAdminKey } from '../../common/index.js';
 import {
-  Charge,
-  algoliaAdminKey,
-  algoliaAppId,
-  algoliaIndex,
-  dollarFormat,
-} from '../../common/index.js';
-import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
+  ensureCollections,
+  getTypesenseClient,
+} from '../../services/typesense/index.js';
+import { getVisibleBy, VisibleByTypes } from '../../utils/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -19,18 +16,28 @@ export default async (
     {
       trxId: string;
     }
-  >
+  >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) {
+  const typesenseKey = typesenseAdminKey.value();
+
+  if (!typesenseKey) {
     // TODO: report to sentry
-    error('Missing Algolia credentials returning early');
+    error('Missing Typesense creds - returning early');
     return;
   }
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
+  // if (!(appId && adminKey)) {
+  //   error('Missing Algolia credentials returning early');
+  //   return;
+  // }
+
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
+
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.trxId;
 
@@ -39,9 +46,10 @@ export default async (
   if (!newValue) {
     try {
       info(`DELETING DOC ${docId} FROM ALGOLIA FIN TRANSACTIONS INDEX`);
-      const res = await index.deleteObject(docId);
+      // const res = await index.deleteObject(docId);
+      await client.collections('companies').documents(docId).delete();
 
-      info(`SUCCESSFULLY DELETED ${docId} FROM FIN TRANSACTIONS INDEX (taskId: ${res.taskID})`);
+      info(`SUCCESSFULLY DELETED ${docId} FROM FIN TRANSACTIONS INDEX`);
       return;
     } catch (err) {
       error('ERROR DELETING USER FROM ALGOLIA FIN TRANSACTIONS INDEX: ', err);
@@ -59,7 +67,8 @@ export default async (
       const records: Record<string, any>[] = [
         {
           ...newValue,
-          objectID: docId,
+          // objectID: docId,
+          id: docId,
           visibleBy,
           collectionName: Collection.enum.financialTransactions,
           searchTitle: `TRX ID ${newValue.transactionId}`,
@@ -75,14 +84,18 @@ export default async (
           },
         },
       ];
-      info(`SAVING FIN TRANSACTION CHANGE TO ALGILIA INDEX`);
+      info('SAVING FIN TRANSACTION CHANGE TO ALGILIA INDEX');
 
-      const { objectIDs } = await index.saveObjects(records, {
-        autoGenerateObjectIDIfNotExist: false,
-      });
+      await client
+        .collections(Collection.enum.financialTransactions)
+        .documents()
+        .upsert(records[0]);
+      // const { objectIDs } = await index.saveObjects(records, {
+      //   autoGenerateObjectIDIfNotExist: false,
+      // });
 
-      info(`ALGOLIA DOC UPDATED (${docId})`, { objectIDs });
-    } catch (err: any) {
+      info(`ALGOLIA DOC UPDATED (${docId})`);
+    } catch (err: unknown) {
       error('ERROR: ', { err });
       // TODO: report to sentry ??
     }

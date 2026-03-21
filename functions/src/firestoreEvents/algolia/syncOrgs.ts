@@ -1,11 +1,18 @@
-import algoliasearch from 'algoliasearch';
 import { DocumentSnapshot, GeoPoint } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { Collection } from '@idemand/common';
-import { Organization, algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
-import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
+import {
+  algoliaAdminKey,
+  algoliaAppId,
+  Organization,
+} from '../../common/index.js';
+import {
+  ensureCollections,
+  getTypesenseClient,
+} from '../../services/typesense/index.js';
+import { getVisibleBy, VisibleByTypes } from '../../utils/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -13,7 +20,7 @@ export default async (
     {
       orgId: string;
     }
-  >
+  >,
 ) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
@@ -23,8 +30,11 @@ export default async (
     return;
   }
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
+
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.orgId;
 
@@ -33,9 +43,10 @@ export default async (
   if (!newValue) {
     try {
       info(`DELETING DOC ${docId} FROM ALGOLIA ORGS INDEX`);
-      const res = await index.deleteObject(docId);
+      // const res = await index.deleteObject(docId);
+      await client.collections('companies').documents(docId).delete();
 
-      info(`SUCCESSFULLY DELETED ${docId} FROM ORGS INDEX (taskId: ${res.taskID})`);
+      info(`SUCCESSFULLY DELETED ${docId} FROM ORGS INDEX`);
       return;
     } catch (err) {
       error('ERROR DELETING USER FROM ALGOLIA ORGS INDEX: ', err);
@@ -84,11 +95,15 @@ export default async (
       }
       info(`SAVING ORG CHANGE TO ALGOLIA INDEX ${docId}...`);
 
-      const { objectIDs } = await index.saveObjects(records, {
-        autoGenerateObjectIDIfNotExist: false,
-      });
+      // const { objectIDs } = await index.saveObjects(records, {
+      //   autoGenerateObjectIDIfNotExist: false,
+      // });
+      await client
+        .collections(Collection.enum.organizations)
+        .documents()
+        .upsert(records[0]);
 
-      info(`ALGOLIA DOC UPDATED: ${JSON.stringify(objectIDs)}`);
+      info('ALGOLIA DOC UPDATED [org]');
     } catch (err: any) {
       error(`ERROR SAVING ORG UPDATES TO ALGOLIA INDEX (${docId})`, { ...err });
       // TODO: report to sentry ??

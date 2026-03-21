@@ -18,7 +18,8 @@
     "deploy:rules:storage": "firebase deploy --only storage",
     "list:java": "ps -ax | grep java",
     "ngrok": "ngrok http --url=wondrous-opossum-sensible.ngrok-free.app 5001",
-    "tailscale": "tailscale funnel 5001"
+    "tailscale": "tailscale funnel 5001",
+    "typesense:dev": "docker run -p 8108:8108 -v\"$(pwd)\"/typesense-data:/data typesense/typesense:29.0 --data-dir /data --api-key=xyz --enable-cors"
   },
   "repository": {
     "type": "git",
