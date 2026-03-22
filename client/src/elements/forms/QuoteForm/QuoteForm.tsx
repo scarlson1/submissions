@@ -59,6 +59,7 @@ import {
   typesenseIndexName,
   User,
   ValueByRiskType,
+  type WithId,
 } from 'common';
 import { ErrorFallback, IconButtonMenu } from 'components';
 import {
@@ -347,29 +348,26 @@ export const QuoteForm = ({
     [toast],
   );
 
-  const handleInsuredSelected = useCallback(
-    async (user: User & { objectID: string }) => {
-      await setValues({
-        namedInsured: {
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          userId: user.objectID || '',
-        },
-      });
-      const keys = ['namedInsured'] as (keyof FormikErrors<QuoteValues>)[];
-      setTouched(keys);
-    },
-    [],
-  );
+  const handleInsuredSelected = useCallback(async (user: WithId<User>) => {
+    await setValues({
+      namedInsured: {
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        userId: user.id || '',
+      },
+    });
+    const keys = ['namedInsured'] as (keyof FormikErrors<QuoteValues>)[];
+    setTouched(keys);
+  }, []);
 
   const handleAgencySelected = useCallback(
-    async (org: Organization & { objectID: string }) => {
+    async (org: WithId<Organization>) => {
       await setValues({
         agency: {
           name: org.orgName || '',
-          orgId: org.objectID || '',
+          orgId: org.id || '', // orgId = firestore ID or tenant ID ??
           stripeAccountId: org.stripeAccountId || '',
           address: {
             addressLine1: org.address?.addressLine1 || '',
@@ -386,13 +384,13 @@ export const QuoteForm = ({
   );
 
   const handleAgentSelected = useCallback(
-    async (agentUser: User & { objectID: string }) => {
+    async (agentUser: WithId<User>) => {
       await setValues({
         agent: {
           name: agentUser.displayName || '',
           email: agentUser.email || '',
           phone: agentUser.phone || '',
-          userId: agentUser.objectID || '',
+          userId: agentUser.id || '',
           photoURL: agentUser.photoURL || '',
         },
       });
@@ -1370,9 +1368,7 @@ export const QuoteForm = ({
                       filter_by: 'isOrgUser:=true',
                     }}
                     onSelectItem={(user) =>
-                      handleAgentSelected(
-                        user as any as User & { objectID: string },
-                      )
+                      handleAgentSelected(user as any as WithId<User>)
                     }
                     resetFields={() => {
                       // reset agency too ??
@@ -1428,9 +1424,7 @@ export const QuoteForm = ({
                       query_by: 'orgName,primaryContact.displayName',
                     }}
                     onSelectItem={(org) =>
-                      handleAgencySelected(
-                        org as any as Organization & { objectID: string },
-                      )
+                      handleAgencySelected(org as any as WithId<Organization>)
                     }
                     resetFields={() => {
                       setFieldValue('agency.orgId', '');
