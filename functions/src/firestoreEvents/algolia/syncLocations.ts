@@ -5,14 +5,13 @@ import { capitalize } from 'lodash-es';
 
 import { Collection, ILocation, Policy } from '@idemand/common';
 import {
-  algoliaAdminKey,
-  algoliaAppId,
   getReportErrorFn,
   importSummaryCollection,
   policiesCollection,
   quotesCollection,
   StagedPolicyImport,
   submissionsCollection,
+  typesenseCollectionPrefix,
 } from '../../common/index.js';
 import {
   ensureCollections,
@@ -35,13 +34,13 @@ export default async (
     }
   >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
 
-  if (!(appId && adminKey)) {
-    reportErr('missing Algolia credentials');
-    return;
-  }
+  // if (!(appId && adminKey)) {
+  //   reportErr('missing Algolia credentials');
+  //   return;
+  // }
 
   await ensureCollections(); // no-op after first call in this instance
   const client = getTypesenseClient();
@@ -53,9 +52,10 @@ export default async (
 
   const newData = event?.data?.after.data() as ILocation | undefined;
   // const prevData = event?.data?.before.data() as ILocation | undefined;
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.locations}`;
 
   if (!newData) {
-    await removeTypesenseRecord(Collection.enum.locations, docId);
+    await removeTypesenseRecord(typesenseColName, docId);
   } else {
     try {
       const db = getFirestore();
@@ -141,12 +141,15 @@ export default async (
         newData.parentType ? capitalize(newData.parentType) : ''
       } ${parentDocId}`.trim();
 
-      const _geoloc = [];
-      if (newData.coordinates && newData.coordinates.latitude)
-        _geoloc.push({
-          lat: newData.coordinates.latitude,
-          lng: newData.coordinates.longitude,
-        });
+      const _geopoint = [];
+      if (newData.coordinates && newData.coordinates.latitude) {
+        _geopoint.push(newData.coordinates.latitude);
+        _geopoint.push(newData.coordinates.longitude);
+        // _geopoint.push({
+        //   lat: newData.coordinates.latitude,
+        //   lng: newData.coordinates.longitude,
+        // });
+      }
 
       const records: Record<string, any>[] = [
         {
@@ -157,15 +160,18 @@ export default async (
           collectionName: Collection.enum.locations,
           searchTitle,
           searchSubtitle,
-          _geoloc,
+          _geopoint,
           visibleBy,
           hidden,
+          effectiveDate: newData.effectiveDate?.toMillis() || null,
+          expirationDate: newData.expirationDate?.toMillis() || null,
+          cancelEffDate: newData.cancelEffDate?.toMillis() || null,
           metadata: {
             ...(newData.metadata || {}),
             created: newData.metadata?.created?.toDate() || null,
             updated: newData.metadata?.updated?.toDate() || null,
-            createdTimestamp: newData.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newData.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newData.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newData.metadata?.updated?.toMillis() || null,
           },
         },
       ];
@@ -173,10 +179,7 @@ export default async (
       // const { objectIDs } = await index.saveObjects(records, {
       //   autoGenerateObjectIDIfNotExist: false,
       // });
-      await client
-        .collections(Collection.enum.locations)
-        .documents()
-        .upsert(records[0]);
+      await client.collections(typesenseColName).documents().upsert(records[0]);
 
       info('ALGOLIA LOCATION DOC UPDATED');
     } catch (err: any) {

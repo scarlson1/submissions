@@ -3,7 +3,12 @@ import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { Collection } from '@idemand/common';
-import { Charge, dollarFormat, typesenseAdminKey } from '../../common/index.js';
+import {
+  Charge,
+  dollarFormat,
+  typesenseAdminKey,
+  typesenseCollectionPrefix,
+} from '../../common/index.js';
 import {
   ensureCollections,
   getTypesenseClient,
@@ -43,11 +48,12 @@ export default async (
 
   // If the document does not exist, it was deleted
   const newValue = event?.data?.after.data() as Charge | undefined;
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.financialTransactions}`;
   if (!newValue) {
     try {
       info(`DELETING DOC ${docId} FROM ALGOLIA FIN TRANSACTIONS INDEX`);
       // const res = await index.deleteObject(docId);
-      await client.collections('companies').documents(docId).delete();
+      await client.collections(typesenseColName).documents(docId).delete();
 
       info(`SUCCESSFULLY DELETED ${docId} FROM FIN TRANSACTIONS INDEX`);
       return;
@@ -86,10 +92,7 @@ export default async (
       ];
       info('SAVING FIN TRANSACTION CHANGE TO ALGILIA INDEX');
 
-      await client
-        .collections(Collection.enum.financialTransactions)
-        .documents()
-        .upsert(records[0]);
+      await client.collections(typesenseColName).documents().upsert(records[0]);
       // const { objectIDs } = await index.saveObjects(records, {
       //   autoGenerateObjectIDIfNotExist: false,
       // });

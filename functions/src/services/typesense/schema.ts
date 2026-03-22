@@ -1,11 +1,5 @@
 import { Collection } from '@idemand/common';
 import type { CollectionCreateSchema } from 'typesense';
-// import z from 'zod';
-
-// export const TypesenseIndexes = z.enum([
-//     'users',
-//     'policies'
-// ])
 
 export const usersSchema: CollectionCreateSchema = {
   name: Collection.enum.users,
@@ -83,6 +77,18 @@ export const usersSchema: CollectionCreateSchema = {
       facet: true,
       optional: true,
     },
+    {
+      name: 'metadata.created',
+      type: 'int64',
+      facet: true,
+      optional: true,
+    },
+    {
+      name: 'metadata.updated',
+      type: 'int64',
+      facet: true,
+      optional: true,
+    },
     { name: '.*', type: 'auto' },
   ],
 };
@@ -133,6 +139,12 @@ export const policiesSchema: CollectionCreateSchema = {
       optional: true,
     },
     {
+      name: '_geopoints',
+      type: 'geopoint[]',
+      facet: true,
+      optional: true,
+    },
+    {
       name: 'homeState',
       type: 'string',
       facet: true,
@@ -174,12 +186,6 @@ export const policiesSchema: CollectionCreateSchema = {
       optional: true,
     },
     {
-      name: 'totalsByBillingEntity',
-      type: 'object',
-      facet: false,
-      optional: true,
-    },
-    {
       name: 'taxes',
       type: 'object[]',
       facet: false,
@@ -197,11 +203,6 @@ export const policiesSchema: CollectionCreateSchema = {
     },
     {
       name: 'expirationDate',
-      type: 'int64',
-      facet: true,
-    },
-    {
-      name: 'effectiveDate',
       type: 'int64',
       facet: true,
     },
@@ -336,7 +337,18 @@ export const policiesSchema: CollectionCreateSchema = {
       facet: true,
       optional: true,
     },
-
+    {
+      name: 'metadata.created',
+      type: 'int64',
+      facet: true,
+      optional: true,
+    },
+    {
+      name: 'metadata.updated',
+      type: 'int64',
+      facet: true,
+      optional: true,
+    },
     { name: '.*', type: 'auto' },
   ],
   default_sorting_field: 'effectiveDate',
@@ -569,6 +581,8 @@ export const quotesSchema: CollectionCreateSchema = {
       name: 'ratingPropertyData',
       type: 'object',
       facet: false,
+      index: false,
+      store: false,
       optional: true,
     },
     {
@@ -582,7 +596,7 @@ export const quotesSchema: CollectionCreateSchema = {
   default_sorting_field: 'effectiveDate',
 };
 export const submissionsSchema: CollectionCreateSchema = {
-  name: Collection.enum.quotes,
+  name: Collection.enum.submissions,
   enable_nested_fields: true,
   fields: [
     {
@@ -617,6 +631,12 @@ export const submissionsSchema: CollectionCreateSchema = {
     },
     {
       name: 'metadata.created',
+      type: 'int64',
+      facet: true,
+      optional: true,
+    },
+    {
+      name: 'metadata.updated',
       type: 'int64',
       facet: true,
       optional: true,
@@ -801,6 +821,8 @@ export const locationsSchema: CollectionCreateSchema = {
       name: 'ratingPropertyData',
       type: 'object',
       facet: false,
+      store: false,
+      index: false,
       optional: true,
     },
     {
@@ -867,6 +889,7 @@ export const financialTrxSchema: CollectionCreateSchema = {
   enable_nested_fields: true,
   fields: [{ name: '.*', type: 'auto' }],
 };
+
 // export const transactionsSchema: CollectionCreateSchema = {
 //   name: Collection.enum.transactions,
 //   enable_nested_fields: true,

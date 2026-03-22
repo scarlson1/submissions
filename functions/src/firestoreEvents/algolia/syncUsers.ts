@@ -3,7 +3,7 @@ import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { Collection } from '@idemand/common';
-import { algoliaAdminKey, algoliaAppId, User } from '../../common/index.js';
+import { typesenseCollectionPrefix, User } from '../../common/index.js';
 import {
   ensureCollections,
   getTypesenseClient,
@@ -19,13 +19,13 @@ export default async (
     }
   >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) {
-    // TODO: report to sentry
-    error('Missing Algolia credentials returning early');
-    return;
-  }
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
+  // if (!(appId && adminKey)) {
+  //   // TODO: report to sentry
+  //   error('Missing Algolia credentials returning early');
+  //   return;
+  // }
 
   await ensureCollections(); // no-op after first call in this instance
   const client = getTypesenseClient();
@@ -37,11 +37,12 @@ export default async (
 
   // If the document does not exist, it was deleted
   const newValue = event?.data?.after.data() as User | undefined;
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.users}`;
   if (!newValue) {
     try {
       info(`DELETING DOC ${docId} FROM ALGOLIA USERS INDEX`);
       // const res = await index.deleteObject(docId);
-      await removeTypesenseRecord(Collection.enum.submissions, docId);
+      await removeTypesenseRecord(typesenseColName, docId);
       info(`SUCCESSFULLY DELETED ${docId} FROM USERS INDEX`);
       return;
     } catch (err) {
@@ -49,7 +50,6 @@ export default async (
     }
   } else {
     try {
-      // TODO: if coordinates (mailing address), need to use _geoloc: { lat, lng }
       const searchTitle = newValue.displayName
         ? newValue.displayName
         : `${newValue.firstName} ${newValue.lastName}`.trim() || docId;
@@ -70,7 +70,7 @@ export default async (
       const records: Record<string, any>[] = [
         {
           ...newValue,
-          objectID: docId,
+          id: docId,
           visibleBy,
           userId: docId,
           docType: 'user',
@@ -78,12 +78,15 @@ export default async (
           isOrgUser,
           searchTitle,
           searchSubtitle,
+          _geopoint: newValue.coordinates
+            ? [newValue.coordinates.latitude, newValue.coordinates.longitude]
+            : [],
           metadata: {
             ...(newValue.metadata || {}),
-            created: newValue.metadata?.created?.toDate() || null,
-            updated: newValue.metadata?.updated?.toDate() || null,
-            createdTimestamp: newValue.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
+            created: newValue.metadata?.created?.toMillis() || null,
+            updated: newValue.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newValue.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
           },
         },
       ];
@@ -96,10 +99,7 @@ export default async (
       info(`SAVING USER CHANGE TO ALGOLIA INDEX ${docId}...`);
 
       // const { objectIDs } = await index.saveObjects(records);
-      await client
-        .collections(Collection.enum.users)
-        .documents()
-        .upsert(records[0]);
+      await client.collections(typesenseColName).documents().upsert(records[0]);
 
       info('ALGOLIA DOC UPDATED ');
     } catch (err: any) {

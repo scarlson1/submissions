@@ -70,10 +70,12 @@ export const pubSubEmulatorHost = defineString('PUBSUB_EMULATOR_HOST', {
 export const quickbooksClientId = defineString('QUICKBOOKS_CLIENT_ID');
 // export const quickbooksRedirectUri = defineString('QUICKBOOKS_REDIRECT_URI');
 export const typesenseHost = defineString('TYPESENSE_HOST');
-
 export const typesenseProtocol = defineString('TYPESENSE_PROTOCOL', {
   default: 'https',
 });
+export const typesenseCollectionPrefix = defineString(
+  'TYPESENSE_COLLECTION_PREFIX',
+);
 
 export const typesensePort = defineInt('TYPESENSE_PORT', { default: 443 });
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });

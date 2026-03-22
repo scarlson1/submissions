@@ -3,7 +3,7 @@ import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { Collection, Submission } from '@idemand/common';
-import { algoliaAdminKey, algoliaAppId } from '../../common/index.js';
+import { typesenseCollectionPrefix } from '../../common/environmentVars.js';
 import {
   ensureCollections,
   getTypesenseClient,
@@ -19,13 +19,13 @@ export default async (
     }
   >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) {
-    // TODO: report to sentry
-    error('Missing Algolia credentials returning early');
-    return;
-  }
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
+  // if (!(appId && adminKey)) {
+  //   // TODO: report to sentry
+  //   error('Missing Algolia credentials returning early');
+  //   return;
+  // }
 
   await ensureCollections(); // no-op after first call in this instance
   const client = getTypesenseClient();
@@ -37,11 +37,12 @@ export default async (
 
   // If the document does not exist, it was deleted
   const newValue = event?.data?.after.data() as Submission | undefined;
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.submissions}`;
   if (!newValue) {
     try {
       info(`DELETING DOC ${docId} FROM ALGOLIA SUBMISSIONS INDEX...`);
       // const res = await index.deleteObject(docId);
-      await removeTypesenseRecord(Collection.enum.submissions, docId);
+      await removeTypesenseRecord(typesenseColName, docId);
       info(`SUCCESSFULLY DELETED ${docId} FROM SUBMISSIONS INDEX`);
       return;
     } catch (err: any) {
@@ -65,7 +66,7 @@ export default async (
       const records: Record<string, any>[] = [
         {
           ...newValue,
-          objectID: docId,
+          id: docId,
           visibleBy,
           userId: newValue.userId || null,
           docType: 'submission',
@@ -74,10 +75,10 @@ export default async (
           searchSubtitle,
           metadata: {
             ...(newValue.metadata || {}),
-            created: newValue.metadata?.created?.toDate() || null,
-            updated: newValue.metadata?.updated?.toDate() || null,
-            createdTimestamp: newValue.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
+            created: newValue.metadata?.created?.toMillis() || null,
+            updated: newValue.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newValue.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
           },
         },
       ];
@@ -92,10 +93,7 @@ export default async (
       // const { objectIDs } = await index.saveObjects(records, {
       //   autoGenerateObjectIDIfNotExist: false,
       // });
-      await client
-        .collections(Collection.enum.submissions)
-        .documents()
-        .upsert(records[0]);
+      await client.collections(typesenseColName).documents().upsert(records[0]);
 
       info('ALGOLIA DOC UPDATED');
     } catch (err: any) {

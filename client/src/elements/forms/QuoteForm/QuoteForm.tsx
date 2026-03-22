@@ -38,6 +38,7 @@ import {
   Basement,
   CarrierDetails,
   CBRSDesignation,
+  Collection,
   CommSource,
   Coordinates,
   FloodZone,
@@ -55,6 +56,7 @@ import {
   TFeeItem,
   TProduct,
   TTaxItem,
+  typesenseIndexName,
   User,
   ValueByRiskType,
 } from 'common';
@@ -75,7 +77,7 @@ import {
   RequiredFieldsIndicator,
 } from 'components/forms';
 import { LoadingComponent } from 'components/layout';
-import AlgoliaAutocomplete from 'components/search/reactQuery/AlgoliaAutocomplete';
+import { TypesenseAutocomplete } from 'components/search/reactQuery/TypesenseAutocomplete';
 import { UserSearchDialog } from 'components/search/Search';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import {
@@ -1346,15 +1348,15 @@ export const QuoteForm = ({
               </Box>
             </Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField
+              {/* <FormikTextField
                 name='agent.name'
                 label='Agent name'
                 required
                 fullWidth
-              />
-              {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
+              /> */}
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense>
-                  <AlgoliaAutocomplete<User>
+                  <TypesenseAutocomplete<User>
                     name='agent.name'
                     textFieldProps={{
                       label: 'Agent name',
@@ -1362,9 +1364,14 @@ export const QuoteForm = ({
                       fullWidth: true,
                       sx: { minWidth: 120 },
                     }}
-                    searchOptions={{ filters: 'collectionName:users AND isOrgUser:true' }}
-                    onSelectItem={(org) =>
-                      handleAgentSelected(org as any as User & { objectID: string })
+                    searchOptions={{
+                      indexName: typesenseIndexName(Collection.enum.users),
+                      query_by: 'displayName,firstName,lastName,email,phone',
+                    }}
+                    onSelectItem={(user) =>
+                      handleAgentSelected(
+                        user as any as User & { objectID: string },
+                      )
                     }
                     resetFields={() => {
                       // reset agency too ??
@@ -1375,7 +1382,7 @@ export const QuoteForm = ({
                     }}
                   />
                 </Suspense>
-              </ErrorBoundary> */}
+              </ErrorBoundary>
             </Grid>
             <Grid xs={6} sm={3}>
               <FormikTextField
@@ -1405,7 +1412,7 @@ export const QuoteForm = ({
               {/* <FormikTextField name='agency.name' label='Agency Name' fullWidth /> */}
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense>
-                  <AlgoliaAutocomplete<Organization>
+                  <TypesenseAutocomplete<Organization>
                     name='agency.name'
                     textFieldProps={{
                       label: 'Agency name',
@@ -1413,7 +1420,11 @@ export const QuoteForm = ({
                       fullWidth: true,
                     }}
                     searchOptions={{
-                      filters: 'collectionName:organizations AND type:agency',
+                      // filters: 'collectionName:organizations AND type:agency',
+                      indexName: typesenseIndexName(
+                        Collection.enum.organizations,
+                      ),
+                      query_by: 'orgName,primaryContact.displayName',
                     }}
                     onSelectItem={(org) =>
                       handleAgencySelected(
@@ -1475,14 +1486,18 @@ export const QuoteForm = ({
             <Grid xs={12} sm={3}>
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense>
-                  <AlgoliaAutocomplete<Organization>
+                  <TypesenseAutocomplete<Organization>
                     name='carrier.name'
                     textFieldProps={{
                       label: 'Carrier',
                       required: true,
                     }}
                     searchOptions={{
-                      filters: 'collectionName:organizations AND type:carrier',
+                      // filters: 'collectionName:organizations AND type:carrier',
+                      indexName: typesenseIndexName(
+                        Collection.enum.organizations,
+                      ),
+                      query_by: 'orgName,primaryContact.displayName',
                     }}
                     onSelectItem={(org) =>
                       handleCarrierSelected(

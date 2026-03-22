@@ -1,15 +1,15 @@
-import { getUserAccessRef, UserAccess } from '@idemand/common';
-import algoliasearch from 'algoliasearch';
+import { Collection, getUserAccessRef, UserAccess } from '@idemand/common';
 import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import {
-  algoliaAdminKey,
-  algoliaAppId,
-  algoliaIndex,
   getReportErrorFn,
+  typesenseCollectionPrefix,
 } from '../../common/index.js';
+import { getTypesenseClient } from '../../services/typesense/client.js';
+import { ensureCollections } from '../../services/typesense/ensureCollections.js';
 import { getVisibleBy } from '../../utils/algolia.js';
+import { removeTypesenseRecord } from './syncPolicies.js';
 
 // Update user visibleBy property on user object in Algolia whenever /users/{userId}/permissions/private changes
 
@@ -24,14 +24,14 @@ export default async (
     }
   >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
 
-  // await ensureCollections(); // no-op after first call in this instance
-  // const client = getTypesenseClient();
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const userId = event.params.userId;
 
@@ -42,9 +42,14 @@ export default async (
     return;
   }
 
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.userClaims}`;
+
   // const prevAccessData= event?.data?.before.data() as UserAccess | undefined
   const accessData = event?.data?.after.data() as UserAccess | undefined;
-  if (!accessData) return; // TODO: handle doc deleted
+  if (!accessData) {
+    await removeTypesenseRecord(typesenseColName, userId);
+    return;
+  }
 
   try {
     const visibleBy: string[] = [];
@@ -56,7 +61,7 @@ export default async (
           ['user'],
         ),
       );
-    for (const agentId of accessData?.agentIds) {
+    for (const agentId of accessData.agentIds) {
       visibleBy.push(
         ...getVisibleBy({ agentId, orgId: null, userId: null }, ['agent']),
       );
@@ -68,24 +73,29 @@ export default async (
     }
 
     const updates = {
-      objectID: userId,
+      id: userId,
       visibleBy,
     };
 
-    index
-      .partialUpdateObject(updates, { createIfNotExists: false })
-      .then(({ objectID }) => {
-        info(
-          `updated algolia user record's "visibleBy" property (${objectID})`,
-        );
-      });
-  } catch (err: any) {
+    await client.collections(typesenseColName).documents().upsert(updates);
+
+    info(
+      `Updated user visibleBy claims in Typesense [userId: ${userId}]`,
+      visibleBy,
+    );
+    // index
+    //   .partialUpdateObject(updates, { createIfNotExists: false })
+    //   .then(({ objectID }) => {
+    //     info(
+    //       `updated algolia user record's "visibleBy" property (${objectID})`,
+    //     );
+    //   });
+  } catch (err: unknown) {
     reportErr(
-      `ERROR UPDATING USER IN ALGOLIA INDEX (${userId})`,
+      `ERROR UPDATING USER CLAIMS IN TYPESENSE INDEX (${userId})`,
       { params: event.params },
       err,
     );
-    // error(`ERROR UPDATING USER IN ALGOLIA INDEX (${userId})`, { ...err });
   }
 
   return;

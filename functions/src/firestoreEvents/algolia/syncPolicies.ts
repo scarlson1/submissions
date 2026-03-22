@@ -4,7 +4,7 @@ import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { capitalize } from 'lodash-es';
 
 import { Collection, Policy } from '@idemand/common';
-import { algoliaAdminKey, algoliaAppId } from '../../common/index.js';
+import { typesenseCollectionPrefix } from '../../common/environmentVars.js';
 import {
   ensureCollections,
   getTypesenseClient,
@@ -15,9 +15,9 @@ export async function removeTypesenseRecord(index: string, id: string) {
   try {
     // const res = await index.deleteObject(id);
     const client = getTypesenseClient();
-    await client.collections('companies').documents(id).delete();
+    await client.collections(index).documents(id).delete();
     info('ALGOLIA - SUCCESSFULLY DELETED RECORD', {
-      // (taskId: ${res.taskID})
+      index,
       id,
     });
   } catch (err: unknown) {
@@ -36,13 +36,13 @@ export default async (
     }
   >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) {
-    // TODO: report to sentry
-    error('Missing Algolia credentials returning early');
-    return;
-  }
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
+  // if (!(appId && adminKey)) {
+  //   // TODO: report to sentry
+  //   error('Missing Algolia credentials returning early');
+  //   return;
+  // }
 
   await ensureCollections(); // no-op after first call in this instance
   const client = getTypesenseClient();
@@ -54,6 +54,7 @@ export default async (
 
   // If the document does not exist, it was deleted
   const newData = event?.data?.after.data() as Policy | undefined;
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.policies}`;
 
   // Remove locations from index if location Id not in new locations
   // const prevData = event?.data?.before.data();
@@ -83,7 +84,8 @@ export default async (
 
       let searchTitle = `${capitalize(newData.product)} policy - ID ${docId}`;
 
-      const _geoloc = [];
+      // const _geoloc = [];
+      const _geopoints = [];
       if (locations && locations.length) {
         const firstAddress = locations[0].address;
 
@@ -94,10 +96,11 @@ export default async (
 
         for (const loc of locations) {
           if (loc.coords)
-            _geoloc.push({
-              lat: loc.coords?.latitude,
-              lng: loc.coords?.longitude,
-            });
+            _geopoints.push([loc.coords.latitude, loc.coords.longitude]);
+          // _geoloc.push({
+          //   lat: loc.coords?.latitude,
+          //   lng: loc.coords?.longitude,
+          // });
         }
       }
 
@@ -115,19 +118,23 @@ export default async (
       const records: Record<string, any>[] = [
         {
           ...newData,
-          objectID: docId,
+          id: docId,
           docType: 'policy',
           collectionName: Collection.enum.policies,
           searchTitle,
           searchSubtitle,
-          _geoloc,
+          _geopoints,
+          // _geoloc,
           visibleBy,
+          effectiveDate: newData.effectiveDate?.toMillis() || null,
+          expirationDate: newData.expirationDate?.toMillis() || null,
+          cancelEffDate: newData.cancelEffDate?.toMillis() || null,
           metadata: {
             ...(newData.metadata || {}),
-            created: newData.metadata?.created?.toDate() || null,
-            updated: newData.metadata?.updated?.toDate() || null,
-            createdTimestamp: newData.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newData.metadata?.updated?.toMillis() || null,
+            created: newData.metadata?.created?.toMillis() || null,
+            updated: newData.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newData.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newData.metadata?.updated?.toMillis() || null,
           },
         },
       ];
@@ -140,10 +147,7 @@ export default async (
       // const { objectIDs } = await index.saveObjects(records, {
       //   autoGenerateObjectIDIfNotExist: false,
       // });
-      await client
-        .collections(Collection.enum.policies)
-        .documents()
-        .upsert(records[0]);
+      await client.collections(typesenseColName).documents().upsert(records[0]);
 
       info('ALGOLIA DOC UPDATED [policies]');
     } catch (err: any) {

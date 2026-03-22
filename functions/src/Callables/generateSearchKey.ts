@@ -71,10 +71,12 @@ const generateSearchKey = async ({ auth }: CallableRequest) => {
 
   try {
     // Make sure that the parent search key you use to generate a scoped search key
-    //  has no other permissions besides `documents:search`
+    // has no other permissions besides `documents:search`
     const searchBaseKey = typesenseUserSearchKey.value();
     const securedApiKey = client.keys().generateScopedSearchKey(searchBaseKey, {
       filter_by: `visibleBy:=[${visibleBy.join(',')}]`,
+      exclude_fields:
+        'stripe_customer_id,visibleBy,stripeAccountId,FEIN,EandOURL,agency.stripeAccountId,carrier.stripeAccountId,subproducerCommission,subproducerCommissionPct,commissionPct',
       // expires_at: 1906054106,
     });
 

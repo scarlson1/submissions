@@ -1,18 +1,10 @@
-// functions/src/typesense/client.ts
-
 import { Client } from 'typesense';
 import {
   typesenseAdminKey,
   typesenseHost,
   typesensePort,
   typesenseProtocol,
-} from '../../common';
-// import {
-//   typesenseAdminKey,
-//   typesenseHost,
-//   typesensePort,
-//   typesenseProtocol,
-// } from '../common/index.js';
+} from '../../common/index.js';
 
 let _client: Client | undefined;
 

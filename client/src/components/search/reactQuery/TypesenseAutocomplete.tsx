@@ -1,4 +1,6 @@
-import { Hit } from '@algolia/client-search';
+// export const Temp = () => null;
+
+// import { Hit } from '@algolia/client-search';
 import {
   AutocompleteProps,
   Unstable_Grid2 as Grid,
@@ -10,16 +12,20 @@ import {
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { useField } from 'formik';
-// import { UseAlgoliaOptions, useAlgolia } from 'hooks/useAlgolia';
+import { BaseHit } from './SearchResults';
+import { useTypesense, type UseTypesenseOptions } from 'hooks/useAlgolia';
 import { useDebounce } from 'hooks/utils';
-// import { BaseHit } from '..';
+import type {
+  DocumentSchema,
+  SearchParams,
+} from 'typesense';
 
 // TODO: generalize component (autocomplete form)
 
 type WithBaseHit<T> = BaseHit & T;
 
 // TODO: extends AutocompleteProps
-interface AlgoliaAutocompleteProps<T> extends Omit<
+interface TypesenseAutocompleteProps<T extends DocumentSchema> extends Omit<
   AutocompleteProps<T, false, false, false>,
   | 'options'
   | 'value'
@@ -29,22 +35,24 @@ interface AlgoliaAutocompleteProps<T> extends Omit<
   | 'onOpen'
   | 'onClose'
 > {
-  onSelectItem: (val: WithBaseHit<T>) => void;
-  searchOptions?: Omit<UseAlgoliaOptions, 'query' | 'indexName'>;
+  //   onSelectItem: (val: WithBaseHit<T>) => void;
+  onSelectItem: (val: T) => void;
+  searchOptions?: Omit<UseTypesenseOptions<T>, 'query'>;
   name: string;
   label?: string;
   resetFields?: () => void;
   textFieldProps?: Omit<TextFieldProps, 'value' | 'onChange'>;
 }
 
-export const AlgoliaAutocomplete = <T,>({
+export const TypesenseAutocomplete = <T extends DocumentSchema>({
   searchOptions,
   onSelectItem,
   name,
+  label,
   resetFields,
   textFieldProps,
   ...props
-}: AlgoliaAutocompleteProps<WithBaseHit<T>>) => {
+}: TypesenseAutocompleteProps<WithBaseHit<T>>) => {
   const [value, setValue] = useState<WithBaseHit<T> | null>(null);
   // const [query, setQuery] = useState('');
   const [field, meta, helpers] = useField(name);
@@ -52,19 +60,33 @@ export const AlgoliaAutocomplete = <T,>({
 
   const active = useRef(false);
 
-  const { hits, isFetching } = useAlgolia<WithBaseHit<T>>({
-    indexName: import.meta.env.VITE_ALGOLIA_INDEX_NAME as string,
+  const {
+    preset,
+    indexName = '',
+    limit = 5,
+    staleTime = 1000 * 60,
+    gcTime = 1000 * 60 * 15,
+    enabled,
+    ...rest
+  } = searchOptions || {};
+
+  const searchParams = ({ ...rest, preset } as SearchParams<
+    WithBaseHit<T>,
+    string
+  >);
+
+  const { hits, isFetching } = useTypesense<WithBaseHit<T>>({
+    indexName,
     query: debouncedQuery,
-    hitsPerPage: 5,
-    staleTime: 1000 * 60, // 60s
-    gcTime: 1000 * 60 * 15, // 15m
-    enabled: !!debouncedQuery && active.current,
-    ...searchOptions,
+    limit,
+    staleTime,
+    gcTime,
+    enabled: Boolean(indexName) && (enabled ?? (!!debouncedQuery && active.current)),
+    ...searchParams,
   });
 
-  const options = useMemo<readonly Hit<WithBaseHit<T>>[]>(() => {
-    // console.log('OPTIONS: ', hits);
-    return (hits || []) as Hit<WithBaseHit<T>>[];
+  const options = useMemo<readonly WithBaseHit<T>[]>(() => {
+    return (hits || []).map((hit) => hit.document as WithBaseHit<T>);
   }, [hits]);
 
   const optionsWithVal = useMemo(() => {
@@ -85,7 +107,7 @@ export const AlgoliaAutocomplete = <T,>({
     <MuiAutocomplete
       // sx={{ width: 300 }}
       // getOptionLabel={(option) => (typeof option === 'string' ? option : option.searchTitle)}
-      getOptionLabel={(option) => option?.searchTitle ?? null}
+      getOptionLabel={(option) => option?.searchTitle ?? ''}
       filterOptions={(x) => x}
       options={optionsWithVal}
       autoComplete
@@ -115,7 +137,7 @@ export const AlgoliaAutocomplete = <T,>({
       renderInput={(params) => (
         <TextField
           {...params}
-          label='Search'
+          label={label ?? 'Search'}
           autoComplete='off'
           fullWidth
           error={Boolean(meta) && meta.touched && Boolean(meta.error)}
@@ -128,17 +150,13 @@ export const AlgoliaAutocomplete = <T,>({
         // console.log('props/option: ', props, option);
         // TODO: word match highlight (option._highlightResult)
         return (
-          <li {...props} key={option.objectID}>
+          <li {...props} key={option.id ?? option.searchTitle}>
             <Grid
               container
               spacing={2}
               alignItems='center'
               disableEqualOverflow
             >
-              {/* <Grid item sx={{ display: 'flex', width: 44 }}>
-                <LocationOnIcon sx={{ color: 'text.secondary' }} />
-              </Grid> */}
-              {/* width: 'calc(100% - 44px)', */}
               <Grid sx={{ wordWrap: 'break-word' }}>
                 <Typography
                   sx={{
@@ -149,15 +167,6 @@ export const AlgoliaAutocomplete = <T,>({
                 >
                   {option.searchTitle}
                 </Typography>
-                {/* {parts.map((part, index) => (
-                  <Box
-                    key={index}
-                    component="span"
-                    sx={{ fontWeight: part.highlight ? 'bold' : 'regular' }}
-                  >
-                    {part.text}
-                  </Box>
-                ))} */}
                 <Typography
                   variant='body2'
                   color='text.secondary'

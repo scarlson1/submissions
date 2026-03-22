@@ -21,6 +21,11 @@ interface ImportMetaEnv {
   readonly VITE_DEV: string;
   readonly VITE_RECAPTCHA_ENTERPRISE_KEY: string;
   readonly VITE_STRIPE_PUBLISHABLE_KEY: string;
+  readonly VITE_TYPESENSE_NOT_AUTHED_SEARCH_KEY: string;
+  readonly VITE_TYPESENSE_NODE: string;
+  readonly VITE_TYPESENSE_PORT: string;
+  readonly VITE_TYPESENSE_PROTOCOL: string;
+  readonly VITE_TYPESENSE_COLLECTION_PREFIX: string;
 }
 
 interface ImportMeta {

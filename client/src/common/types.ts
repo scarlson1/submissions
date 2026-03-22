@@ -1,4 +1,9 @@
-import { DataGridProps, GridActionsColDef, GridColDef, GridValidRowModel } from '@mui/x-data-grid';
+import {
+  DataGridProps,
+  GridActionsColDef,
+  GridColDef,
+  GridValidRowModel,
+} from '@mui/x-data-grid';
 import { JSONContent } from '@tiptap/react';
 import {
   DocumentData,
@@ -18,8 +23,8 @@ import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { FloodValues } from 'views/SubmissionNew';
 import {
   Basement,
-  CBRSDesignation,
   CancelReason,
+  CBRSDesignation,
   CommSource,
   DefaultCommission,
   FeeItemName,
@@ -30,10 +35,12 @@ import {
   Product,
   QUOTE_STATUS,
   RoundingType,
-  SUBMISSION_STATUS,
   State,
   SubjectBaseItem,
+  SUBMISSION_STATUS,
   TAgencySubmissionStatus,
+  TaxItemName,
+  TaxRateType,
   TChangeRequestStatus,
   TChangeRequestTrxType,
   TCommSource,
@@ -42,12 +49,11 @@ import {
   TLicenseOwner,
   TLicenseType,
   TProduct,
+  TransactionType,
   TState,
   TTransactionType,
-  TaxItemName,
-  TaxRateType,
-  TransactionType,
   UW_NOTE_CODE,
+  type TDefaultCommission,
 } from './enums';
 
 // export interface BaseMetadata {
@@ -91,7 +97,8 @@ export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 // make optional accept keys that are optional (partial)
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
-export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> &
+  Omit<T, K>;
 
 // TODO: need DeepPick & DeepOmit ??
 // export type DeepOptionalKeys <T, P extends Path<T>> = Pick<DeepPartial<T>, > &
@@ -120,7 +127,10 @@ export type Mutable<T> = {
   -readonly [P in keyof T]: T[P];
 };
 
-export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Key extends string
+export type FlattenObjectKeys<
+  T extends Record<string, any>,
+  Key = keyof T,
+> = Key extends string
   ? T[Key] extends Record<string, any>
     ? `${Key}.${FlattenObjectKeys<T[Key]>}`
     : `${Key}`
@@ -159,21 +169,31 @@ type PathImpl<T, K extends keyof T> = K extends string
 
 export type Path<T> = PathImpl<T, keyof T> | keyof T;
 
-export type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest}`
+export type PathValue<
+  T,
+  P extends Path<T>,
+> = P extends `${infer K}.${infer Rest}`
   ? K extends keyof T
     ? Rest extends Path<T[K]>
       ? PathValue<T[K], Rest>
       : never
     : never
   : P extends keyof T
-  ? T[P]
-  : never;
+    ? T[P]
+    : never;
 
 // USAGE:
 // declare function get<T, P extends Path<T>>(obj: T, path: P): PathValue<T, P>;
 // get(object, "firstName"); // works
 
-export type Primitive = string | number | bigint | boolean | symbol | null | undefined;
+export type Primitive =
+  | string
+  | number
+  | bigint
+  | boolean
+  | symbol
+  | null
+  | undefined;
 
 export type AllowString<Type> = {
   [Property in keyof Type]: Type[Property] | string;
@@ -285,7 +305,7 @@ export type CompressedAddress = z.infer<typeof CompressedAddressZ>;
 export const MailingAddressZ = AddressZ.and(
   z.object({
     name: z.string(),
-  })
+  }),
 );
 export type MailingAddress = z.infer<typeof MailingAddressZ>;
 
@@ -526,7 +546,7 @@ export const Tax = TaxItem.omit({ value: true, taxCalcId: true }).and(
     rateType: TaxRateType,
     refundable: z.boolean(),
     metadata: BaseMetadataZ,
-  })
+  }),
 );
 export type TTax = z.infer<typeof Tax>;
 
@@ -552,7 +572,10 @@ export const TaxOgTransactionZ = z.object({
 });
 export type TaxOgTransaction = z.infer<typeof TaxOgTransactionZ>;
 
-export const TaxReversalTransactionZ = TaxOgTransactionZ.omit({ type: true, reversal: true }).and(
+export const TaxReversalTransactionZ = TaxOgTransactionZ.omit({
+  type: true,
+  reversal: true,
+}).and(
   z.object({
     type: z.literal(TaxTransactionType.Enum.reversal),
     reversal: z.object({
@@ -560,11 +583,14 @@ export const TaxReversalTransactionZ = TaxOgTransactionZ.omit({ type: true, reve
     }),
     chargeAmount: z.number().nonpositive(),
     taxAmount: z.number().nonpositive(),
-  })
+  }),
 );
 export type TaxReversalTransaction = z.infer<typeof TaxReversalTransactionZ>;
 
-export const TaxTransactionZ = z.union([TaxOgTransactionZ, TaxReversalTransactionZ]);
+export const TaxTransactionZ = z.union([
+  TaxOgTransactionZ,
+  TaxReversalTransactionZ,
+]);
 export type TaxTransaction = z.infer<typeof TaxTransactionZ>;
 
 export interface ElevationResult {
@@ -583,8 +609,15 @@ export const RatingPropertyDataZ = z.object({
   floodZone: FloodZone,
   numStories: z.number().int().nonnegative().optional().nullable(),
   propertyCode: z.string().optional().nullable(),
-  replacementCost: z.number().nonnegative().min(50000, 'replacement cost est. must be > $50k'), // TODO: min ??
-  sqFootage: z.coerce.number().int('sq. footage must be an integer').optional().nullable(),
+  replacementCost: z
+    .number()
+    .nonnegative()
+    .min(50000, 'replacement cost est. must be > $50k'), // TODO: min ??
+  sqFootage: z.coerce
+    .number()
+    .int('sq. footage must be an integer')
+    .optional()
+    .nullable(),
   yearBuilt: z.coerce
     .number()
     .min(1900, 'year built must be > 1900')
@@ -861,7 +894,8 @@ export interface EPayPaymentMethodDetails {
   accountHolder?: string | null;
 }
 
-export interface PaymentMethod extends EPayPaymentMethodDetails, Partial<BaseDoc> {
+export interface PaymentMethod
+  extends EPayPaymentMethodDetails, Partial<BaseDoc> {
   last4?: string;
   expiration?: string;
   // TODO: separate into expMonth and expYear
@@ -935,7 +969,11 @@ export const BaseLocationZ = z.object({
   imagePaths: LocationImages.optional().nullable(),
   blurHash: LocationImages.optional().nullable(),
   locationId: z.string().min(5, 'location ID must be at least 5 characters'),
-  policyId: z.string().min(5, 'policy ID must be at least 5 characters').optional().nullable(),
+  policyId: z
+    .string()
+    .min(5, 'policy ID must be at least 5 characters')
+    .optional()
+    .nullable(),
   quoteId: z.string().optional().nullable(),
   submissionId: z.string().optional().nullable(),
   externalId: z.string().optional().nullable(),
@@ -949,7 +987,7 @@ export const ILocationSubmissionZ = BaseLocationZ.and(
     submissionId: z.string(),
     quoteId: z.null().optional(),
     policyId: z.null().optional(),
-  })
+  }),
 );
 export type ILocationSubmission = z.infer<typeof ILocationSubmissionZ>;
 
@@ -959,7 +997,7 @@ export const ILocationQuoteZ = BaseLocationZ.and(
     submissionId: z.string().optional().nullable(),
     quoteId: z.string(),
     policyId: z.null().optional(),
-  })
+  }),
 );
 export type ILocationQuote = z.infer<typeof ILocationQuoteZ>;
 
@@ -969,7 +1007,7 @@ export const ILocationPolicyZ = BaseLocationZ.and(
     policyId: z.string().min(5, 'policy ID must be at least 5 characters'),
     quoteId: z.string().optional().nullable(),
     submissionId: z.string().optional().nullable(),
-  })
+  }),
 );
 export type ILocationPolicy = z.infer<typeof ILocationPolicyZ>;
 
@@ -1102,7 +1140,7 @@ export const PolicyZ = z.object({
         displayName: z.string(),
         downloadUrl: z.string(),
         storagePath: z.string(),
-      })
+      }),
     )
     .optional()
     .nullable()
@@ -1115,7 +1153,7 @@ export type Policy = z.infer<typeof PolicyZ>;
 export const PolicyWithStatusZ = PolicyZ.and(
   z.object({
     status: z.string().optional().nullable(),
-  })
+  }),
 );
 export type PolicyWithStatus = z.infer<typeof PolicyWithStatusZ>;
 
@@ -1143,7 +1181,12 @@ export const TransferSummaryZ = z.object({
   // or percentageOfRefundableAmount ??
 });
 
-export const ReceivableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
+export const ReceivableStatus = z.enum([
+  'outstanding',
+  'paid',
+  'cancelled',
+  'expired',
+]);
 export type TReceivableStatus = z.infer<typeof ReceivableStatus>;
 // keep expired ?? receivable should persist when invoice expires ??
 // TODO: handle invoice / payment intent expired
@@ -1306,7 +1349,10 @@ export interface AmendmentTransaction extends BaseTransaction {
   additionalNamedInsured?: string[];
 }
 
-export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTransaction;
+export type Transaction =
+  | PremiumTransaction
+  | OffsetTransaction
+  | AmendmentTransaction;
 
 // export interface Transaction extends BaseDoc {
 //   trxType: TransactionType;
@@ -1419,11 +1465,17 @@ export interface CancellationRequest extends BaseChangeRequest {
   };
   locationChanges: Record<
     string,
-    Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
+    Pick<
+      ILocation,
+      'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+    >
   >;
   cancellationChanges: Record<
     string,
-    Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
+    Pick<
+      ILocation,
+      'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+    >
   >;
   policyChanges?: Pick<
     Policy,
@@ -1452,8 +1504,10 @@ export interface LocationChangeRequest extends BaseChangeRequest {
   isAddLocationRequest?: false;
 }
 
-export interface LocationCancellationRequest
-  extends Omit<LocationChangeRequest, 'formValues' | 'locationChanges'> {
+export interface LocationCancellationRequest extends Omit<
+  LocationChangeRequest,
+  'formValues' | 'locationChanges'
+> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason: CancellationReason;
   formValues: CancelValues;
@@ -1470,7 +1524,10 @@ export interface PolicyChangeRequestOld extends BaseChangeRequest {
   isAddLocationRequest?: false;
 }
 
-export interface PolicyCancellationRequest extends Omit<PolicyChangeRequestOld, 'formValues'> {
+export interface PolicyCancellationRequest extends Omit<
+  PolicyChangeRequestOld,
+  'formValues'
+> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason: CancellationReason;
   formValues: CancelValues;
@@ -1481,7 +1538,13 @@ export interface PolicyCancellationRequest extends Omit<PolicyChangeRequestOld, 
 export interface AddLocationRequest extends BaseChangeRequest {
   trxType: 'endorsement';
   scope: 'add_location';
-  status: 'submitted' | 'accepted' | 'denied' | 'under_review' | 'cancelled' | 'error';
+  status:
+    | 'submitted'
+    | 'accepted'
+    | 'denied'
+    | 'under_review'
+    | 'cancelled'
+    | 'error';
   formValues: AddLocationValues;
   policyChanges?: DeepPartial<Policy>;
   locationChanges?: DeepPartial<ILocation>;
@@ -1490,8 +1553,10 @@ export interface AddLocationRequest extends BaseChangeRequest {
   locationId: string;
 }
 
-export interface DraftAddLocationRequest
-  extends Omit<AddLocationRequest, 'formValues' | 'status' | 'locationId'> {
+export interface DraftAddLocationRequest extends Omit<
+  AddLocationRequest,
+  'formValues' | 'status' | 'locationId'
+> {
   status: 'draft';
   formValues: Partial<AddLocationValues>;
   locationId?: string;
@@ -1505,9 +1570,9 @@ export type ChangeRequest =
   | AddLocationRequest
   | DraftAddLocationRequest;
 
-export type DefaultCommission = {
-  [key in TProduct]?: number;
-};
+// export type DefaultCommission = {
+//   [key in TProduct]?: number;
+// };
 
 // export type DefaultCommission = {
 //   [key in PRODUCT]?: number;
@@ -1526,7 +1591,7 @@ export interface User extends BaseDoc {
   orgId?: string | null; // org doc id (not always tenant (ex 'idemand'))
   orgName?: string | null;
   // store org address ??
-  defaultCommission?: DefaultCommission;
+  defaultCommission?: TDefaultCommission;
 }
 
 export interface UserClaims {
@@ -1553,7 +1618,12 @@ export interface AgencyApplication extends BaseDoc {
     email: string;
     phone: string;
   };
-  agents: { firstName: string; lastName: string; email: string; phone: string }[];
+  agents: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  }[];
   // bankDetails: {
   //   accountNumber: string;
   //   routingNumber: string;
@@ -1615,7 +1685,12 @@ export const AuthProvidersZ = z.enum([
 ]);
 export type AuthProviders = z.infer<typeof AuthProvidersZ>;
 
-export const AgencyStatus = z.enum(['submitted', 'active', 'inactive', 'pending_info']);
+export const AgencyStatus = z.enum([
+  'submitted',
+  'active',
+  'inactive',
+  'pending_info',
+]);
 export type AgencyStatus = z.infer<typeof AgencyStatus>;
 
 export const OrgType = z.enum(['agency', 'carrier']);
@@ -1683,7 +1758,10 @@ export interface Invite extends BaseDoc {
 
 // TODO: create Transaction type to used like: Transaction['charge'] and Transaction['refund']
 
-export type FinTransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
+export type FinTransactionStatus =
+  | 'processing'
+  | 'succeeded'
+  | 'payment_failed';
 
 // https://stripe.com/docs/api/charges/object
 export interface Charge extends BaseDoc {
@@ -1907,7 +1985,7 @@ export const ClaimContactZ = ContactZ.and(
   z.object({
     preferredMethod: PreferredMethodEnum,
     entityType: z.enum(['namedInsured', 'agent', 'other']),
-  })
+  }),
 );
 export type ClaimContact = z.infer<typeof ClaimContactZ>;
 
@@ -2067,7 +2145,10 @@ export type InternalDocSearchHit = DocSearchHit & {
   __docsearch_parent: InternalDocSearchHit | null;
 };
 
-export type StoredDocSearchHit = Omit<DocSearchHit, '_highlightResult' | '_snippetResult'>;
+export type StoredDocSearchHit = Omit<
+  DocSearchHit,
+  '_highlightResult' | '_snippetResult'
+>;
 
 export type EmailData = string | { name?: string; email: string };
 
@@ -2157,11 +2238,11 @@ export interface BaseSendEmailResponse {
 
 export interface ServerDataGridCollectionProps<
   T extends GridValidRowModel = any,
-  DBModel extends DocumentData = T
+  DBModel extends DocumentData = T,
 > extends Omit<
-    ServerDataGridProps<T, DBModel>,
-    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'initialState' // | 'pathSegments'
-  > {
+  ServerDataGridProps<T, DBModel>,
+  'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'initialState' // | 'pathSegments'
+> {
   renderActions?: GridActionsColDef<T>['getActions']; //  (params: GridRowParams) => ReactElement<GridActionsCellItemProps>[]; // JSX.Element[];
   additionalColumns?: GridColDef<T, any, any>[];
   initialState?: Omit<DataGridProps['initialState'], 'pagination'>;

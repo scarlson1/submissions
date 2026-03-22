@@ -3,11 +3,7 @@ import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { Collection } from '@idemand/common';
-import {
-  algoliaAdminKey,
-  algoliaAppId,
-  Organization,
-} from '../../common/index.js';
+import { Organization, typesenseCollectionPrefix } from '../../common/index.js';
 import {
   ensureCollections,
   getTypesenseClient,
@@ -22,13 +18,13 @@ export default async (
     }
   >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) {
-    // TODO: report to sentry
-    error('Missing Algolia credentials returning early');
-    return;
-  }
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
+  // if (!(appId && adminKey)) {
+  //   // TODO: report to sentry
+  //   error('Missing Algolia credentials returning early');
+  //   return;
+  // }
 
   await ensureCollections(); // no-op after first call in this instance
   const client = getTypesenseClient();
@@ -40,11 +36,12 @@ export default async (
 
   // If the document does not exist, it was deleted
   const newValue = event?.data?.after.data() as Organization | undefined;
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.organizations}`;
   if (!newValue) {
     try {
       info(`DELETING DOC ${docId} FROM ALGOLIA ORGS INDEX`);
       // const res = await index.deleteObject(docId);
-      await client.collections('companies').documents(docId).delete();
+      await client.collections(typesenseColName).documents(docId).delete();
 
       info(`SUCCESSFULLY DELETED ${docId} FROM ORGS INDEX`);
       return;
@@ -71,19 +68,22 @@ export default async (
       const records: Record<string, any>[] = [
         {
           ...newValue,
-          objectID: docId,
+          id: docId,
           visibleBy,
           orgId: docId,
           docType: 'org',
           collectionName: Collection.enum.organizations,
           searchTitle: newValue.orgName ?? docId,
           searchSubtitle: subtitle,
+          _geopoint: newValue.coordinates?.latitude
+            ? [newValue.coordinates.latitude, newValue.coordinates.longitude]
+            : [],
           metadata: {
             ...(newValue.metadata || {}),
-            created: newValue.metadata?.created?.toDate() || null,
-            updated: newValue.metadata?.updated?.toDate() || null,
-            createdTimestamp: newValue.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
+            created: newValue.metadata?.created?.toMillis() || null,
+            updated: newValue.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newValue.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
           },
         },
       ];
@@ -98,10 +98,7 @@ export default async (
       // const { objectIDs } = await index.saveObjects(records, {
       //   autoGenerateObjectIDIfNotExist: false,
       // });
-      await client
-        .collections(Collection.enum.organizations)
-        .documents()
-        .upsert(records[0]);
+      await client.collections(typesenseColName).documents().upsert(records[0]);
 
       info('ALGOLIA DOC UPDATED [org]');
     } catch (err: any) {
