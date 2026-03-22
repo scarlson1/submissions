@@ -83,10 +83,10 @@ export default async (
           } - ${newValue.metadata.updated.toDate().toDateString()}`,
           metadata: {
             ...(newValue.metadata || {}),
-            created: newValue.metadata?.created?.toDate() || null,
-            updated: newValue.metadata?.updated?.toDate() || null,
-            createdTimestamp: newValue.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
+            created: newValue.metadata?.created?.toMillis() || null,
+            updated: newValue.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newValue.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
           },
         },
       ];

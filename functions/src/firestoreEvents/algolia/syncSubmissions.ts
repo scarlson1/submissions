@@ -73,6 +73,9 @@ export default async (
           collectionName: Collection.Enum.submissions,
           searchTitle: `${newValue.address?.addressLine1} ${newValue.address?.city}, ${newValue.address?.state}`,
           searchSubtitle,
+          _geopoint: newValue.coordinates
+            ? [newValue.coordinates.latitude, newValue.coordinates.longitude]
+            : null,
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toMillis() || null,
@@ -82,12 +85,12 @@ export default async (
           },
         },
       ];
-      if (newValue.coordinates && newValue.coordinates.latitude) {
-        records[0]['_geoloc'] = {
-          lat: newValue.coordinates.latitude,
-          lng: newValue.coordinates.longitude,
-        };
-      }
+      // if (newValue.coordinates && newValue.coordinates.latitude) {
+      //   records[0]['_geoloc'] = {
+      //     lat: newValue.coordinates.latitude,
+      //     lng: newValue.coordinates.longitude,
+      //   };
+      // }
       info(`SAVING SUBMISSION CHANGE TO ALGOLIA INDEX ${docId}...`);
 
       // const { objectIDs } = await index.saveObjects(records, {
@@ -96,8 +99,8 @@ export default async (
       await client.collections(typesenseColName).documents().upsert(records[0]);
 
       info('ALGOLIA DOC UPDATED');
-    } catch (err: any) {
-      error('ERROR SAVING SUBMISSION UPDATES TO ALGOLIA INDEX', { ...err });
+    } catch (err: unknown) {
+      error('ERROR SAVING SUBMISSION UPDATES TO ALGOLIA INDEX', err);
       // TODO: report to sentry ??
     }
   }

@@ -77,7 +77,7 @@ export default async (
           searchSubtitle: subtitle,
           _geopoint: newValue.coordinates?.latitude
             ? [newValue.coordinates.latitude, newValue.coordinates.longitude]
-            : [],
+            : null,
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toMillis() || null,

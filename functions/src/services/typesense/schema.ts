@@ -1,8 +1,12 @@
 import { Collection } from '@idemand/common';
 import type { CollectionCreateSchema } from 'typesense';
+import { typesenseCollectionPrefix } from '../../common/index.js';
+
+export const typesenseColName = (colName: Collection) =>
+  `${typesenseCollectionPrefix.value()}_${colName}`;
 
 export const usersSchema: CollectionCreateSchema = {
-  name: Collection.enum.users,
+  name: typesenseColName(Collection.enum.users),
   enable_nested_fields: true,
   fields: [
     {
@@ -92,8 +96,9 @@ export const usersSchema: CollectionCreateSchema = {
     { name: '.*', type: 'auto' },
   ],
 };
+
 export const policiesSchema: CollectionCreateSchema = {
-  name: Collection.enum.policies,
+  name: typesenseColName(Collection.enum.policies),
   enable_nested_fields: true,
   fields: [
     {
@@ -332,12 +337,6 @@ export const policiesSchema: CollectionCreateSchema = {
       optional: true,
     },
     {
-      name: 'carrier.orgId',
-      type: 'string',
-      facet: true,
-      optional: true,
-    },
-    {
       name: 'metadata.created',
       type: 'int64',
       facet: true,
@@ -353,8 +352,9 @@ export const policiesSchema: CollectionCreateSchema = {
   ],
   default_sorting_field: 'effectiveDate',
 };
+
 export const quotesSchema: CollectionCreateSchema = {
-  name: Collection.enum.quotes,
+  name: typesenseColName(Collection.enum.quotes),
   enable_nested_fields: true,
   fields: [
     {
@@ -591,12 +591,23 @@ export const quotesSchema: CollectionCreateSchema = {
       facet: false,
       optional: true,
     },
+    {
+      name: 'metadata.created',
+      type: 'int64',
+      facet: true,
+    },
+    {
+      name: 'metadata.updated',
+      type: 'int64',
+      facet: true,
+    },
     { name: '.*', type: 'auto' },
   ],
-  default_sorting_field: 'effectiveDate',
+  default_sorting_field: 'metadata.created', // 'effectiveDate',
 };
+
 export const submissionsSchema: CollectionCreateSchema = {
-  name: Collection.enum.submissions,
+  name: typesenseColName(Collection.enum.submissions),
   enable_nested_fields: true,
   fields: [
     {
@@ -630,23 +641,80 @@ export const submissionsSchema: CollectionCreateSchema = {
       optional: true,
     },
     {
+      name: 'AALs',
+      type: 'object',
+      facet: false,
+      optional: true,
+    },
+    {
+      name: 'address.addressLine1',
+      type: 'string',
+      facet: true,
+      optional: true,
+    },
+    {
+      name: '_geopoint',
+      type: 'geopoint',
+      facet: true,
+      optional: true,
+    },
+    {
+      name: 'annualPremium',
+      type: 'string',
+      facet: false,
+      store: false,
+      index: false,
+      optional: true,
+    },
+    {
+      name: 'commSource',
+      type: 'string',
+      facet: false,
+      index: false,
+      store: false,
+      optional: true,
+    },
+    {
+      name: 'contact.firstName',
+      type: 'string',
+      facet: false,
+      optional: true,
+    },
+    {
+      name: 'contact.lastName',
+      type: 'string',
+      facet: false,
+      optional: true,
+    },
+    {
+      name: 'contact.email',
+      type: 'string',
+      facet: false,
+      optional: true,
+    },
+    {
+      name: 'deductible',
+      type: 'int32',
+      facet: false,
+      optional: true,
+    },
+    {
       name: 'metadata.created',
       type: 'int64',
       facet: true,
-      optional: true,
     },
     {
       name: 'metadata.updated',
       type: 'int64',
       facet: true,
-      optional: true,
     },
     { name: '.*', type: 'auto' },
   ],
   default_sorting_field: 'metadata.created',
 };
+
 export const orgsSchema: CollectionCreateSchema = {
-  name: Collection.enum.organizations,
+  name: typesenseColName(Collection.enum.organizations),
   enable_nested_fields: true,
   fields: [
     {
@@ -735,8 +803,9 @@ export const orgsSchema: CollectionCreateSchema = {
     { name: '.*', type: 'auto' },
   ],
 };
+
 export const locationsSchema: CollectionCreateSchema = {
-  name: Collection.enum.locations,
+  name: typesenseColName(Collection.enum.locations),
   enable_nested_fields: true,
   fields: [
     {
@@ -871,13 +940,11 @@ export const locationsSchema: CollectionCreateSchema = {
       name: 'metadata.created',
       type: 'int64',
       facet: true,
-      optional: true,
     },
     {
       name: 'metadata.updated',
       type: 'int64',
       facet: true,
-      optional: true,
     },
     { name: '.*', type: 'auto' },
   ],
@@ -885,13 +952,13 @@ export const locationsSchema: CollectionCreateSchema = {
 };
 
 export const financialTrxSchema: CollectionCreateSchema = {
-  name: Collection.enum.financialTransactions,
+  name: typesenseColName(Collection.enum.financialTransactions),
   enable_nested_fields: true,
   fields: [{ name: '.*', type: 'auto' }],
 };
 
 // export const transactionsSchema: CollectionCreateSchema = {
-//   name: Collection.enum.transactions,
+//   name: typesenseColName(Collection.enum.transactions),
 //   enable_nested_fields: true,
 //   fields: [
 //     {

@@ -44,6 +44,7 @@
     "@deck.gl/react": "^9",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@firebase/auth": "^1.12.2",
     "@firebase/util": "^1.14.0",
     "@fontsource/public-sans": "^5.0.15",
     "@fontsource/roboto": "^5.0.8",

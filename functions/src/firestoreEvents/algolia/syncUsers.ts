@@ -80,7 +80,7 @@ export default async (
           searchSubtitle,
           _geopoint: newValue.coordinates
             ? [newValue.coordinates.latitude, newValue.coordinates.longitude]
-            : [],
+            : null,
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toMillis() || null,
@@ -102,8 +102,8 @@ export default async (
       await client.collections(typesenseColName).documents().upsert(records[0]);
 
       info('ALGOLIA DOC UPDATED ');
-    } catch (err: any) {
-      error(`ERROR UPDATING USER IN ALGOLIA INDEX (${docId})`, { ...err });
+    } catch (err: unknown) {
+      error(`ERROR UPDATING USER IN ALGOLIA INDEX (${docId})`, err);
       // TODO: report to sentry ??
     }
   }

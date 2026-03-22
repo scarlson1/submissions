@@ -1,11 +1,7 @@
 import { SearchOptions } from '@algolia/client-search';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import {
-  Client,
-  type DocumentSchema,
-  type SearchParams,
-} from 'typesense';
+import { Client, type DocumentSchema, type SearchParams } from 'typesense';
 
 import { search } from 'components/search/reactQuery';
 import { useAlgoliaStore, useTypesenseStore } from './useAlgoliaStore';
@@ -117,6 +113,7 @@ export function useTypesense<TData extends DocumentSchema>({
       indexName,
       query,
       limit,
+      props?.query_by || '',
       // props?.filters || '',
     ],
     queryFn: ({ pageParam }) => {

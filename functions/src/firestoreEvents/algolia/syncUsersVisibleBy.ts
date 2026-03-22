@@ -8,7 +8,7 @@ import {
 } from '../../common/index.js';
 import { getTypesenseClient } from '../../services/typesense/client.js';
 import { ensureCollections } from '../../services/typesense/ensureCollections.js';
-import { getVisibleBy } from '../../utils/algolia.js';
+import { getVisibleBy } from '../../utils/searchPermissions.js';
 import { removeTypesenseRecord } from './syncPolicies.js';
 
 // Update user visibleBy property on user object in Algolia whenever /users/{userId}/permissions/private changes

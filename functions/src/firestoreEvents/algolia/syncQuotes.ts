@@ -67,7 +67,7 @@ export default async (
 
       const _geopoint = newValue.coordinates
         ? [newValue.coordinates.latitude, newValue.coordinates.longitude]
-        : [];
+        : null;
 
       const records: Record<string, any>[] = [
         {
@@ -86,20 +86,20 @@ export default async (
           quoteBoundDate: newValue.quoteBoundDate?.toMillis() || 0,
           metadata: {
             ...(newValue.metadata || {}),
-            created: newValue.metadata?.created?.toDate() || null,
-            updated: newValue.metadata?.updated?.toDate() || null,
-            createdTimestamp: newValue.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
+            created: newValue.metadata?.created?.toMillis() || null,
+            updated: newValue.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newValue.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
           },
         },
       ];
 
-      if (newValue.coordinates && newValue.coordinates.latitude) {
-        records[0]['_geoloc'] = {
-          lat: newValue.coordinates?.latitude,
-          lng: newValue.coordinates?.longitude,
-        };
-      }
+      // if (newValue.coordinates && newValue.coordinates.latitude) {
+      //   records[0]['_geoloc'] = {
+      //     lat: newValue.coordinates?.latitude,
+      //     lng: newValue.coordinates?.longitude,
+      //   };
+      // }
       info(`SAVING QUOTE CHANGE TO ALGILIA INDEX (${docId})`);
 
       // const { objectIDs } = await index.saveObjects(records, {

@@ -141,15 +141,13 @@ export default async (
         newData.parentType ? capitalize(newData.parentType) : ''
       } ${parentDocId}`.trim();
 
-      const _geopoint = [];
-      if (newData.coordinates && newData.coordinates.latitude) {
-        _geopoint.push(newData.coordinates.latitude);
-        _geopoint.push(newData.coordinates.longitude);
-        // _geopoint.push({
-        //   lat: newData.coordinates.latitude,
-        //   lng: newData.coordinates.longitude,
-        // });
-      }
+      // const _geopoint = [];
+      // if (newData.coordinates && newData.coordinates.latitude) {
+      //   // _geopoint.push({
+      //   //   lat: newData.coordinates.latitude,
+      //   //   lng: newData.coordinates.longitude,
+      //   // });
+      // }
 
       const records: Record<string, any>[] = [
         {
@@ -160,7 +158,9 @@ export default async (
           collectionName: Collection.enum.locations,
           searchTitle,
           searchSubtitle,
-          _geopoint,
+          _geopoint: newData.coordinates?.latitude
+            ? [newData.coordinates.latitude, newData.coordinates.longitude]
+            : null,
           visibleBy,
           hidden,
           effectiveDate: newData.effectiveDate?.toMillis() || null,
@@ -168,8 +168,8 @@ export default async (
           cancelEffDate: newData.cancelEffDate?.toMillis() || null,
           metadata: {
             ...(newData.metadata || {}),
-            created: newData.metadata?.created?.toDate() || null,
-            updated: newData.metadata?.updated?.toDate() || null,
+            created: newData.metadata?.created?.toMillis() || null,
+            updated: newData.metadata?.updated?.toMillis() || null,
             // createdTimestamp: newData.metadata?.created?.toMillis() || null,
             // updatedTimestamp: newData.metadata?.updated?.toMillis() || null,
           },

@@ -1367,6 +1367,7 @@ export const QuoteForm = ({
                     searchOptions={{
                       indexName: typesenseIndexName(Collection.enum.users),
                       query_by: 'displayName,firstName,lastName,email,phone',
+                      filter_by: 'isOrgUser:=true',
                     }}
                     onSelectItem={(user) =>
                       handleAgentSelected(
