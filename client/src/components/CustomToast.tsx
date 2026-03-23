@@ -10,11 +10,9 @@ import {
   linearProgressClasses,
   styled,
 } from '@mui/material';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Toast, toast, useToasterStore } from 'react-hot-toast';
-import { SwipeEventData, useSwipeable } from 'react-swipeable';
-
-import { useCountdown } from 'hooks/utils';
+import { useSwipeable } from 'react-swipeable';
 
 const ToastLinearProgress = styled(LinearProgress)(({ theme }) => ({
   position: 'absolute',
@@ -78,21 +76,35 @@ const CloseToastButton = ({ timeRemaining, onClose, ...props }: CloseToastButton
 };
 
 export function useToastCountdown(t: Toast) {
-  const { pausedAt } = useToasterStore({ id: t.id });
-  const countStart = (t.duration || 4000) / 100;
-  const [count, { startCountdown, stopCountdown }] = useCountdown({
-    countStart,
-    intervalMs: 100,
-  });
+  const { pausedAt } = useToasterStore({}, t.toasterId);
+  const [now, setNow] = useState(() => Date.now());
+  const duration = t.duration ?? 4000;
 
   useEffect(() => {
-    const fn = pausedAt ? stopCountdown : startCountdown;
-    t.visible && fn(); // BUG can leave other toasts stuck on stopCountdown
-  }, [pausedAt, stopCountdown, startCountdown, t.visible]);
+    if (!t.visible || pausedAt || duration === Infinity) {
+      return;
+    }
 
-  const timeRemaining = (count / countStart) * 100;
+    setNow(Date.now());
 
-  return [timeRemaining, { startCountdown, stopCountdown }] as const;
+    const intervalId = window.setInterval(() => {
+      setNow(Date.now());
+    }, 100);
+
+    return () => window.clearInterval(intervalId);
+  }, [duration, pausedAt, t.visible]);
+
+  const elapsed = Math.max((pausedAt ?? now) - t.createdAt - t.pauseDuration, 0);
+  const remaining = duration === Infinity ? Infinity : Math.max(duration - elapsed, 0);
+  const timeRemaining = duration === Infinity ? 100 : (remaining / duration) * 100;
+
+  useEffect(() => {
+    if (remaining === 0 && t.visible) {
+      toast.dismiss(t.id, t.toasterId);
+    }
+  }, [remaining, t.id, t.toasterId, t.visible]);
+
+  return timeRemaining;
 }
 
 const enter = keyframes`
@@ -118,16 +130,15 @@ export const AnimatedIconWrapper = styled('div')`
 `;
 
 export function CustomToast({ icon, message, t }: any) {
-  const [timeRemaining, { stopCountdown }] = useToastCountdown(t);
+  const timeRemaining = useToastCountdown(t);
 
   const handleClose = useCallback(() => {
-    stopCountdown();
-    toast.dismiss(t.id);
-  }, [stopCountdown, t.id]);
+    toast.dismiss(t.id, t.toasterId);
+  }, [t.id, t.toasterId]);
 
   // TODO: swipe direction based on toast position ??
   const handlers = useSwipeable({
-    onSwiped: (eventData: SwipeEventData) => handleClose(),
+    onSwiped: handleClose,
     swipeDuration: 500,
     preventScrollOnSwipe: true,
     trackMouse: true,

@@ -5,7 +5,16 @@ import { pubSubEmulatorHost } from '../common/index.js';
 
 // work-around to publish in emulator environment (trigger from postman)
 
-const pubsub = new PubSub();
+function getPubSubClient() {
+  const configuredHost = pubSubEmulatorHost.value();
+  if (configuredHost && !process.env.PUBSUB_EMULATOR_HOST) {
+    process.env.PUBSUB_EMULATOR_HOST = configuredHost.includes(':')
+      ? configuredHost
+      : `127.0.0.1:${configuredHost}`;
+  }
+
+  return new PubSub();
+}
 
 export default async (request: Request, response: Response) => {
   // 1. make sure the function can't be used in production
@@ -19,6 +28,7 @@ export default async (request: Request, response: Response) => {
   if (!payload || !t) response.status(400).send({ message: 'Missing payload or topic' });
 
   try {
+    const pubsub = getPubSubClient();
     // Memory leak bug:
     // https://github.com/googleapis/nodejs-pubsub/issues/1069 ??
     // const pubsub = new PubSub();

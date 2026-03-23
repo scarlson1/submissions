@@ -66,7 +66,7 @@ const saveEvent = async (emailId: string, data: Record<string, any>) => {
       },
     });
 
-    info(`Saved sendgrid event (ID: ${emailId})`, { data });
+    info(`Saved Resend event (ID: ${emailId})`, { data });
   } catch (err: unknown) {
     error('Error saving sendgrid event to db (ID: )', { err, data });
   }

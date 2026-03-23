@@ -208,7 +208,7 @@ If _@idemandinsurance.com_ and email is not verified, creates a JWT signed with 
   - admin - moratorium, active states, licenses, etc.
   - quote flow
   - environment variables
-- Switch search from algolia to typesense
+- Fix update Quote / create account in bind quote form
 
 ## Screenshots
 
@@ -219,6 +219,10 @@ If _@idemandinsurance.com_ and email is not verified, creates a JWT signed with 
 ![quote review](docs/quote-review.png)
 
 ![submissions cards](docs/submissions-cards.png)
+
+![submissions grid](docs/submissions-grid.png)
+
+![quote presented](docs/quote-delivery.png)
 
 ![taxes](docs/taxes.png)
 

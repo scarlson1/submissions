@@ -199,7 +199,13 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         if (cleanUpTempPaths.length > 0) {
           await clearTempFiles(cleanUpTempPaths);
         }
-        error(`Error downloading map images`, { errMsg: err?.message || null });
+        error(`Error downloading map images`, {
+          errMsg: err?.message || null,
+          status: err?.response?.status || null,
+          responseData: err?.response?.data || null,
+          styleType: styleType.name,
+          docId: docRef.id,
+        });
         return;
       }
     }

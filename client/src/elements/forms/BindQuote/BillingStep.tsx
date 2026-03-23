@@ -4,7 +4,7 @@ import { useFormikContext } from 'formik';
 import { useCallback, useMemo } from 'react';
 import { array, object, string } from 'yup';
 
-import { PaymentMethod, emailVal, phoneVal } from 'common';
+import { emailVal, PaymentMethod, phoneVal } from 'common';
 import { AddPaymentDialog } from '../AddPaymentDialog';
 import { BindQuoteValues } from './BindQuoteForm';
 import { PaymentCard } from './PaymentCard';
@@ -30,16 +30,16 @@ export const billingValidation = object().shape({
             maskedAccountNumber: string(),
             transactionType: string(),
             type: string().nullable(),
-          })
+          }),
         ),
-      })
+      }),
     )
     .min(1, 'payment method required'),
 });
 
 export const BillingStep = () => {
   const { values, setFieldValue } = useFormikContext<BindQuoteValues>();
-  console.log('VALUES: ', values);
+  // console.log('VALUES: ', values);
 
   const handleMethodAdded = useCallback(
     (data: PaymentMethod) => {
@@ -67,7 +67,7 @@ export const BillingStep = () => {
         },
       ]);
     },
-    [setFieldValue, values]
+    [setFieldValue, values],
   );
 
   // const paymentMethods = useMemo(() => {
@@ -76,7 +76,9 @@ export const BillingStep = () => {
 
   const selectedPmtMethod = useMemo(() => {
     const billingEntity = values.billingEntities[0];
-    return billingEntity?.paymentMethods ? billingEntity.paymentMethods[0] : null;
+    return billingEntity?.paymentMethods
+      ? billingEntity.paymentMethods[0]
+      : null;
   }, [values]);
 
   return (
@@ -92,16 +94,25 @@ export const BillingStep = () => {
           ))
         : null} */}
       {selectedPmtMethod ? (
-        <Box key={selectedPmtMethod.id} sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <Box
+          key={selectedPmtMethod.id}
+          sx={{ display: 'flex', justifyContent: 'center', py: 4 }}
+        >
           <PaymentCard cardDetails={selectedPmtMethod} />
         </Box>
       ) : null}
 
       <AddPaymentDialog
         openButtonText='Add Payment Method'
-        buttonProps={{ variant: 'text', startIcon: <AddCardRounded />, sx: { mx: 'auto' } }}
+        buttonProps={{
+          variant: 'text',
+          startIcon: <AddCardRounded />,
+          sx: { mx: 'auto' },
+        }}
         cb={handleMethodAdded}
-        containerProps={{ sx: { my: 2, display: 'flex', justifyContent: 'center' } }}
+        containerProps={{
+          sx: { my: 2, display: 'flex', justifyContent: 'center' },
+        }}
       />
     </Box>
   );
