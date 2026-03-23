@@ -17,7 +17,7 @@ At a high level:
 ```text
 Browser (React + Vite)
   -> Firebase Auth / Firestore / Storage / Functions
-  -> Cloud Run API (/api/*) for config-style backend endpoints
+  -> Cloud Run API (/api/*) for backend endpoints (taxes, moratorium, licenses)
   -> Search provider (Typesense, with legacy Algolia naming still present)
 
 Firebase Hosting
@@ -34,6 +34,8 @@ Cloud Functions for Firebase
   -> scheduled jobs
   -> HTTP endpoints/webhook-style integrations
 ```
+
+[Cloud run api repo](https://github.com/scarlson1/iDemand-Submissions-API) :link:
 
 ## Repository Shape
 
@@ -52,7 +54,7 @@ Supporting infrastructure lives at the root:
 The code also depends on shared domain packages that are not defined in this repo:
 
 - client imports from `common`
-- backend imports from `@idemand/common`
+- backend imports from [`@idemand/common`](https://github.com/scarlson1/idemand-backend-types) :link:
 
 Those packages appear to provide shared collection names, domain models, enums, and validation/types that keep the client and backend aligned.
 
@@ -90,15 +92,6 @@ The frontend is organized into a few consistent layers:
 - `api/`: wrappers around callable Functions, HTTP Functions, and Cloud Run APIs
 - `context/`: cross-cutting state and providers for auth, dialogs, theme, wizard state, and Firebase service setup
 - `modules/`: lower-level utilities for Firestore helpers, rating helpers, MUI grid support, Rx helpers, and shared utility functions
-
-This gives the UI a mostly top-down composition model:
-
-```text
-router/view
-  -> elements/components
-    -> hooks
-      -> Firestore / Functions / Storage / HTTP APIs
-```
 
 ### Routing and Surfaces
 
@@ -148,6 +141,98 @@ The auth model is intentionally hybrid:
 - custom claims in the auth token drive route guards and rules
 - route wrappers decide whether a screen requires authentication, anonymous auth, or elevated claims
 
+### Agent Invitation Flow
+
+The agent and org-user onboarding flow is invite-first and tenant-aware.
+
+The normal path is:
+
+1. An org admin or iDemand admin opens the org team/invite UI.
+2. The client submits invite data through [`AddUsersDialog`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/forms/AddUsersDialog.tsx), which calls the `inviteusers` callable via [`useInviteUsers`](/Users/spencercarlson/Documents/dev/submissions/client/src/hooks/useInviteUsers.ts).
+3. [`functions/src/callables/inviteUsers.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/callables/inviteUsers.ts) validates that the caller is an org admin or iDemand admin, determines the target org/tenant, and writes one invite document per email to `organizations/{orgId}/invitations/{email}`.
+4. Each invite stores `customClaims`, inviter metadata, org metadata, and a generated invite link.
+5. [`functions/src/firestoreEvents/sendInviteEmail.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/sendInviteEmail.ts) reacts to the new invite document and sends the email unless the invite is marked as an org-creation invite.
+6. The invited user signs up through the tenant-aware auth route.
+7. [`functions/src/authEvents/beforeCreate.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/authEvents/beforeCreate.ts) blocks account creation if the invite is missing, the wrong tenant is used, or the org's domain restrictions reject the email.
+8. After the auth user is created, [`functions/src/authEvents/setClaimsFromInvite.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/authEvents/setClaimsFromInvite.ts) copies the invite's `customClaims` into `organizations/{orgId}/userClaims/{userId}` and marks the invite as accepted.
+
+There are two admin-facing UI entry points for this flow:
+
+- org self-service team management in [`client/src/elements/settings/OrgUsers.tsx`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/settings/OrgUsers.tsx)
+- iDemand admin org management in the Team and Invites tabs of [`client/src/views/admin/Organization.tsx`](/Users/spencercarlson/Documents/dev/submissions/client/src/views/admin/Organization.tsx)
+
+Pending and historical invites can be viewed and resent in [`InvitesGrid`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/grids/InvitesGrid.tsx).
+
+### Claims Model and Token Mirroring
+
+Claims are managed through a Firestore-backed source of truth and then mirrored into Firebase Auth custom claims.
+
+The current claim enum in the backend includes:
+
+- `iDemandAdmin`
+- `iDemandUser`
+- `orgAdmin`
+- `agent`
+
+The lifecycle works like this:
+
+1. A claim assignment is created either from an invite or by editing the claim document directly.
+2. The Firestore source of truth lives at `organizations/{orgId}/userClaims/{userId}`.
+3. [`functions/src/firestoreEvents/mirrorCustomClaims.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/mirrorCustomClaims.ts) watches that document.
+4. The function validates the payload, prevents reserved iDemand claims from being set outside the special `idemand` org, and resolves tenant-aware auth when needed.
+5. It calls `setCustomUserClaims()` on Firebase Auth.
+6. It writes `_lastCommitted` back to the Firestore document after the token claims are successfully updated.
+
+`_lastCommitted` is the sync marker that prevents infinite write loops and tells the client when token refresh is needed.
+
+### How Claims Reach the Browser
+
+The browser does not rely only on the user’s cached token.
+
+Instead:
+
+- [`useUserClaims`](/Users/spencercarlson/Documents/dev/submissions/client/src/hooks/useUserClaims.ts) subscribes to the org-scoped Firestore claims document
+- when `_lastCommitted` changes, it forces `getIdTokenResult(true)` to fetch a fresh token
+- [`AuthContext`](/Users/spencercarlson/Documents/dev/submissions/client/src/context/AuthContext.tsx) exposes the refreshed claim state to the rest of the app
+- route guards such as [`RequireAuthReactFire`](/Users/spencercarlson/Documents/dev/submissions/client/src/components/RequireAuthReactFire.tsx) and [`useClaims`](/Users/spencercarlson/Documents/dev/submissions/client/src/hooks/useClaims.ts) consume those claims for authorization decisions
+
+This gives the app a useful split:
+
+- Firestore is the editable/admin-visible claim store
+- Firebase Auth tokens are the enforcement/runtime claim store
+
+### How to View and Edit Claims
+
+Claims are intentionally visible and editable from the app UI rather than being hidden in Firebase Auth.
+
+The main operational screens are:
+
+- [`UserClaimsGrid`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/grids/UserClaimsGrid.tsx), which joins org users with `organizations/{orgId}/userClaims`
+- the Team tab in [`Organization`](/Users/spencercarlson/Documents/dev/submissions/client/src/views/admin/Organization.tsx)
+- the org settings team view in [`OrgUsers`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/settings/OrgUsers.tsx)
+
+Editing works like this:
+
+1. An admin edits the `userClaims` cell in `UserClaimsGrid`.
+2. [`useUpdateClaims`](/Users/spencercarlson/Documents/dev/submissions/client/src/hooks/useUpdateClaims.ts) writes the updated payload to `organizations/{orgId}/userClaims/{userId}`.
+3. The Firestore trigger `mirrorcustomclaims` mirrors that document into the user’s Firebase token.
+4. The signed-in client eventually refreshes the token when the mirrored document’s `_lastCommitted` changes.
+
+Role editing is also scoped in the UI:
+
+- org admins can manage org-level roles like `agent` and `orgAdmin`
+- iDemand admins can additionally assign iDemand-specific roles
+
+### Applicable Auth Functions
+
+The most important Functions in the auth/claims pipeline are:
+
+- `beforecreate`: invite enforcement, tenant/domain validation, duplicate-user checks, and special iDemand bootstrapping
+- `beforesignin`: iDemand email verification gate and session claim injection
+- `createFirestoreUser`: creates the Firestore user record
+- `setClaimsFromInvite`: copies accepted invite claims into the Firestore claims doc
+- `mirrorcustomclaims`: mirrors the Firestore claims doc into Firebase Auth custom claims
+
 ### Search
 
 Search is in a transition state.
@@ -160,6 +245,60 @@ Current code indicates:
 - some older client search components still import Algolia types and naming
 
 Architecturally, search should be treated as a separate indexing/read model built from Firestore, with naming still reflecting an earlier Algolia implementation.
+
+### Typesense `visibleBy` Model and Scoped Key Generation
+
+Search authorization is implemented as a document-visibility model rather than by exposing the whole index to every authenticated user.
+
+Each indexed record can carry a `visibleBy` array. The helper in [`functions/src/utils/searchPermissions.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/utils/searchPermissions.ts) builds values such as:
+
+- `group/all`
+- `group/authed`
+- `group/anon`
+- `{userId}`
+- `{agentUserId}`
+- `group/{orgId}`
+- `group/admin/{orgId}`
+
+This lets a document be visible to combinations of:
+
+- everyone
+- anonymous users
+- all authenticated users
+- one specific insured/user
+- one specific agent
+- all users in an org
+- org admins for an org
+
+At query time, [`functions/src/callables/generateSearchKey.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/callables/generateSearchKey.ts) inspects the caller’s auth token and builds the set of allowed visibility groups:
+
+- all users always get `group/all`
+- an anonymous signed-in user also gets `group/anon`
+- a signed-in non-anonymous user gets their own `userId` and `group/authed`
+- tenant users get `group/{tenantId}`
+- tenant agents get their agent user id
+- tenant org admins get `group/admin/{tenantId}`
+- iDemand admins bypass the scoped-key flow and receive a broader admin search key
+
+The callable then generates a Typesense scoped API key with:
+
+- `filter_by: visibleBy:=[...]`
+- `exclude_fields` for sensitive attributes such as Stripe IDs and commission-related fields
+
+That means the browser never receives an unrestricted search key for normal users; authorization is embedded into the key itself.
+
+### Where `visibleBy` Comes From
+
+The `visibleBy` field is populated during indexing and projection flows.
+
+For business records such as quotes, policies, locations, and submissions, sync handlers derive visibility from the record’s insured, agent, and org relationships.
+
+For user records specifically, visibility is maintained from the user access document:
+
+- [`functions/src/firestoreEvents/updateUserAccessOnQuoteChange.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/updateUserAccessOnQuoteChange.ts) and [`functions/src/firestoreEvents/updateUserAccessOnPolicyChange.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/updateUserAccessOnPolicyChange.ts) maintain `/users/{userId}/permissions/private`
+- [`functions/src/firestoreEvents/algolia/syncUsersVisibleBy.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/algolia/syncUsersVisibleBy.ts) converts that access document into the Typesense `visibleBy` array for the indexed user record
+
+This creates a separate read-optimized authorization layer for search that mirrors, but does not replace, Firestore security rules.
 
 ## Backend Architecture
 
@@ -182,6 +321,29 @@ Business logic is further extracted into reusable layers:
 - `modules/`: domain logic for rating, DB helpers, payments, taxes, storage, and transactions
 - `services/`: integrations and cross-cutting services such as Typesense, PDF generation, pubsub, email, and Sentry
 - `utils/` and `common/`: helpers, constants, environment parameters, collection metadata, and shared internal utilities
+
+### Cold starts
+
+The following pattern is used to lazy load each function and isolate each function (avoid loading all code for every function). This approach only loads the imports in `exampleFunction.ts`.
+
+```typescript
+// functions/src/callables/exampleFunction.ts
+const exampleFunction = async ({
+  data,
+  auth,
+}: CallableRequest<SomeRequestPayload>) => {
+  return { status: 'ok' };
+};
+
+export default exampleFunction;
+```
+
+```typescript
+// functions/src/callables/index.ts
+export const examplefunction = onCall(async (request) => {
+  return (await import('./exampleFunction.js')).default(request);
+});
+```
 
 ### Trigger Types
 
@@ -251,6 +413,8 @@ Pub/Sub listeners handle asynchronous workflows such as:
 - Stripe-related downstream financial processing
 
 These listeners decouple long-running or evented business processes from synchronous user actions.
+
+see [QUOTES_AND_POLICIES.md](docs/QUOTES_AND_POLICIES.md) for quote and policy details.
 
 #### Scheduled Jobs
 
@@ -342,7 +506,6 @@ That projection is maintained by Firestore triggers and keyed by visibility mark
 The backend integrates with several external systems:
 
 - Stripe for payment intents, connected accounts, transfers, and receivables-related workflows
-- ePay for payment method verification and ACH/card execution
 - Swiss Re for flood/risk and AAL-related rating inputs
 - ATTOM and elevation/geospatial services for property enrichment
 - Typesense for search
@@ -375,6 +538,8 @@ The quote lifecycle spans multiple subsystems:
 5. Binding calls backend functions to create a policy and execute payment.
 6. Firestore and Pub/Sub triggers create receivables, notifications, search projections, version history, and downstream financial records.
 
+see [QUOTES_AND_POLICIES.md](docs/QUOTES_AND_POLICIES.md).
+
 ### Policy Servicing Flow
 
 Policy changes are modeled through change requests and follow an async workflow:
@@ -383,6 +548,8 @@ Policy changes are modeled through change requests and follow an async workflow:
 2. Backend logic calculates endorsement, amendment, cancellation, or location-change effects.
 3. Pub/Sub and transaction modules generate resulting operational and financial records.
 4. Updated policy data is written back and projected into related documents/search indexes.
+
+see [QUOTES_AND_POLICIES.md](docs/QUOTES_AND_POLICIES.md)
 
 ### Agency and Tenant Management
 
@@ -422,6 +589,38 @@ The Functions project is configured for:
 - second-generation Functions for most modern triggers
 - Firebase parameterized config and Secret Manager for runtime settings
 
+## Deployment
+
+### Functions deployment
+
+```bash
+cd functions
+
+# set target project in firebase cli
+pnpm use:dev # or use:prod or firebase use [alias]
+
+# build (rm -rf ./dist/ && tsc)
+pnpm build
+
+# deploy (firebase deploy --only functions)
+pnpm deploy:dev
+```
+
+### Hosting deployment (client)
+
+```bash
+cd client
+
+# set target project in firebase cli
+pnpm use:dev # or use:prod or firebase use [alias]
+
+# build  - vite "mode" flag determines env file to include
+pnpm build:dev # or build:prod or vite build --mode [MODE]
+
+pnpm deploy:dev # or deploy:prod or deploy:channel:dev or deploy:channel:prod
+# if deploying to channel, may need to update restricted api keys to generated url (maps, etc.)
+```
+
 ### Local Development
 
 The repo includes emulator support for:
@@ -434,7 +633,23 @@ The repo includes emulator support for:
 - storage
 - eventarc
 
-The client conditionally connects to emulators through its ReactFire setup.
+```bash
+# to start react, functions and emulator with concurrently
+pnpm dev
+
+# to start individually in separate terminal tabs:
+pnpm emulators:dev   # terminal 1
+pnpm client:dev      # terminal 2
+pnpm functions:build # terminal 3
+
+# start local typesense instance in docker
+pnpm typesense:dev
+
+# start ngrok or tailscale to accept webhooks (must configure webhook urls in resend/stripe)
+pnpm ngrok # need to update ngrok url in package.json
+# or (tailscale funnel 5001)
+pnpm tailscale
+```
 
 ## Current Architectural Seams
 
@@ -443,8 +658,7 @@ Several seams are worth knowing before making changes:
 - Search is mid-migration: Typesense is active, but many filenames and some client types still reference Algolia.
 - Routing is centralized in one very large router file, which makes navigation behavior explicit but increases change surface.
 - The client uses both `RequireAuth` and `RequireAuthReactFire`, which suggests two overlapping auth guard patterns.
-- The frontend mixes direct Firestore access with callable/API access. This is practical, but it means authorization and validation logic is split across rules and backend functions.
-- Shared domain models come from external packages rather than a local workspace package, so schema changes may require coordinated version updates outside this repo.
+- Shared domain models come from external packages rather than a local workspace package, so schema changes may require coordinated version updates outside this repo. (TODO: move @idemand/common into monorepo & manage with pnpm workspaces)
 - Some scripts and comments show older CRA/Algolia-era paths, which means there is active historical layering in the codebase.
 
 ## Summary

@@ -25,11 +25,11 @@ export const spatialKeySecretKey = defineSecret('SPATIALKEY_ORG_SECRET_KEY');
 export const attomKey = defineSecret('ATTOM_API_KEY');
 export const veriskCredsDemo = defineSecret('VERISK_CREDS_DEMO');
 export const firebaseHashConfig = defineSecret('FB_AUTH_HASH_CONFIG');
-export const algoliaAdminKey = defineSecret('ALGOLIA_ADMIN_API_KEY');
-export const algoliaUserBaseKey = defineSecret('ALGOLIA_BASE_USER_SEARCH_KEY');
-export const algoliaIDemandAdminSearchKey = defineSecret(
-  'ALGOLIA_IDEMAND_ADMIN_SEARCH_KEY',
-);
+// export const algoliaAdminKey = defineSecret('ALGOLIA_ADMIN_API_KEY');
+// export const algoliaUserBaseKey = defineSecret('ALGOLIA_BASE_USER_SEARCH_KEY');
+// export const algoliaIDemandAdminSearchKey = defineSecret(
+//   'ALGOLIA_IDEMAND_ADMIN_SEARCH_KEY',
+// );
 export const typesenseAdminKey = defineSecret('TYPESENSE_ADMIN_KEY');
 export const typesenseIDemandAdminSearchKey = defineSecret(
   'TYPESENSE_IDEMAND_ADMIN_SEARCH_KEY',

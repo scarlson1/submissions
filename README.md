@@ -1,5 +1,11 @@
 # submissions
 
+### Detailed documentation
+
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+- [QUOTES_AND_POLICIES.md](docs/QUOTES_AND_POLICIES.md)
+
 ## Devlopment
 
 ```bash
@@ -10,7 +16,76 @@ cd client && pnpm install
 cd functions && pnpm install
 ```
 
-TODO: env files, etc.
+TODO: env files, service account permissions, etc.
+
+Add the following secrets in GCP secret manager (or `functions/.secret.local` for local development).
+
+```env
+EMAIL_VERIFICATION_KEY=
+RESEND_API_KEY=
+RESEND_SECRET=
+RENTCAST_KEY=
+MAPBOX_PUBLIC_TOKEN=
+TYPESENSE_ADMIN_KEY=
+TYPESENSE_IDEMAND_ADMIN_SEARCH_KEY=
+TYPESENSE_USER_SEARCH_KEY=
+```
+
+Update Values in `.env.dev` and `.env.prod`.
+
+Sign into firebase/gcloud cli (download service account and update path in package.json)
+
+### Run services locally
+
+```bash
+# to start react, functions and emulator with concurrently
+pnpm dev
+
+# to start individually in separate terminal tabs:
+pnpm emulators:dev   # terminal 1
+pnpm client:dev      # terminal 2
+pnpm functions:build # terminal 3
+
+# start local typesense instance in docker
+pnpm typesense:dev
+
+# start ngrok or tailscale to accept webhooks (must configure webhook urls in resend/stripe)
+pnpm ngrok # need to update ngrok url in package.json
+# or (tailscale funnel 5001)
+pnpm tailscale
+```
+
+## Deployment
+
+### Functions deployment
+
+```bash
+cd functions
+
+# set target project in firebase cli
+pnpm use:dev # or use:prod or firebase use [alias]
+
+# build (rm -rf ./dist/ && tsc)
+pnpm build
+
+# deploy (firebase deploy --only functions)
+pnpm deploy:dev
+```
+
+### Hosting deployment (client)
+
+```bash
+cd client
+
+# set target project in firebase cli
+pnpm use:dev # or use:prod or firebase use [alias]
+
+# build  - vite "mode" flag determines env file to include
+pnpm build:dev # or build:prod or vite build --mode [MODE]
+
+pnpm deploy:dev # or deploy:prod or deploy:channel:dev or deploy:channel:prod
+# if deploying to channel, may need to update restricted api keys to generated url (maps, etc.)
+```
 
 ## Firestore / DB Structure
 

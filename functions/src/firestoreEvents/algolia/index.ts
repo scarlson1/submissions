@@ -1,86 +1,86 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 
 import { Collection } from '@idemand/common';
-import { algoliaAdminKey } from '../../common/index.js';
+import { typesenseAdminKey } from '../../common/index.js';
 
 // DOCS REF: https://firebase.google.com/docs/reference/functions/2nd-gen/node/firebase-functions.firestore.md#firestoreondocumentwritten
 
-export const algoliasyncusers = onDocumentWritten(
+export const typesensesyncusers = onDocumentWritten(
   {
     document: `${Collection.Enum.users}/{userId}`,
-    secrets: [algoliaAdminKey],
+    secrets: [typesenseAdminKey],
   },
   async (event) => {
     await (await import('./syncUsers.js')).default(event);
-  }
+  },
 );
 
-export const algoliasynclocations = onDocumentWritten(
+export const typesensesynclocations = onDocumentWritten(
   {
     document: `${Collection.enum.locations}/{locationId}`,
-    secrets: [algoliaAdminKey],
+    secrets: [typesenseAdminKey],
   },
   async (event) => {
     await (await import('./syncLocations.js')).default(event);
-  }
+  },
 );
 
-export const algoliasyncorgs = onDocumentWritten(
+export const typesensesyncorgs = onDocumentWritten(
   {
     document: `${Collection.enum.organizations}/{orgId}`,
-    secrets: [algoliaAdminKey],
+    secrets: [typesenseAdminKey],
   },
   async (event) => {
     await (await import('./syncOrgs.js')).default(event);
-  }
+  },
 );
 
-export const algoliasyncsubmissions = onDocumentWritten(
+export const typesensesyncsubmissions = onDocumentWritten(
   {
     document: `${Collection.enum.submissions}/{submissionId}`,
-    secrets: [algoliaAdminKey],
+    secrets: [typesenseAdminKey],
   },
   async (event) => {
     await (await import('./syncSubmissions.js')).default(event);
-  }
+  },
 );
 
-export const algoliasyncquotes = onDocumentWritten(
+export const typesensesyncquotes = onDocumentWritten(
   {
     document: `${Collection.enum.quotes}/{quoteId}`,
-    secrets: [algoliaAdminKey],
+    secrets: [typesenseAdminKey],
   },
   async (event) => {
     await (await import('./syncQuotes.js')).default(event);
-  }
+  },
 );
 
-export const algoliasyncpolicies = onDocumentWritten(
+export const typesensesyncpolicies = onDocumentWritten(
   {
     document: `${Collection.enum.policies}/{policyId}`,
-    secrets: [algoliaAdminKey],
+    secrets: [typesenseAdminKey],
   },
   async (event) => {
     await (await import('./syncPolicies.js')).default(event);
-  }
+  },
 );
 
-export const algoliasynctransactions = onDocumentWritten(
+export const typesensesynctransactions = onDocumentWritten(
   {
     document: `${Collection.enum.transactions}/{trxId}`,
-    secrets: [algoliaAdminKey],
+    secrets: [typesenseAdminKey],
   },
   async (event) => {
     await (await import('./syncFinTransactions.js')).default(event);
-  }
+  },
 );
 
 export const syncusersvisibleby = onDocumentWritten(
   {
     document: `${Collection.enum.users}/{userId}/${Collection.Enum.permissions}/{docId}`,
-    secrets: [algoliaAdminKey],
+    secrets: [typesenseAdminKey],
   },
   async (event) => {
     await (await import('./syncUsersVisibleBy.js')).default(event);
-  }
+  },
 );

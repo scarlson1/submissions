@@ -48,14 +48,14 @@ export {
   verifyepaytoken,
 } from './callables/index.js';
 export {
-  algoliasynclocations,
-  algoliasyncorgs,
-  algoliasyncpolicies,
-  algoliasyncquotes,
-  algoliasyncsubmissions,
-  algoliasynctransactions,
-  algoliasyncusers,
   syncusersvisibleby,
+  typesensesynclocations,
+  typesensesyncorgs,
+  typesensesyncpolicies,
+  typesensesyncquotes,
+  typesensesyncsubmissions,
+  typesensesynctransactions,
+  typesensesyncusers,
 } from './firestoreEvents/algolia/index.js';
 export {
   createreceivableonpolicycreated,
