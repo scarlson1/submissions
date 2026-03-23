@@ -1422,6 +1422,7 @@ export const QuoteForm = ({
                         Collection.enum.organizations,
                       ),
                       query_by: 'orgName,primaryContact.displayName',
+                      filter_by: 'type:=agency',
                     }}
                     onSelectItem={(org) =>
                       handleAgencySelected(org as any as WithId<Organization>)
@@ -1493,6 +1494,7 @@ export const QuoteForm = ({
                         Collection.enum.organizations,
                       ),
                       query_by: 'orgName,primaryContact.displayName',
+                      filter_by: 'type:=carrier',
                     }}
                     onSelectItem={(org) =>
                       handleCarrierSelected(

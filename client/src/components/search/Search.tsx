@@ -1,8 +1,12 @@
 import './search.css';
 
-import type { AutocompleteOptions, AutocompleteState } from '@algolia/autocomplete-core';
+import type {
+  AutocompleteOptions,
+  AutocompleteState,
+} from '@algolia/autocomplete-core';
 import type { SearchOptions } from '@algolia/client-search';
 import {
+  alpha,
   Backdrop,
   Box,
   Button,
@@ -10,18 +14,22 @@ import {
   DialogActions,
   DialogProps,
   GlobalStyles,
-  alpha,
   useColorScheme,
 } from '@mui/material';
 import type { SearchClient } from 'algoliasearch/lite';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import type {
+  DocSearchHit,
+  InternalDocSearchHit,
+  StoredDocSearchHit,
+} from 'common';
 import {
   // useAlgoliaSearchKey,
   useAlgoliaStore,
   useDocSearchKeyboardEvents,
 } from 'hooks';
+import { useTypesenseStore } from 'hooks/useAlgoliaStore';
 import { GeoSearch } from './GeoSearch';
 import { OnSelectHit } from './Hit';
 import { ButtonTranslations, SearchButton } from './SearchButton';
@@ -78,7 +86,11 @@ export function Search({
     // TODO: just move to ThemeContext ?? set attribute in toggleTheme() ??
     // https://www.algolia.com/doc/ui-libraries/autocomplete/api-reference/autocomplete-theme-classic/#dark-mode
     const bodyRef = window.document.getElementsByTagName('body');
-    if (bodyRef && bodyRef.length && bodyRef[0].getAttribute('data-theme') !== mode) {
+    if (
+      bodyRef &&
+      bodyRef.length &&
+      bodyRef[0].getAttribute('data-theme') !== mode
+    ) {
       // console.log('SETTING "data-theme": ', mode);
       mode && bodyRef[0].setAttribute('data-theme', mode);
     }
@@ -98,7 +110,7 @@ export function Search({
       setIsOpen(true);
       // setInitialQuery(event.key);
     },
-    [setIsOpen]
+    [setIsOpen],
   );
 
   useDocSearchKeyboardEvents({
@@ -168,7 +180,8 @@ export function Search({
               '--docsearch-logo-color': theme.vars.palette.grey[500],
               '--docsearch-searchbox-focus-background': 'unset',
               '--docsearch-footer-background': 'unset',
-              '--docsearch-modal-background': theme.vars.palette.background.paper,
+              '--docsearch-modal-background':
+                theme.vars.palette.background.paper,
             },
           },
           body: {
@@ -451,9 +464,13 @@ type UserSearchDialogProps = Omit<
 
 export function UserSearchDialog(props: UserSearchDialogProps) {
   // TODO: return loading state
-  const apiKey = useAlgoliaStore((state) => state.apiKey);
+  // const apiKey = useAlgoliaStore((state) => state.apiKey);
+  const apiKey = useTypesenseStore((state) => state.apiKey);
 
-  if (!import.meta.env.VITE_ALGOLIA_APP_ID || !import.meta.env.VITE_ALGOLIA_INDEX_NAME)
+  if (
+    !import.meta.env.VITE_ALGOLIA_APP_ID ||
+    !import.meta.env.VITE_ALGOLIA_INDEX_NAME
+  )
     throw new Error('missing algolia appID or index name in env variables');
 
   if (!apiKey) return null;
@@ -463,20 +480,11 @@ export function UserSearchDialog(props: UserSearchDialogProps) {
       appId={import.meta.env.VITE_ALGOLIA_APP_ID}
       apiKey={apiKey}
       indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME}
-      // indexTitle='Agents'
       placeholder='Search users by name, email, or orgId...'
       searchParameters={{
         filters: 'collectionName:users',
       }}
       hitComponent={OnSelectHit}
-      // onSelect={onSelect}
-      // translations={{
-      //   button: {
-      //     buttonText: 'Find Agent',
-      //     buttonAriaLabel: 'find agent',
-      //   },
-      // }}
-      // shortcutKey='u'
       {...props}
     />
   );

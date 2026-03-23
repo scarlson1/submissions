@@ -2102,6 +2102,19 @@ interface DocSearchHitSnippetResult {
   hierarchy_camel: DocSearchHitHighlightResultHierarchy[];
 }
 
+// Added for typesense refactor
+// objectID temporarily kept during refactor so stored searches don't break all at once
+export type SearchResultHit = {
+  id: string;
+  objectID: string;
+  collectionName: string;
+  searchTitle: string;
+  searchSubtitle?: string;
+  url?: string;
+  highlights?: Record<string, string>;
+  document: Record<string, unknown>;
+};
+
 export declare type DocSearchHit = {
   objectID: string;
   content: string | null;
