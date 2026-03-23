@@ -1,364 +1,355 @@
-// DOCS: https://www.algolia.com/doc/ui-libraries/autocomplete/guides/creating-a-renderer/
-import type { AutocompleteState } from '@algolia/autocomplete-core';
-import { createAutocomplete } from '@algolia/autocomplete-core';
-import { getAlgoliaResults } from '@algolia/autocomplete-preset-algolia';
-import { DialogContent, DialogTitle } from '@mui/material';
-import algoliasearch from 'algoliasearch/lite';
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ClearRounded, SearchRounded } from '@mui/icons-material';
+import {
+  CircularProgress,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type {
+  DocumentSchema,
+  SearchParams,
+  SearchResponseHit,
+} from 'typesense';
 
-import { type InternalDocSearchHit, type StoredDocSearchHit } from 'common';
+import { getTypesenseClient } from 'hooks/useAlgolia';
+import { useDebounce } from 'hooks/utils';
 import { noop } from 'modules/utils';
-import type { FooterTranslations } from './Footer';
-import { Hit, getURLByType } from './Hit';
-import { ScreenState, ScreenStateTranslations } from './ScreenState';
-import { SearchProps } from './Search';
-import { SearchBox, SearchBoxTranslations } from './SearchBox';
-import { createStoredSearches } from './storedSearches';
-import { groupByCollectionName, identity, isModifierEvent } from './utils';
+import { Hit } from './Hit';
+import type { SearchCollectionConfig, SearchProps } from './Search';
 
-// TODO: use tags to filter results by collectionName when user clicks Chip
-// https://www.algolia.com/doc/ui-libraries/autocomplete/guides/filtering-results/#adding-tags
-// TODO: pass initial tag as filter when search button clicked in x grid view
-// TODO: add predefined items (FAQ's, submit claim, etc.)
-
-export type ModalTranslations = Partial<{
-  searchBox: SearchBoxTranslations;
-  footer: FooterTranslations;
-}> &
-  ScreenStateTranslations;
-
-export type SearchModalProps = SearchProps & {
-  // initialScrollY: number;
-  onClose?: () => void;
-  translations?: ModalTranslations;
+type SearchModalHit = Record<string, any> & {
+  id: string;
+  objectID: string;
+  collectionName: string;
+  searchTitle: string;
+  searchSubtitle?: string;
 };
 
+type SearchModalSection = SearchCollectionConfig & {
+  items: SearchModalHit[];
+};
+
+export type SearchModalProps = SearchProps & {
+  onClose?: () => void;
+};
+
+const DEFAULT_QUERY_BY = 'searchTitle,searchSubtitle';
+const DEFAULT_PER_PAGE = 8;
+
 export function SearchModal({
-  appId,
   apiKey,
   indexName,
   indexTitle,
+  collections,
   searchParameters,
   hitComponent = Hit,
-  resultsFooterComponent = () => null,
-  disableUserPersonalization = false,
   placeholder = 'Search records',
-  // navigator,
-  // initialQuery = '',
-  translations = {},
-  getMissingResultsUrl,
   onClose = noop,
   onSelect,
-  transformItems = identity,
+  transformItems,
 }: SearchModalProps) {
-  const {
-    footer: footerTranslations,
-    searchBox: searchBoxTranslations,
-    ...screenStateTranslations
-  } = translations;
-  const navigate = useNavigate();
-  const [state, setState] = useState<AutocompleteState<InternalDocSearchHit>>({
-    query: '',
-    collections: [],
-    completion: null,
-    context: {},
-    isOpen: false,
-    activeItemId: null,
-    status: 'idle',
-  });
-
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const modalRef = useRef<HTMLDivElement | null>(null);
-  const formElementRef = useRef<HTMLDivElement | null>(null);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  // const snippetLength = React.useRef<number>(10);
+  const [query, setQuery] = useState('');
+  const [sections, setSections] = useState<SearchModalSection[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const debouncedQuery = useDebounce(query, 150);
 
-  const searchClient = useMemo(() => algoliasearch(appId, apiKey), [appId, apiKey]);
+  const client = useMemo(
+    () =>
+      getTypesenseClient({
+        node: import.meta.env.VITE_TYPESENSE_NODE,
+        port: parseInt(import.meta.env.VITE_TYPESENSE_PORT),
+        protocol: import.meta.env.VITE_TYPESENSE_PROTOCOL,
+        apiKey,
+      }),
+    [apiKey],
+  );
 
-  const favoriteSearches = useRef(
-    createStoredSearches<StoredDocSearchHit>({
-      key: `__FAVORITE_SEARCHES__${indexName}`,
-      limit: 10,
-    })
-  ).current;
-  const recentSearches = useRef(
-    createStoredSearches<StoredDocSearchHit>({
-      key: `__RECENT_SEARCHES__${indexName}`,
-      limit: favoriteSearches.getAll().length === 0 ? 7 : 4,
-    })
-  ).current;
+  const searchCollections = useMemo(() => {
+    if (collections && collections.length > 0) {
+      return collections;
+    }
 
-  const saveRecentSearch = useCallback(
-    (item: InternalDocSearchHit) => {
-      if (disableUserPersonalization) {
+    if (!indexName || !indexTitle) {
+      return [];
+    }
+
+    return [
+      {
+        indexName,
+        indexTitle,
+        searchParameters,
+      },
+    ];
+  }, [collections, indexName, indexTitle, searchParameters]);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function runSearch() {
+      const trimmedQuery = debouncedQuery.trim();
+
+      if (!trimmedQuery) {
+        setSections([]);
+        setIsLoading(false);
+        setIsError(false);
         return;
       }
 
-      // Don't store `content` record, but their parent if available.
-      const search = item.type === 'content' ? item.__docsearch_parent : item;
-
-      // Save the recent search only if it's not favorited.
-      if (
-        search &&
-        favoriteSearches.getAll().findIndex((x) => x.objectID === search.objectID) === -1
-      ) {
-        recentSearches.add(search);
+      if (searchCollections.length === 0) {
+        setSections([]);
+        setIsLoading(false);
+        setIsError(true);
+        return;
       }
-    },
-    [favoriteSearches, recentSearches, disableUserPersonalization]
-  );
 
-  const autocomplete = useMemo(
-    () =>
-      createAutocomplete<
-        InternalDocSearchHit,
-        React.FormEvent<HTMLFormElement>,
-        React.MouseEvent,
-        React.KeyboardEvent
-      >({
-        id: 'search-autocomplete',
-        defaultActiveItemId: 0,
-        placeholder,
-        openOnFocus: true,
-        initialState: {
-          query: '', // initialQuery,
-          context: {
-            searchSuggestions: [],
-          },
-        },
-        // navigator, // default navigator: https://www.algolia.com/doc/ui-libraries/autocomplete/core-concepts/keyboard-navigation/
-        navigator: {
-          navigate({ itemUrl }) {
-            !onSelect && itemUrl && navigate(itemUrl);
-          },
-          navigateNewTab({ itemUrl }) {
-            if (!itemUrl) return;
-            const windowReference = window.open(itemUrl, '_blank', 'noopener');
+      setIsLoading(true);
+      setIsError(false);
 
-            if (windowReference) {
-              windowReference.focus();
-            }
-          },
-          navigateNewWindow({ itemUrl }) {
-            if (!itemUrl) return;
-            window.open(itemUrl, '_blank', 'noopener');
-          },
-        },
-        onStateChange(props) {
-          setState(props.state);
-        },
-        // plugins: [predefinedItemsPlugin],
-        // DOCS IMPLEMENTATION
-        // @ts-ignore // TODO: fix type
-        getSources({ query, state: sourcesState, setContext, setStatus }) {
-          if (!query) {
-            if (disableUserPersonalization) {
-              return [];
-            }
+      const results = await Promise.all(
+        searchCollections.map(async (collection) => {
+          try {
+            const mergedParams = {
+              ...searchParameters,
+              ...collection.searchParameters,
+              q: trimmedQuery,
+              page: 1,
+              per_page:
+                collection.searchParameters?.per_page ??
+                searchParameters?.per_page ??
+                DEFAULT_PER_PAGE,
+              query_by:
+                collection.searchParameters?.query_by ??
+                searchParameters?.query_by ??
+                DEFAULT_QUERY_BY,
+              highlight_start_tag: '<mark>',
+              highlight_end_tag: '</mark>',
+            } as SearchParams<DocumentSchema, string>;
 
-            return [
-              {
-                sourceId: 'recentSearches',
-                onSelect({ item, event }) {
-                  saveRecentSearch(item);
+            const response = await client
+              .collections(collection.indexName)
+              .documents()
+              .search(mergedParams);
 
-                  if (!isModifierEvent(event)) {
-                    onClose();
-                  }
-                },
-                getItemUrl({ item, ...rest }) {
-                  // TODO: getItemUrl func (use func from below)
-                  return getURLByType(item);
-                  // item.__autocomplete_indexName
-                  // but need to use "type" when indexing in algolia b/c could be in suggestions index
+            const normalizedItems = (response.hits ?? []).map((hit) =>
+              normalizeHit(collection.indexName, hit),
+            );
 
-                  // @ts-ignore
-                  // if (item.__autocomplete_indexName) return ''; // TODO: fix
-                  // return item.url;
-                },
-                getItems() {
-                  return recentSearches.getAll();
-                },
-              },
-              {
-                sourceId: 'favoriteSearches',
-                onSelect({ item, event }) {
-                  saveRecentSearch(item);
+            const items = transformItems
+              ? (transformItems(normalizedItems) as SearchModalHit[])
+              : normalizedItems;
 
-                  if (!isModifierEvent(event)) {
-                    onClose();
-                  }
-                },
-                getItemUrl({ item }) {
-                  return getURLByType(item);
-                  // return item.url;
-                },
-                getItems() {
-                  return favoriteSearches.getAll();
-                },
-              },
-            ];
+            return {
+              ...collection,
+              items,
+              error: null,
+            };
+          } catch (error) {
+            return {
+              ...collection,
+              items: [],
+              error,
+            };
           }
+        }),
+      );
 
-          return [
-            {
-              sourceId: indexName,
-              title: indexTitle,
-              distinct: 1,
-              onSelect(props) {
-                const { item, event } = props;
-                saveRecentSearch(item);
-                // console.log('ON SELECT ITEM: ', item);
-                if (onSelect) {
-                  event.stopPropagation();
-                  onSelect(item);
-                }
+      if (ignore) {
+        return;
+      }
 
-                if (!isModifierEvent(event)) {
-                  onClose();
-                }
-              },
-              getItemInputValue({ item }) {
-                // @ts-ignore
-                return item.query;
-              },
-              getItems({ query }) {
-                return getAlgoliaResults({
-                  searchClient,
-                  queries: [
-                    {
-                      indexName,
-                      query,
-                      params: {
-                        hitsPerPage: 10,
-                        highlightPreTag: '<mark>',
-                        highlightPostTag: '</mark>',
-                        ...searchParameters,
-                      },
-                    },
-                  ],
-                });
-              },
-              getItemUrl({ item }) {
-                // called when item is hovered
-                return getURLByType(item);
-                // return item.url;
-              },
+      setSections(results.filter((section) => section.items.length > 0));
+      setIsLoading(false);
+      setIsError(
+        results.length > 0 &&
+          results.every(
+            (section) => section.items.length === 0 && section.error !== null,
+          ),
+      );
+    }
 
-              // templates: {
-              //   header() {
-              //     return 'Test title';
-              //   },
-              // },
-            },
-          ];
-        },
-        // @ts-ignore
-        reshape(params: {
-          sources: any[];
-          sourcesBySourceId: Record<string, any>;
-          state: AutocompleteState<InternalDocSearchHit>;
-        }) {
-          const { recentSearches, ...rest } = params.sourcesBySourceId;
-          const searchSource = params.sourcesBySourceId[indexName];
+    void runSearch();
 
-          if (!searchSource) return [Object.values(rest)];
+    return () => {
+      ignore = true;
+    };
+  }, [
+    client,
+    debouncedQuery,
+    searchCollections,
+    searchParameters,
+    transformItems,
+  ]);
 
-          return [groupByCollectionName(searchSource)]; //  Object.values(rest)
-          // including Object.values(rest) results in duplicates (add and use de-dup func ??)
+  const HitComponent = hitComponent;
 
-          // const items = searchSource.getItems();
-          // const groupByResult = groupByOld(items, (item: any) => item.type, 4);
-          // return [removeDuplicates(recentSearches), Object.values(rest)];
-
-          // multiple reshape functions example:
-          // return [
-          //   limitSuggestions(removeDuplicates(recentSearchesPlugin, querySuggestionsPlugin)),
-          //   Object.values(rest),
-          // ];
-        },
-
-        // DOCSEARCH IMPLEMENTATION
-        // https://github.com/algolia/docsearch/blob/main/packages/docsearch-react/src/DocSearchModal.tsx
-      }),
-    [
-      indexName,
-      indexTitle,
-      searchParameters,
-      searchClient,
-      onClose,
-      recentSearches,
-      favoriteSearches,
-      saveRecentSearch,
-      // initialQuery,
-      placeholder,
-      // navigator,
-      // transformItems,
-      disableUserPersonalization,
-      navigate,
-      onSelect,
-    ]
-  );
-
-  // TODO: add stalled state indicator: https://www.algolia.com/doc/ui-libraries/autocomplete/guides/creating-a-renderer/#reacting-to-the-network
   return (
-    <div ref={containerRef} className='aa-Autocomplete' {...autocomplete.getRootProps({})}>
-      <div ref={modalRef}>
-        {/* className='DocSearch-Modal' */}
-        <DialogTitle className='DocSearch-SearchBar' ref={formElementRef}>
-          <SearchBox
-            {...autocomplete}
-            state={state}
-            autoFocus={true} // {initialQuery.length === 0}
-            inputRef={inputRef}
-            // isFromSelection={
-            //   Boolean(initialQuery) &&
-            //   initialQuery === initialQueryFromSelection
-            // }
-            // translations={searchBoxTranslations}
-            onClose={onClose}
-          />
-        </DialogTitle>
-        <DialogContent
-          dividers
-          className='DocSearch-Dropdown'
-          ref={dropdownRef}
-          sx={{
-            py: '0 !important',
+    <div className='aa-Autocomplete'>
+      <DialogTitle className='DocSearch-SearchBar'>
+        <form
+          className='DocSearch-Form'
+          onSubmit={(event) => {
+            event.preventDefault();
           }}
-          // sx={{
-          //   maxHeight:
-          //     'calc(var(--docsearch-vh, 1vh) * 100) - var(--docsearch-searchbox-height) - var(--docsearch-spacing) - var(--docsearch-footer-height)',
-          // }}
+          style={{ display: 'flex', alignItems: 'center', width: '100%' }}
         >
-          <ScreenState
-            {...autocomplete}
-            indexName={indexName}
-            state={state}
-            hitComponent={hitComponent}
-            resultsFooterComponent={resultsFooterComponent}
-            disableUserPersonalization={disableUserPersonalization}
-            recentSearches={recentSearches}
-            favoriteSearches={favoriteSearches}
+          <TextField
+            autoFocus
+            className='DocSearch-SearchBar'
+            fullWidth
             inputRef={inputRef}
-            translations={screenStateTranslations}
-            getMissingResultsUrl={getMissingResultsUrl}
-            onItemClick={(item, event) => {
-              console.log('ON ITEM CLICK: ', item);
-              saveRecentSearch(item);
-              if (onSelect) {
-                event.stopPropagation();
-                onSelect(item);
-              }
-              if (!isModifierEvent(event)) {
-                onClose();
-              }
+            onChange={(event) => {
+              setQuery(event.target.value);
+            }}
+            placeholder={placeholder}
+            value={query}
+            variant='standard'
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchRounded fontSize='small' />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position='end'>
+                  <IconButton
+                    aria-label='clear'
+                    disabled={!query}
+                    onClick={() => {
+                      setQuery('');
+                    }}
+                    title='clear'
+                  >
+                    <ClearRounded fontSize='small' />
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
           />
-        </DialogContent>
-      </div>
+        </form>
+      </DialogTitle>
+
+      <DialogContent
+        dividers
+        className='DocSearch-Dropdown'
+        sx={{ py: '0 !important' }}
+      >
+        {!query.trim() && (
+          <div className='DocSearch-StartScreen'>
+            <p className='DocSearch-Help'>Start typing to search Typesense.</p>
+          </div>
+        )}
+
+        {query.trim() && isLoading && (
+          <div className='DocSearch-NoResults'>
+            <CircularProgress size={24} />
+          </div>
+        )}
+
+        {query.trim() && !isLoading && isError && (
+          <div className='DocSearch-NoResults'>
+            <Typography className='DocSearch-Title'>
+              Search failed. Check your Typesense collections and query config.
+            </Typography>
+          </div>
+        )}
+
+        {query.trim() && !isLoading && !isError && sections.length === 0 && (
+          <div className='DocSearch-NoResults'>
+            <Typography className='DocSearch-Title'>
+              No results for "<strong>{query}</strong>"
+            </Typography>
+          </div>
+        )}
+
+        {query.trim() && !isLoading && !isError && sections.length > 0 && (
+          <div className='DocSearch-Dropdown-Container'>
+            {sections.map((section) => (
+              <section className='DocSearch-Hits' key={section.indexName}>
+                <Typography
+                  className='DocSearch-Hit-source'
+                  color='primary'
+                  fontWeight={600}
+                  variant='subtitle2'
+                >
+                  {section.indexTitle}
+                </Typography>
+
+                <ul>
+                  {section.items.map((item) => (
+                    <li
+                      className='DocSearch-Hit'
+                      key={`${section.indexName}:${item.objectID}`}
+                      onClick={(event) => {
+                        if (onSelect) {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          onSelect(item);
+                        }
+
+                        onClose();
+                      }}
+                    >
+                      <HitComponent hit={item}>
+                        <div className='DocSearch-Hit-Container'>
+                          <div className='DocSearch-Hit-content-wrapper'>
+                            <Typography className='DocSearch-Hit-title'>
+                              {item.searchTitle}
+                            </Typography>
+                            {item.searchSubtitle && (
+                              <Typography className='DocSearch-Hit-path'>
+                                {item.searchSubtitle}
+                              </Typography>
+                            )}
+                          </div>
+                        </div>
+                      </HitComponent>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        )}
+      </DialogContent>
     </div>
   );
+}
+
+function normalizeHit(
+  indexName: string,
+  hit: SearchResponseHit<DocumentSchema>,
+): SearchModalHit {
+  const document = hit.document as Record<string, any>;
+  const id = String(document.id ?? document.objectID ?? '');
+
+  return {
+    ...document,
+    id,
+    objectID: id,
+    collectionName: document.collectionName ?? getCollectionName(indexName),
+    searchTitle: String(
+      document.searchTitle ?? document.displayName ?? document.orgName ?? id,
+    ),
+    searchSubtitle:
+      typeof document.searchSubtitle === 'string'
+        ? document.searchSubtitle
+        : undefined,
+  };
+}
+
+function getCollectionName(indexName: string) {
+  const parts = indexName.split('_');
+  return parts.length > 1 ? parts.slice(1).join('_') : indexName;
 }

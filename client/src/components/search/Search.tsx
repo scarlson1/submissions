@@ -1,10 +1,5 @@
 import './search.css';
 
-import type {
-  AutocompleteOptions,
-  AutocompleteState,
-} from '@algolia/autocomplete-core';
-import type { SearchOptions } from '@algolia/client-search';
 import {
   alpha,
   Backdrop,
@@ -16,19 +11,11 @@ import {
   GlobalStyles,
   useColorScheme,
 } from '@mui/material';
-import type { SearchClient } from 'algoliasearch/lite';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { DocumentSchema, SearchParams } from 'typesense';
 
-import type {
-  DocSearchHit,
-  InternalDocSearchHit,
-  StoredDocSearchHit,
-} from 'common';
-import {
-  // useAlgoliaSearchKey,
-  useAlgoliaStore,
-  useDocSearchKeyboardEvents,
-} from 'hooks';
+import { Collection, typesenseIndexName } from 'common';
+import { useDocSearchKeyboardEvents } from 'hooks';
 import { useTypesenseStore } from 'hooks/useAlgoliaStore';
 import { GeoSearch } from './GeoSearch';
 import { OnSelectHit } from './Hit';
@@ -42,25 +29,29 @@ const FADE_DURATION = 100;
 interface Translations {
   button: ButtonTranslations;
 }
-export interface SearchProps {
-  appId: string;
-  apiKey: string;
+
+export interface SearchCollectionConfig {
   indexName: string;
   indexTitle: string;
+  searchParameters?: SearchParams<DocumentSchema, string>;
+}
+
+export interface SearchProps {
+  apiKey: string;
+  indexName?: string;
+  indexTitle?: string;
+  collections?: SearchCollectionConfig[];
   placeholder?: string;
-  searchParameters?: SearchOptions;
-  transformItems?: (items: DocSearchHit[]) => DocSearchHit[];
+  searchParameters?: SearchParams<DocumentSchema, string>;
+  transformItems?: (items: any[]) => any[];
   hitComponent?: (props: {
-    hit: InternalDocSearchHit | StoredDocSearchHit;
+    hit: any;
     children: React.ReactNode;
   }) => JSX.Element;
   resultsFooterComponent?: (props: {
-    state: AutocompleteState<InternalDocSearchHit>;
+    state: { query: string };
   }) => JSX.Element | null;
-  transformSearchClient?: (searchClient: SearchClient) => SearchClient;
   disableUserPersonalization?: boolean;
-  // initialQuery?: string;
-  navigator?: AutocompleteOptions<InternalDocSearchHit>['navigator'];
   translations?: Partial<Translations>; // DocSearchTranslations;
   getMissingResultsUrl?: ({ query }: { query: string }) => string;
   maxWidth?: DialogProps['maxWidth'];
@@ -427,13 +418,7 @@ export function Search({
 }
 
 export function TempWrappedSearch() {
-  // TODO: return loading state
-  // const apiKey = useAlgoliaSearchKey();
-  const apiKey = useAlgoliaStore((state) => state.apiKey);
-
-  if (!import.meta.env.VITE_ALGOLIA_APP_ID) {
-    throw new Error('missing algolia appID in env variables');
-  }
+  const apiKey = useTypesenseStore((state) => state.apiKey);
 
   if (!apiKey) return null;
 
@@ -441,10 +426,29 @@ export function TempWrappedSearch() {
     <>
       <Box sx={{ pb: 3 }}>
         <Search
-          appId={import.meta.env.VITE_ALGOLIA_APP_ID}
           apiKey={apiKey}
-          indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME}
-          indexTitle='All Records'
+          collections={[
+            {
+              indexName: typesenseIndexName(Collection.enum.users),
+              indexTitle: 'Users',
+            },
+            {
+              indexName: typesenseIndexName(Collection.enum.organizations),
+              indexTitle: 'Organizations',
+            },
+            {
+              indexName: typesenseIndexName(Collection.enum.submissions),
+              indexTitle: 'Submissions',
+            },
+            {
+              indexName: typesenseIndexName(Collection.enum.quotes),
+              indexTitle: 'Quotes',
+            },
+            {
+              indexName: typesenseIndexName(Collection.enum.policies),
+              indexTitle: 'Policies',
+            },
+          ]}
           placeholder='Search...'
         />
       </Box>
@@ -457,32 +461,29 @@ export function TempWrappedSearch() {
 
 type UserSearchDialogProps = Omit<
   SearchProps,
-  'appId' | 'apiKey' | 'indexName' | 'hitComponent'
+  'apiKey' | 'indexName' | 'hitComponent'
 > & {
   onSelect: (item: any) => void;
 };
 
 export function UserSearchDialog(props: UserSearchDialogProps) {
-  // TODO: return loading state
-  // const apiKey = useAlgoliaStore((state) => state.apiKey);
   const apiKey = useTypesenseStore((state) => state.apiKey);
-
-  if (
-    !import.meta.env.VITE_ALGOLIA_APP_ID ||
-    !import.meta.env.VITE_ALGOLIA_INDEX_NAME
-  )
-    throw new Error('missing algolia appID or index name in env variables');
 
   if (!apiKey) return null;
 
   return (
     <Search
-      appId={import.meta.env.VITE_ALGOLIA_APP_ID}
       apiKey={apiKey}
-      indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME}
-      placeholder='Search users by name, email, or orgId...'
+      indexName={typesenseIndexName(Collection.enum.users)}
+      indexTitle={props.indexTitle ?? 'Users'}
+      placeholder={
+        props.placeholder ?? 'Search users by name, email, or orgId...'
+      }
       searchParameters={{
-        filters: 'collectionName:users',
+        query_by:
+          'displayName,firstName,lastName,email,phone,searchTitle,searchSubtitle',
+        filter_by: 'isOrgUser:=true',
+        per_page: 10,
       }}
       hitComponent={OnSelectHit}
       {...props}
