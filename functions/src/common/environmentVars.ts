@@ -9,7 +9,6 @@ import {
 
 export const minInstances = projectID.equals('PRODUCTION').thenElse(1, 0);
 
-export const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 export const resendKey = defineSecret('RESEND_API_KEY');
 export const resendSecret = defineSecret('RESEND_SECRET');
 // export const sendGridWebhookVerificationKey = defineSecret('SENDGRID_WEBHOOK_VERIFICATION_KEY');
@@ -41,6 +40,7 @@ export const exportSDKKey = defineSecret('EXPORT_SDK_KEY');
 export const elevationKey = defineSecret('GPXZ_KEY');
 export const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 export const quickbooksClientSecret = defineSecret('QUICKBOOKS_CLIENT_SECRET');
+export const rentcastKey = defineSecret('RENTCAST_KEY');
 
 export const audience = defineString('AUDIENCE');
 export const hostingBaseURL = defineString('HOSTING_BASE_URL');

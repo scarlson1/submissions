@@ -12,7 +12,7 @@ import { Resend, type Tag } from 'resend';
 // dynamic templates nodejs lib implementation: https://stackoverflow.com/a/68423849
 
 import z from 'zod';
-import { EmailTemplates, env, hostingBaseURL } from '../../common/index.js';
+import { env, hostingBaseURL } from '../../common/index.js';
 import { uniqueStrings } from '../../utils/arrays.js';
 import {
   adminChangeRequest,
@@ -104,13 +104,11 @@ const EmailType = z.enum([
 //   };
 // };
 
-type CustomArgs = { emailType: EmailTemplates } & Record<string, any>;
-export interface ExtraSendGridArgs extends Omit<
+// type CustomArgs = { emailType: EmailTemplates } & Record<string, any>;
+export type ExtraSendGridArgs = Omit<
   CreateMsgContentProps,
   'to' | 'from' | 'subject' | 'html' | 'attachments'
-> {
-  customArgs: CustomArgs;
-}
+>;
 
 function getCustomArgs(args?: Record<string, any> | undefined) {
   return {
@@ -121,7 +119,7 @@ function getCustomArgs(args?: Record<string, any> | undefined) {
 }
 
 function customArgsToResendTags(args: Record<string, unknown>): Tag[] {
-  return Object.entries(args).map((k, v) => ({
+  return Object.entries(args).map(([k, v]) => ({
     name: String(k),
     value: typeof v === 'string' ? v : String(v),
   }));
@@ -185,17 +183,19 @@ export const sendNewSubmissionAdminNotification = async (
 
   const resend = new Resend(key);
 
+  const tags = customArgsToResendTags(
+    getCustomArgs({
+      emailType: EmailType.enum.submission_received_admin,
+      ...(sgArgs || {}),
+    }),
+  );
+
   const { data, error } = await resend.emails.send({
     from: 'iDemand Insurance <noreply@s-carlson.com>',
     to: uniqueTo,
     subject: 'New submission!',
     html,
-    tags: customArgsToResendTags(
-      getCustomArgs({
-        emailType: EmailType.enum.submission_received_admin,
-        ...(sgArgs || {}),
-      }),
-    ),
+    tags,
   });
 
   if (error) throw new Error(error.message);
@@ -320,17 +320,19 @@ export const sendNewQuoteEmail = async (
 
   const resend = new Resend(key);
 
+  const tags = customArgsToResendTags(
+    getCustomArgs({
+      emailType: EmailType.enum.submission_received_admin,
+      ...(sgArgs || {}),
+    }),
+  );
+
   const { data, error } = await resend.emails.send({
     from: 'iDemand Insurance <noreply@s-carlson.com>',
     to: uniqueTo,
     subject: "Here's your quote!",
     html,
-    tags: customArgsToResendTags(
-      getCustomArgs({
-        emailType: EmailType.enum.quote_delivery,
-        ...(sgArgs || {}),
-      }),
-    ),
+    tags,
   });
 
   if (error) throw new Error(error.message);

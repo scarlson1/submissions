@@ -2,7 +2,7 @@ import sgMail from '@sendgrid/mail';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { audience, sendgridApiKey } from '../common/index.js';
+import { audience, resendKey } from '../common/index.js';
 import { newContactMessage } from '../services/sendgrid/templates/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 
@@ -20,11 +20,11 @@ const sendContactEmail = async ({
   info('User ID: ', auth?.uid);
   const { userEmail, subject, body } = data;
   if (!userEmail || !body) {
-    throw new HttpsError('invalid-argument', `Missing email or body`);
+    throw new HttpsError('invalid-argument', 'Missing email or body');
   }
 
   try {
-    sgMail.setApiKey(sendgridApiKey.value());
+    sgMail.setApiKey(resendKey.value());
     const html = newContactMessage({
       toName: 'Admin',
       fromEmail: userEmail,
@@ -32,7 +32,7 @@ const sendContactEmail = async ({
     });
 
     const to = ['spencer@s-carlson.com'];
-    if (audience.value() !== 'LOCAL HUMANS') to.push('roreply@s-carlson.com');
+    if (audience.value() !== 'LOCAL HUMANS') to.push('noreply@s-carlson.com');
     // TODO: optional cc emails
     await sgMail.send({
       html,

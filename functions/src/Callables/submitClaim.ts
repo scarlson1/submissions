@@ -1,5 +1,5 @@
 import { EmailData } from '@sendgrid/helpers/classes/email-address.js';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
   audience,
@@ -7,11 +7,11 @@ import {
   locationsCollection,
   policiesCollection,
   policyClaimsCollection,
-  sendgridApiKey,
+  resendKey,
 } from '../common/index.js';
 import {
-  SendClaimSubmittedProps,
   sendClaimSubmitted,
+  SendClaimSubmittedProps,
 } from '../services/sendgrid/actions/sendClaimSubmitted.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireAuth, validate } from './utils/index.js';
@@ -80,7 +80,7 @@ const submitClaim = async ({
     // TODO: wrap notifications and updating status in transaction ??
     const orgId =
       token.firebase.tenant ??
-      (token.email?.endsWith(`@idemandinsurance.com`) || null);
+      (token.email?.endsWith('@idemandinsurance.com') || null);
     await claimRef.update({
       status: 'submitted',
       submittedBy: {
@@ -110,37 +110,31 @@ const submitClaim = async ({
     if (claim.contact?.email) to.push(claim.contact?.email);
 
     try {
-      const insuredNotificationPromise = sendClaimSubmitted(
-        sendgridApiKey.value(),
-        {
-          to,
-          templateId: 'claim_submitted',
-          policyId: policyId as string,
-          claimId: claimId as string,
-          locationId: claim.locationId as string,
-          externalId: claim.externalId as string,
-          // contact: claim.contact
-          contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
-        },
-      );
+      const insuredNotificationPromise = sendClaimSubmitted(resendKey.value(), {
+        to,
+        templateId: 'claim_submitted',
+        policyId: policyId as string,
+        claimId: claimId as string,
+        locationId: claim.locationId as string,
+        externalId: claim.externalId as string,
+        // contact: claim.contact
+        contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
+      });
       // TODO: pull idemand to emails up to function or integrating into sendgrid flow
       const adminTo: EmailData[] = ['spencercarlson@idemandinsurance.com'];
       if (audience.value() !== 'PROD HUMANS')
-        adminTo.push('roreply@s-carlson.com');
+        adminTo.push('noreply@s-carlson.com');
 
-      const adminNotificationPromise = sendClaimSubmitted(
-        sendgridApiKey.value(),
-        {
-          to: adminTo,
-          templateId: 'claim_submitted',
-          policyId: policyId as string,
-          claimId: claimId as string,
-          locationId: claim.locationId as string,
-          externalId: claim.externalId as string,
-          // contact: claim.contact
-          contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
-        },
-      );
+      const adminNotificationPromise = sendClaimSubmitted(resendKey.value(), {
+        to: adminTo,
+        templateId: 'claim_submitted',
+        policyId: policyId as string,
+        claimId: claimId as string,
+        locationId: claim.locationId as string,
+        externalId: claim.externalId as string,
+        // contact: claim.contact
+        contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
+      });
       await Promise.all([insuredNotificationPromise, adminNotificationPromise]);
     } catch (err: any) {
       reportErr('error sending email notifications', data, err);
@@ -151,7 +145,7 @@ const submitClaim = async ({
     reportErr(err?.message || 'error submitting claim', { data }, err);
     if (err instanceof HttpsError) throw err;
 
-    throw new HttpsError('internal', `An error occurred`);
+    throw new HttpsError('internal', 'An error occurred');
   }
 };
 

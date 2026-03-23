@@ -4,7 +4,7 @@ import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import querystring from 'querystring';
 
 import { Submission } from '@idemand/common';
-import { audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
+import { audience, hostingBaseURL, resendKey } from '../common/index.js';
 import {
   sendNewSubmissionAdminNotification,
   sendSubmissionReceivedConfirmation,
@@ -46,14 +46,14 @@ export default async (
       `Sending submission received notification to ${submission.contact.email}`,
     );
     await sendSubmissionReceivedConfirmation(
-      sendgridApiKey.value(),
+      resendKey.value(),
       createAccountURL,
       submission.contact.email,
       null,
       submission.address.addressLine1,
     );
-  } catch (err: any) {
-    error(`Error sending submission received notification to user`, { ...err });
+  } catch (err: unknown) {
+    error('Error sending submission received notification to user', err);
   }
 
   try {
@@ -63,7 +63,7 @@ export default async (
 
     const adminRecipients = ['spencer@s-carlson.com'];
     if (audience.value() !== 'LOCAL HUMANS') {
-      adminRecipients.push('roreply@s-carlson.com');
+      adminRecipients.push('noreply@s-carlson.com');
     }
 
     info(
@@ -71,7 +71,7 @@ export default async (
       adminRecipients,
     );
     await sendNewSubmissionAdminNotification(
-      sendgridApiKey.value(),
+      resendKey.value(),
       link,
       submission.address.addressLine1,
       submission.address.city,
@@ -80,15 +80,13 @@ export default async (
       {
         customArgs: {
           firebaseEventId: event.id,
-          emailType: 'new_submission',
+          // emailType: 'new_submission',
         },
       },
     );
     return;
-  } catch (err: any) {
-    error(`Error sending submission received notification to admin`, {
-      ...err,
-    });
+  } catch (err: unknown) {
+    error('Error sending submission received notification to admin', err);
     return;
   }
 };

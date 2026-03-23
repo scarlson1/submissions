@@ -6,7 +6,7 @@ import {
   AgencyApplication,
   audience,
   hostingBaseURL,
-  sendgridApiKey,
+  resendKey,
 } from '../common/index.js';
 import { sendNewAgencySubmissionAdminNotification } from '../services/sendgrid/index.js';
 
@@ -32,13 +32,13 @@ export default async (
 
   const adminRecipients = ['spencer@s-carlson.com'];
   if (audience.value() !== 'LOCAL HUMANS') {
-    adminRecipients.push('roreply@s-carlson.com');
+    adminRecipients.push('noreply@s-carlson.com');
   }
 
   if (submission.sendAppReceivedNotification) {
     info(`sending admin notifications to: ${JSON.stringify(adminRecipients)}`);
     await sendNewAgencySubmissionAdminNotification(
-      sendgridApiKey.value(),
+      resendKey.value(),
       link,
       submission.orgName,
       adminRecipients,

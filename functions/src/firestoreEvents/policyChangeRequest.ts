@@ -3,12 +3,12 @@ import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import {
+  audience,
   ChangeRequest,
   ChangeRequestStatus,
-  audience,
   getReportErrorFn,
   hostingBaseURL,
-  sendgridApiKey,
+  resendKey,
 } from '../common/index.js';
 import { publishChangeRequestTransactions } from '../modules/transactions/index.js';
 import {
@@ -147,13 +147,13 @@ async function handleRequestNotifications(
   eventId: string,
 ) {
   try {
-    let to = ['spencer@s-carlson.com'];
+    const to = ['spencer@s-carlson.com'];
     if (
       audience.value() !== 'DEV HUMANS' &&
       audience.value() !== 'LOCAL HUMANS'
     )
-      to.push('roreply@s-carlson.com');
-    const sgKey = sendgridApiKey.value();
+      to.push('noreply@s-carlson.com');
+    const sgKey = resendKey.value();
 
     const link = `${hostingBaseURL.value()}/policies/${policyId}`; // TODO: update url once client change request url is set (instead of dialog)
 
@@ -199,7 +199,7 @@ async function handleRequestNotifications(
       });
     }
   } catch (err: any) {
-    error(`Error sending new change request email notifications`, { ...err });
+    error('Error sending new change request email notifications', { ...err });
   }
 
   return;

@@ -1,4 +1,4 @@
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { info } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
@@ -9,7 +9,7 @@ import {
   ePayBaseHostingURL,
   hostingBaseURL,
   policiesCollection,
-  sendgridApiKey,
+  resendKey,
 } from '../common/index.js';
 import { sendAdminPaidNotification } from '../services/sendgrid/index.js';
 import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
@@ -64,14 +64,14 @@ export default async (
   );
 
   const to = ['spencer@s-carlson.com'];
-  if (audience.value() !== 'LOCAL HUMANS') to.push('roreply@s-carlson.com');
+  if (audience.value() !== 'LOCAL HUMANS') to.push('noreply@s-carlson.com');
 
   const policyLink = `${hostingBaseURL.value()}/admin/policies/${policyId}/delivery`;
 
   const transactionLink = `${ePayBaseHostingURL.value()}/Transactions/Index/${transactionId}`;
 
   await sendAdminPaidNotification(
-    sendgridApiKey.value(),
+    resendKey.value(),
     to,
     policyLink,
     policyId,

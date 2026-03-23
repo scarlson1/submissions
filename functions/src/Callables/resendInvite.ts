@@ -3,7 +3,12 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 // import { invitesCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters/index.js';
-import { CLAIMS, audience, invitesCollection, sendgridApiKey } from '../common/index.js';
+import {
+  audience,
+  CLAIMS,
+  invitesCollection,
+  resendKey,
+} from '../common/index.js';
 import { sendUserInvite } from '../services/sendgrid/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 
@@ -12,7 +17,10 @@ interface ResendInviteProps {
   inviteId: string;
 }
 
-const resendInvite = async ({ data, auth }: CallableRequest<ResendInviteProps>) => {
+const resendInvite = async ({
+  data,
+  auth,
+}: CallableRequest<ResendInviteProps>) => {
   const token = auth?.token;
   if (!auth?.uid || !token) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
@@ -21,25 +29,31 @@ const resendInvite = async ({ data, auth }: CallableRequest<ResendInviteProps>) 
     throw new HttpsError('permission-denied', 'Admin permissions required');
   }
 
-  let { orgId, inviteId } = data;
+  const { orgId, inviteId } = data;
   if (!orgId || !inviteId) {
     throw new HttpsError('failed-precondition', 'Missing orgId or inviteId');
   }
 
-  const sgKey = sendgridApiKey.value();
-  if (!sgKey) throw new HttpsError('internal', `Missing Sendgrid api key`);
+  const sgKey = resendKey.value();
+  if (!sgKey) throw new HttpsError('internal', 'Missing Sendgrid api key');
 
   const db = getFirestore();
   const inviteColRef = invitesCollection(db, orgId);
 
-  const inviteDocSnap = await inviteColRef.withConverter(inviteConverter).doc(inviteId).get();
+  const inviteDocSnap = await inviteColRef
+    .withConverter(inviteConverter)
+    .doc(inviteId)
+    .get();
 
   const inviteData = inviteDocSnap.data();
   if (!inviteDocSnap.exists || !inviteData) {
-    throw new HttpsError('not-found', `Invite "${orgId}/${inviteId}" not found`);
+    throw new HttpsError(
+      'not-found',
+      `Invite "${orgId}/${inviteId}" not found`,
+    );
   }
 
-  let to = [inviteData?.email];
+  const to = [inviteData?.email];
   if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS')
     to.push('spencercarlson@mac.com');
 
@@ -55,12 +69,12 @@ const resendInvite = async ({ data, auth }: CallableRequest<ResendInviteProps>) 
         customArgs: {
           emailType: 'resend_invite',
         },
-      }
+      },
     );
 
     return { status: 'sent' };
   } catch (err) {
-    throw new HttpsError('internal', `Error delivering invite`);
+    throw new HttpsError('internal', 'Error delivering invite');
   }
 };
 

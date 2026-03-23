@@ -6,7 +6,7 @@ import {
   ePayCreds,
   firebaseHashConfig,
   minInstances,
-  sendgridApiKey,
+  resendKey,
   signNowCreds,
   signNowUserCreds,
   stripeSecretKey,
@@ -169,14 +169,14 @@ export const moveusertotenant = onCall(
 );
 
 export const resendinvite = onCall(
-  { secrets: [sendgridApiKey] },
+  { secrets: [resendKey] },
   async (request) => {
     return (await import('./resendInvite.js')).default(request);
   },
 );
 
 export const sendagencyapprovednotification = onCall(
-  { secrets: [sendgridApiKey] },
+  { secrets: [resendKey] },
   async (request) => {
     return (await import('./sendAgencyApprovedNotification.js')).default(
       request,
@@ -186,7 +186,7 @@ export const sendagencyapprovednotification = onCall(
 
 export const sendcontactemail = onCall(
   {
-    secrets: [sendgridApiKey],
+    secrets: [resendKey],
   },
   async (request) => {
     return (await import('./sendContactEmail.js')).default(request);
@@ -195,7 +195,7 @@ export const sendcontactemail = onCall(
 
 export const sendemail = onCall(
   {
-    secrets: [sendgridApiKey],
+    secrets: [resendKey],
   },
   async (request) => {
     return (await import('./sendEmail.js')).default(request);
@@ -204,7 +204,7 @@ export const sendemail = onCall(
 
 export const sendnewquotenotifications = onCall(
   {
-    secrets: [sendgridApiKey],
+    secrets: [resendKey],
     // minInstances: 1,
     // memory: '128MiB',
   },
@@ -215,7 +215,7 @@ export const sendnewquotenotifications = onCall(
 
 export const sendpolicydoc = onCall(
   {
-    secrets: [sendgridApiKey],
+    secrets: [resendKey],
     // minInstances: 1,
     // memory: '128MiB',
   },
@@ -230,7 +230,7 @@ export const setquoteuserid = onCall(async (request) => {
 
 export const submitclaim = onCall(
   {
-    secrets: [sendgridApiKey],
+    secrets: [resendKey],
   },
   async (request) => {
     return (await import('./submitClaim.js')).default(request);

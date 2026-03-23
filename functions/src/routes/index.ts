@@ -6,10 +6,9 @@ import {
   exportSDKKey,
   firebaseHashConfig,
   quickbooksClientSecret,
+  // sendGridWebhookVerificationKey,
   resendKey,
   resendSecret,
-  // sendGridWebhookVerificationKey,
-  sendgridApiKey,
   stripeSecretKey,
 } from '../common/index.js';
 
@@ -29,7 +28,7 @@ export const authRequests = functions
   });
 
 export const authrequeststest = onRequest(
-  { secrets: [sendgridApiKey] },
+  { secrets: [resendKey] },
   async (request, response) => {
     await (await import('./authRequestsv2Test.js')).default(request, response);
   },

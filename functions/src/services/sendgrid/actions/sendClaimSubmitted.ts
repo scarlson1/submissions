@@ -36,7 +36,7 @@ export async function sendClaimSubmitted(
     const html = claimSubmittedHTML({ ...args });
 
     // const to = ['spencer@s-carlson.com'];
-    // if (audience.value() !== 'LOCAL HUMANS') to.push('roreply@s-carlson.com');
+    // if (audience.value() !== 'LOCAL HUMANS') to.push('noreply@s-carlson.com');
     await sgMail.send({
       html,
       subject: `Claim submission confirmation`,

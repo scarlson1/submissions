@@ -6,7 +6,7 @@ import {
   agencyApplicationCollection,
   audience,
   invitesCollection,
-  sendgridApiKey,
+  resendKey,
 } from '../common/index.js';
 import { sendAgencyAppApprovedNotification } from '../services/sendgrid/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
@@ -86,7 +86,7 @@ const sendAgencyApprovedNotification = async ({
     }
 
     await sendAgencyAppApprovedNotification(
-      sendgridApiKey.value(),
+      resendKey.value(),
       data.tenantId,
       orgName,
       contact.email,

@@ -3,7 +3,7 @@ import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { policiesCollection, sendgridApiKey } from '../common/index.js';
+import { policiesCollection, resendKey } from '../common/index.js';
 import { sendPolicyDocDelivery } from '../services/sendgrid/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims, validate } from './utils/index.js';
@@ -27,29 +27,35 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
   //     'emails must be an array of valid email addresses'
   //   );
 
-  const sgKey = sendgridApiKey.value();
+  const sgKey = resendKey.value();
 
   const db = getFirestore();
   const bucket = getStorage().bucket();
   const policyRef = policiesCollection(db).doc(policyId);
 
   try {
-    let snap = await policyRef.get();
-    let data = snap.data();
+    const snap = await policyRef.get();
+    const data = snap.data();
     if (!snap.exists || !data)
       throw new HttpsError('not-found', `No policy found with ID ${policyId}`);
 
-    let filePath =
-      data.documents && data.documents.length > 0 ? data.documents[0].storagePath : null;
+    const filePath =
+      data.documents && data.documents.length > 0
+        ? data.documents[0].storagePath
+        : null;
 
-    if (!filePath) throw new HttpsError('failed-precondition', `Missing policy document file path`);
+    if (!filePath)
+      throw new HttpsError(
+        'failed-precondition',
+        'Missing policy document file path',
+      );
 
     // Downloads the file into a buffer in memory.
     const attachmentBuff = await bucket.file(filePath).download();
 
     if (!attachmentBuff) throw new Error('missing attachment');
 
-    let attachmentObj = [
+    const attachmentObj = [
       {
         content: attachmentBuff[0].toString('base64'),
         filename: `iDemand Flood Policy ${policyId}`,
@@ -59,7 +65,7 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
     ];
 
     // const link = `${hostingBaseURL.value()}/policies/${policyId}`;
-    let toName = data.namedInsured.firstName || undefined;
+    const toName = data.namedInsured.firstName || undefined;
 
     // TODO: redo doc delivery template
     const locations = Object.values(data.locations);
@@ -79,7 +85,7 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
         customArgs: {
           emailType: 'policy_doc_delivery',
         },
-      }
+      },
     );
 
     return {

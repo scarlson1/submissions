@@ -12,8 +12,8 @@ import {
 import {
   Firestore,
   GeoPoint,
-  Timestamp,
   getFirestore,
+  Timestamp,
 } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
@@ -24,10 +24,8 @@ import { round } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
 import {
-  CancellationReason,
-  RatingData,
-  StagedPolicyImport,
   audience,
+  CancellationReason,
   getReportErrorFn,
   hostingBaseURL,
   importSummaryCollection,
@@ -35,9 +33,11 @@ import {
   locationsCollection,
   policiesCollection,
   printObj,
+  RatingData,
   ratingDataCollection,
-  sendgridApiKey,
+  resendKey,
   stagedImportsCollection,
+  StagedPolicyImport,
   throwIfExists,
 } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
@@ -47,9 +47,9 @@ import {
   getRCVs,
 } from '../modules/rating/index.js';
 import {
-  ParseStreamToArrayRes,
   eventOlderThan,
   parseStreamToArray,
+  ParseStreamToArrayRes,
   shouldReturnEarly,
   transformHeadersCamelCase,
 } from '../modules/storage/index.js';
@@ -75,7 +75,7 @@ import { validatePolicyRowZod } from './validation/index.js';
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 
 // store surplus lines producer of record info in global scope so it doesn't need to be refetched
-let surplusLinesLicenseByState: Record<string, any> = {};
+const surplusLinesLicenseByState: Record<string, any> = {};
 
 const reportErr = getReportErrorFn('importPolicies');
 
@@ -130,7 +130,7 @@ export default async (event: StorageEvent) => {
 
     await unlinkFile(tempFilePath);
   } catch (err: any) {
-    reportErr(`ERROR PARSING CSV. RETURNING EARLY`, {}, err);
+    reportErr('ERROR PARSING CSV. RETURNING EARLY', {}, err);
 
     await unlinkFile(tempFilePath);
     // TODO: report error to sentry or send email to admin
@@ -165,8 +165,8 @@ export default async (event: StorageEvent) => {
 
   const ratingEntries = Object.entries(ratingRecords);
 
-  let importedIds: string[] = [];
-  let createErrors: any[] = [];
+  const importedIds: string[] = [];
+  const createErrors: any[] = [];
 
   // Loop through policies --> create new record for each
   for (const [policyId, policyData] of Object.entries(policyRecords)) {
@@ -235,12 +235,12 @@ export default async (event: StorageEvent) => {
     });
     info(`SAVED IMPORT SUMMARY TO DOC ${importSummaryRef.id}`);
 
-    const sgKey = sendgridApiKey.value();
+    const sgKey = resendKey.value();
     const to = ['spencer@s-carlson.com'];
     let link;
 
     if (audience.value() !== 'LOCAL HUMANS') {
-      to.push('roreply@s-carlson.com');
+      to.push('noreply@s-carlson.com');
 
       link = `${hostingBaseURL.value}/admin/config/imports`;
     }
@@ -277,7 +277,7 @@ export default async (event: StorageEvent) => {
  * @returns {object} object of policies, locations and ratingData
  */
 async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
-  let policies: Record<
+  const policies: Record<
     string,
     Omit<
       Policy,
@@ -288,13 +288,13 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
       | 'totalsByBillingEntity'
     >
   > = {};
-  let locations: Record<string, ILocation> = {};
-  let ratingDocData: Record<string, RatingData> = {};
-  let lcnIdMap: Record<string, string> = {};
+  const locations: Record<string, ILocation> = {};
+  const ratingDocData: Record<string, RatingData> = {};
+  const lcnIdMap: Record<string, string> = {};
   const ts = Timestamp.now();
 
   for (const row of data) {
-    let lcnId = createDocId();
+    const lcnId = createDocId();
     lcnIdMap[lcnId] = row.externalId;
     info(`Formatting location ${row.externalId}`);
     const formattedLocation = formatPolicyLocation(row, lcnId, ts);

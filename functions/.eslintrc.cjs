@@ -54,6 +54,7 @@ module.exports = {
     semi: 'warn',
     'comma-dangle': 'off',
     'arrow-parens': 'off',
+    'no-trailing-spaces': 'warn',
     'require-jsdoc': [
       'warn',
       {

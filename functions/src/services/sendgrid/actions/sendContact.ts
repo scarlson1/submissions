@@ -28,7 +28,7 @@ export async function sendContact(sgKey: string, args: SendContactProps) {
     });
 
     const to = ['spencer@s-carlson.com'];
-    if (audience.value() !== 'LOCAL HUMANS') to.push('roreply@s-carlson.com');
+    if (audience.value() !== 'LOCAL HUMANS') to.push('noreply@s-carlson.com');
     // TODO: optional cc emails
     await sgMail.send({
       html,

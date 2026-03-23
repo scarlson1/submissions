@@ -10,14 +10,14 @@ import fs from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import {
-  ValueByRiskType,
   audience,
   getReportErrorFn,
   printObj,
-  sendgridApiKey,
+  resendKey,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
+  ValueByRiskType,
 } from '../common/index.js';
 import { extractSRAALs } from '../modules/rating/getAALs.js';
 import { getPremium } from '../modules/rating/index.js';
@@ -71,12 +71,12 @@ type CalcPremResult = TRowWithAAL & FlattenedPremData;
 const calcPrem = (data: TRowWithAAL[]) => {
   const result: CalcPremResult[] = [];
 
-  for (let r of data) {
+  for (const r of data) {
     try {
       console.log('r: ');
       printObj(r);
       if (r.inland === -1) {
-        let msg = r.skip ? 'skip row' : r.errMsg || 'missing aals';
+        const msg = r.skip ? 'skip row' : r.errMsg || 'missing aals';
         throw new Error(msg);
       }
       const getPremProps = getPremCalcVars(r);
@@ -307,14 +307,14 @@ async function getPremiumForChunk(chunk: TransformedRatePortfolioRow[]) {
  */
 async function splitAndRate(data: TransformedRatePortfolioRow[]) {
   let ratedArray: (CalcPremResult | GetAALsRes)[] = [];
-  let chunkSize = chunkCount.value() || 100;
-  let chunks: TransformedRatePortfolioRow[][] =
+  const chunkSize = chunkCount.value() || 100;
+  const chunks: TransformedRatePortfolioRow[][] =
     data.length > chunkSize ? splitChunks(data, chunkSize) : [data];
   // Add an extra array for retries
   chunks.push([]);
   let currChunk = 1;
 
-  for (let chunk of chunks) {
+  for (const chunk of chunks) {
     // retry array might be empty
     if (chunk.length) {
       const { ratedChunk, errorRows } = await getPremiumForChunk(chunk);
@@ -379,7 +379,7 @@ export default async (event: StorageEvent) => {
     !swissReInstance.defaults.headers.common.Authorization ||
     shouldGenerateNewToken
   ) {
-    let accessToken = await generateSRAccessToken(clientId, clientSecret);
+    const accessToken = await generateSRAccessToken(clientId, clientSecret);
     swissReInstance.defaults.headers.common['Authorization'] =
       `Bearer ${accessToken}`;
     swissReInstanceTimestamp = new Date().getTime();
@@ -424,7 +424,7 @@ export default async (event: StorageEvent) => {
       .setMetadata({ metadata: { status: 'processed' } });
 
     try {
-      await notifyAdmin(sendgridApiKey.value(), storageFile, fileName);
+      await notifyAdmin(resendKey.value(), storageFile, fileName);
     } catch (err: any) {
       error('Error generating file link and sending admin notification', {
         errMsg: err?.message || null,
@@ -460,7 +460,7 @@ async function notifyAdmin(
   });
 
   const to = ['spencer@s-carlson.com'];
-  if (audience.value() === 'PROD HUMANS') to.push('roreply@s-carlson.com');
+  if (audience.value() === 'PROD HUMANS') to.push('noreply@s-carlson.com');
 
   const msgBody = `<div>
       <p>

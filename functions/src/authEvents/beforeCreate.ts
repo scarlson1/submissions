@@ -13,7 +13,7 @@ import {
   iDemandOrgId,
   invitesCollection,
   orgsCollection,
-  sendgridApiKey,
+  resendKey,
   userClaimsCollection,
   usersCollection,
 } from '../common/index.js';
@@ -31,7 +31,10 @@ export default async (event: AuthBlockingEvent) => {
   info(`CREATE USER (UID: ${user.uid} | TENANT ID: ${user.tenantId})`, user);
 
   if (!user.email) {
-    throw new HttpsError('failed-precondition', 'email required to create a new account');
+    throw new HttpsError(
+      'failed-precondition',
+      'email required to create a new account',
+    );
   }
 
   // check if user attempted to create account without tenant aware auth
@@ -51,7 +54,7 @@ export default async (event: AuthBlockingEvent) => {
       if (invite && invite?.orgId !== iDemandOrgId.value()) {
         try {
           const to = invite.email;
-          const sgKey = sendgridApiKey.value();
+          const sgKey = resendKey.value();
           const link = invite.getLink();
           info(`Invite found matching ${user.email}. Resending link.`, {
             ...invite,
@@ -61,10 +64,10 @@ export default async (event: AuthBlockingEvent) => {
             link,
             to,
             invite.firstName ?? invite.displayName,
-            invite.invitedBy?.name || ''
+            invite.invitedBy?.name || '',
           );
         } catch (err: any) {
-          warn(`Error resending invite email`, {
+          warn('Error resending invite email', {
             errMsg: err?.message,
             email: invite.email,
             link: invite.getLink(),
@@ -75,7 +78,7 @@ export default async (event: AuthBlockingEvent) => {
         throw new HttpsError(
           'failed-precondition',
           `Email matched invite from ${invite?.orgName} (ID: ${invite?.orgId}). Add orgId to end of auth url to accept (/auth/create-account/{orgId})`,
-          { matchedInviteOrgId: invite?.orgId }
+          { matchedInviteOrgId: invite?.orgId },
         );
       }
     }
@@ -86,9 +89,13 @@ export default async (event: AuthBlockingEvent) => {
     info(`Checking domain restriction settings for tenant ${tenantId}`);
     const tenantSnap = await orgsCollection(db).doc(tenantId).get();
     if (!tenantSnap.exists) {
-      throw new HttpsError('not-found', `tenant doc not found (ID: ${tenantId})`, {
-        providedTenantId: tenantId,
-      });
+      throw new HttpsError(
+        'not-found',
+        `tenant doc not found (ID: ${tenantId})`,
+        {
+          providedTenantId: tenantId,
+        },
+      );
     }
     // TODO: check if setting enabled to force domain restrictions ??
     const enforceRestriction = tenantSnap.data()?.enforceDomainRestriction;
@@ -104,11 +111,17 @@ export default async (event: AuthBlockingEvent) => {
     if (!!enforceRestriction && Array.isArray(tenantDomains)) {
       if (
         !user.email ||
-        !tenantDomains.some((allowableDomain) => user.email?.endsWith(allowableDomain))
+        !tenantDomains.some((allowableDomain) =>
+          user.email?.endsWith(allowableDomain),
+        )
       ) {
-        throw new HttpsError('invalid-argument', `Unauthorized email "${user.email}"`, {
-          providedTenantId: tenantId,
-        });
+        throw new HttpsError(
+          'invalid-argument',
+          `Unauthorized email "${user.email}"`,
+          {
+            providedTenantId: tenantId,
+          },
+        );
       }
     }
     // if (
@@ -122,7 +135,9 @@ export default async (event: AuthBlockingEvent) => {
     // }
 
     info(`Fetching invite for ${user.email} under tenant ${tenantId}`);
-    const invitesSnap = await invitesCollection(db, tenantId).doc(user.email).get();
+    const invitesSnap = await invitesCollection(db, tenantId)
+      .doc(user.email)
+      .get();
     if (!invitesSnap.exists) {
       warn(`INVITE NOT FOUND FOR ${user.email} (tenant ID: ${tenantId})`);
       throw new HttpsError(
@@ -130,14 +145,16 @@ export default async (event: AuthBlockingEvent) => {
         `Invitation required. No invite found for email ${user.email} under org ID ${tenantId}`,
         {
           providedTenantId: tenantId,
-        }
+        },
       );
     }
   }
 
   // Verify user doc does not already exist with email = user.email
   info(`verifying user doc does not exist with email ${user.email}...`);
-  const userSnap = await usersCollection(db).where('email', '==', user.email).get();
+  const userSnap = await usersCollection(db)
+    .where('email', '==', user.email)
+    .get();
   if (!userSnap.empty) {
     warn(`USER ALREADY EXISTS WITH EMAIL: ${user.email}`);
 
@@ -148,12 +165,13 @@ export default async (event: AuthBlockingEvent) => {
     let errMsg = `Account with email ${user.email} already exists`;
     if (tenantId) {
       // send email with link to sign in and link account
-      let u = await getAuth().getUserByEmail(user.email);
-      if (!u || !u.email) throw new Error(`No user found with email ${user.email}`);
+      const u = await getAuth().getUserByEmail(user.email);
+      if (!u || !u.email)
+        throw new Error(`No user found with email ${user.email}`);
       try {
         await sendMoveToTenantEmail(
           emailVerificationKey.value(),
-          sendgridApiKey.value(),
+          resendKey.value(),
           u.uid, // user.uid,// BUG --> need to use userId from user that already exists
           user.email,
           tenantId,
@@ -164,9 +182,9 @@ export default async (event: AuthBlockingEvent) => {
               firebaseEventId: event.eventId,
               emailType: 'move_to_tenant_verification',
             },
-          }
+          },
         );
-        errMsg += `. click link in email to move account to new org.`;
+        errMsg += '. click link in email to move account to new org.';
       } catch (err: any) {
         error('Error sending move user to tenant email', { err });
       }
@@ -177,7 +195,10 @@ export default async (event: AuthBlockingEvent) => {
 
   // use invite to set permissions ??
   // TODO: delete ?? using invites & userClaims collections
-  if (user.email && user.email?.toLowerCase().endsWith('@idemandinsurance.com')) {
+  if (
+    user.email &&
+    user.email?.toLowerCase().endsWith('@idemandinsurance.com')
+  ) {
     const claimsColRef = userClaimsCollection(db, iDemandOrgId.value());
     try {
       await claimsColRef.doc(user.uid).set({
@@ -207,18 +228,23 @@ async function sendMoveToTenantEmail(
   toTenantId: string | null,
   fromTenantId: string | null,
   displayName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) {
   if (!email) throw new HttpsError('failed-precondition', 'missing email');
 
-  const payload: MoveTenantJwtPayload = { uid, toTenantId, fromTenantId, email };
+  const payload: MoveTenantJwtPayload = {
+    uid,
+    toTenantId,
+    fromTenantId,
+    email,
+  };
 
   const token = jwt.sign(
     {
       data: payload,
     },
     verificationKey,
-    { expiresIn: '10m' }
+    { expiresIn: '10m' },
   );
 
   // TODO: use hosting rewrites so v2 functions can be used
@@ -227,7 +253,14 @@ async function sendMoveToTenantEmail(
 
   info(`move tenant verification link: ${link}`);
 
-  await moveTenantVerification(sgKey, email, link, displayName || '', undefined, sgArgs);
+  await moveTenantVerification(
+    sgKey,
+    email,
+    link,
+    displayName || '',
+    undefined,
+    sgArgs,
+  );
 
   info(`move user to tenant confirmation email sent to ${email}`);
 }

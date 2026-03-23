@@ -1,5 +1,5 @@
 import { Collection } from '@idemand/common';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { StorageEvent } from 'firebase-functions/v2/storage';
@@ -7,19 +7,19 @@ import { createReadStream } from 'fs';
 import { tmpdir } from 'os';
 import { basename, join } from 'path';
 import {
-  StagedTransactionImport,
-  Transaction,
   audience,
   getReportErrorFn,
   hostingBaseURL,
   importSummaryCollection,
-  sendgridApiKey,
+  resendKey,
   stagedImportsCollection,
+  StagedTransactionImport,
+  Transaction,
 } from '../common/index.js';
 import {
-  ParseStreamToArrayRes,
   eventOlderThan,
   parseStreamToArray,
+  ParseStreamToArrayRes,
   shouldReturnEarly,
   transformHeadersCamelCase,
 } from '../modules/storage/index.js';
@@ -140,7 +140,7 @@ export default async (event: StorageEvent) => {
     });
     info(`Saved import summary to doc ${importSummaryRef.id}`);
   } catch (err: any) {
-    reportErr(`Error saving import summary`, { filename }, err);
+    reportErr('Error saving import summary', { filename }, err);
   }
 
   try {
@@ -148,12 +148,12 @@ export default async (event: StorageEvent) => {
     let link;
 
     if (audience.value() !== 'LOCAL HUMANS') {
-      to.push('roreply@s-carlson.com');
+      to.push('noreply@s-carlson.com');
       link = `${hostingBaseURL.value}/admin/config/imports/${importSummaryRef.id}`;
     }
 
     await sendAdminPolicyImportNotification(
-      sendgridApiKey.value(),
+      resendKey.value(),
       to,
       trxIds.length,
       importErrors.length,

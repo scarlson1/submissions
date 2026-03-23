@@ -2,18 +2,18 @@
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { sendgridApiKey } from '../common/index.js';
+import { resendKey } from '../common/index.js';
 import {
-  SendAgencyApprovedProps,
-  SendContactProps,
-  SendInviteProps,
-  SendNewQuoteProps,
-  SendPolicyDeliveryProps,
   sendAgencyApproved,
+  SendAgencyApprovedProps,
   sendContact,
+  SendContactProps,
   sendInvite,
+  SendInviteProps,
   sendNewQuote,
+  SendNewQuoteProps,
   sendPolicyDelivery,
+  SendPolicyDeliveryProps,
 } from '../services/sendgrid/actions/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims, validate } from './utils/index.js';
@@ -34,12 +34,16 @@ const sendEmail = async ({ data, auth }: CallableRequest<SendEmailProps>) => {
   validate(to, 'failed-precondition', 'missing "to" (recipients)');
   validate(templateId, 'failed-precondition', 'missing templateId');
 
-  const sgKey = sendgridApiKey.value();
+  const sgKey = resendKey.value();
 
   switch (data.templateId) {
     case 'contact':
       // @ts-ignore
-      validate(data.userEmail && data.body, 'failed-precondition', 'missing email or body');
+      validate(
+        data.userEmail && data.body,
+        'failed-precondition',
+        'missing email or body',
+      );
 
       return sendContact(sgKey, {
         ...data,

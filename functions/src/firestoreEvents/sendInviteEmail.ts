@@ -6,7 +6,7 @@ import {
 } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { audience, sendgridApiKey } from '../common/index.js';
+import { audience, resendKey } from '../common/index.js';
 import { sendUserInvite } from '../services/sendgrid/index.js';
 
 export default async (
@@ -48,13 +48,13 @@ export default async (
     return { status: 'Create Org Invite. Email not sent' };
   }
 
-  let to = [data.email];
+  const to = [data.email];
   if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS')
     to.push('spencer@s-carlson.com');
 
   try {
     await sendUserInvite(
-      sendgridApiKey.value(),
+      resendKey.value(),
       link,
       to,
       firstName ?? displayName,

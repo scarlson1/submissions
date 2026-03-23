@@ -15,17 +15,17 @@ export default async (
     {
       submissionId: string;
     }
-  >
+  >,
 ) => {
   try {
-    info(`new submission detected`);
+    info('new submission detected');
     await publishGetLocationImages({
       collection: Collection.enum.submissions,
       docPath: event.params.submissionId,
       locationPath: [],
     });
-  } catch (err: any) {
-    reportErr(`Error emitted getLocationImage publisher`, { ...event }, err);
+  } catch (err: unknown) {
+    reportErr('Error emitted getLocationImage publisher', { ...event }, err);
   }
 };
 

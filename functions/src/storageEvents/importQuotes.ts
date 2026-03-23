@@ -1,5 +1,5 @@
 import { Collection, Quote } from '@idemand/common';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { StorageEvent } from 'firebase-functions/v2/storage';
@@ -7,20 +7,20 @@ import { createReadStream } from 'fs';
 import { tmpdir } from 'os';
 import { basename, join } from 'path';
 import {
-  StagedQuoteImport,
   audience,
   getCardFee,
   hostingBaseURL,
   importSummaryCollection,
-  sendgridApiKey,
+  resendKey,
   stagedImportsCollection,
+  StagedQuoteImport,
 } from '../common/index.js';
 import { createRatingDoc, fetchTaxes } from '../modules/db/index.js';
 import { getRCVs, sumFeesTaxesPremium } from '../modules/rating/index.js';
 import { eventOlderThan, shouldReturnEarly } from '../modules/storage/index.js';
 import {
-  ParseStreamToArrayRes,
   parseStreamToArray,
+  ParseStreamToArrayRes,
   transformHeadersCamelCase,
 } from '../modules/storage/parseStreamToArray.js';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js';
@@ -80,7 +80,7 @@ export default async (event: StorageEvent) => {
 
     await unlinkFile(tempFilePath);
   } catch (err: any) {
-    error(`ERROR PARSING CSV. RETURNING EARLY`, { err });
+    error('ERROR PARSING CSV. RETURNING EARLY', { err });
 
     await unlinkFile(tempFilePath);
     // TODO: report error to sentry or send email to admin
@@ -128,7 +128,7 @@ export default async (event: StorageEvent) => {
         quoteTotal,
         cardFee,
       };
-      info(`Saving new quote`, quote);
+      info('Saving new quote', quote);
 
       // const quoteRef = await quoteColRef.add(quote);
 
@@ -172,12 +172,12 @@ export default async (event: StorageEvent) => {
     let link;
 
     if (audience.value() !== 'LOCAL HUMANS') {
-      to.push('roreply@s-carlson.com');
+      to.push('noreply@s-carlson.com');
       link = `${hostingBaseURL.value}/admin/config/imports`;
     }
 
     await sendAdminPolicyImportNotification(
-      sendgridApiKey.value(),
+      resendKey.value(),
       to,
       quoteIds.length,
       importErrors.length,

@@ -7,7 +7,7 @@
     "client:dev": "cd client && pnpm start:emulators",
     "client:live": "cd client && pnpm start",
     "functions:build": "cd functions && pnpm build:watch",
-    "emulators:dev": "firebase emulators:start --only functions,auth,firestore,storage,pubsub --import ./emulator-data",
+    "emulators:dev": "firebase emulators:start --only functions,auth,firestore,storage,pubsub,eventarc --import ./emulator-data",
     "emulators:save": "firebase emulators:export ./emulator-data",
     "use:dev": "firebase use dev",
     "use:prod": "firebase use prod",
