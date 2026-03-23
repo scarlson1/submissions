@@ -181,7 +181,7 @@ export default async (
       // });
       await client.collections(typesenseColName).documents().upsert(records[0]);
 
-      info('ALGOLIA LOCATION DOC UPDATED');
+      info('TYPESENSE LOCATION DOC UPDATED');
     } catch (err: any) {
       reportErr('Error syncing location record in Algolia', { docId }, err);
     }

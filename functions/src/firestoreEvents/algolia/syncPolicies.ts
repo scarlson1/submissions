@@ -16,12 +16,12 @@ export async function removeTypesenseRecord(index: string, id: string) {
     // const res = await index.deleteObject(id);
     const client = getTypesenseClient();
     await client.collections(index).documents(id).delete();
-    info('ALGOLIA - SUCCESSFULLY DELETED RECORD', {
+    info('TYPESENSE - SUCCESSFULLY DELETED RECORD', {
       index,
       id,
     });
   } catch (err: unknown) {
-    error(`ERROR DELETING RECORD FROM ALGOLIA INDEX (ID: ${id})`, {
+    error(`ERROR DELETING RECORD FROM TYPESENSE INDEX (ID: ${id})`, {
       id,
       err,
     });
@@ -139,7 +139,7 @@ export default async (
         },
       ];
 
-      info(`SAVING POLICY CHANGE TO ALGOLIA INDEX ${docId}`, {
+      info(`SAVING POLICY CHANGE TO TYPESENSE INDEX ${docId}`, {
         locationCount: locations.length,
         ...records,
       });
@@ -149,9 +149,9 @@ export default async (
       // });
       await client.collections(typesenseColName).documents().upsert(records[0]);
 
-      info('ALGOLIA DOC UPDATED [policies]');
+      info('TYPESENSE DOC UPDATED [policies]');
     } catch (err: any) {
-      error(`ERROR UPDATING ALGOLIA POLICY ${docId}`, { ...err });
+      error(`ERROR UPDATING TYPESENSE POLICY ${docId}`, { ...err });
       // TODO: report to sentry ??
       // TODO: check error code --> rethrow if 50X error ?? handle idempotency
     }

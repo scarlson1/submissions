@@ -40,13 +40,13 @@ export default async (
   const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.users}`;
   if (!newValue) {
     try {
-      info(`DELETING DOC ${docId} FROM ALGOLIA USERS INDEX`);
+      info(`DELETING DOC ${docId} FROM TYPESENSE USERS INDEX`);
       // const res = await index.deleteObject(docId);
       await removeTypesenseRecord(typesenseColName, docId);
       info(`SUCCESSFULLY DELETED ${docId} FROM USERS INDEX`);
       return;
     } catch (err) {
-      error('ERROR DELETING USER FROM ALGOLIA USERS INDEX: ', err);
+      error('ERROR DELETING USER FROM TYPESENSE USERS INDEX: ', err);
     }
   } else {
     try {
@@ -96,14 +96,14 @@ export default async (
           lng: newValue.coordinates.longitude,
         };
       }
-      info(`SAVING USER CHANGE TO ALGOLIA INDEX ${docId}...`);
+      info(`SAVING USER CHANGE TO TYPESENSE INDEX ${docId}...`);
 
       // const { objectIDs } = await index.saveObjects(records);
       await client.collections(typesenseColName).documents().upsert(records[0]);
 
-      info('ALGOLIA DOC UPDATED ');
+      info('TYPESENSE DOC UPDATED ');
     } catch (err: unknown) {
-      error(`ERROR UPDATING USER IN ALGOLIA INDEX (${docId})`, err);
+      error(`ERROR UPDATING USER IN TYPESENSE INDEX (${docId})`, err);
       // TODO: report to sentry ??
     }
   }

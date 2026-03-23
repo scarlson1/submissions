@@ -40,13 +40,15 @@ export default async (
   const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.submissions}`;
   if (!newValue) {
     try {
-      info(`DELETING DOC ${docId} FROM ALGOLIA SUBMISSIONS INDEX...`);
+      info(`DELETING DOC ${docId} FROM TYPESENSE SUBMISSIONS INDEX...`);
       // const res = await index.deleteObject(docId);
       await removeTypesenseRecord(typesenseColName, docId);
       info(`SUCCESSFULLY DELETED ${docId} FROM SUBMISSIONS INDEX`);
       return;
     } catch (err: any) {
-      error('ERROR DELETING USER FROM ALGOLIA SUBMISSIONS INDEX: ', { ...err });
+      error('ERROR DELETING USER FROM TYPESENSE SUBMISSIONS INDEX: ', {
+        ...err,
+      });
     }
   } else {
     try {
@@ -91,16 +93,16 @@ export default async (
       //     lng: newValue.coordinates.longitude,
       //   };
       // }
-      info(`SAVING SUBMISSION CHANGE TO ALGOLIA INDEX ${docId}...`);
+      info(`SAVING SUBMISSION CHANGE TO TYPESENSE INDEX ${docId}...`);
 
       // const { objectIDs } = await index.saveObjects(records, {
       //   autoGenerateObjectIDIfNotExist: false,
       // });
       await client.collections(typesenseColName).documents().upsert(records[0]);
 
-      info('ALGOLIA DOC UPDATED');
+      info('TYPESENSE DOC UPDATED');
     } catch (err: unknown) {
-      error('ERROR SAVING SUBMISSION UPDATES TO ALGOLIA INDEX', err);
+      error('ERROR SAVING SUBMISSION UPDATES TO TYPESENSE INDEX', err);
       // TODO: report to sentry ??
     }
   }

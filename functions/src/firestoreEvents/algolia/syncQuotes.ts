@@ -39,14 +39,14 @@ export default async (
   const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.quotes}`;
   if (!newValue) {
     try {
-      info(`DELETING DOC ${docId} FROM ALGOLIA QUOTES INDEX`);
+      info(`DELETING DOC ${docId} FROM TYPESENSE QUOTES INDEX`);
       // const res = await index.deleteObject(docId);
       await removeTypesenseRecord(typesenseColName, docId);
 
       info(`SUCCESSFULLY DELETED ${docId} FROM QUOTES INDEX`);
       return;
     } catch (err: any) {
-      error('ERROR DELETING USER FROM ALGOLIA QUOTES INDEX: ', { ...err });
+      error('ERROR DELETING USER FROM TYPESENSE QUOTES INDEX: ', { ...err });
     }
   } else {
     try {
@@ -106,9 +106,9 @@ export default async (
       //   autoGenerateObjectIDIfNotExist: false,
       // });
       await client.collections(typesenseColName).documents().upsert(records[0]);
-      info('ALGOLIA DOC UPDATED [quotes]');
+      info('TYPESENSE DOC UPDATED [quotes]');
     } catch (err: any) {
-      error(`ERROR SAVING QUOTE TO ALGOLIA INDEX (${docId})`, { ...err });
+      error(`ERROR SAVING QUOTE TO TYPESENSE INDEX (${docId})`, { ...err });
       // TODO: report to sentry ??
     }
   }

@@ -10,7 +10,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { ReactNode, forwardRef, useMemo, useState } from 'react';
+import { forwardRef, ReactNode, useMemo, useState } from 'react';
 
 import { CloseRounded } from '@mui/icons-material';
 import { DownloadFilesSVG } from 'assets/images';
@@ -19,7 +19,7 @@ import { LineItem } from 'components';
 import { FormattedAddress } from 'elements';
 import { Item } from 'elements/cards';
 import StripeReceivableCheckout from 'elements/forms/StripeReceivableCheckout';
-import { useDocData, useDownloadStream, useSafeParams, useWidth } from 'hooks';
+import { useDocData, useDownloadStream, useSafeParams } from 'hooks';
 import {
   compressedToAddress,
   dollarFormat,
@@ -35,7 +35,7 @@ import {
 // TODO: on success --> redirect back to receivables for policy
 
 export const ReceivableCheckout = () => {
-  const { isSmall } = useWidth();
+  // const { isSmall } = useWidth();
   const { receivableId } = useSafeParams(['receivableId']);
   const { data } = useDocData<Receivable>('receivables', receivableId);
   if (!data) throw new Error(`Receivable not found ${receivableId}`);
@@ -50,7 +50,13 @@ export const ReceivableCheckout = () => {
     <Box sx={{ display: 'flex', height: '100%' }}>
       <Box sx={{ flex: '1 1 auto', p: { xs: 3, sm: 5, md: 8 } }}>
         <Container disableGutters maxWidth='sm'>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <Box>
               <Typography
                 variant='body2'
@@ -160,12 +166,15 @@ function ReceivableDetails({ data }: { data: WithId<Receivable> }) {
   const locationCount = useMemo(
     () =>
       Object.values(policy.locations || {}).filter(
-        (lcn) => !lcn.cancelEffDate || lcn.cancelEffDate.toMillis() > currentMS
+        (lcn) => !lcn.cancelEffDate || lcn.cancelEffDate.toMillis() > currentMS,
       ).length,
-    [policy]
+    [policy],
   );
 
-  const billingEntityLcnCount = useMemo(() => Object.keys(data.locations).length, [data]);
+  const billingEntityLcnCount = useMemo(
+    () => Object.keys(data.locations).length,
+    [data],
+  );
 
   return (
     <Box>
@@ -179,10 +188,13 @@ function ReceivableDetails({ data }: { data: WithId<Receivable> }) {
           label='Effective'
           value={`${formatFirestoreTimestamp(
             policy.effectiveDate,
-            'date'
+            'date',
           )} - ${formatFirestoreTimestamp(policy.effectiveDate, 'date')}`}
         />
-        <Item label='Total # locations' value={locationCount ? `${locationCount}` : '--'} />
+        <Item
+          label='Total # locations'
+          value={locationCount ? `${locationCount}` : '--'}
+        />
         {/* <Item label="Term premium" value={data.} /> */}
       </Box>
       <Divider sx={{ my: { xs: 3, sm: 4, md: 5 } }} />
@@ -190,37 +202,61 @@ function ReceivableDetails({ data }: { data: WithId<Receivable> }) {
         <Typography variant='overline' color='text.tertiary' sx={{ py: 5 }}>
           Billing Entity
         </Typography>
-        <Item label='Name' value={data.billingEntityDetails?.name || 'Not saved'} />
-        <Item label='Email' value={data.billingEntityDetails?.email || 'Not saved'} />
+        <Item
+          label='Name'
+          value={data.billingEntityDetails?.name || 'Not saved'}
+        />
+        <Item
+          label='Email'
+          value={data.billingEntityDetails?.email || 'Not saved'}
+        />
         <Item
           label='Phone'
-          value={formatPhoneNumber(data.billingEntityDetails?.phone || '') || 'Not saved'}
+          value={
+            formatPhoneNumber(data.billingEntityDetails?.phone || '') ||
+            'Not saved'
+          }
         />
         {/* <Item label="Term premium" value={data.} /> */}
       </Box>
       {/* TODO: get line items from actual invoice instead of receivable ?? */}
       <Box sx={{ pb: 4 }}>
         {data.lineItems.map((l, i) => (
-          <LineItem label={l.displayName} value={l.amount / 100} key={`${l.displayName}-${i}`} />
+          <LineItem
+            label={l.displayName}
+            value={l.amount / 100}
+            key={`${l.displayName}-${i}`}
+          />
         ))}
         <LineItem label='Total Due' value={data.totalAmount / 100} />
       </Box>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Typography variant='overline' color='text.tertiary'>
           Locations
         </Typography>
         {/* TODO: billing entity locations different from policy */}
-        <Typography variant='body2' color='text.tertiary' fontSize='0.825rem'>{`${
-          billingEntityLcnCount || '--'
-        } location(s)`}</Typography>
+        <Typography
+          variant='body2'
+          color='text.tertiary'
+          fontSize='0.825rem'
+        >{`${billingEntityLcnCount || '--'} location(s)`}</Typography>
       </Box>
       {/* TODO: location cards virtual scroll ?? or infinite scroll ?? */}
       {/* could use live static map (no view changes) use cords instead of fetching doc */}
       {/* or single map with all location pins ?? */}
       <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
         {Object.entries(data.locations || {}).map(([lcnId, lcn]) => (
-          <Box sx={{ py: 2, display: 'flex', justifyContent: 'space-between' }} key={lcnId}>
+          <Box
+            sx={{ py: 2, display: 'flex', justifyContent: 'space-between' }}
+            key={lcnId}
+          >
             <FormattedAddress
               address={compressedToAddress(lcn.address)}
               line2OverrideProps={{ color: 'text.secondary', variant: 'body2' }}
@@ -237,7 +273,7 @@ function ReceivableDetails({ data }: { data: WithId<Receivable> }) {
 
 const DownloadPDF = forwardRef(function DownloadPDF(
   { filename, endpoint, ...props }: { filename: string; endpoint: string },
-  ref
+  ref,
 ) {
   const { downloadFile } = useDownloadStream('get');
 
@@ -272,7 +308,11 @@ const DownloadPDF = forwardRef(function DownloadPDF(
         },
       }}
     >
-      <DownloadFilesSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' />
+      <DownloadFilesSVG
+        height='100%'
+        width='100%'
+        preserveAspectRatio='xMidYMin meet'
+      />
     </Box>
   );
 });

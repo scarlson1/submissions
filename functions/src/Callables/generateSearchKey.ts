@@ -153,7 +153,7 @@ export default onCallWrapper('generatesearchkey', generateSearchKey);
 //     );
 
 //     info(
-//       `RETURNING ADMIN ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
+//       `RETURNING ADMIN TYPESENSE SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
 //     );
 //     return {
 //       key: iDemandAdminSearchKey,
@@ -190,7 +190,7 @@ export default onCallWrapper('generatesearchkey', generateSearchKey);
 //     });
 
 //     info(
-//       `RETURNING ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
+//       `RETURNING TYPESENSE SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
 //       {
 //         ...keyConfig,
 //         filters,

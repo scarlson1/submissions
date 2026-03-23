@@ -48,8 +48,7 @@ import {
 
 const reportErr = getReportErrorFn('stripe');
 
-const endpointSecret =
-  'whsec_ac4f0585f7511a2616f0750393299ffdddab9f7275dfd743786982df5e9cc9eb';
+const endpointSecret = 'whsec_d6eBMzIgp3SUP1IUGxTPOEXP7yRSujlB';
 
 const app = express();
 
@@ -81,7 +80,7 @@ app.post(
           { eventType: event?.type, data: event?.data?.object || {} },
           err,
         );
-        res.sendStatus(400).send({});
+        res.status(400).send({});
         return;
       }
     }

@@ -158,7 +158,7 @@ export default async (event: StorageEvent) => {
 
   try {
     await importSummaryRef.set({
-      targetCollection: Collection.enum.policies,
+      targetCollection: Collection.enum.quotes,
       importDocIds: quoteIds,
       docCreationErrors: importErrors,
       invalidRows,

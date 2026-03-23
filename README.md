@@ -293,6 +293,8 @@ If _@idemandinsurance.com_ and email is not verified, creates a JWT signed with 
 
 ![quote review](docs/quote-review.png)
 
+![stripe invoice](docs/stripe-invoice.png)
+
 ![submissions cards](docs/submissions-cards.png)
 
 ![submissions grid](docs/submissions-grid.png)

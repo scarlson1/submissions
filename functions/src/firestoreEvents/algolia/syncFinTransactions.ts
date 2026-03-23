@@ -51,14 +51,14 @@ export default async (
   const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.financialTransactions}`;
   if (!newValue) {
     try {
-      info(`DELETING DOC ${docId} FROM ALGOLIA FIN TRANSACTIONS INDEX`);
+      info(`DELETING DOC ${docId} FROM TYPESENSE FIN TRANSACTIONS INDEX`);
       // const res = await index.deleteObject(docId);
       await client.collections(typesenseColName).documents(docId).delete();
 
       info(`SUCCESSFULLY DELETED ${docId} FROM FIN TRANSACTIONS INDEX`);
       return;
     } catch (err) {
-      error('ERROR DELETING USER FROM ALGOLIA FIN TRANSACTIONS INDEX: ', err);
+      error('ERROR DELETING USER FROM TYPESENSE FIN TRANSACTIONS INDEX: ', err);
     }
   } else {
     try {
@@ -97,7 +97,7 @@ export default async (
       //   autoGenerateObjectIDIfNotExist: false,
       // });
 
-      info(`ALGOLIA DOC UPDATED (${docId})`);
+      info(`TYPESENSE DOC UPDATED (${docId})`);
     } catch (err: unknown) {
       error('ERROR: ', { err });
       // TODO: report to sentry ??

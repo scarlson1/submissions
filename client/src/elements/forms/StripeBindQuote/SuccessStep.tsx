@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckmarkLottie } from 'assets';
 import { Policy, Receivable } from 'common';
 import { useCollectionData, useDocData } from 'hooks';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 // show success messaging with billing info
 // show receivables once loaded
@@ -35,25 +35,51 @@ export const SuccessStep = ({ policyId }: { policyId: string }) => {
 
   // TODO: sticky button at bottom to continue to receivables view ?? (make wizard button sticky ?? don't use wizard buttons - don't want back button)
   return (
-    <Container maxWidth='sm' disableGutters sx={{ py: { xs: 3, md: 5, lg: 8 } }}>
+    <Container
+      maxWidth='sm'
+      disableGutters
+      sx={{ py: { xs: 3, md: 5, lg: 8 } }}
+    >
       {/* TODO: receivables (use collapse or react spring so they enter gradually) */}
       <Card>
         <CardContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+              }}
+            >
               <Box>
-                <Typography variant='overline' color='text.secondary' sx={{ lineHeight: 1.4 }}>
+                <Typography
+                  variant='overline'
+                  color='text.secondary'
+                  sx={{ lineHeight: 1.4 }}
+                >
                   Policy ID
                 </Typography>
                 {/* TODO: don't use paymentStatus ?? too complicated if multiple billing entities */}
                 <Typography variant='subtitle2'>{data.id}</Typography>
               </Box>
               <Box>
-                <Typography variant='overline' color='text.secondary' sx={{ lineHeight: 1.4 }}>
+                <Typography
+                  variant='overline'
+                  color='text.secondary'
+                  sx={{ lineHeight: 1.4 }}
+                >
                   Payment Status
                 </Typography>
                 {/* TODO: don't use paymentStatus ?? too complicated if multiple billing entities */}
-                <Typography variant='subtitle2'>{data.paymentStatus}</Typography>
+                <Typography variant='subtitle2'>
+                  {data.paymentStatus}
+                </Typography>
               </Box>
             </Box>
             <Divider flexItem sx={{ my: 3 }} />
@@ -65,12 +91,24 @@ export const SuccessStep = ({ policyId }: { policyId: string }) => {
             <Typography variant='h5' gutterBottom>
               Policy Bound!
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ p: 2 }} gutterBottom>
-              Congratulations! Your policy has been bound. We're excited to have you with us.
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ p: 2 }}
+              gutterBottom
+            >
+              Congratulations! Your policy has been bound. We're excited to have
+              you with us.
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ p: 2 }} gutterBottom>
-              Invoice(s) have been emailed to the provided billing email addresses. You may also
-              complete the payment using the links below.
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ p: 2 }}
+              gutterBottom
+            >
+              Invoice(s) have been emailed to the provided billing email
+              addresses. You may also complete the payment using the links below
+              (it may take a moment to create the payment).
             </Typography>
           </Box>
         </CardContent>
@@ -82,11 +120,19 @@ export const SuccessStep = ({ policyId }: { policyId: string }) => {
         >
           {/* TODO: don't display until invoice created ?? */}
           <Button
-            onClick={() => navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }))}
+            onClick={() =>
+              navigate(
+                createPath({ path: ROUTES.POLICY, params: { policyId } }),
+              )
+            }
           >
             Done
           </Button>
-          <Button onClick={() => navigate(`/admin/stripe-test/receivables/${policyId}`)}>
+          <Button
+            onClick={() =>
+              navigate(`/admin/stripe-test/receivables/${policyId}`)
+            }
+          >
             Payments
           </Button>
         </CardActions>
@@ -125,7 +171,7 @@ const ReceivablesList = ({ policyId }: ReceivablesListProps) => {
                         createPath({
                           path: ROUTES.PAYABLE_CHECKOUT,
                           params: { receivableId: r.id },
-                        })
+                        }),
                       )
                     }
                     variant='contained'
@@ -148,7 +194,11 @@ const ReceivablesList = ({ policyId }: ReceivablesListProps) => {
                     r.billingEntityDetails?.email ||
                     `Policy ${r.policyId}`
                   }
-                  secondary={r.invoiceNumber ? `Invoice #${r.invoiceNumber}` : `ID ${r.id}`}
+                  secondary={
+                    r.invoiceNumber
+                      ? `Invoice #${r.invoiceNumber}`
+                      : `ID ${r.id}`
+                  }
                 />
               </ListItem>
             ))}

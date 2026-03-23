@@ -651,6 +651,24 @@ pnpm ngrok # need to update ngrok url in package.json
 pnpm tailscale
 ```
 
+TODO: additional setup steps (stripe webhook, secret manager, etc.)
+
+Test stripe webhook events locally using CLI:
+
+```bash
+stripe login
+
+stripe listen --forward-to localhost:4242/webhook
+
+stripe trigger payment_intent.succeeded
+```
+
+```bash
+# forward existing webhook event subscriptions to local host
+stripe listen --load-from-webhooks-api --forward-to localhost:5001/<PROJECT_ID>/us-central1/stripe/webhook
+# cli will output signing secret --> update variable in functions/src/routes/stripe.ts
+```
+
 ## Current Architectural Seams
 
 Several seams are worth knowing before making changes:
