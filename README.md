@@ -235,3 +235,5 @@ If _@idemandinsurance.com_ and email is not verified, creates a JWT signed with 
 ![licenses](docs/licenses.png)
 
 ![add license](docs/add-license.png)
+
+![stripe connect](docs/account-stripe.png)

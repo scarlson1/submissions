@@ -1,4 +1,11 @@
-import { Box, Container, Paper, Typography, alpha, useTheme } from '@mui/material';
+import {
+  alpha,
+  Box,
+  Container,
+  Paper,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import { useUser } from 'reactfire';
 
 import { AccountNavTabsLayout } from 'components/layout';
@@ -17,17 +24,19 @@ export const AccountDetailsNew = () => {
           sx={{
             width: '100%',
             height: { xs: 80, sm: 100, md: 120, lg: 180 },
+            // backgroundImage:
+            // 'url(https://storage.cloud.google.com/idemand-dev.appspot.com/common/beach_sunset.jpg)',
             backgroundImage: (theme) =>
               theme.palette.mode === 'dark'
                 ? `linear-gradient(${alpha(theme.palette.primaryDark[700], 0.1)}, ${alpha(
                     theme.palette.primaryDark[700],
-                    0.8
+                    0.8,
                   )}),
-                url(https://firebasestorage.googleapis.com/v0/b/idemand-dev.appspot.com/o/common%2Fdock_sunset.jpg?alt=media&token=f2cdf2f3-3cf2-456d-80f3-83ce22e62622)`
+                url(https://storage.cloud.google.com/idemand-dev.appspot.com/common/dock_sunset.jpg)`
                 : `linear-gradient(${alpha(theme.palette.grey[100], 0.1)}, ${alpha(
                     theme.palette.common.white,
-                    0.9
-                  )}), url(https://firebasestorage.googleapis.com/v0/b/idemand-dev.appspot.com/o/common%2Fbeach_sunset.jpg?alt=media&token=4897fae0-8417-4c3f-8eab-f0ed7ec11cc2)`,
+                    0.9,
+                  )}), url(https://storage.cloud.google.com/idemand-dev.appspot.com/common/beach_sunset.jpg)`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             backgroundSize: 'cover',
