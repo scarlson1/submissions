@@ -19,9 +19,16 @@ export const createReceivableObject = async (
     subProducerCommPct: number;
     billingEntityLocations: Policy['locations'];
     dueDate: Timestamp;
-  }
+  },
 ): Promise<Receivable> => {
-  const { cusId, policyId, totals, subProducerCommPct, billingEntityLocations, dueDate } = params;
+  const {
+    cusId,
+    policyId,
+    totals,
+    subProducerCommPct,
+    billingEntityLocations,
+    dueDate,
+  } = params;
   const customer = await stripe.customers.retrieve(cusId);
   verify(!customer.deleted, `stripe customer deleted ${cusId}`);
 
@@ -67,7 +74,7 @@ export const createReceivableObject = async (
 // = { lineItems: [lineItem1, lineItem2], total: 1234 }
 // TODO: match stripe line items ??
 function billingEntityTotalsToLineItems(totals: Totals, policyId: string) {
-  let lineItems = [
+  const lineItems = [
     {
       displayName: 'iDemand Flood term premium',
       amount: toAmt(totals.termPremium), //  * 100,
@@ -75,7 +82,7 @@ function billingEntityTotalsToLineItems(totals: Totals, policyId: string) {
     },
   ];
 
-  for (let fee of totals.fees) {
+  for (const fee of totals.fees) {
     lineItems.push({
       displayName: fee.displayName,
       amount: toAmt(fee.value),
@@ -83,7 +90,7 @@ function billingEntityTotalsToLineItems(totals: Totals, policyId: string) {
     });
   }
 
-  for (let tax of totals.taxes) {
+  for (const tax of totals.taxes) {
     lineItems.push({
       displayName: tax.displayName,
       amount: toAmt(tax.value),
@@ -98,7 +105,7 @@ function billingEntityTotalsToLineItems(totals: Totals, policyId: string) {
 function getTransfersForNewPolicy(
   stripeAccountId: string,
   billingEntityTotals: Totals,
-  subProducerCommissionPct: number
+  subProducerCommissionPct: number,
 ) {
   return [
     {
@@ -113,17 +120,17 @@ function getReceivableAmounts(totals: Totals) {
   const refundableTaxesAmount = toAmt(
     sumBy(
       totals.taxes.filter((t) => t.refundable || t.refundable === undefined),
-      'value'
-    )
+      'value',
+    ),
   );
   const totalTaxesAmount = toAmt(sumBy(totals.taxes, 'value'));
-  const totalFeesAmount = toAmt(sumBy(totals.taxes, 'value'));
+  const totalFeesAmount = toAmt(sumBy(totals.fees, 'value'));
   const refundableFeesAmount = toAmt(
     sumBy(
       // @ts-ignore
       totals.fees.filter((f) => f.refundable || f.refundable === undefined),
-      'value'
-    )
+      'value',
+    ),
   );
   const termPremiumAmount = toAmt(totals.termPremium);
   const totalRefundableAmount =

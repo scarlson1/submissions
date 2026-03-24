@@ -1,4 +1,8 @@
-import { BillingEntity, quotesCollection } from '@idemand/common';
+import {
+  BillingEntity,
+  quotesCollection,
+  usersCollection,
+} from '@idemand/common';
 import axios from 'axios';
 import express, { Request as ERequest, Response } from 'express';
 import 'express-async-errors';
@@ -358,11 +362,14 @@ app.post(
   '/accountSession',
   accountSessionSchema,
   validateRequest,
-  async (req: ERequest, res: Response) => {
+  async (req: RequestUserAuth, res: Response) => {
     try {
       const accountId = req.body.accountId; // TODO: middleware to require account ID
       // const type = req.body.type || 'account_onboarding';
       const types = req.body.type;
+
+      await verifyUserBelongsToOrg(req, accountId);
+
       // payments, payment_details, payouts in beta
       const stripe = getStripe(stripeSecretKey.value());
       const params: Stripe.AccountSessionCreateParams = {
@@ -390,7 +397,7 @@ app.post(
         },
       };
       const accountSession = await stripe.accountSessions.create(params, {
-        apiVersion: '2023-10-16; embedded_connect_beta=v2', // '2022-08-01; embedded_connect_beta=v2',
+        apiVersion: '2023-10-16; embedded_connect_beta=v2',
       });
 
       info('stripe account session created', {
@@ -411,6 +418,23 @@ app.post(
   },
 );
 
+// TODO: move to middleware ??
+async function verifyUserBelongsToOrg(req: RequestUserAuth, accountId: string) {
+  let orgId = req.tenantId;
+  if (
+    req.user?.uid &&
+    req.user?.email?.endsWith('@idemandinsurance.com') &&
+    req.user?.email_verified
+  ) {
+    orgId = 'idemand'; // TODO:
+  }
+  if (!orgId) throw new Error('Tenant required');
+
+  const orgStripeId = await getAccountId(getFirestore(), orgId);
+
+  if (!orgStripeId || orgStripeId !== accountId) throw new NotAuthorizedError();
+}
+
 async function getAccountId(db: Firestore, orgId: string) {
   const orgSnap = await orgsCollection(db).doc(orgId).get();
   const accountId = orgSnap.data()?.stripeAccountId;
@@ -421,16 +445,20 @@ async function getAccountId(db: Firestore, orgId: string) {
 // pass in accountId and reuse refresh endpoint ??
 app.post(
   '/accountLink',
-  // body('orgId').isString().notEmpty(),
   accountLinkSchema, // TODO: update with returnUrl validation (not required)
   validateRequest,
-  async (req: ERequest, res: Response) => {
+  async (req: RequestUserAuth, res: Response) => {
     try {
       // TODO: require auth middleware
       // require user tenantId == orgId
       const { orgId, returnUrl } = req.body; // or pass in query param & use get method??
-      const db = getFirestore();
-      const accountId = await getAccountId(db, orgId);
+      const uid = req.user?.uid;
+      if (!uid) throw new NotAuthorizedError();
+
+      const userSnap = await usersCollection(getFirestore()).doc(uid).get();
+      if (userSnap.data()?.orgId !== orgId) throw new NotAuthorizedError();
+
+      const accountId = await getAccountId(getFirestore(), orgId);
 
       const type = req.body.type || 'account_onboarding';
 

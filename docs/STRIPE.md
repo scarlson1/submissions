@@ -410,10 +410,11 @@ These are the main implementation gaps visible in the current code.
 - `createTransfersOnChargeSucceeded.ts` notes missing idempotency and does not persist transfer IDs back onto receivable transfer entries.
 - `reverseTransfersOnRefund.ts` also calls out missing idempotency and incomplete refund allocation logic.
 - `getReceivablesQueryFromCharge(...)` currently calls `.where(...)` without reassigning the query object, so charge-to-receivable lookup is unreliable as written.
-- `createReceivableObject.ts` calculates `totalFeesAmount` from taxes instead of fees.
-- `POST /stripe/accountSession` requires auth but does not verify the caller owns the requested Stripe account.
-- `POST /stripe/accountLink` also needs tighter org/tenant authorization checks.
 - Embedded Connect components are still treated as beta/test surfaces and the code comments call out missing CSP/header work.
+- Connected account health:
+  - stripe connected account status
+  - verify before issuing quote ??
+- Stipe customer - ensure user has stripe customer account prior to binding quote
 
 ## Steps To Finish A Production-Ready Switch To Stripe
 
