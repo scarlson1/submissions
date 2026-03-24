@@ -69,6 +69,10 @@ Records non-premium changes (additional insureds, mortgagees, named insured deta
 | ----------- | ------------------------------------------ |
 | `amendment` | Policy-level or location-level data change |
 
+### Transaction Type Inheritance
+
+![transaction types](./transaction-type-hierarchy.svg)
+
 ---
 
 ## Transaction ID Construction
@@ -231,6 +235,8 @@ Premium is calculated in two phases:
 7. Apply minimum premium (`getMinPremium`), floor by flood zone and TIV
 8. Apply subproducer commission adjustment to arrive at `annualPremium`
 9. Compute `MGACommission = annualPremium × totalCommRate`
+
+![premium calculation](./premium-calculation-pipeline.svg)
 
 ### Term Premium
 

@@ -75,19 +75,29 @@ export default async (
       // TODO: add transferPct and refundableTransferPct to transfer item
       // should actual calc take into account non-refundable items ??
       const transferPct = t.amount / receivable.totalAmount;
-      const transferAmount = transferPct * charge.amount_captured;
-      const transfer = await stripe.transfers.create({
-        amount: transferAmount, // t.amount,
-        currency: 'usd',
-        source_transaction: charge.id, // prevent transfer before funds available
-        destination: t.destination,
-      });
+      const maxTransferAmount = t.amount; // never transfer more than the original line item
+      const transferAmount = Math.min(
+        Math.round(transferPct * charge.amount_captured),
+        maxTransferAmount,
+      );
+      const transfer = await stripe.transfers.create(
+        {
+          amount: transferAmount, // t.amount,
+          currency: 'usd',
+          source_transaction: charge.id, // prevent transfer before funds available
+          destination: t.destination,
+        },
+        {
+          idempotencyKey: `transfer_${charge.id ?? charge.invoice}_${t.destination}`,
+        }, // BUG: idempotency will fail if several partial payments are made "out of band" (same invoice ID)
+      );
       // TODO: update receivable transfer with transfer ID for idempotency (check before creating transfer)
       // or will it fail from setting source_transaction ?? (ex: not if 15% is transferred < 8 times)
 
       const transferRef = transfersCol.doc(transfer.id);
       batch.set(transferRef, transfer);
 
+      // MOVE TO transfer STRIPE EVENT HANDLER ??
       updatedTransfers.push({
         ...t,
         transferIds: [...(t.transferIds || []), transfer.id],

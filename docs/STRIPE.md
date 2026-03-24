@@ -403,8 +403,8 @@ These are the main implementation gaps visible in the current code.
 
 - The main bind route still uses ePay instead of Stripe.
 - The Stripe bind experience is still under admin test routes.
-<!-- - `invoice.paid` is not implemented, which matters for out-of-band or invoice-native payment scenarios. -->
-- `createTransfersOnChargeSucceeded.ts` notes missing idempotency and does not persist transfer IDs back onto receivable transfer entries.
+  <!-- - `invoice.paid` is not implemented, which matters for out-of-band or invoice-native payment scenarios. -->
+  <!-- - `createTransfersOnChargeSucceeded.ts` notes missing idempotency and does not persist transfer IDs back onto receivable transfer entries. -->
 - verify partial payments and/or accounts that don't match firebase records are handled properly (transfers). Currently using (transferAmount / receivable.totalAmount) \* charge.amount_captured
 - `reverseTransfersOnRefund.ts` also calls out missing idempotency and incomplete refund allocation logic (refunded tax amount needs to be added to stripe metadata ??).
 - Embedded Connect components are still treated as beta/test surfaces and the code comments call out missing CSP/header work.
@@ -415,6 +415,7 @@ These are the main implementation gaps visible in the current code.
 - add documentation about how tax/fee data is stored in stripe invoice/charge
 - Receivables update from stripe events (paid, refunded, etc.)
 - handle paidOutOfBand
+- The current receivable.transfers array stores the intended transfer as a percentage of the full invoice (percentOfTermPremium). For partial payments you probably also want to record how much has actually been transferred so you can reconcile later. Something like a transfersLedger subcollection or a totalTransferred running total on the receivable would make auditing and refund calculations much more reliable than reconstructing it from individual Stripe transfer records.
 
 ## Steps To Finish A Production-Ready Switch To Stripe
 
