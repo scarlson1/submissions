@@ -1,6 +1,7 @@
 import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import {
   Alert,
+  alpha,
   Badge,
   Box,
   BoxProps,
@@ -12,7 +13,6 @@ import {
   Stack,
   Tooltip,
   Typography,
-  alpha,
 } from '@mui/material';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -25,11 +25,17 @@ import {
   SecureLoginSVG,
   UnderConstructionSVG,
 } from 'assets/images';
-import { ANALYTICS_EVENTS, QUOTE_STATUS, Quote } from 'common';
-import { FlexCard, FlexCardContent, IconButtonMenu, LineItem, PageMeta } from 'components';
+import { ANALYTICS_EVENTS, Quote, QUOTE_STATUS } from 'common';
+import {
+  FlexCard,
+  FlexCardContent,
+  IconButtonMenu,
+  LineItem,
+  PageMeta,
+} from 'components';
 import { useAnalyticsEvent, useDocData } from 'hooks';
 import { dollarFormat } from 'modules/utils/helpers';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 export const ViewQuote = () => {
   const navigate = useNavigate();
@@ -72,7 +78,11 @@ export const ViewQuote = () => {
           <Button
             variant='contained'
             sx={{ maxHeight: 34 }}
-            onClick={() => navigate(createPath({ path: ROUTES.QUOTE_BIND, params: { quoteId } }))}
+            onClick={() =>
+              navigate(
+                createPath({ path: ROUTES.QUOTE_BIND, params: { quoteId } }),
+              )
+            }
             disabled={data.status !== QUOTE_STATUS.AWAITING_USER || isExpired}
           >
             Continue to bind
@@ -81,11 +91,18 @@ export const ViewQuote = () => {
             menuItems={[
               {
                 label: 'Start a new quote',
-                action: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
+                action: createPath({
+                  path: ROUTES.SUBMISSION_NEW,
+                  params: { productId: 'flood' },
+                }),
               },
               {
                 label: 'Contact us',
                 action: createPath({ path: ROUTES.CONTACT }),
+              },
+              {
+                label: 'Stripe Bind',
+                action: `/admin/stripe-test/quote/bind/${quoteId}`,
               },
             ]}
             menuProps={{
@@ -98,7 +115,12 @@ export const ViewQuote = () => {
       <Typography variant='h4' align='center' gutterBottom>
         iDemand Flood Insurance
       </Typography>
-      <Typography variant='subtitle1' color='text.secondary' align='center' gutterBottom>{`${
+      <Typography
+        variant='subtitle1'
+        color='text.secondary'
+        align='center'
+        gutterBottom
+      >{`${
         data?.address.addressLine1
       } ${data?.address.addressLine2 ? data?.address.addressLine2 + ', ' : ','} ${
         data?.address.city
@@ -123,7 +145,9 @@ export const ViewQuote = () => {
             <Box sx={{ p: 3 }}>
               <Badge
                 badgeContent={`.${
-                  data?.quoteTotal ? data.quoteTotal.toString().split('.')[1] || '00' : '00'
+                  data?.quoteTotal
+                    ? data.quoteTotal.toString().split('.')[1] || '00'
+                    : '00'
                 }`}
                 color='primary'
                 sx={{ '& .MuiBadge-badge': { mt: '0.75rem', right: -4 } }}
@@ -132,10 +156,15 @@ export const ViewQuote = () => {
                   variant='h5'
                   sx={{
                     px: 4,
-                    color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
+                    color: (theme) =>
+                      theme.palette.getContrastText(theme.palette.primary.main),
                   }}
                 >
-                  {dollarFormat(data?.quoteTotal ? data.quoteTotal.toString().split('.')[0] : '')}
+                  {dollarFormat(
+                    data?.quoteTotal
+                      ? data.quoteTotal.toString().split('.')[0]
+                      : '',
+                  )}
                 </Typography>
               </Badge>
               <Typography
@@ -143,7 +172,8 @@ export const ViewQuote = () => {
                 variant='overline'
                 textAlign='center'
                 sx={{
-                  color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
+                  color: (theme) =>
+                    theme.palette.getContrastText(theme.palette.primary.main),
                   lineHeight: '1rem',
                 }}
               >
@@ -189,7 +219,10 @@ export const ViewQuote = () => {
                 fullWidth
                 onClick={() =>
                   navigate(
-                    createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })
+                    createPath({
+                      path: ROUTES.SUBMISSION_NEW,
+                      params: { productId: 'flood' },
+                    }),
                   )
                 }
                 sx={{ my: 2 }}
@@ -202,7 +235,9 @@ export const ViewQuote = () => {
                 fullWidth
                 onClick={() => navigate('bind')}
                 sx={{ my: 2 }}
-                disabled={data.status !== QUOTE_STATUS.AWAITING_USER || isExpired}
+                disabled={
+                  data.status !== QUOTE_STATUS.AWAITING_USER || isExpired
+                }
               >
                 Looks Good! Let's continue
               </Button>
@@ -225,7 +260,11 @@ export const ViewQuote = () => {
             {data.notes && data.notes.length > 0 && (
               <Box sx={{ py: 2 }}>
                 {data.notes.map(({ note }, i) => (
-                  <Alert severity='info' sx={{ borderColor: 'transparent' }} key={`uw-note-${i}`}>
+                  <Alert
+                    severity='info'
+                    sx={{ borderColor: 'transparent' }}
+                    key={`uw-note-${i}`}
+                  >
                     {note}
                   </Alert>
                 ))}
@@ -357,8 +396,8 @@ export function HighlightCard({
           !!active
             ? 'transparent'
             : theme.palette.mode === 'dark'
-            ? alpha(theme.palette.grey[800], 0.5)
-            : theme.palette.grey[200],
+              ? alpha(theme.palette.grey[800], 0.5)
+              : theme.palette.grey[200],
       }}
     >
       <FlexCard
@@ -401,14 +440,27 @@ export function HighlightCard({
 
               <Tooltip title={tooltipText} placement='top'>
                 {!!active ? (
-                  <CheckCircleRounded color='success' fontSize='small' sx={{ mt: 0.5 }} />
+                  <CheckCircleRounded
+                    color='success'
+                    fontSize='small'
+                    sx={{ mt: 0.5 }}
+                  />
                 ) : (
-                  <CancelRounded color='error' fontSize='small' sx={{ mt: 0.5 }} />
+                  <CancelRounded
+                    color='error'
+                    fontSize='small'
+                    sx={{ mt: 0.5 }}
+                  />
                 )}
               </Tooltip>
             </Box>
 
-            <Typography variant='body2' color='text.secondary' fontSize='0.825rem' component='div'>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              fontSize='0.825rem'
+              component='div'
+            >
               {content}
             </Typography>
             {children}

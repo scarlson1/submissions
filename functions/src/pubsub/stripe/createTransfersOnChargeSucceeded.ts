@@ -25,10 +25,15 @@ const reportErr = getReportErrorFn('createTransfersOnChargeComplete');
 */
 // must specify source_transaction = chargeId when making transfers b/c transfer_group cannot be set from invoice
 
-export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayload>>) => {
-  info('STRIPE CHARGE SUCCEEDED EVENT (create transfers listener) - MSG JSON: ', {
-    ...(event.data?.message?.json || {}),
-  });
+export default async (
+  event: CloudEvent<MessagePublishedData<ChargeSucceededPayload>>,
+) => {
+  info(
+    'STRIPE CHARGE SUCCEEDED EVENT (create transfers listener) - MSG JSON: ',
+    {
+      ...(event.data?.message?.json || {}),
+    },
+  );
 
   const { charge } = extractPubSubPayload(event, ['charge']);
 
@@ -45,21 +50,23 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
   const transfersCol = transfersCollection(db);
 
   try {
-    let q = getReceivablesQueryFromCharge(receivablesCol, charge);
+    const q = getReceivablesQueryFromCharge(receivablesCol, charge);
     const receivable = (await getQueryData(q, true))[0];
 
     const transfers = receivable.transfers;
     // TODO: zod validation ?? (when creating receivable)
     if (!Array.isArray(transfers) || !transfers.length) {
-      info(`No transfers found on receivable ${receivable.id}. returning early.`);
+      info(
+        `No transfers found on receivable ${receivable.id}. returning early.`,
+      );
       return;
     }
 
     // use batch ?? or save directly after the transfer is created ??
-    // TODO: don't use batch (more likely to get out of sync)
+    // TODO: don't use batch (more likely to get out of sync or want all transfers to fail if one fails) ??
     const batch = db.batch();
 
-    for (let t of transfers) {
+    for (const t of transfers) {
       // TODO: check if transfer already made ?? or set at receivable level ??
       // or set amountTransferred in case of partial payments ??
       // TODO: add transferPct and refundableTransferPct to transfer item
@@ -67,7 +74,7 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
       const transferPct = t.amount / receivable.totalAmount;
       const transferAmount = transferPct * charge.amount_captured;
       const transfer = await stripe.transfers.create({
-        amount: transferAmount, // t.amount, // TODO: NEED TO CALCULATE AS % OF CHARGE
+        amount: transferAmount, // t.amount,
         currency: 'usd',
         source_transaction: charge.id, // prevent transfer before funds available
         destination: t.destination,
@@ -81,7 +88,7 @@ export default async (event: CloudEvent<MessagePublishedData<ChargeSucceededPayl
 
     await batch.commit();
   } catch (err: any) {
-    let msg = 'error creating transfers on charge.succeeded';
+    const msg = 'error creating transfers on charge.succeeded';
 
     reportErr(msg, {}, err);
   }

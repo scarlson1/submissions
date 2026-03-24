@@ -1,6 +1,13 @@
 import { LoadingButton } from '@mui/lab';
-import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { DefaultValuesOption, StripePaymentElementOptions } from '@stripe/stripe-js';
+import {
+  PaymentElement,
+  useElements,
+  useStripe,
+} from '@stripe/react-stripe-js';
+import {
+  DefaultValuesOption,
+  StripePaymentElementOptions,
+} from '@stripe/stripe-js';
 import { FormEvent, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
@@ -14,7 +21,10 @@ interface CheckoutFormProps {
   emailReceipt: string;
 }
 
-export function CheckoutForm({ billingDetails, emailReceipt }: CheckoutFormProps) {
+export function CheckoutForm({
+  billingDetails,
+  emailReceipt,
+}: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -34,7 +44,7 @@ export function CheckoutForm({ billingDetails, emailReceipt }: CheckoutFormProps
     }
 
     const urlClientSecret = new URLSearchParams(window.location.search).get(
-      'payment_intent_client_secret'
+      'payment_intent_client_secret',
     );
 
     if (!urlClientSecret) return;

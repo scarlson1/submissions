@@ -39,6 +39,7 @@ export const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');
 export const exportSDKKey = defineSecret('EXPORT_SDK_KEY');
 export const elevationKey = defineSecret('GPXZ_KEY');
 export const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
+export const stripeEndpointSecret = defineSecret('STRIPE_ENDPOINT_SECRET');
 export const quickbooksClientSecret = defineSecret('QUICKBOOKS_CLIENT_SECRET');
 export const rentcastKey = defineSecret('RENTCAST_KEY');
 

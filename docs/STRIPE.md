@@ -408,13 +408,14 @@ These are the main implementation gaps visible in the current code.
 - `invoice.paid` is not implemented, which matters for out-of-band or invoice-native payment scenarios.
 - `markPaidOnChargeSucceeded.ts` is stubbed and not wired into production state transitions.
 - `createTransfersOnChargeSucceeded.ts` notes missing idempotency and does not persist transfer IDs back onto receivable transfer entries.
-- `reverseTransfersOnRefund.ts` also calls out missing idempotency and incomplete refund allocation logic.
-- `getReceivablesQueryFromCharge(...)` currently calls `.where(...)` without reassigning the query object, so charge-to-receivable lookup is unreliable as written.
+- verify partial payments and/or accounts that don't match firebase records are handled properly (transfers). Currently using (transferAmount / receivable.totalAmount) \* charge.amount_captured
+- `reverseTransfersOnRefund.ts` also calls out missing idempotency and incomplete refund allocation logic (refunded tax amount needs to be added to stripe metadata ??).
 - Embedded Connect components are still treated as beta/test surfaces and the code comments call out missing CSP/header work.
 - Connected account health:
   - stripe connected account status
   - verify before issuing quote ??
 - Stipe customer - ensure user has stripe customer account prior to binding quote
+- add documentation about how tax/fee data is stored in stripe invoice/charge
 
 ## Steps To Finish A Production-Ready Switch To Stripe
 

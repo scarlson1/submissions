@@ -6,19 +6,29 @@ import toast from 'react-hot-toast';
 import { functionsInstance } from 'api';
 
 const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-export type StripeEmbeddedType = 'account_onboarding' | 'payments' | 'payment_details' | 'payouts'; // other types in beta (payments, etc.)
+export type StripeEmbeddedType =
+  | 'account_onboarding'
+  | 'payments'
+  | 'payment_details'
+  | 'payouts'; // other types in beta (payments, etc.)
 
-export function useStripeConnectInstance(accountId: string, type: StripeEmbeddedType[]) {
+export function useStripeConnectInstance(
+  accountId: string,
+  type: StripeEmbeddedType[],
+) {
   const { palette, shape } = useTheme();
 
   const [stripeConnectInstance] = useState(() => {
     const fetchClientSecret = async () => {
       try {
-        const { data } = await functionsInstance.post('/stripe/accountSession', {
-          accountId,
-          type,
-        });
-        console.log('res: ', data);
+        const { data } = await functionsInstance.post(
+          '/stripe/accountSession',
+          {
+            accountId,
+            type,
+          },
+        );
+
         return data.clientSecret;
       } catch (err: any) {
         console.log('Error: ', err);

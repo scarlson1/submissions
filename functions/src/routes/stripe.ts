@@ -1,13 +1,9 @@
-import {
-  BillingEntity,
-  quotesCollection,
-  usersCollection,
-} from '@idemand/common';
+import { usersCollection } from '@idemand/common';
 import axios from 'axios';
-import express, { Request as ERequest, Response } from 'express';
+import express, { Response } from 'express';
 import 'express-async-errors';
 import { param } from 'express-validator';
-import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { Firestore, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Request as FBRequest } from 'firebase-functions/v2/https';
 import Stripe from 'stripe';
@@ -18,6 +14,7 @@ import {
   hostingBaseURL,
   orgsCollection,
   RequestUserAuth,
+  stripeEndpointSecret,
   stripeSecretKey,
 } from '../common/index.js';
 import {
@@ -30,14 +27,12 @@ import {
   publishChargeSucceeded,
   publishRefundCreated,
 } from '../services/pubsub/index.js';
-import {
-  createStripeConnectAccount,
-  getActiveStripeCustomerByEmail,
-} from '../utils/index.js';
+import { createStripeConnectAccount } from '../utils/index.js';
 import { NotAuthorizedError } from './errors/index.js';
 import {
   currentUser,
   requireAuth,
+  requireClaim,
   validateRequest,
 } from './middlewares/index.js';
 import {
@@ -52,7 +47,7 @@ import {
 
 const reportErr = getReportErrorFn('stripe');
 
-const endpointSecret = 'whsec_d6eBMzIgp3SUP1IUGxTPOEXP7yRSujlB';
+const endpointSecret = stripeEndpointSecret.value();
 
 const app = express();
 
@@ -102,6 +97,14 @@ app.post(
 
         break;
       }
+      case 'payment_intent.partially_funded': {
+        console.log('Pmt Intent partially funded: ', event.data.object);
+        break;
+      }
+      case 'payment_intent.amount_capturable_updated': {
+        console.log('Pmt Intent amt capturable updated: ', event.data.object);
+        break;
+      }
       // could use webhook to set the transfer group when invoice creates payment intent ??
       case 'payment_intent.processing': {
         const paymentIntentProcessing = event.data
@@ -137,6 +140,18 @@ app.post(
 
         break;
       }
+      case 'payment_method.dettached': {
+        const paymentMethod = event.data.object as Stripe.PaymentMethod;
+        console.log('payment method detached: ', paymentMethod);
+
+        break;
+      }
+      case 'payment_method.updated': {
+        const paymentMethod = event.data.object as Stripe.PaymentMethod;
+        console.log('payment method updated: ', paymentMethod);
+
+        break;
+      }
       case 'charge.succeeded': {
         const charge = event.data.object as Stripe.Charge;
         console.log('charge: ', charge);
@@ -168,6 +183,12 @@ app.post(
 
         break;
       }
+      case 'charge.pending': {
+        const charge = event.data.object as Stripe.Charge;
+        console.log('charge pending: ', charge);
+
+        break;
+      }
       // TODO: recommended connect endpoints: https://stripe.com/docs/connect/webhooks#connect-webhooks
       case 'account.updated': {
         // Allows you to monitor changes to connected account requirements and status changes.
@@ -180,6 +201,30 @@ app.post(
         // Occurs when a payout fails. When a payout fails, the external account involved will be disabled, and no automatic or manual payouts can go through until the external account is updated.
         const failedPayout = event.data.object as Stripe.Payout;
         console.log('failed payout: ', failedPayout);
+
+        break;
+      }
+      case 'payout.created': {
+        const payout = event.data.object as Stripe.Payout;
+        console.log('payout created: ', payout);
+
+        break;
+      }
+      case 'payout.paid': {
+        const payout = event.data.object as Stripe.Payout;
+        console.log('payout paid: ', payout);
+
+        break;
+      }
+      case 'payout.canceled': {
+        const payout = event.data.object as Stripe.Payout;
+        console.log('payout cancelled: ', payout);
+
+        break;
+      }
+      case 'payout.updated': {
+        const updatedPayout = event.data.object as Stripe.Payout;
+        console.log('payout updated: ', updatedPayout);
 
         break;
       }
@@ -260,6 +305,60 @@ app.post(
 
         break;
       }
+      case 'invoice.created': {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log('invoice created: ', invoice);
+
+        break;
+      }
+      case 'invoice.deleted': {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log('invoice deleted: ', invoice);
+
+        break;
+      }
+      case 'invoice.overdue': {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log('invoice overdue: ', invoice);
+
+        break;
+      }
+      case 'invoice.overpaid': {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log('invoice overpaid: ', invoice);
+
+        break;
+      }
+      case 'invoice.updated': {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log('invoice updated: ', invoice);
+
+        break;
+      }
+      case 'invoice.voided': {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log('invoice voided: ', invoice);
+
+        break;
+      }
+      // case 'invoice_payment.paid': {
+      //   const invoice = event.data.object as Stripe.Invoice;
+      //   console.log('invoice_payment paid: ', invoice);
+
+      //   break;
+      // }
+      // case 'invoice_payment.created': {
+      //   const invoice = event.data.object as Stripe.Invoice;
+      //   console.log('invoice_payment paid: ', invoice);
+
+      //   break;
+      // }
+      // case 'invoice_payment.deleted': {
+      //   const invoice = event.data.object as Stripe.Invoice;
+      //   console.log('invoice_payment paid: ', invoice);
+
+      //   break;
+      // }
       case 'refund.created': {
         // Occurs whenever a refund from a customer’s cash balance is created.
         const refund = event.data.object as Stripe.Refund;
@@ -273,25 +372,6 @@ app.post(
         const updatedRefund = event.data.object as Stripe.Refund;
         console.log('refund created: ', updatedRefund);
         // any updates to receivable / transfers / taxes ??
-
-        break;
-      }
-      case 'payout.created': {
-        const createdPayout = event.data.object as Stripe.Payout;
-        console.log('payout created: ', createdPayout);
-
-        break;
-      }
-      case 'payout.updated': {
-        const updatedPayout = event.data.object as Stripe.Payout;
-        console.log('payout updated: ', updatedPayout);
-
-        break;
-      }
-      case 'payout.paid': {
-        // Occurs whenever a payout is expected to be available in the destination account. If the payout fails, a payout.failed notification is also sent, at a later time.
-        const paidPayout = event.data.object as Stripe.Payout;
-        console.log('payout paid: ', paidPayout);
 
         break;
       }
@@ -418,17 +498,21 @@ app.post(
   },
 );
 
-// TODO: move to middleware ??
-async function verifyUserBelongsToOrg(req: RequestUserAuth, accountId: string) {
+function extractUserOrg(req: RequestUserAuth) {
   let orgId = req.tenantId;
   if (
-    req.user?.uid &&
     req.user?.email?.endsWith('@idemandinsurance.com') &&
     req.user?.email_verified
   ) {
-    orgId = 'idemand'; // TODO:
+    orgId = 'idemand';
   }
   if (!orgId) throw new Error('Tenant required');
+  return orgId;
+}
+
+// TODO: move to middleware ??
+async function verifyUserBelongsToOrg(req: RequestUserAuth, accountId: string) {
+  const orgId = extractUserOrg(req);
 
   const orgStripeId = await getAccountId(getFirestore(), orgId);
 
@@ -445,16 +529,15 @@ async function getAccountId(db: Firestore, orgId: string) {
 // pass in accountId and reuse refresh endpoint ??
 app.post(
   '/accountLink',
+  requireClaim(['orgAdmin', 'iDemandAdmin']),
   accountLinkSchema, // TODO: update with returnUrl validation (not required)
   validateRequest,
   async (req: RequestUserAuth, res: Response) => {
     try {
-      // TODO: require auth middleware
-      // require user tenantId == orgId
       const { orgId, returnUrl } = req.body; // or pass in query param & use get method??
+
       const uid = req.user?.uid;
       if (!uid) throw new NotAuthorizedError();
-
       const userSnap = await usersCollection(getFirestore()).doc(uid).get();
       if (userSnap.data()?.orgId !== orgId) throw new NotAuthorizedError();
 
@@ -487,13 +570,18 @@ app.post(
 // refresh account link (Stripe calls to get new link in some scenarios)
 app.get(
   '/accountLink/:accountId',
+  requireClaim(['orgAdmin', 'iDemandAdmin']),
   param('accountId').isString().notEmpty(),
   validateRequest,
-  async (req: ERequest, res: Response) => {
+  async (req: RequestUserAuth, res: Response) => {
     try {
       let accountId = req.params?.accountId;
       invariant(accountId);
       accountId = Array.isArray(accountId) ? accountId[0] : accountId;
+
+      const orgId = extractUserOrg(req);
+      const orgStripeAccountId = await getAccountId(getFirestore(), orgId);
+      if (orgStripeAccountId !== accountId) throw new NotAuthorizedError();
 
       const stripe = getStripe(stripeSecretKey.value());
 
@@ -520,6 +608,7 @@ app.get(
 
 app.get(
   '/account/:orgId',
+  requireClaim(['orgAdmin', 'iDemandAdmin']),
   param('orgId').isString().notEmpty(),
   validateRequest,
   async (req: RequestUserAuth, res: Response) => {
@@ -528,7 +617,7 @@ app.get(
       if (Array.isArray(orgId)) orgId = orgId[0];
       const user = req.user;
       const isIDemandAdmin = user?.iDemandAdmin || false;
-      // TODO: require orgAdmin permissions ?? create middleware function requireClaims(['orgAdmin', 'iDemandAdmin'])
+
       if (!isIDemandAdmin && orgId !== user?.firebase.tenant)
         throw new Error('tenantId must match requested orgId');
 
@@ -549,6 +638,7 @@ app.get(
   },
 );
 
+// createStripeConnectAccount can also be called as callable firebase function
 app.get(
   '/account/initialize/:orgId',
   param('orgId').isString().notEmpty(),
@@ -579,79 +669,81 @@ app.get(
   },
 );
 
+// Ensures stripe customer exists for each billing entity (by email)
+// TODO: DELETE ?? moved to addBillingEntity callable function (& delete <BillingStep /> - replaced by <AddBillingEntity />) ?? Or keep in case it needs to be called via api ??
 // TODO: validation middleware
-app.post(
-  '/bind/quote/getCustomers',
-  async (req: RequestUserAuth, res: Response) => {
-    try {
-      const quoteId = req.body.quoteId;
-      const billingEntities = req.body.billingEntities; // formatted [{ email, displayName, phone }] ??
-      const stripe = getStripe(stripeSecretKey.value());
-      info(`fetching stripe customers for quote ${quoteId}...`);
+// app.post(
+// '/bind/quote/getCustomers',
+// async (req: RequestUserAuth, res: Response) => {
+//   try {
+//     const quoteId = req.body.quoteId;
+//     const billingEntities = req.body.billingEntities; // formatted [{ email, displayName, phone }] ??
+//     const stripe = getStripe(stripeSecretKey.value());
+//     info(`fetching stripe customers for quote ${quoteId}...`);
 
-      // TODO: update quote schema for stripe
-      // const stripeCustomerDetails: Record<string, {displayName: string, email: string, phone: string, billingType: BillingEntity['billingType'], address?: Address | null }> = {}
-      const stripeCustomerDetails: Record<
-        string,
-        Pick<BillingEntity, 'displayName' | 'email' | 'phone' | 'billingType'>
-      > = {};
+//     // TODO: update quote schema for stripe
+//     // const stripeCustomerDetails: Record<string, {displayName: string, email: string, phone: string, billingType: BillingEntity['billingType'], address?: Address | null }> = {}
+//     const stripeCustomerDetails: Record<
+//       string,
+//       Pick<BillingEntity, 'displayName' | 'email' | 'phone' | 'billingType'>
+//     > = {};
 
-      for (const billingEntity of billingEntities) {
-        try {
-          const cus = await getActiveStripeCustomerByEmail(
-            stripe,
-            billingEntity?.email,
-          );
-          if (!cus.email) throw new Error('missing email');
-          info(
-            `billing entity email matched existing customer ${cus.id} - ${cus.email}`,
-          );
-          stripeCustomerDetails[cus.id] = {
-            displayName: cus.name || '',
-            email: cus.email || '',
-            phone: cus.phone || '',
-            billingType: billingEntity.billingType || 'checkout',
-          };
-        } catch (err: any) {
-          const cus = await stripe.customers.create({
-            name: billingEntity.displayName || '',
-            email: billingEntity.email,
-            phone: billingEntity.phone || '',
-          });
-          info(`new stripe customer created ${cus.id} - ${cus.email}`);
-          stripeCustomerDetails[cus.id] = {
-            displayName: cus.name || '',
-            email: cus.email || '',
-            phone: cus.phone || '',
-            billingType: billingEntity.billingType || 'checkout',
-          };
-        }
-      }
+// for (const billingEntity of billingEntities) {
+//   try {
+//     const cus = await getActiveStripeCustomerByEmail(
+//       stripe,
+//       billingEntity?.email,
+//     );
+//     if (!cus.email) throw new Error('missing email');
+//     info(
+//       `billing entity email matched existing customer ${cus.id} - ${cus.email}`,
+//     );
+//     stripeCustomerDetails[cus.id] = {
+//       displayName: cus.name || '',
+//       email: cus.email || '',
+//       phone: cus.phone || '',
+//       billingType: billingEntity.billingType || 'checkout',
+//     };
+//   } catch (err: any) {
+//     const cus = await stripe.customers.create({
+//       name: billingEntity.displayName || '',
+//       email: billingEntity.email,
+//       phone: billingEntity.phone || '',
+//     });
+//     info(`new stripe customer created ${cus.id} - ${cus.email}`);
+//     stripeCustomerDetails[cus.id] = {
+//       displayName: cus.name || '',
+//       email: cus.email || '',
+//       phone: cus.phone || '',
+//       billingType: billingEntity.billingType || 'checkout',
+//     };
+//   }
+// }
 
-      // res.status(200).send(stripeCustomerDetails)
-      const db = getFirestore();
-      const quotesCol = quotesCollection(db);
-      await quotesCol.doc(quoteId).update({
-        // @ts-ignore
-        billingEntities: stripeCustomerDetails,
-        'metadata.updated': Timestamp.now(),
-      });
+// // res.status(200).send(stripeCustomerDetails)
+// const db = getFirestore();
+// const quotesCol = quotesCollection(db);
+// await quotesCol.doc(quoteId).update({
+//   // @ts-ignore
+//   billingEntities: stripeCustomerDetails,
+//   'metadata.updated': Timestamp.now(),
+// });
 
-      info('Updated quote with stripe customer details', {
-        ...stripeCustomerDetails,
-      });
-      // update quote with billing entities ?? or allow font end to update ??
-      res.status(200).send(stripeCustomerDetails);
-    } catch (err: any) {
-      let msg = 'Error retrieving/creating stripe customer(s)';
-      if (err?.message) msg += ` (${err.message})`;
-      reportErr(msg, {}, err);
-      res
-        .status(500)
-        .send({ message: 'Error creating/retrieving Stripe details' });
-    }
-  },
-);
+// info('Updated quote with stripe customer details', {
+//   ...stripeCustomerDetails,
+// });
+
+// res.status(200).send(stripeCustomerDetails);
+// } catch (err: any) {
+//   let msg = 'Error retrieving/creating stripe customer(s)';
+//   if (err?.message) msg += ` (${err.message})`;
+//   reportErr(msg, {}, err);
+//   res
+//     .status(500)
+//     .send({ message: 'Error creating/retrieving Stripe details' });
+// }
+// },
+// );
 
 app.get(
   '/invoice/:invoiceId/download',

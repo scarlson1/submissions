@@ -1,11 +1,11 @@
 import {
   TaxOgTransaction,
   TaxReversalTransaction,
+  taxTransactionsCollection,
   TaxTransactionType,
   WithId,
-  taxTransactionsCollection,
 } from '@idemand/common';
-import { Query, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Query, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { round } from 'lodash-es';
 import Stripe from 'stripe';
@@ -14,10 +14,14 @@ import { createReversalId, getQueryData } from '../db/index.js';
 // https://stripe.com/docs/api/tax/transactions/create_reversal
 // https://stripe.com/docs/api/tax/transactions/create_from_calculation
 
+/*
+Creates transaction firestore doc for any taxes that need to be reversed from stripe refund event
+*/
+
 // TODO: determine best place for tax amount calc
 function createTaxTrxReversalObject(
   originalTrx: WithId<TaxOgTransaction>,
-  refund: Stripe.Refund
+  refund: Stripe.Refund,
 ): TaxReversalTransaction {
   const percentRefunded = refund.amount / originalTrx.chargeAmount;
   const reversalAmount = round(percentRefunded * originalTrx.taxAmount);
@@ -46,25 +50,33 @@ export const createTaxTrxReversal = async (refund: Stripe.Refund) => {
 
   const q = taxTrxCol
     .where('chargeId', '==', refund.charge)
-    .where('type', '==', TaxTransactionType.Enum.transaction) as Query<TaxOgTransaction>;
+    .where(
+      'type',
+      '==',
+      TaxTransactionType.Enum.transaction,
+    ) as Query<TaxOgTransaction>;
 
   const taxTrxs = await getQueryData<TaxOgTransaction>(q, false);
-  info(`found ${taxTrxs.length} tax transactions matching charge ${refund.charge}`, { taxTrxs });
+  info(
+    `found ${taxTrxs.length} tax transactions matching charge ${refund.charge}`,
+    { taxTrxs },
+  );
 
   if (!taxTrxs.length) return [];
 
   // remove undefined check once all taxes have been updated ??
-  // @ts-ignore
-  const refundableTrxs = taxTrxs.filter((t) => t.refundable === undefined || t.refundable);
+  const refundableTrxs = taxTrxs.filter(
+    (t) => t.refundable === undefined || t.refundable,
+  );
   const trxObjectPromises = refundableTrxs.map((taxTrx) =>
-    createTaxTrxReversalObject(taxTrx, refund as Stripe.Refund)
+    createTaxTrxReversalObject(taxTrx, refund as Stripe.Refund),
   );
   const taxTrxReversalObjects = await Promise.all(trxObjectPromises);
 
   const batch = db.batch();
 
-  for (let taxReversalTrx of taxTrxReversalObjects) {
-    let taxReversalTrxRef = taxTrxCol.doc(createReversalId());
+  for (const taxReversalTrx of taxTrxReversalObjects) {
+    const taxReversalTrxRef = taxTrxCol.doc(createReversalId());
     batch.set(taxReversalTrxRef, taxReversalTrx);
   }
 

@@ -60,8 +60,12 @@ export const ChangeRequestStatus = z.enum([
 ]); // z.nativeEnum(CHANGE_REQUEST_STATUS);
 export type ChangeRequestStatus = z.infer<typeof ChangeRequestStatus>;
 
-export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude(['draft']);
-export type SubmittedChangeRequestStatus = z.infer<typeof SubmittedChangeRequestStatus>;
+export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude([
+  'draft',
+]);
+export type SubmittedChangeRequestStatus = z.infer<
+  typeof SubmittedChangeRequestStatus
+>;
 
 export enum FIN_TRANSACTION_STATUS {
   PROCESSING = 'processing',
@@ -105,8 +109,16 @@ export enum CLAIMS {
   AGENT = 'agent',
 }
 
-export const Claim = z.enum(['iDemandAdmin', 'iDemandUser', 'orgAdmin', 'agent']);
+export const Claim = z.enum([
+  'iDemandAdmin',
+  'iDemandUser',
+  'orgAdmin',
+  'agent',
+]);
 export type Claim = z.infer<typeof Claim>;
+
+const ClaimArray = z.array(Claim);
+export type ClaimArray = z.infer<typeof ClaimArray>;
 
 export enum FIN_TRANSACTION_TYPE {
   CHARGE = 'charge',

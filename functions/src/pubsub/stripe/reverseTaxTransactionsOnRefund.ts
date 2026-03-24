@@ -7,11 +7,13 @@ import { verify } from '../../utils/validation.js';
 import { extractPubSubPayload } from '../utils/extractPubSubPayload.js';
 import { RefundCreatedPayload } from './reverseTransfersOnRefund.js';
 
-// need to update stripe refund metadata to include tax refund amounts ??
+// TODO: need to update stripe refund metadata to include tax refund amounts ??
 
 const reportErr = getReportErrorFn('reverseTaxTransactionsOnRefund');
 
-export default async (event: CloudEvent<MessagePublishedData<RefundCreatedPayload>>) => {
+export default async (
+  event: CloudEvent<MessagePublishedData<RefundCreatedPayload>>,
+) => {
   info('STRIPE REFUND EVENT (reverse tax transactions listener) - MSG JSON: ', {
     ...(event.data?.message?.json || {}),
   });
@@ -24,9 +26,11 @@ export default async (event: CloudEvent<MessagePublishedData<RefundCreatedPayloa
 
     const commitRes = await createTaxTrxReversal(refund);
 
-    info(`tax reversal transactions successfully created (${commitRes.length} records)`);
+    info(
+      `tax reversal transactions successfully created (${commitRes.length} records)`,
+    );
   } catch (err: any) {
-    let msg = 'error creating transfers on charge.succeeded';
+    const msg = 'error creating transfers on charge.succeeded';
 
     reportErr(msg, { ...event }, err);
   }
