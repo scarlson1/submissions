@@ -37,6 +37,8 @@ Cloud Functions for Firebase
 
 [Cloud run api repo](https://github.com/scarlson1/iDemand-Submissions-API) :link:
 
+TODO: cloud run api documentation
+
 ## Repository Shape
 
 The repo is organized around two deployable applications:
@@ -62,7 +64,7 @@ Those packages appear to provide shared collection names, domain models, enums, 
 
 ### Runtime Bootstrap
 
-The browser app starts in [`client/src/index.tsx`](/Users/spencercarlson/Documents/dev/submissions/client/src/index.tsx), which composes the main providers:
+The browser app starts in [`client/src/index.tsx`](/client/src/index.tsx), which composes the main providers:
 
 - React error boundary
 - `HelmetProvider`
@@ -71,7 +73,7 @@ The browser app starts in [`client/src/index.tsx`](/Users/spencercarlson/Documen
 - React Router provider
 - Sentry and React Query devtools
 
-[`client/src/App.tsx`](/Users/spencercarlson/Documents/dev/submissions/client/src/App.tsx) adds the app-level shell:
+[`client/src/App.tsx`](/client/src/App.tsx) adds the app-level shell:
 
 - MUI date localization
 - confirmation and dialog providers
@@ -95,7 +97,7 @@ The frontend is organized into a few consistent layers:
 
 ### Routing and Surfaces
 
-Routing is centralized in [`client/src/router.tsx`](/Users/spencercarlson/Documents/dev/submissions/client/src/router.tsx). The main route groups are:
+Routing is centralized in [`client/src/router.tsx`](/client/src/router.tsx). The main route groups are:
 
 - public routes: home, contact, agency submission, quote viewing, auth flows
 - authenticated user/agency routes: submissions, quotes, bind flow, policies, account/settings
@@ -147,25 +149,29 @@ The agent and org-user onboarding flow is invite-first and tenant-aware.
 
 The normal path is:
 
-1. An org admin or iDemand admin opens the org team/invite UI.
-2. The client submits invite data through [`AddUsersDialog`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/forms/AddUsersDialog.tsx), which calls the `inviteusers` callable via [`useInviteUsers`](/Users/spencercarlson/Documents/dev/submissions/client/src/hooks/useInviteUsers.ts).
-3. [`functions/src/callables/inviteUsers.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/callables/inviteUsers.ts) validates that the caller is an org admin or iDemand admin, determines the target org/tenant, and writes one invite document per email to `organizations/{orgId}/invitations/{email}`.
+1. An `orgAdmin` or `iDemandAdmin` opens the org team/invite UI.
+2. The client submits invite data through [`AddUsersDialog`](/client/src/elements/forms/AddUsersDialog.tsx), which calls the `inviteusers` callable via [`useInviteUsers`](/client/src/hooks/useInviteUsers.ts).
+3. [`functions/src/callables/inviteUsers.ts`](/functions/src/callables/inviteUsers.ts) validates that the caller is an org admin or iDemand admin, determines the target org/tenant, and writes one invite document per email to `organizations/{orgId}/invitations/{email}`.
 4. Each invite stores `customClaims`, inviter metadata, org metadata, and a generated invite link.
-5. [`functions/src/firestoreEvents/sendInviteEmail.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/sendInviteEmail.ts) reacts to the new invite document and sends the email unless the invite is marked as an org-creation invite.
+5. [`functions/src/firestoreEvents/sendInviteEmail.ts`](/functions/src/firestoreEvents/sendInviteEmail.ts) reacts to the new invite document and sends the email unless the invite is marked as an org-creation invite.
 6. The invited user signs up through the tenant-aware auth route.
-7. [`functions/src/authEvents/beforeCreate.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/authEvents/beforeCreate.ts) blocks account creation if the invite is missing, the wrong tenant is used, or the org's domain restrictions reject the email.
-8. After the auth user is created, [`functions/src/authEvents/setClaimsFromInvite.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/authEvents/setClaimsFromInvite.ts) copies the invite's `customClaims` into `organizations/{orgId}/userClaims/{userId}` and marks the invite as accepted.
+7. [`functions/src/authEvents/beforeCreate.ts`](/functions/src/authEvents/beforeCreate.ts) blocks account creation if the invite is missing, the wrong tenant is used, or the org's domain restrictions reject the email.
+8. After the auth user is created, [`functions/src/authEvents/setClaimsFromInvite.ts`](/functions/src/authEvents/setClaimsFromInvite.ts) copies the invite's `customClaims` into `organizations/{orgId}/userClaims/{userId}` and marks the invite as accepted.
 
 There are two admin-facing UI entry points for this flow:
 
-- org self-service team management in [`client/src/elements/settings/OrgUsers.tsx`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/settings/OrgUsers.tsx)
-- iDemand admin org management in the Team and Invites tabs of [`client/src/views/admin/Organization.tsx`](/Users/spencercarlson/Documents/dev/submissions/client/src/views/admin/Organization.tsx)
+- org self-service team management in [`client/src/elements/settings/OrgUsers.tsx`](/client/src/elements/settings/OrgUsers.tsx)
+- iDemand admin org management in the Team and Invites tabs of [`client/src/views/admin/Organization.tsx`](/client/src/views/admin/Organization.tsx)
 
-Pending and historical invites can be viewed and resent in [`InvitesGrid`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/grids/InvitesGrid.tsx).
+Pending and historical invites can be viewed and resent in [`InvitesGrid`](/client/src/elements/grids/InvitesGrid.tsx).
+
+Once a user creates an account (within a tenant), the beforeCreate blocking function checks the invite collection under the org to ensure the user was invited to join the tenant (`/organizations/{orgId}/invites/{userEmail}`).
 
 ### Claims Model and Token Mirroring
 
 Claims are managed through a Firestore-backed source of truth and then mirrored into Firebase Auth custom claims.
+
+<!-- Claims are set up to mirror the properties of the firebase document under _organizations/{orgId}/userClaims/{userId}_. Firestore rules restrict updating the user claims document to `iDemandAdmin` and `OrgAdmin`. (note: idemand's orgId is 'idemand', although it is not set up as a tenant). -->
 
 The current claim enum in the backend includes:
 
@@ -178,7 +184,7 @@ The lifecycle works like this:
 
 1. A claim assignment is created either from an invite or by editing the claim document directly.
 2. The Firestore source of truth lives at `organizations/{orgId}/userClaims/{userId}`.
-3. [`functions/src/firestoreEvents/mirrorCustomClaims.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/mirrorCustomClaims.ts) watches that document.
+3. [`functions/src/firestoreEvents/mirrorCustomClaims.ts`](/functions/src/firestoreEvents/mirrorCustomClaims.ts) watches that document.
 4. The function validates the payload, prevents reserved iDemand claims from being set outside the special `idemand` org, and resolves tenant-aware auth when needed.
 5. It calls `setCustomUserClaims()` on Firebase Auth.
 6. It writes `_lastCommitted` back to the Firestore document after the token claims are successfully updated.
@@ -191,10 +197,10 @@ The browser does not rely only on the user’s cached token.
 
 Instead:
 
-- [`useUserClaims`](/Users/spencercarlson/Documents/dev/submissions/client/src/hooks/useUserClaims.ts) subscribes to the org-scoped Firestore claims document
+- [`useUserClaims`](/client/src/hooks/useUserClaims.ts) subscribes to the org-scoped Firestore claims document `organizations/{ORG_ID}/userClaims/{USER_ID}`
 - when `_lastCommitted` changes, it forces `getIdTokenResult(true)` to fetch a fresh token
-- [`AuthContext`](/Users/spencercarlson/Documents/dev/submissions/client/src/context/AuthContext.tsx) exposes the refreshed claim state to the rest of the app
-- route guards such as [`RequireAuthReactFire`](/Users/spencercarlson/Documents/dev/submissions/client/src/components/RequireAuthReactFire.tsx) and [`useClaims`](/Users/spencercarlson/Documents/dev/submissions/client/src/hooks/useClaims.ts) consume those claims for authorization decisions
+- [`AuthContext`](/client/src/context/AuthContext.tsx) exposes the refreshed claim state to the rest of the app
+- route guards such as [`RequireAuthReactFire`](/client/src/components/RequireAuthReactFire.tsx) and [`useClaims`](/client/src/hooks/useClaims.ts) consume those claims for authorization decisions
 
 This gives the app a useful split:
 
@@ -207,14 +213,14 @@ Claims are intentionally visible and editable from the app UI rather than being 
 
 The main operational screens are:
 
-- [`UserClaimsGrid`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/grids/UserClaimsGrid.tsx), which joins org users with `organizations/{orgId}/userClaims`
-- the Team tab in [`Organization`](/Users/spencercarlson/Documents/dev/submissions/client/src/views/admin/Organization.tsx)
-- the org settings team view in [`OrgUsers`](/Users/spencercarlson/Documents/dev/submissions/client/src/elements/settings/OrgUsers.tsx)
+- [`UserClaimsGrid`](/client/src/elements/grids/UserClaimsGrid.tsx), which joins org users with `organizations/{orgId}/userClaims`
+- the Team tab in [`Organization`](/client/src/views/admin/Organization.tsx)
+- the org settings team view in [`OrgUsers`](/client/src/elements/settings/OrgUsers.tsx)
 
 Editing works like this:
 
 1. An admin edits the `userClaims` cell in `UserClaimsGrid`.
-2. [`useUpdateClaims`](/Users/spencercarlson/Documents/dev/submissions/client/src/hooks/useUpdateClaims.ts) writes the updated payload to `organizations/{orgId}/userClaims/{userId}`.
+2. [`useUpdateClaims`](/client/src/hooks/useUpdateClaims.ts) writes the updated payload to `organizations/{orgId}/userClaims/{userId}`.
 3. The Firestore trigger `mirrorcustomclaims` mirrors that document into the user’s Firebase token.
 4. The signed-in client eventually refreshes the token when the mirrored document’s `_lastCommitted` changes.
 
@@ -222,6 +228,8 @@ Role editing is also scoped in the UI:
 
 - org admins can manage org-level roles like `agent` and `orgAdmin`
 - iDemand admins can additionally assign iDemand-specific roles
+
+[Patterns for security with Firebase: supercharged custom claims with Firestore and Cloud Functions - Doug Stevenson](https://medium.com/firebase-developers/patterns-for-security-with-firebase-supercharged-custom-claims-with-firestore-and-cloud-functions-bb8f46b24e11)
 
 ### Applicable Auth Functions
 
@@ -250,7 +258,7 @@ Architecturally, search should be treated as a separate indexing/read model buil
 
 Search authorization is implemented as a document-visibility model rather than by exposing the whole index to every authenticated user.
 
-Each indexed record can carry a `visibleBy` array. The helper in [`functions/src/utils/searchPermissions.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/utils/searchPermissions.ts) builds values such as:
+Each indexed record can carry a `visibleBy` array. The helper in [`functions/src/utils/searchPermissions.ts`](/functions/src/utils/searchPermissions.ts) builds values such as:
 
 - `group/all`
 - `group/authed`
@@ -270,7 +278,7 @@ This lets a document be visible to combinations of:
 - all users in an org
 - org admins for an org
 
-At query time, [`functions/src/callables/generateSearchKey.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/callables/generateSearchKey.ts) inspects the caller’s auth token and builds the set of allowed visibility groups:
+At query time, [`functions/src/callables/generateSearchKey.ts`](/functions/src/callables/generateSearchKey.ts) inspects the caller’s auth token and builds the set of allowed visibility groups:
 
 - all users always get `group/all`
 - an anonymous signed-in user also gets `group/anon`
@@ -295,8 +303,8 @@ For business records such as quotes, policies, locations, and submissions, sync 
 
 For user records specifically, visibility is maintained from the user access document:
 
-- [`functions/src/firestoreEvents/updateUserAccessOnQuoteChange.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/updateUserAccessOnQuoteChange.ts) and [`functions/src/firestoreEvents/updateUserAccessOnPolicyChange.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/updateUserAccessOnPolicyChange.ts) maintain `/users/{userId}/permissions/private`
-- [`functions/src/firestoreEvents/algolia/syncUsersVisibleBy.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/firestoreEvents/algolia/syncUsersVisibleBy.ts) converts that access document into the Typesense `visibleBy` array for the indexed user record
+- [`functions/src/firestoreEvents/updateUserAccessOnQuoteChange.ts`](/functions/src/firestoreEvents/updateUserAccessOnQuoteChange.ts) and [`functions/src/firestoreEvents/updateUserAccessOnPolicyChange.ts`](/functions/src/firestoreEvents/updateUserAccessOnPolicyChange.ts) maintain `/users/{userId}/permissions/private`
+- [`functions/src/firestoreEvents/algolia/syncUsersVisibleBy.ts`](/functions/src/firestoreEvents/algolia/syncUsersVisibleBy.ts) converts that access document into the Typesense `visibleBy` array for the indexed user record
 
 This creates a separate read-optimized authorization layer for search that mirrors, but does not replace, Firestore security rules.
 
@@ -304,7 +312,7 @@ This creates a separate read-optimized authorization layer for search that mirro
 
 ### Entry Point and Organization
 
-[`functions/src/index.ts`](/Users/spencercarlson/Documents/dev/submissions/functions/src/index.ts) is the backend export surface. It initializes Firebase Admin and re-exports grouped trigger modules.
+[`functions/src/index.ts`](/functions/src/index.ts) is the backend export surface. It initializes Firebase Admin and re-exports grouped trigger modules.
 
 The backend is organized primarily by trigger type:
 
@@ -358,6 +366,26 @@ The auth layer handles:
 - email/UID normalization
 
 This is the first gate for tenant-aware auth and iDemand admin verification behavior.
+
+**beforeCreate**
+
+If tenant is **not** present:
+
+- checks for invite under all organizations `organizations/{orgId**}/invitations/{email}`, just in case the user that should be under a tenant attempted to create a regular user account.
+
+If tenant is present:
+
+- checks `enforceDomainRestriction`
+- checks to ensure an invite exists with matching email under `organizations/{orgId}/invitations/{email}`
+
+All:
+
+- checks to ensure a user does not already exist with matching email (wouldn't be caught if under different tenant or no tenant)
+- checks if email domain ends with _@idemandinsurance.com_, and assigns _iDemandAdmin_ claims. Must be verified beforeSignIn.
+
+**beforeSignIn**
+
+If _@idemandinsurance.com_ and email is not verified, creates a JWT signed with EMAIL_VERIFICATION_KEY env var, expiring in 10 mins and sends email with link to `{FUNCTIONS_BASE_URL}/authRequests/verify-email/${token}`, which will verify the token and set the email as verified, allowing the iDemandAdmin email address to sign in.
 
 #### Callable Functions
 
@@ -658,15 +686,12 @@ Test stripe webhook events locally using CLI:
 ```bash
 stripe login
 
-stripe listen --forward-to localhost:4242/webhook
-
-stripe trigger payment_intent.succeeded
-```
-
-```bash
 # forward existing webhook event subscriptions to local host
 stripe listen --load-from-webhooks-api --forward-to localhost:5001/<PROJECT_ID>/us-central1/stripe/webhook
 # cli will output signing secret --> update variable in functions/src/routes/stripe.ts
+
+# to manually test:
+stripe trigger payment_intent.succeeded
 ```
 
 ## Current Architectural Seams

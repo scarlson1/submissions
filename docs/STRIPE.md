@@ -95,9 +95,7 @@ Relevant client routes:
 
 ### 2. Stripe Customer / Billing Entity Setup
 
-Stripe customer records are created or reused through the callable `addbillingentity`.
-
-That callable:
+Stripe customer records are created or reused through the callable `addbillingentity`:
 
 - validates the caller can act on the target quote or policy
 - looks up an active Stripe customer by email
@@ -125,7 +123,7 @@ A separate Firestore trigger, `createreceivableonpolicycreated`, then:
 
 - loads the policy
 - determines the billing entities
-- ensures an agency Stripe Connect account exists
+- ensures an agency Stripe Connect account exists (TODO: move to prior to createPolicy ??)
 - builds one receivable per billing entity
 - saves those receivables
 - creates and sends a Stripe invoice for each receivable
@@ -211,9 +209,9 @@ Step-by-step:
    - `namedInsured.stripeCustomerId`
    - `defaultBillingEntityId`
    - other named insured details
-5. Additional wizard steps capture effective date and billing assignments.
+5. Additional wizard steps capture effective date and billing assignments (supports multiple locations and billing entities).
 6. The final review step calls `createpolicy`.
-7. Policy creation triggers receivable creation and Stripe invoice generation.
+7. Policy creation triggers receivable creation and Stripe invoice generation (detailed above).
 8. The success screen surfaces receivables and links the user to payment screens.
 
 What this flow solves:
@@ -221,12 +219,6 @@ What this flow solves:
 - it creates Stripe customers before the policy is bound
 - it aligns `billingEntities` with Stripe customer IDs
 - it is closer to the data model that receivables and transfers already expect
-
-What it does not yet solve:
-
-- it is still under `admin/stripe-test`
-- it does not replace the main public bind route
-- it does not make Stripe the canonical bind-time processor for all users yet
 
 ## Agency Onboarding / Stripe Connect
 
