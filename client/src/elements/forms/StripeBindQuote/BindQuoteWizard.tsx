@@ -1,19 +1,22 @@
 import { Container } from '@mui/material';
 import { endOfDay, startOfDay } from 'date-fns';
-import { UpdateData, doc, updateDoc } from 'firebase/firestore';
+import { doc, UpdateData, updateDoc } from 'firebase/firestore';
 import { FormikProps } from 'formik';
 import { isEqual } from 'lodash';
 import { RefObject, useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useFirestore, useFunctions } from 'reactfire';
 
-import { CreatePolicyResponse, createPolicy } from 'api';
+import { createPolicy, CreatePolicyResponse } from 'api';
 import { Quote, quotesCollection } from 'common';
 import { Wizard } from 'components/forms';
 import { useDocData } from 'hooks';
 import { addToDate, logDev } from 'modules/utils';
 import { EffectiveDateStep, EffectiveDateValues } from './EffectiveDateStep';
-import { BillingEntityStepValues, LocationBillingStep } from './LocationBillingStep';
+import {
+  BillingEntityStepValues,
+  LocationBillingStep,
+} from './LocationBillingStep';
 import { NamedInsuredStep, NamedInsuredValues } from './NamedInsuredStep';
 import { ReviewStep } from './ReviewStep';
 import { SuccessStep } from './SuccessStep';
@@ -31,7 +34,7 @@ import { SuccessStep } from './SuccessStep';
 const useBindQuote = (
   quoteId: string,
   onSuccess?: (data: CreatePolicyResponse) => void,
-  onError?: (msg: string, err: any) => void
+  onError?: (msg: string, err: any) => void,
 ) => {
   const firestore = useFirestore();
   const functions = useFunctions();
@@ -47,7 +50,7 @@ const useBindQuote = (
         await updateDoc(quoteRef, updates);
       } else console.log('values unchanged ...skipping update');
     },
-    [firestore, quoteId]
+    [firestore, quoteId],
   );
 
   const bindQuote = useCallback(async () => {
@@ -63,10 +66,15 @@ const useBindQuote = (
     }
   }, [functions, onSuccess, onError]);
 
-  return useMemo(() => ({ saveValues, bindQuote, formRef }), [saveValues, bindQuote, formRef]);
+  return useMemo(
+    () => ({ saveValues, bindQuote, formRef }),
+    [saveValues, bindQuote, formRef],
+  );
 };
 
-type BindQuoteValues = NamedInsuredValues & EffectiveDateValues & BillingEntityStepValues;
+type BindQuoteValues = NamedInsuredValues &
+  EffectiveDateValues &
+  BillingEntityStepValues;
 
 interface BindQuoteWizardProps {
   quoteId: string;
@@ -84,23 +92,23 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
       // navigate(`/admin/stripe-test/receivables/${data.policyId}`);
       // navigate(
       //   createPath({
-      //     path: ROUTES.QUOTE_BIND_SUCCESS,
+      //     path: ROUTES.QUOTE_BIND_SUCCESS_EPAY,
       //     params: { quoteId, transactionId: '' }, // res?.transactionId ||
       //   })
       // );
     },
-    (msg) => toast.error(msg, { position: 'top-right' })
+    (msg) => toast.error(msg, { position: 'top-right' }),
   );
   // const formRef = useRef<FormikProps<BindQuoteValues>>(null);
 
   const { minEffDate, maxEffDate } = useMemo(() => {
     const minEffDate = addToDate(
       { days: 15 },
-      startOfDay(quote?.quotePublishedDate?.toDate() || new Date())
+      startOfDay(quote?.quotePublishedDate?.toDate() || new Date()),
     );
     const maxEffDate = addToDate(
       { days: 60 },
-      endOfDay(quote?.quotePublishedDate?.toDate() || new Date())
+      endOfDay(quote?.quotePublishedDate?.toDate() || new Date()),
     );
 
     return { minEffDate, maxEffDate };
@@ -127,12 +135,16 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
         />
         <EffectiveDateStep
           initialValues={{
-            effectiveDate: quote?.effectiveDate?.toDate() || (null as any as Date),
-            effectiveExceptionRequested: quote?.effectiveExceptionRequested || false,
+            effectiveDate:
+              quote?.effectiveDate?.toDate() || (null as any as Date),
+            effectiveExceptionRequested:
+              quote?.effectiveExceptionRequested || false,
             effectiveExceptionReason: quote.effectiveExceptionReason || '',
           }}
           onStepSubmit={saveValues}
-          formRef={formRef as any as RefObject<FormikProps<EffectiveDateValues>>}
+          formRef={
+            formRef as any as RefObject<FormikProps<EffectiveDateValues>>
+          }
           minEffDate={minEffDate}
           maxEffDate={maxEffDate}
           validateOnMount
@@ -143,7 +155,9 @@ export const BindQuoteWizard = ({ quoteId }: BindQuoteWizardProps) => {
           address={quote.address}
           img={quote.imageURLs?.satellite}
           onStepSubmit={saveValues}
-          formRef={formRef as any as RefObject<FormikProps<BillingEntityStepValues>>}
+          formRef={
+            formRef as any as RefObject<FormikProps<BillingEntityStepValues>>
+          }
           initialValues={{
             defaultBillingEntityId: quote?.defaultBillingEntityId || '',
             additionalInterests: quote?.additionalInterests || [],

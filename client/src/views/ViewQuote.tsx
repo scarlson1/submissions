@@ -242,6 +242,20 @@ export const ViewQuote = () => {
                 Looks Good! Let's continue
               </Button>
             )}
+            <Button
+              size='small'
+              onClick={() =>
+                navigate(
+                  createPath({
+                    path: ROUTES.QUOTE_BIND_EPAY,
+                    params: { quoteId },
+                  }),
+                )
+              }
+              disabled={data.status !== QUOTE_STATUS.AWAITING_USER || isExpired}
+            >
+              Epay Bind (legacy)
+            </Button>
 
             {data.status !== QUOTE_STATUS.AWAITING_USER && !isExpired && (
               <Typography

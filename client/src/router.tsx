@@ -12,7 +12,10 @@ import { PageMeta, RequireAuth, RouterErrorBoundary } from 'components';
 import { ConnectPayments, ConnectPayouts } from '@stripe/react-connect-js';
 import { ConfigLayout, Layout, SettingsLayout } from 'components/layout';
 import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
-import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
+import {
+  hasAdminClaimsValidator,
+  RequireAuthReactFire,
+} from 'components/RequireAuthReactFire';
 import { TempWrappedSearch } from 'components/search/Search';
 import { AuthActionsProvider } from 'context';
 import { ActionHandler } from 'elements';
@@ -121,7 +124,10 @@ export enum ROUTES {
   QUOTES = '/quotes',
   QUOTE_VIEW = '/quotes/:quoteId',
   QUOTE_BIND = '/quotes/:quoteId/bind',
-  QUOTE_BIND_SUCCESS = '/quotes/:quoteId/bind/success/:transactionId?',
+  QUOTE_STRIPE_CHECKOUT = '/quotes/:quoteId/checkout',
+  QUOTE_BIND_SUCCESS_STRIPE = '/quotes/:quoteId/bind/success',
+  QUOTE_BIND_EPAY = '/quotes/:quoteId/bind/epay',
+  QUOTE_BIND_SUCCESS_EPAY = '/quotes/:quoteId/bind/epay/success/:transactionId?', // OLD EPAY
   CONTACT = '/contact',
   USER_QUOTES = '/quotes/list/:userId', // TODO: use users view instead (with query param to initialize tab state)
   POLICIES = '/policies',
@@ -129,10 +135,12 @@ export enum ROUTES {
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
   // CLAIM_NEW = '/policies/:policyId/claim/new',
   CLAIM_NEW = '/policies/:policyId/:locationId/claims/new',
-  PAYABLE_CHECKOUT = '/receivables/:receivableId',
+  POLICY_RECEIVABLES = '/policies/:policyId/receivables',
+  POLICY_RECEIVABLE_CHECKOUT = '/receivables/:receivableId', // TODO: /policies/:policyId/receivables/receivableId
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
   ACCOUNT = '/account',
+  STRIPE_PAYOUTS = '/account/stripe/payouts',
   USER = '/user/:userId',
 }
 
@@ -170,7 +178,7 @@ export enum ADMIN_ROUTES {
   IMPORT_REVIEW = '/admin/config/imports/:importId',
   EMAIL_ACTIVITY = '/admin/config/email-activity',
   TRANSACTIONS = '/admin/config/transactions',
-  PAYABLES = '/admin/config/receivables', // TODO: move to non admin route once permissions fixed
+  RECEIVABLES = '/admin/config/receivables', // TODO: move to non admin route once permissions fixed
   LOCATIONS = '/admin/locations',
 }
 
@@ -202,8 +210,12 @@ type TArgs =
   | { path: ROUTES.QUOTES }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
+  | { path: ROUTES.QUOTE_STRIPE_CHECKOUT; params: { quoteId: string } }
+  | { path: ROUTES.QUOTE_BIND_SUCCESS_STRIPE; params: { quoteId: string } }
+  | { path: ROUTES.POLICY_RECEIVABLES; params: { policyId: string } }
+  | { path: ROUTES.QUOTE_BIND_EPAY; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
   | {
-      path: ROUTES.QUOTE_BIND_SUCCESS;
+      path: ROUTES.QUOTE_BIND_SUCCESS_EPAY;
       params: { quoteId: string; transactionId?: string };
     }
   | { path: ROUTES.POLICIES; search?: { productId?: TProduct } }
@@ -214,7 +226,10 @@ type TArgs =
     }
   | { path: ROUTES.ADD_LOCATION_NEW; params: { policyId: string } }
   | { path: ROUTES.CLAIM_NEW; params: { policyId: string; locationId: string } }
-  | { path: ROUTES.PAYABLE_CHECKOUT; params: { receivableId: string } }
+  | {
+      path: ROUTES.POLICY_RECEIVABLE_CHECKOUT;
+      params: { receivableId: string };
+    }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
@@ -259,7 +274,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.IMPORT_REVIEW; params: { importId: string } }
   | { path: ADMIN_ROUTES.EMAIL_ACTIVITY }
   | { path: ADMIN_ROUTES.TRANSACTIONS }
-  | { path: ADMIN_ROUTES.PAYABLES }
+  | { path: ADMIN_ROUTES.RECEIVABLES }
   | { path: ADMIN_ROUTES.LOCATIONS }
   | {
       path: AUTH_ROUTES.CREATE_ACCOUNT;
@@ -484,6 +499,131 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.QUOTE_BIND,
+            // element: <QuoteBind />,
+            element: (
+              <RequireAuthReactFire>
+                <StripeBindQuote />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Quotes',
+                  link: createPath({
+                    path: ROUTES.QUOTES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.quoteId || ''}`,
+                  link: createPath({
+                    path: ROUTES.QUOTE_VIEW,
+                    params: { quoteId: `${match?.params?.quoteId || ''}` },
+                  }),
+                },
+                {
+                  label: `Bind`,
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.QUOTE_STRIPE_CHECKOUT,
+            element: (
+              <RequireAuthReactFire
+              // signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <StripeCheckout />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Quotes',
+                  link: createPath({
+                    path: ROUTES.QUOTES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.quoteId || ''}`,
+                  link: createPath({
+                    path: ROUTES.QUOTE_VIEW,
+                    params: { quoteId: `${match?.params?.quoteId || ''}` },
+                  }),
+                },
+                {
+                  label: `Checkout`,
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.QUOTE_BIND_SUCCESS_STRIPE,
+            element: (
+              <RequireAuthReactFire
+              // signInCheckProps={{
+              //   requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+              // }}
+              >
+                <StripePaymentSuccess />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Quotes',
+                  link: createPath({
+                    path: ROUTES.QUOTES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.quoteId || ''}`,
+                  link: createPath({
+                    path: ROUTES.QUOTE_VIEW,
+                    params: { quoteId: `${match?.params?.quoteId || ''}` },
+                  }),
+                },
+                {
+                  label: `Bound`,
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.POLICY_RECEIVABLES,
+            element: (
+              <RequireAuthReactFire>
+                <ViewReceivables />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: ROUTES.STRIPE_PAYOUTS,
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{
+                  validateCustomClaims: hasAdminClaimsValidator,
+                }}
+              >
+                <StripeConnectViewsLayout />
+              </RequireAuthReactFire>
+            ),
+            children: [
+              {
+                path: 'payments',
+                element: <ConnectPayments />,
+              },
+              {
+                path: 'payouts',
+                element: <ConnectPayouts />,
+              },
+              // {
+              //   path: 'payouts',
+              //   element: <OrgStripeConnectOnboarding orgId={orgId} />,
+              // },
+            ],
+          },
+          {
+            path: ROUTES.QUOTE_BIND_EPAY,
             element: <QuoteBind />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -507,7 +647,7 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
-            path: ROUTES.QUOTE_BIND_SUCCESS,
+            path: ROUTES.QUOTE_BIND_SUCCESS_EPAY,
             element: (
               <>
                 <PageMeta title='iDemand - Bound' />
@@ -566,7 +706,7 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
-            path: ROUTES.PAYABLE_CHECKOUT,
+            path: ROUTES.POLICY_RECEIVABLE_CHECKOUT,
             element: <ReceivableCheckout />,
             errorElement: <RouterErrorBoundary />,
             handle: {
@@ -654,27 +794,6 @@ export const router = sentryCreateBrowserRouter([
               ],
             },
           },
-          // {
-          //   path: ROUTES.ACCOUNT,
-          //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ suspense: false }}>
-          //       <>
-          //         <PageMeta title='iDemand - Account' />
-          //         <Account />
-          //       </>
-          //     </RequireAuthReactFire>
-          //   ),
-          //   handle: {
-          //     crumb: (match: CrumbMatch) => [
-          //       {
-          //         label: 'Account',
-          //         link: createPath({
-          //           path: ACCOUNT_ROUTES.ACCOUNT,
-          //         }),
-          //       },
-          //     ],
-          //   },
-          // },
           {
             path: ROUTES.USER,
             element: (
@@ -848,7 +967,9 @@ export const router = sentryCreateBrowserRouter([
                   {
                     path: 'stripe', // ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING,
                     element: (
-                      <RequireAuth requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                      <RequireAuth
+                        requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}
+                      >
                         <CurrentUserOrgStripeConnectOnboarding />
                       </RequireAuth>
                     ),
@@ -1123,68 +1244,74 @@ export const router = sentryCreateBrowserRouter([
               </RequireAuthReactFire>
             ),
           },
-          {
-            path: 'stripe-test/:quoteId',
-            element: (
-              <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
-              >
-                <StripeCheckout />
-              </RequireAuthReactFire>
-            ),
-          },
-          {
-            path: 'stripe-test/success',
-            element: (
-              <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
-              >
-                <StripePaymentSuccess />
-              </RequireAuthReactFire>
-            ),
-          },
-          {
-            path: 'stripe-test/receivables/:policyId',
-            element: (
-              <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
-              >
-                <ViewReceivables />
-              </RequireAuthReactFire>
-            ),
-          },
-          {
-            path: 'stripe-test/data',
-            element: (
-              <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
-              >
-                <StripeConnectViewsLayout />
-              </RequireAuthReactFire>
-            ),
-            children: [
-              {
-                path: 'payments',
-                element: <ConnectPayments />,
-              },
-              {
-                path: 'payouts',
-                element: <ConnectPayouts />,
-              },
-              // {
-              //   path: 'payouts',
-              //   element: <OrgStripeConnectOnboarding orgId={orgId} />,
-              // },
-            ],
-          },
-          {
-            path: 'stripe-test/quote/bind/:quoteId',
-            element: (
-              <RequireAuthReactFire>
-                <StripeBindQuote />
-              </RequireAuthReactFire>
-            ),
-          },
+          // {
+          //   path: 'stripe-test/:quoteId',
+          //   element: (
+          //     <RequireAuthReactFire
+          //       signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+          //     >
+          //       <StripeCheckout />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: 'stripe-test/success',
+          //   element: (
+          //     <RequireAuthReactFire
+          //     // signInCheckProps={{
+          //     //   requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+          //     // }}
+          //     >
+          //       <StripePaymentSuccess />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: 'stripe-test/receivables/:policyId',
+          //   element: (
+          //     <RequireAuthReactFire
+          //       signInCheckProps={{
+          //         requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+          //       }}
+          //     >
+          //       <ViewReceivables />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: 'stripe-test/data',
+          //   element: (
+          //     <RequireAuthReactFire
+          //       signInCheckProps={{
+          //         validateCustomClaims: hasAdminClaimsValidator,
+          //       }}
+          //     >
+          //       <StripeConnectViewsLayout />
+          //     </RequireAuthReactFire>
+          //   ),
+          //   children: [
+          //     {
+          //       path: 'payments',
+          //       element: <ConnectPayments />,
+          //     },
+          //     {
+          //       path: 'payouts',
+          //       element: <ConnectPayouts />,
+          //     },
+          //     // {
+          //     //   path: 'payouts',
+          //     //   element: <OrgStripeConnectOnboarding orgId={orgId} />,
+          //     // },
+          //   ],
+          // },
+          // {
+          //   path: 'stripe-test/quote/bind/:quoteId',
+          //   element: (
+          //     <RequireAuthReactFire>
+          //       <StripeBindQuote />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
@@ -2145,7 +2272,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'receivables',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Receivables' />

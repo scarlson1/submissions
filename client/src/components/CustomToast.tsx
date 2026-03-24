@@ -4,14 +4,15 @@ import {
   CircularProgress,
   CircularProgressProps,
   IconButton,
-  LinearProgress,
-  LinearProgressProps,
   keyframes,
+  LinearProgress,
   linearProgressClasses,
+  LinearProgressProps,
   styled,
 } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
-import { Toast, toast, useToasterStore } from 'react-hot-toast';
+import { useCountdown } from 'hooks/utils';
+import { useCallback, useEffect } from 'react';
+import { Toast, toast } from 'react-hot-toast';
 import { useSwipeable } from 'react-swipeable';
 
 const ToastLinearProgress = styled(LinearProgress)(({ theme }) => ({
@@ -35,9 +36,9 @@ const ToastCircularProgress = styled(CircularProgress)(({ theme }) => ({
   opacity: 0.2,
 }));
 
-function getProgressProps<T extends LinearProgressProps | CircularProgressProps>(
-  t: Toast
-): Partial<T> {
+function getProgressProps<
+  T extends LinearProgressProps | CircularProgressProps,
+>(t: Toast): Partial<T> {
   switch (t.type) {
     case 'success':
       return { color: 'success' } as Partial<T>;
@@ -57,10 +58,19 @@ interface CloseToastButtonProps extends CircularProgressProps {
   onClose: () => void;
 }
 
-const CloseToastButton = ({ timeRemaining, onClose, ...props }: CloseToastButtonProps) => {
+const CloseToastButton = ({
+  timeRemaining,
+  onClose,
+  ...props
+}: CloseToastButtonProps) => {
   return (
     <Box sx={{ position: 'relative' }}>
-      <IconButton size='small' aria-label='close' onClick={onClose} sx={{ zIndex: 2 }}>
+      <IconButton
+        size='small'
+        aria-label='close'
+        onClick={onClose}
+        sx={{ zIndex: 2 }}
+      >
         <CloseRounded fontSize='inherit' />
       </IconButton>
       <ToastCircularProgress
@@ -75,37 +85,60 @@ const CloseToastButton = ({ timeRemaining, onClose, ...props }: CloseToastButton
   );
 };
 
-export function useToastCountdown(t: Toast) {
-  const { pausedAt } = useToasterStore({}, t.toasterId);
-  const [now, setNow] = useState(() => Date.now());
-  const duration = t.duration ?? 4000;
+function useToastCountdown(t: Toast) {
+  // const { pausedAt } = useToasterStore({ id: t.id });
+  const countStart = (t.duration || 4000) / 100;
+  const [count, { startCountdown, stopCountdown }] = useCountdown({
+    countStart,
+    intervalMs: 100,
+  });
 
   useEffect(() => {
-    if (!t.visible || pausedAt || duration === Infinity) {
-      return;
-    }
+    // const fn = pausedAt ? stopCountdown : startCountdown;
+    // t.visible && fn(); // BUG can leave other toasts stuck on stopCountdown
+    if (!t.visible || t.type === 'loading') return;
+    // if (pausedAt) {
+    //   stopCountdown();
+    // } else {
+    startCountdown();
+  }, [stopCountdown, startCountdown, t.visible, t.type]);
 
-    setNow(Date.now());
+  const timeRemaining = (count / countStart) * 100;
 
-    const intervalId = window.setInterval(() => {
-      setNow(Date.now());
-    }, 100);
-
-    return () => window.clearInterval(intervalId);
-  }, [duration, pausedAt, t.visible]);
-
-  const elapsed = Math.max((pausedAt ?? now) - t.createdAt - t.pauseDuration, 0);
-  const remaining = duration === Infinity ? Infinity : Math.max(duration - elapsed, 0);
-  const timeRemaining = duration === Infinity ? 100 : (remaining / duration) * 100;
-
-  useEffect(() => {
-    if (remaining === 0 && t.visible) {
-      toast.dismiss(t.id, t.toasterId);
-    }
-  }, [remaining, t.id, t.toasterId, t.visible]);
-
-  return timeRemaining;
+  return [timeRemaining, { startCountdown, stopCountdown }] as const;
 }
+
+// export function useToastCountdown(t: Toast) {
+//   const { pausedAt } = useToasterStore({}, t.toasterId);
+//   const [now, setNow] = useState(() => Date.now());
+//   const duration = t.duration ?? 4000;
+
+//   useEffect(() => {
+//     if (!t.visible || pausedAt || duration === Infinity) {
+//       return;
+//     }
+
+//     setNow(Date.now());
+
+//     const intervalId = window.setInterval(() => {
+//       setNow(Date.now());
+//     }, 100);
+
+//     return () => window.clearInterval(intervalId);
+//   }, [duration, pausedAt, t.visible]);
+
+//   const elapsed = Math.max((pausedAt ?? now) - t.createdAt - t.pauseDuration, 0);
+//   const remaining = duration === Infinity ? Infinity : Math.max(duration - elapsed, 0);
+//   const timeRemaining = duration === Infinity ? 100 : (remaining / duration) * 100;
+
+//   useEffect(() => {
+//     if (remaining === 0 && t.visible) {
+//       toast.dismiss(t.id, t.toasterId);
+//     }
+//   }, [remaining, t.id, t.toasterId, t.visible]);
+
+//   return timeRemaining;
+// }
 
 const enter = keyframes`
 from {
@@ -126,15 +159,17 @@ export const AnimatedIconWrapper = styled('div')`
   opacity: 0.3;
   min-width: 20px;
   animation-delay: 1000ms;
-  animation: ${enter} 0.3s 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: ${enter} 0.3s 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+    forwards;
 `;
 
 export function CustomToast({ icon, message, t }: any) {
-  const timeRemaining = useToastCountdown(t);
+  const [timeRemaining, { stopCountdown }] = useToastCountdown(t);
 
   const handleClose = useCallback(() => {
-    toast.dismiss(t.id, t.toasterId);
-  }, [t.id, t.toasterId]);
+    stopCountdown();
+    toast.dismiss(t.id);
+  }, [stopCountdown, t.id]);
 
   // TODO: swipe direction based on toast position ??
   const handlers = useSwipeable({
@@ -149,7 +184,12 @@ export function CustomToast({ icon, message, t }: any) {
       <Box sx={{ flex: '0 0 auto', alignSelf: 'center' }}>
         <AnimatedIconWrapper>{icon}</AnimatedIconWrapper>
       </Box>
-      <Box sx={{ flex: '1 1 auto', '& div[role=status]': { justifyContent: 'flex-start' } }}>
+      <Box
+        sx={{
+          flex: '1 1 auto',
+          '& div[role=status]': { justifyContent: 'flex-start' },
+        }}
+      >
         {message}
       </Box>
       {t.type !== 'loading' && (

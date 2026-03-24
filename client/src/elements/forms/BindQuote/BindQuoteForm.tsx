@@ -1,5 +1,10 @@
 import { endOfDay, startOfDay } from 'date-fns';
-import { DocumentReference, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import {
+  doc,
+  DocumentReference,
+  Timestamp,
+  updateDoc,
+} from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { useBindQuote, useDocData, useSafeParams } from 'hooks';
 import { isEqual } from 'lodash';
@@ -10,20 +15,23 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 
 import {
   AdditionalInterest,
-  MailingAddress,
-  NamedInsuredDetails,
-  Quote,
-  TBillingEntity,
   additionalInterestsValidation,
+  MailingAddress,
   mailingAddressValidation,
+  NamedInsuredDetails,
   namedInsuredValidationNested,
+  Quote,
   quotesCollection,
+  TBillingEntity,
 } from 'common';
 import { FormikWizard, Step } from 'components/forms';
 import { addToDate } from 'modules/utils';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 import { AdditionalInterestsStep } from './AdditionalInterestsStep';
-import { EffectiveDateStep, getEffectiveDateValidation } from './EffectiveDateStep';
+import {
+  EffectiveDateStep,
+  getEffectiveDateValidation,
+} from './EffectiveDateStep';
 import { QuoteExpired } from './Expired';
 import { MailingAddressStep } from './MailingAddressStep';
 import { NamedInsuredStep } from './NamedInsuredStep';
@@ -51,7 +59,10 @@ export const BindQuoteForm = () => {
   const formikRef = useRef<FormikProps<BindQuoteValues>>(null);
   const firestore = useFirestore();
   const { current: quoteRef } = useRef(
-    doc(quotesCollection(firestore), quoteId) as unknown as DocumentReference<Quote, Quote>
+    doc(quotesCollection(firestore), quoteId) as unknown as DocumentReference<
+      Quote,
+      Quote
+    >,
   ); // TODO: could useDoc instead of doc data, then use snap.ref ??
   const logAnalyticsStep = useLogCheckoutProgress(quoteId, 5);
   // const paymentMethods = useUserPaymentMethods();
@@ -59,11 +70,11 @@ export const BindQuoteForm = () => {
   const { minEffDate, maxEffDate } = useMemo(() => {
     const minEffDate = addToDate(
       { days: 15 },
-      startOfDay(data.quotePublishedDate?.toDate() || new Date())
+      startOfDay(data.quotePublishedDate?.toDate() || new Date()),
     );
     const maxEffDate = addToDate(
       { days: 60 },
-      endOfDay(data.quotePublishedDate?.toDate() || new Date())
+      endOfDay(data.quotePublishedDate?.toDate() || new Date()),
     );
 
     return { minEffDate, maxEffDate };
@@ -87,11 +98,14 @@ export const BindQuoteForm = () => {
   // TODO FINISH BIND QUOTE HOOK
   const bindQuote = useBindQuote(
     (msg: string) => toast.success(msg),
-    (msg: string, err: any) => toast.error(msg)
+    (msg: string, err: any) => toast.error(msg),
   );
 
   const handleSubmit = useCallback(
-    async (values: BindQuoteValues, { setSubmitting }: FormikHelpers<BindQuoteValues>) => {
+    async (
+      values: BindQuoteValues,
+      { setSubmitting }: FormikHelpers<BindQuoteValues>,
+    ) => {
       // if (!values.paymentMethodId) return toast.error('Missing payment method');
 
       // const res = await bindQuote(quoteId, values.paymentMethodId);
@@ -100,25 +114,34 @@ export const BindQuoteForm = () => {
       const res = await bindQuote(quoteId, pmtMethodId);
       setSubmitting(false);
 
-      if (res?.transactionId && (res?.status === 'succeeded' || res?.status === 'processing')) {
+      if (
+        res?.transactionId &&
+        (res?.status === 'succeeded' || res?.status === 'processing')
+      ) {
         navigate(
           createPath({
-            path: ROUTES.QUOTE_BIND_SUCCESS,
+            path: ROUTES.QUOTE_BIND_SUCCESS_EPAY,
             params: { quoteId, transactionId: res?.transactionId || '' },
-          })
+          }),
         );
       }
     },
-    [quoteId, bindQuote, navigate]
+    [quoteId, bindQuote, navigate],
   );
 
   const handleCancel = useCallback(() => {
-    const navPath = signInCheckResult.signedIn ? createPath({ path: ROUTES.QUOTES }) : '/';
+    const navPath = signInCheckResult.signedIn
+      ? createPath({ path: ROUTES.QUOTES })
+      : '/';
     navigate(navPath);
   }, [navigate, signInCheckResult]);
 
   const saveValues = useCallback(
-    async (values: BindQuoteValues, bag: any, initialValues: BindQuoteValues) => {
+    async (
+      values: BindQuoteValues,
+      bag: any,
+      initialValues: BindQuoteValues,
+    ) => {
       if (isEqual(values, initialValues)) return values;
 
       // const newBillingEntities: Record<string, TBillingEntity> = {
@@ -161,14 +184,17 @@ export const BindQuoteForm = () => {
       });
       return values;
     },
-    [quoteRef]
+    [quoteRef],
   );
 
   const isExpired = data.quoteExpirationDate?.toMillis() < new Date().getTime();
 
   if (isExpired) {
     return (
-      <QuoteExpired productId={data.product} expiredDate={data.quoteExpirationDate.toDate()} />
+      <QuoteExpired
+        productId={data.product}
+        expiredDate={data.quoteExpirationDate.toDate()}
+      />
     );
   }
 
@@ -189,7 +215,9 @@ export const BindQuoteForm = () => {
           state: data?.mailingAddress?.state || '',
           postal: data?.mailingAddress?.postal || '',
         },
-        additionalInterests: data?.additionalInterests ? [...data?.additionalInterests] : [],
+        additionalInterests: data?.additionalInterests
+          ? [...data?.additionalInterests]
+          : [],
         effectiveDate: data?.effectiveDate?.toDate() ?? new Date(),
         effectiveExceptionRequested: data?.effectiveExceptionRequested ?? false,
         effectiveExceptionReason: data?.effectiveExceptionReason ?? '',
@@ -231,9 +259,16 @@ export const BindQuoteForm = () => {
         label='Effective Date'
         stepperNavLabel='Dates'
         validationSchema={getEffectiveDateValidation(minEffDate, maxEffDate)}
-        mutateOnSubmit={(values: BindQuoteValues, bag: any, initialValues: BindQuoteValues) => {
+        mutateOnSubmit={(
+          values: BindQuoteValues,
+          bag: any,
+          initialValues: BindQuoteValues,
+        ) => {
           let mutatedVals = values;
-          if (values.effectiveDate > minEffDate && values.effectiveDate < maxEffDate) {
+          if (
+            values.effectiveDate > minEffDate &&
+            values.effectiveDate < maxEffDate
+          ) {
             mutatedVals.effectiveExceptionReason = '';
             mutatedVals.effectiveExceptionRequested = false;
           }
@@ -259,7 +294,10 @@ export const BindQuoteForm = () => {
         <BillingStep />
       </Step>
       <Step label='Review' stepperNavLabel='Review'>
-        <ReviewStep data={{ ...data, id: quoteId! }} logAnalyticsStep={logAnalyticsStep} />
+        <ReviewStep
+          data={{ ...data, id: quoteId! }}
+          logAnalyticsStep={logAnalyticsStep}
+        />
       </Step>
     </FormikWizard>
   );

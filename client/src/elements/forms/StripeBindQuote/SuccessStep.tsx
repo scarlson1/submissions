@@ -169,7 +169,7 @@ const ReceivablesList = ({ policyId }: ReceivablesListProps) => {
                     onClick={() =>
                       navigate(
                         createPath({
-                          path: ROUTES.PAYABLE_CHECKOUT,
+                          path: ROUTES.POLICY_RECEIVABLE_CHECKOUT,
                           params: { receivableId: r.id },
                         }),
                       )
