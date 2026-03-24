@@ -262,7 +262,7 @@ export const TransferSummary = z.object({
   // source_transaction - use the charge ID from event handler (will autopopulate transfer_group)
   // percentOfCharge ?? should be percent of total or percent, net taxes/fees
   // or percentageOfRefundableAmount ??
-  transferIds: z.array(z.string()),
+  // transferIds: z.array(z.string()),
 });
 
 export const ReceivableStatus = z.enum([

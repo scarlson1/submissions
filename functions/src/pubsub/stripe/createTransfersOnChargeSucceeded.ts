@@ -7,7 +7,6 @@ import {
   receivablesCollection,
   stripeSecretKey,
   transfersCollection,
-  type Receivable,
 } from '../../common/index.js';
 import { getQueryData } from '../../modules/db/utils.js';
 import { getStripe } from '../../services/stripe.js';
@@ -67,7 +66,7 @@ export default async (
     // TODO: don't use batch (more likely to get out of sync or want all transfers to fail if one fails) ??
     const batch = db.batch();
 
-    const updatedTransfers: Receivable['transfers'] = [];
+    // const updatedTransfers: Receivable['transfers'] = [];
 
     for (const t of transfers) {
       // TODO: check if transfer already made ?? or set at receivable level ??
@@ -98,15 +97,15 @@ export default async (
       batch.set(transferRef, transfer);
 
       // MOVE TO transfer STRIPE EVENT HANDLER ??
-      updatedTransfers.push({
-        ...t,
-        transferIds: [...(t.transferIds || []), transfer.id],
-      });
+      // updatedTransfers.push({
+      //   ...t,
+      //   transferIds: [...(t.transferIds || []), transfer.id],
+      // });
     }
 
-    batch.update(receivablesCol.doc(receivable.id), {
-      transfers: updatedTransfers,
-    });
+    // batch.update(receivablesCol.doc(receivable.id), {
+    //   transfers: updatedTransfers,
+    // });
 
     await batch.commit();
   } catch (err: any) {
