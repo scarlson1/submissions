@@ -96,6 +96,7 @@ export {
 export {
   createtaxtransactions,
   createtransfers,
+  markpolicypaid,
   reversetaxtransactions,
   reversetransfers,
 } from './pubsub/stripe/index.js';

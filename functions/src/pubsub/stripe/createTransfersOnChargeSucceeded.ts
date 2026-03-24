@@ -7,6 +7,7 @@ import {
   receivablesCollection,
   stripeSecretKey,
   transfersCollection,
+  type Receivable,
 } from '../../common/index.js';
 import { getQueryData } from '../../modules/db/utils.js';
 import { getStripe } from '../../services/stripe.js';
@@ -66,6 +67,8 @@ export default async (
     // TODO: don't use batch (more likely to get out of sync or want all transfers to fail if one fails) ??
     const batch = db.batch();
 
+    const updatedTransfers: Receivable['transfers'] = [];
+
     for (const t of transfers) {
       // TODO: check if transfer already made ?? or set at receivable level ??
       // or set amountTransferred in case of partial payments ??
@@ -84,7 +87,16 @@ export default async (
 
       const transferRef = transfersCol.doc(transfer.id);
       batch.set(transferRef, transfer);
+
+      updatedTransfers.push({
+        ...t,
+        transferIds: [...(t.transferIds || []), transfer.id],
+      });
     }
+
+    batch.update(receivablesCol.doc(receivable.id), {
+      transfers: updatedTransfers,
+    });
 
     await batch.commit();
   } catch (err: any) {

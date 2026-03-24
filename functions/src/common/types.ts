@@ -28,7 +28,10 @@ import {
 } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
-import { CalcPolicyChangesResult, SecondaryFactorMults } from '../modules/rating/index.js';
+import {
+  CalcPolicyChangesResult,
+  SecondaryFactorMults,
+} from '../modules/rating/index.js';
 import { ElevationResult } from '../services/elevationApi.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import {
@@ -52,11 +55,14 @@ export type DeepPartial<T> = {
 };
 
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
-export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> &
+  Omit<T, K>;
 
 export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
-export type PartialRequired<T, K extends keyof T> = Partial<T> & { [P in K]-?: NonNullable<T[P]> };
+export type PartialRequired<T, K extends keyof T> = Partial<T> & {
+  [P in K]-?: NonNullable<T[P]>;
+};
 
 export type Maybe<T> = T | null | undefined;
 
@@ -66,10 +72,15 @@ export type Concrete<Type> = {
 
 // meant to override DeepPartial, but not working (Timestamp issue)
 export type DeepConcrete<T> = {
-  [K in keyof T]-?: T[K] extends object ? DeepConcrete<T[K]> : NonNullable<T[K]>;
+  [K in keyof T]-?: T[K] extends object
+    ? DeepConcrete<T[K]>
+    : NonNullable<T[K]>;
 };
 
-export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Key extends string
+export type FlattenObjectKeys<
+  T extends Record<string, any>,
+  Key = keyof T,
+> = Key extends string
   ? T[Key] extends Record<string, any>
     ? `${Key}.${FlattenObjectKeys<T[Key]>}`
     : `${Key}`
@@ -85,15 +96,18 @@ type PathImpl<T, K extends keyof T> = K extends string
 
 export type Path<T> = PathImpl<T, keyof T> | keyof T;
 
-export type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest}`
+export type PathValue<
+  T,
+  P extends Path<T>,
+> = P extends `${infer K}.${infer Rest}`
   ? K extends keyof T
     ? Rest extends Path<T[K]>
       ? PathValue<T[K], Rest>
       : never
     : never
   : P extends keyof T
-  ? T[P]
-  : never;
+    ? T[P]
+    : never;
 
 // USAGE:
 // declare function get<T, P extends Path<T>>(obj: T, path: P): PathValue<T, P>;
@@ -101,7 +115,14 @@ export type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest
 
 export type StrictExclude<T, U> = T extends U ? (U extends T ? never : T) : T;
 
-export type Primitive = string | number | bigint | boolean | symbol | null | undefined;
+export type Primitive =
+  | string
+  | number
+  | bigint
+  | boolean
+  | symbol
+  | null
+  | undefined;
 
 export const Timestamp = z.instanceof(FirestoreTimestamp);
 export type Timestamp = z.infer<typeof Timestamp>;
@@ -241,9 +262,15 @@ export const TransferSummary = z.object({
   // source_transaction - use the charge ID from event handler (will autopopulate transfer_group)
   // percentOfCharge ?? should be percent of total or percent, net taxes/fees
   // or percentageOfRefundableAmount ??
+  transferIds: z.array(z.string()),
 });
 
-export const ReceivableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
+export const ReceivableStatus = z.enum([
+  'outstanding',
+  'paid',
+  'cancelled',
+  'expired',
+]);
 export type ReceivableStatus = z.infer<typeof ReceivableStatus>;
 // keep expired ?? receivable should persist when invoice expires ??
 // TODO: handle invoice / payment intent expired
@@ -264,11 +291,11 @@ export const Receivable = z.object({
     address: StripeAddress.nullable(),
   }),
   lineItems: z.array(LineItem),
-  transfers: z.array(TransferSummary), // create before ?? need to update if revered ??
+  transfers: z.array(TransferSummary), // create before ?? need to update if reversed ??
   transferGroup: z.string().optional().nullable(), // passed to payment intent - not available on invoice ??
   taxes: z.array(TaxItem), // just store referance to tax calc object ??
   // taxes separate from line items ??
-  fees: z.array(FeeItem), // TODO: need to add refundable property on feeItem
+  fees: z.array(FeeItem),
   status: ReceivableStatus,
   paid: z.boolean(),
   paidOutOfBand: z.boolean(),
@@ -279,8 +306,9 @@ export const Receivable = z.object({
   // paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(), // generated when invoice is finalized
-  invoiceNumber: z.string().optional().nullable(),
+  invoiceNumber: z.string().optional().nullable(), // different from invoiceId ??
   receiptNumber: z.string().optional().nullable(),
+  hostedReceiptUrl: z.string().optional().nullable(), // set from finalized event
   hostedInvoiceUrl: z.string().optional().nullable(), // set from finalized event
   invoicePdfUrl: z.string().optional().nullable(),
   refundableTaxesAmount: z.number().int(),
@@ -375,7 +403,11 @@ export interface EPayGetTransactionRes {
   comments: string | null;
   originalTransactionId: string | null;
   events: EPayEvent[];
-  attributeValues: { name: string | null; parameterName: string | null; value: string | null }[];
+  attributeValues: {
+    name: string | null;
+    parameterName: string | null;
+    value: string | null;
+  }[];
   attachments: { name: string | null; downloadUri: string | null }[];
   paidInvoices: {
     id: string;
@@ -416,7 +448,7 @@ export type Address = z.infer<typeof Address>;
 export const MailingAddress = Address.and(
   z.object({
     name: z.string(),
-  })
+  }),
 );
 export type MailingAddress = z.infer<typeof MailingAddress>;
 
@@ -431,7 +463,10 @@ export type CompressedAddress = z.infer<typeof CompressedAddress>;
 
 export const Coords = z.object({
   latitude: z.number().min(-90, 'invalid latitude').max(90, 'invalid latitude'),
-  longitude: z.number().min(-180, 'invalid longitude').max(180, 'invalid longitude'),
+  longitude: z
+    .number()
+    .min(-180, 'invalid longitude')
+    .max(180, 'invalid longitude'),
 });
 export type Coords = z.infer<typeof Coords>;
 
@@ -448,7 +483,12 @@ export interface AgencyApplication extends BaseDoc {
     email: string;
     phone: string;
   };
-  agents: { firstName: string; lastName: string; email: string; phone: string }[];
+  agents: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  }[];
   // bankDetails: {
   //   accountNumber: string;
   //   routingNumber: string;
@@ -567,8 +607,15 @@ export const RatingPropertyData = z.object({
   floodZone: FloodZone,
   numStories: z.number().int().nonnegative().optional().nullable(),
   propertyCode: z.string().optional().nullable(),
-  replacementCost: z.number().nonnegative().min(50000, 'replacement cost est. must be > $50k'), // TODO: min ??
-  sqFootage: z.coerce.number().int('sq. footage must be an integer').optional().nullable(),
+  replacementCost: z
+    .number()
+    .nonnegative()
+    .min(50000, 'replacement cost est. must be > $50k'), // TODO: min ??
+  sqFootage: z.coerce
+    .number()
+    .int('sq. footage must be an integer')
+    .optional()
+    .nullable(),
 
   yearBuilt: z.coerce
     .number()
@@ -687,8 +734,14 @@ export const MGACommissionPct = z
   .max(0.2, 'Commission must be <= 20%');
 export type MGACommissionPct = z.infer<typeof MGACommissionPct>;
 
-export type LcnWithTermPrem = PartialRequired<ILocation, 'termPremium' | 'annualPremium'>;
-export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium' | 'annualPremium'>;
+export type LcnWithTermPrem = PartialRequired<
+  ILocation,
+  'termPremium' | 'annualPremium'
+>;
+export type PolicyLcnWithPrem = PartialRequired<
+  PolicyLocation,
+  'termPremium' | 'annualPremium'
+>;
 
 // TODO: create discriminating unions (status: "cancelled" -- require cancelEffDate & cancelReason, etc.)
 
@@ -1143,10 +1196,16 @@ export interface CancellationRequest extends BaseChangeRequest {
   //   string,
   //   Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
   // >;
-  locationChanges: Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>;
+  locationChanges: Pick<
+    ILocation,
+    'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+  >;
   cancellationChanges: Record<
     string,
-    Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
+    Pick<
+      ILocation,
+      'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+    >
   >; // Record<string, Partial<ILocation>>;
   policyChanges?: CalcPolicyChangesResult;
   // policyChanges?: Pick<
@@ -1184,8 +1243,10 @@ export interface LocationChangeRequest extends BaseChangeRequest {
 }
 
 // TODO: separate out flat cancel ??
-export interface LocationCancellationRequest
-  extends Omit<LocationChangeRequest, 'formValues' | 'locationChanges'> {
+export interface LocationCancellationRequest extends Omit<
+  LocationChangeRequest,
+  'formValues' | 'locationChanges'
+> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
   formValues: CancelValues;
@@ -1209,7 +1270,10 @@ export interface CancelValues {
   reason: CancellationReason;
 }
 
-export interface PolicyCancellationRequest extends Omit<PolicyChangeRequestOld, 'formValues'> {
+export interface PolicyCancellationRequest extends Omit<
+  PolicyChangeRequestOld,
+  'formValues'
+> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
   formValues: CancelValues;
@@ -1254,8 +1318,10 @@ export interface AddLocationRequest extends Omit<BaseChangeRequest, 'status'> {
   locationId: string;
 }
 
-export interface DraftAddLocationRequest
-  extends Omit<AddLocationRequest, 'formValues' | 'status' | 'locationId'> {
+export interface DraftAddLocationRequest extends Omit<
+  AddLocationRequest,
+  'formValues' | 'status' | 'locationId'
+> {
   status: 'draft';
   formValues: Partial<AddLocationValues>;
   locationId?: string;
@@ -1389,7 +1455,10 @@ export interface AmendmentTransaction extends BaseTransaction {
   billingEntity?: { displayName: string; id: string };
 }
 
-export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTransaction;
+export type Transaction =
+  | PremiumTransaction
+  | OffsetTransaction
+  | AmendmentTransaction;
 
 // export interface Transaction extends BaseDoc {
 //   trxType: TransactionType;
@@ -1613,7 +1682,10 @@ export type StagedQuoteImport = Quote & {
   importMeta: QuoteImportMeta;
 };
 
-export type StageImportRecord = StagedPolicyImport | StagedTransactionImport | StagedQuoteImport;
+export type StageImportRecord =
+  | StagedPolicyImport
+  | StagedTransactionImport
+  | StagedQuoteImport;
 
 export interface EmailRecord extends CreateMsgContentProps {
   metadata: {

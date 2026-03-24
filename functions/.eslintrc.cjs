@@ -55,6 +55,7 @@ module.exports = {
     'comma-dangle': 'off',
     'arrow-parens': 'off',
     'no-trailing-spaces': 'warn',
+    'no-multiple-empty-lines': 'warn',
     'require-jsdoc': [
       'warn',
       {

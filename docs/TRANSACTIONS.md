@@ -95,6 +95,8 @@ Offset transactions append `-offset` to the base ID:
 
 ## Transaction Creation Flows
 
+![transaction triggers](./transactions-triggers-overview.svg)
+
 ### 1. New Policy
 
 **Trigger:** `policy.created` pub/sub topic, published by `createPolicy` callable after the Firestore batch commit.
@@ -146,6 +148,8 @@ Offset transactions append `-offset` to the base ID:
 5. Write both transactions in a single batch:
    - `{trxId}-offset` — reverses the remaining premium
    - `{trxId}` — records the new premium
+
+![endorsement transaction](./endorsement-transaction-detail.svg)
 
 ---
 
@@ -290,6 +294,8 @@ draft → submitted → under_review → accepted → [transactions published]
                                  → cancelled
                                  → error
 ```
+
+![change request state](./change-request-state-machine.svg)
 
 The `policyChangeRequest` Firestore event listener (`firestoreEvents/policyChangeRequest.ts`) drives this flow:
 

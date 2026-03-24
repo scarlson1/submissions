@@ -84,7 +84,7 @@ export function CheckoutForm({
       elements,
       confirmParams: {
         // TODO: success url - include receivable ID in params
-        return_url: 'http://localhost:3000/admin/stripe-test/success',
+        return_url: `${import.meta.env.VITE_HOSTING_URL}/admin/stripe-test/success`,
         // payment_intent_client_secret is set as query param --> fetch intent to display status
         receipt_email: emailReceipt, // || link.email, // email,
       },

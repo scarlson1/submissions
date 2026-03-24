@@ -18,6 +18,7 @@ const reportErr = getReportErrorFn('createTransfersOnChargeComplete');
 
 export interface ChargeSucceededPayload {
   charge: Stripe.Charge;
+  paidOutOfBand?: boolean;
   // TODO: include other stripe event data ??
 }
 

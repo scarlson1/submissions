@@ -403,10 +403,7 @@ These are the main implementation gaps visible in the current code.
 
 - The main bind route still uses ePay instead of Stripe.
 - The Stripe bind experience is still under admin test routes.
-- `CheckoutForm` uses a hardcoded localhost return URL for Stripe confirmation.
-- The Stripe webhook secret is hardcoded in code instead of being configured securely.
-- `invoice.paid` is not implemented, which matters for out-of-band or invoice-native payment scenarios.
-- `markPaidOnChargeSucceeded.ts` is stubbed and not wired into production state transitions.
+<!-- - `invoice.paid` is not implemented, which matters for out-of-band or invoice-native payment scenarios. -->
 - `createTransfersOnChargeSucceeded.ts` notes missing idempotency and does not persist transfer IDs back onto receivable transfer entries.
 - verify partial payments and/or accounts that don't match firebase records are handled properly (transfers). Currently using (transferAmount / receivable.totalAmount) \* charge.amount_captured
 - `reverseTransfersOnRefund.ts` also calls out missing idempotency and incomplete refund allocation logic (refunded tax amount needs to be added to stripe metadata ??).
@@ -416,6 +413,8 @@ These are the main implementation gaps visible in the current code.
   - verify before issuing quote ??
 - Stipe customer - ensure user has stripe customer account prior to binding quote
 - add documentation about how tax/fee data is stored in stripe invoice/charge
+- Receivables update from stripe events (paid, refunded, etc.)
+- handle paidOutOfBand
 
 ## Steps To Finish A Production-Ready Switch To Stripe
 

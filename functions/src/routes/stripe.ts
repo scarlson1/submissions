@@ -158,8 +158,9 @@ app.post(
         // emit pub sub event ??
         // trigger policy pmt status (might need to be updated by billing entity ??) or charge ID ??
         await publishChargeSucceeded({ charge });
-        // TODO: set receipt number on receivable
+        // TODO: need to use invoice.paid for out-of-band & invoice-native payment scenarios
         // TODO: doesn't run when payment made via bank transfer ? or paid out of network (paper check) ??
+        // does invoice.paid or invoice_payment.paid ??
 
         break;
       }
@@ -292,9 +293,75 @@ app.post(
         break;
       }
       case 'invoice.paid': {
-        const paidInvoice = event.data.object as Stripe.Invoice;
-        console.log('invoice paid: ', paidInvoice);
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log('invoice paid: ', invoice);
         // need to handle receivable paid if invoice paid out of X (paper check ??) no charge.succeeded event ??
+        // invoice.charge
+        // invoice.paid_out_of_band
+        // other successful payments handled by charge.paid event
+        if (!invoice.charge) {
+          // required values from charge object for createTaxTransactions, createTransfers, markPolicyPaid:
+          // invoice, paid, receipt_number, receipt_url, payment_intent metadata, amount_captured, id
+
+          const mockCharge: Stripe.Charge = {
+            id: '',
+            object: 'charge',
+            application: null,
+            application_fee: null,
+            application_fee_amount: null,
+            amount: invoice.amount_due,
+            amount_captured: invoice.amount_paid,
+            amount_refunded: 0, // invoice.amount
+            balance_transaction: null,
+            billing_details: {
+              address: invoice.customer_address,
+              email: invoice.customer_email,
+              name: invoice.customer_name,
+              phone: invoice.customer_phone,
+            },
+            calculated_statement_descriptor: invoice.statement_descriptor,
+            created: Date.now(),
+            currency: invoice.currency,
+            description: invoice.description,
+            captured: true,
+            customer: invoice.customer,
+            disputed: false,
+            failure_balance_transaction: null,
+            failure_code: null,
+            failure_message: null,
+            fraud_details: null,
+            invoice: invoice.id,
+            outcome: null,
+            payment_method: null,
+            payment_method_details: null,
+            receipt_email: invoice.customer_email,
+            livemode: invoice.livemode,
+            metadata: invoice.metadata || {},
+            on_behalf_of: invoice.on_behalf_of,
+            paid: true,
+            payment_intent: invoice.payment_intent,
+            // payment_method: invoice.payment_settings.
+            receipt_number: invoice.receipt_number,
+            receipt_url: '',
+            refunded: false,
+            refunds: null,
+            review: null,
+            shipping: null,
+            source: null,
+            source_transfer: null,
+            statement_descriptor: null,
+            statement_descriptor_suffix: null,
+            status: 'succeeded',
+            // transfer: invoice.transfer_data?.destination,
+            transfer_data: invoice.transfer_data,
+            transfer_group: null, // invoice.transfer_data.
+          };
+
+          await publishChargeSucceeded({
+            charge: mockCharge,
+            paidOutOfBand: invoice.paid_out_of_band,
+          });
+        }
 
         break;
       }
