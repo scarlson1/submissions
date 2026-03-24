@@ -14,7 +14,7 @@ const fetchPaymentIntentSecret = async ({
   data,
   auth,
 }: CallableRequest<FetchPaymentIntentSecretProps>) => {
-  let stripe = getStripe(stripeSecretKey.value());
+  const stripe = getStripe(stripeSecretKey.value());
 
   const { paymentIntentId } = data;
   validate(paymentIntentId, 'failed-precondition', 'paymentIntentId required');
@@ -23,18 +23,27 @@ const fetchPaymentIntentSecret = async ({
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     console.log('PAYMENT INTENT: ', paymentIntent);
 
-    return { clientSecret: paymentIntent.client_secret };
+    // TODO: need to look up invoice to see if it's already been paid ??
+    // https://docs.stripe.com/api/payment_intents/object
+
+    return {
+      clientSecret: paymentIntent.client_secret,
+      status: paymentIntent.status,
+    };
   } catch (err: any) {
     reportErr(
       `Error fetching client secret for payment intent ${paymentIntentId}`,
       { userId: auth?.uid || null },
-      err
+      err,
     );
-    throw new HttpsError('unknown', `Error fetching payment intent ${paymentIntentId}`);
+    throw new HttpsError(
+      'unknown',
+      `Error fetching payment intent ${paymentIntentId}`,
+    );
   }
 };
 
 export default onCallWrapper<FetchPaymentIntentSecretProps>(
   'fetchPaymentIntentSecret',
-  fetchPaymentIntentSecret
+  fetchPaymentIntentSecret,
 );

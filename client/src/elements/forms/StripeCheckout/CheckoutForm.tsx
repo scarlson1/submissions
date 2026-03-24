@@ -11,6 +11,8 @@ import {
 import { FormEvent, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
+// TODO: handle invoice already paid
+
 // use named insured as default billing details ??
 // or only provide if current user === named insured ??
 // can agent complete checkout form providing email with new payment method ??
@@ -84,7 +86,7 @@ export function CheckoutForm({
       elements,
       confirmParams: {
         // TODO: success url - include receivable ID in params
-        return_url: `${import.meta.env.VITE_HOSTING_URL}/admin/stripe-test/success`,
+        return_url: `${import.meta.env.VITE_HOSTING_URL}/quotes/bind/success`,
         // payment_intent_client_secret is set as query param --> fetch intent to display status
         receipt_email: emailReceipt, // || link.email, // email,
       },

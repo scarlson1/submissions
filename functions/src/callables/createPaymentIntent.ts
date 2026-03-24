@@ -2,7 +2,11 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { round } from 'lodash-es';
 import invariant from 'tiny-invariant';
-import { getReportErrorFn, quotesCollection, stripeSecretKey } from '../common/index.js';
+import {
+  getReportErrorFn,
+  quotesCollection,
+  stripeSecretKey,
+} from '../common/index.js';
 import { getStripe } from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/onCallWrapper.js';
 import { validate } from './utils/validation.js';
@@ -14,12 +18,15 @@ function calculateOrderAmount(dollarAmt: number) {
 }
 
 interface CreatePaymentIntentProps {
-  colName: string;
+  colName: string; // only supports quotes ?? delete or generalize to other collections (receivables ??)
   docId: string;
 }
 
-const createPaymentIntent = async ({ data, auth }: CallableRequest<CreatePaymentIntentProps>) => {
-  let stripe = getStripe(stripeSecretKey.value());
+const createPaymentIntent = async ({
+  data,
+  auth,
+}: CallableRequest<CreatePaymentIntentProps>) => {
+  const stripe = getStripe(stripeSecretKey.value());
 
   // requireAuth ??
 
@@ -31,17 +38,28 @@ const createPaymentIntent = async ({ data, auth }: CallableRequest<CreatePayment
 
   const snap = await colRef.doc(docId).get();
   const quote = snap.data();
-  validate(snap.exists && quote, 'not-found', `quote not found with ID ${docId}`);
+  validate(
+    snap.exists && quote,
+    'not-found',
+    `quote not found with ID ${docId}`,
+  );
+
+  // TODO: need to check invoice.paid !== true
+  // https://docs.stripe.com/api/payment_intents/object
 
   // TODO: split by billing entity
   // const amount = quote.billingEntities
   const amount = quote.quoteTotal;
   if (!amount || typeof amount !== 'number')
-    reportErr('error creating payment intent - invalid quote total', { data, auth, quote });
+    reportErr('error creating payment intent - invalid quote total', {
+      data,
+      auth,
+      quote,
+    });
   validate(
     amount && typeof amount === 'number',
     'failed-precondition',
-    'Quote is missing total amount due'
+    'Quote is missing total amount due',
   ); // TODO: use user friendly message ??
 
   try {
@@ -57,8 +75,14 @@ const createPaymentIntent = async ({ data, auth }: CallableRequest<CreatePayment
 
     return { clientSecret: paymentIntent.client_secret };
   } catch (err: any) {
-    throw new HttpsError('internal', 'Error communicating with our payment processor');
+    throw new HttpsError(
+      'internal',
+      'Error communicating with our payment processor',
+    );
   }
 };
 
-export default onCallWrapper<CreatePaymentIntentProps>('createPaymentIntent', createPaymentIntent);
+export default onCallWrapper<CreatePaymentIntentProps>(
+  'createPaymentIntent',
+  createPaymentIntent,
+);

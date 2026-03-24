@@ -125,7 +125,8 @@ export enum ROUTES {
   QUOTE_VIEW = '/quotes/:quoteId',
   QUOTE_BIND = '/quotes/:quoteId/bind',
   QUOTE_STRIPE_CHECKOUT = '/quotes/:quoteId/checkout',
-  QUOTE_BIND_SUCCESS_STRIPE = '/quotes/:quoteId/bind/success',
+  // QUOTE_BIND_SUCCESS_STRIPE = '/quotes/:quoteId/bind/success',
+  QUOTE_BIND_SUCCESS_STRIPE = '/quotes/bind/success',
   QUOTE_BIND_EPAY = '/quotes/:quoteId/bind/epay',
   QUOTE_BIND_SUCCESS_EPAY = '/quotes/:quoteId/bind/epay/success/:transactionId?', // OLD EPAY
   CONTACT = '/contact',

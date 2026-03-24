@@ -7,6 +7,7 @@ import {
   DrawerProps,
   IconButton,
   Paper,
+  Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -30,7 +31,7 @@ import {
 
 // mobile swipeable drawer: https://mui.com/material-ui/react-drawer/#swipeable-edge
 
-// TODO: get amounts from the actual invoice (incase receivable gets calculated wrong) ??
+// TODO: get amounts from the actual invoice (in case receivable gets calculated wrong) ??
 
 // TODO: on success --> redirect back to receivables for policy
 
@@ -39,6 +40,9 @@ export const ReceivableCheckout = () => {
   const { receivableId } = useSafeParams(['receivableId']);
   const { data } = useDocData<Receivable>('receivables', receivableId);
   if (!data) throw new Error(`Receivable not found ${receivableId}`);
+
+  // TODO: return or redirect to receivable status / details if invoice is already paid
+
   // TODO: only use drawer on small screens ??
   // const [open, setOpen] = useState(true); // TODO: false on mobile
 
@@ -97,7 +101,14 @@ export const ReceivableCheckout = () => {
           <Divider sx={{ mt: { xs: 2, md: 6 }, mb: { xs: 3, sm: 5, md: 6 } }} />
           {/* TODO: handle async invoice events - either don't display unless paymentIntentId, or show loading indicator ?? */}
           {/* TODO: error boundary to create new invoice depending on error ?? */}
-          <StripeReceivableCheckout data={data} />
+          {data.paid ? (
+            <Stack direction='column' spacing={2} sx={{ mx: 'auto' }}>
+              <Typography>Invoice has already been paid</Typography>
+              {/* <Button></Button> */}
+            </Stack>
+          ) : (
+            <StripeReceivableCheckout data={data} />
+          )}
         </Container>
       </Box>
       <Box sx={{ flex: '1 1 auto', display: { xs: 'none', md: 'block' } }}>

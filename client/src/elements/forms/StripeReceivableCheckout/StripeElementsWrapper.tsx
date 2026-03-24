@@ -1,6 +1,10 @@
 import { useTheme } from '@mui/material';
 import { Elements } from '@stripe/react-stripe-js';
-import { Appearance, StripeElementsOptions, loadStripe } from '@stripe/stripe-js';
+import {
+  Appearance,
+  loadStripe,
+  StripeElementsOptions,
+} from '@stripe/stripe-js';
 import { ReactNode } from 'react';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -10,7 +14,10 @@ interface StripeElementsWrapperProps {
   children: ReactNode;
 }
 
-export function StripeElementsWrapper({ clientSecret, children }: StripeElementsWrapperProps) {
+export function StripeElementsWrapper({
+  clientSecret,
+  children,
+}: StripeElementsWrapperProps) {
   const { palette, shape } = useTheme();
 
   const appearance: Appearance = {
@@ -50,7 +57,6 @@ export function StripeElementsWrapper({ clientSecret, children }: StripeElements
     <>
       {clientSecret && (
         <Elements stripe={stripePromise} options={options}>
-          {/* <CheckoutForm {...props} /> */}
           {children}
         </Elements>
       )}
