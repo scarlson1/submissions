@@ -143,6 +143,8 @@ Large, static, public data files are hosted in github:
 - County GeoJSON
 - State GeoJSON
 
+TODO: counties initialized in public/fips
+
 <!-- ## App structure
 
 ## Cloud Functions
@@ -236,6 +238,8 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 ![licenses](docs/licenses.png)
 
 ![add license](docs/add-license.png)
+
+![moratorium](docs/moratorium.png)
 
 ![stripe connect](docs/account-stripe.png)
 

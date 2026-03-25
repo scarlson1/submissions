@@ -1,6 +1,7 @@
 import { MoreVertRounded } from '@mui/icons-material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import {
+  alpha,
   Box,
   Button,
   Card,
@@ -11,15 +12,11 @@ import {
   Paper,
   Tab,
   Typography,
-  alpha,
   useTheme,
 } from '@mui/material';
-import axios from 'axios';
-import { doc, setDoc } from 'firebase/firestore';
-import { useCallback, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { useFirestore, useUser } from 'reactfire';
+import { useUser } from 'reactfire';
 // import Slider from 'react-slick';
 
 import { Collection } from 'common';
@@ -67,7 +64,9 @@ export const AccountDetails = () => {
   const { orgId, user, claims } = useClaims();
   const theme = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tabValue, setTabValue] = useState(searchParams.get('tab') || 'account');
+  const [tabValue, setTabValue] = useState(
+    searchParams.get('tab') || 'account',
+  );
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -82,7 +81,9 @@ export const AccountDetails = () => {
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
         <Button
           onClick={() =>
-            navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
+            navigate(createPath({ path: AUTH_ROUTES.LOGIN }), {
+              state: { from: location },
+            })
           }
         >
           Login
@@ -101,12 +102,12 @@ export const AccountDetails = () => {
               theme.palette.mode === 'dark'
                 ? `linear-gradient(${alpha(theme.palette.primaryDark[700], 0.1)}, ${alpha(
                     theme.palette.primaryDark[700],
-                    0.8
+                    0.8,
                   )}),
                 url(https://firebasestorage.googleapis.com/v0/b/idemand-dev.appspot.com/o/common%2Fdock_sunset.jpg?alt=media&token=f2cdf2f3-3cf2-456d-80f3-83ce22e62622)`
                 : `linear-gradient(${alpha(theme.palette.grey[100], 0.1)}, ${alpha(
                     theme.palette.common.white,
-                    0.9
+                    0.9,
                   )}), url(https://firebasestorage.googleapis.com/v0/b/idemand-dev.appspot.com/o/common%2Fbeach_sunset.jpg?alt=media&token=4897fae0-8417-4c3f-8eab-f0ed7ec11cc2)`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
@@ -190,7 +191,10 @@ export const AccountDetails = () => {
                   >
                     User ID:
                   </Typography>
-                  <Copy value={user.uid} textProps={{ sx: { fontSize: '0.725rem' } }}>
+                  <Copy
+                    value={user.uid}
+                    textProps={{ sx: { fontSize: '0.725rem' } }}
+                  >
                     {user.uid}
                   </Copy>
                 </Grid>
@@ -199,8 +203,18 @@ export const AccountDetails = () => {
             <TabPanel value='team'>
               {orgId ? (
                 <Box>
-                  <Box sx={{ pb: 2, width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
-                    <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']} requireAll={false}>
+                  <Box
+                    sx={{
+                      pb: 2,
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                    }}
+                  >
+                    <ClaimsGuard
+                      requiredClaims={['orgAdmin', 'iDemandAdmin']}
+                      requireAll={false}
+                    >
                       <AddUsersDialog orgId={orgId} />
                     </ClaimsGuard>
                   </Box>
@@ -222,7 +236,9 @@ export const AccountDetails = () => {
                   />
                 </Box>
               ) : (
-                <Typography>Must be associated with an tenant/org to add users.</Typography>
+                <Typography>
+                  Must be associated with an tenant/org to add users.
+                </Typography>
               )}
             </TabPanel>
             {/* PRE_DEPLOY: finish section or comment out org tab/section  */}
@@ -260,12 +276,6 @@ export const AccountDetails = () => {
           </TabContext>
         </Box>
       </Paper>
-
-      <ClaimsGuard requiredClaims={['iDemandAdmin']}>
-        <Box sx={{ p: 1 }}>
-          <InitializeFIPS />
-        </Box>
-      </ClaimsGuard>
     </Container>
   );
 };
@@ -277,25 +287,6 @@ export default AccountDetails;
 // url(http://localhost:9199/v0/b/idemand-dev.appspot.com/o/orgs%2FebBBPevWc5CQxxYBCbzVx5OTaISp%2Fstatic_map_light.jpeg?alt=media&token=cc6a06ab-b22d-4056-ab71-968e5ba686ff)
 
 // sunset: https://firebasestorage.googleapis.com/v0/b/idemand-dev.appspot.com/o/common%2Fbeach_sunset.jpg?alt=media&token=4897fae0-8417-4c3f-8eab-f0ed7ec11cc2
-
-function InitializeFIPS() {
-  const firebase = useFirestore();
-
-  const initFIPS = useCallback(async () => {
-    try {
-      const { data } = await axios.get('https://scarlson1.github.io/data/fips.json');
-
-      const fipsRef = doc(firebase, Collection.Enum.public, 'fips');
-      await setDoc(fipsRef, { counties: data });
-      toast.success('FIPS uploaded');
-    } catch (err) {
-      console.log(err);
-      toast.error(`Error occurred. See console.`);
-    }
-  }, [firebase]);
-
-  return <Button onClick={initFIPS}>Initialize FIPS data</Button>;
-}
 
 // function OrgSettings({ orgId }: { orgId: string }) {
 //   // TODO: create wrapper component to manage edit vs display mode for each section
@@ -355,10 +346,12 @@ function InitializeFIPS() {
 
 function SavedPaymentMethods() {
   const { data: user } = useUser();
-  const { data } = useCollectionData('users', [], { idField: 'paymentMethodId' }, [
-    `${user?.uid}`,
-    Collection.Enum.paymentMethods,
-  ]);
+  const { data } = useCollectionData(
+    'users',
+    [],
+    { idField: 'paymentMethodId' },
+    [`${user?.uid}`, Collection.Enum.paymentMethods],
+  );
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -404,7 +397,11 @@ function SavedPaymentMethods() {
           <Box>
             <Grid container spacing={3}>
               <Grid xs='auto'>
-                <Typography variant='body2' color='text.secondary' fontWeight={600}>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  fontWeight={600}
+                >
                   Temp overline
                 </Typography>
               </Grid>
@@ -485,13 +482,23 @@ function SavedPaymentMethods() {
       {data.length ? (
         <>
           {data.map((pmtMethod, i) => (
-            <Typography variant='body2' color='text.secondary' component='div' key={`method-${i}`}>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              component='div'
+              key={`method-${i}`}
+            >
               <pre>{JSON.stringify(pmtMethod, null, 2)}</pre>
             </Typography>
           ))}
         </>
       ) : (
-        <Typography variant='body2' color='text.secondary' fontWeight={600} textAlign='center'>
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          fontWeight={600}
+          textAlign='center'
+        >
           No payment methods saved
         </Typography>
       )}

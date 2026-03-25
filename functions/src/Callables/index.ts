@@ -157,6 +157,10 @@ export const gettenantidfromemail = onCall(async (request) => {
   return (await import('./getTenantIdFromEmail.js')).default(request);
 });
 
+export const initializefipsfirestoredata = onCall(async (request) => {
+  return (await import('./initializeFipsFirestoreData.js')).default(request);
+});
+
 export const inviteusers = onCall(async (request) => {
   return (await import('./inviteUsers.js')).default(request);
 });

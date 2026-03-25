@@ -35,6 +35,7 @@ export {
   getpropertydetailsattom,
   getriskfactorid,
   gettenantidfromemail,
+  initializefipsfirestoredata,
   inviteusers,
   moveusertotenant,
   resendinvite,

@@ -1,15 +1,20 @@
 import {
   alpha,
   Box,
+  Button,
   Container,
   Paper,
   Typography,
   useTheme,
 } from '@mui/material';
-import { useUser } from 'reactfire';
+import { useFunctions, useUser } from 'reactfire';
 
+import { initializeFipsDb } from 'api';
+import { ClaimsGuard } from 'components';
 import { AccountNavTabsLayout } from 'components/layout';
 import { UpdateProfileImg } from 'elements';
+import { useCallback } from 'react';
+import toast from 'react-hot-toast';
 
 // TODO: Use this component to display user profile at the top, with an outlet for the tabs nav
 
@@ -81,6 +86,44 @@ export const AccountDetailsNew = () => {
           <AccountNavTabsLayout />
         </Box>
       </Paper>
+
+      <ClaimsGuard requiredClaims={['iDemandAdmin']}>
+        <Box sx={{ p: 1 }}>
+          <InitializeFIPS />
+        </Box>
+      </ClaimsGuard>
     </Container>
   );
 };
+
+function InitializeFIPS() {
+  // const firebase = useFirestore();
+  const functions = useFunctions();
+
+  // const initFIPS = useCallback(async () => {
+  //   try {
+  //     const { data } = await axios.get(
+  //       'https://scarlson1.github.io/data/fips.json',
+  //     ); // get from functions ??
+
+  //     const fipsRef = doc(firebase, Collection.Enum.public, 'fips');
+  //     await setDoc(fipsRef, { counties: data });
+  //     toast.success('FIPS uploaded');
+  //   } catch (err) {
+  //     console.log(err);
+  //     toast.error(`Error occurred. See console.`);
+  //   }
+  // }, [firebase]);
+
+  const initFIPS = useCallback(async () => {
+    try {
+      initializeFipsDb(functions);
+      toast.success('FIPS uploaded');
+    } catch (err) {
+      console.log(err);
+      toast.error(`Error occurred. See console.`);
+    }
+  }, [functions]);
+
+  return <Button onClick={initFIPS}>Initialize FIPS data</Button>;
+}

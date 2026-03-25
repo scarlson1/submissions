@@ -147,6 +147,8 @@ When Stripe later finalizes the invoice, the webhook path updates the receivable
 - `invoicePdfUrl`
 - `invoiceNumber`
 
+![stripe checkout event flow](./)
+
 ### 4. Receivable Checkout
 
 Receivable checkout is already a user-facing route:
@@ -167,7 +169,7 @@ This route is the strongest existing production-facing Stripe payment surface in
 
 There are currently two bind stories in the repo.
 
-### Main Bind Flow Today
+### Legacy EPay Bind Flow
 
 Route:
 
@@ -186,15 +188,13 @@ High level steps:
 4. `executepayment` charges through ePay.
 5. Stripe then participates later through receivables/invoicing, not as the bind-time processor.
 
-### Experimental Stripe Bind Flow
+### Stripe Bind Flow
 
 Route:
 
 ~~- `/admin/stripe-test/quote/bind/:quoteId`~~
 
 TODO: update docs - stripe moved to regular bind route
-
-This flow is much closer to the eventual Stripe-native model.
 
 Step-by-step:
 
@@ -215,6 +215,8 @@ What this flow solves:
 - it creates Stripe customers before the policy is bound
 - it aligns `billingEntities` with Stripe customer IDs
 - it is closer to the data model that receivables and transfers already expect
+
+![stripe checkout object model](./stripe-checkout-object-model.svg)
 
 ## Agency Onboarding / Stripe Connect
 
@@ -284,10 +286,7 @@ Webhook events that are acknowledged but not fully implemented yet include:
 - `invoice.payment_failed`
 - several `customer.*`, `account.*`, `payout.*`, and `person.*` events
 
-Current limitation:
-
-- the webhook signing secret is hardcoded inside `functions/src/routes/stripe.ts`
-- it is not yet parameterized through Firebase secrets or environment config
+![check event flow](./stripe-checkout-event-flow.svg)
 
 ## Transactions And Event Handlers
 
@@ -361,6 +360,10 @@ Receivable updates currently come from:
 - payment-intent-created webhook bookkeeping
 
 There is not yet a completed `markPaidOnChargeSucceeded` path to mark receivables or policies as paid from Stripe charge events.
+
+TODO: receivable / stripe relationship
+
+![partial-payment-ledger](./partial-payment-ledger.svg)
 
 ## Other Related Stripe Processes
 

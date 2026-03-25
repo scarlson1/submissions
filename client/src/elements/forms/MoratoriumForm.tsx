@@ -62,11 +62,13 @@ export interface MoratoriumFormProps extends Omit<
 
 export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
   const formikRef = useRef<FormikProps<MoratoriumValues>>(null);
+  // switch to react-query ?? load from github public url ??
   const { data } = useDocDataOnce<{ counties: FIPSDetails[] }>(
     'public',
     'fips',
   );
   const counties = useMemo(() => data?.counties || [], [data]);
+  console.log(data);
   // TODO: handle doc doesn't exist ? does suspense catch does not exist ?
 
   const handleRemoveChip = useCallback(
@@ -82,6 +84,7 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
 
   const handleCountyClicked = useCallback(
     (info: PickingInfo, e: any) => {
+      console.log('info: ', info);
       const fips = info.object.properties.GEOID;
       if (!fips) return;
 
@@ -167,7 +170,7 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
                 />
               </Grid>
               <Grid xs={12} sm={6} md={3}>
-                <FormikSelect
+                <FormikSelect<string>
                   name='reason'
                   label='Reason'
                   selectOptions={['capacity', 'event']}
@@ -176,7 +179,7 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
                 />
               </Grid>
               <Grid xs={12} sm={6} md={3}>
-                <FormikSelect
+                <FormikSelect<string[]>
                   name='product'
                   label='Product(s)'
                   selectOptions={['flood', 'wind']}
