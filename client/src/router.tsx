@@ -1465,7 +1465,7 @@ export const router = sentryCreateBrowserRouter([
                 }}
               >
                 <>
-                  <PageMeta title='iDemand - Locations' />
+                  <PageMeta title='iDemand - Deliver Policy' />
                   <PolicyDelivery />
                 </>
               </RequireAuthReactFire>

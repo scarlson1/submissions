@@ -6,7 +6,6 @@ import {
   GridRowParams,
 } from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
-import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
@@ -18,7 +17,7 @@ import {
   ServerDataGridCollectionProps,
 } from 'common';
 import { ServerDataGrid } from 'components';
-import { useGridShowJson } from 'hooks';
+import { useGeneratePDF, useGridShowJson } from 'hooks';
 import {
   POLICY_COLUMN_VISIBILITY,
   policyCols,
@@ -58,14 +57,22 @@ export const PoliciesGrid = ({
         : params.id.toString(),
   );
 
+  // const viewPolicyDoc = useCallback(
+  //   (params: GridRowParams) => () => {
+  //     const docObj = params.row.documents?.[0];
+  //     if (!docObj || !docObj.downloadUrl) toast.error('no document found');
+
+  //     window.open(docObj.downloadUrl, '_blank');
+  //   },
+  //   [],
+  // );
+  const { downloadPDF: downloadPolicy, loading } =
+    useGeneratePDF('generateDecPDF');
   const viewPolicyDoc = useCallback(
     (params: GridRowParams) => () => {
-      const docObj = params.row.documents?.[0];
-      if (!docObj || !docObj.downloadUrl) toast.error('no document found');
-
-      window.open(docObj.downloadUrl, '_blank');
+      downloadPolicy(params.id.toString());
     },
-    [],
+    [downloadPolicy],
   );
 
   const policyColumns: GridColDef<Policy>[] = useMemo(
@@ -85,9 +92,10 @@ export const PoliciesGrid = ({
             }
             onClick={viewPolicyDoc(params)}
             label='View Policy'
-            disabled={
-              !(params.row.documents && params.row.documents[0]?.downloadUrl)
-            }
+            disabled={loading}
+            // disabled={
+            //   !(params.row.documents && params.row.documents[0]?.downloadUrl)
+            // }
           />,
           ...renderShowJson(params),
         ],
