@@ -7,7 +7,8 @@ import {
 } from 'react-router-dom';
 
 import { CLAIMS, TProduct } from 'common';
-import { PageMeta, RequireAuth, RouterErrorBoundary } from 'components';
+import { PageMeta, RequireAuth } from 'components';
+import RouterErrorBoundary from 'components/RouterErrorBoundary';
 // import { StripePmtIntentWrapper } from 'components/forms/StripeCheckout/StripeElementsWrapper';
 import { ConnectPayments, ConnectPayouts } from '@stripe/react-connect-js';
 import { ConfigLayout, Layout, SettingsLayout } from 'components/layout';
@@ -214,6 +215,7 @@ type TArgs =
   | { path: ROUTES.QUOTE_STRIPE_CHECKOUT; params: { quoteId: string } }
   | { path: ROUTES.QUOTE_BIND_SUCCESS_STRIPE; params: { quoteId: string } }
   | { path: ROUTES.POLICY_RECEIVABLES; params: { policyId: string } }
+  | { path: ROUTES.STRIPE_PAYOUTS }
   | { path: ROUTES.QUOTE_BIND_EPAY; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
   | {
       path: ROUTES.QUOTE_BIND_SUCCESS_EPAY;

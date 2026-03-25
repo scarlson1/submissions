@@ -130,7 +130,12 @@ export const SuccessStep = ({ policyId }: { policyId: string }) => {
           </Button>
           <Button
             onClick={() =>
-              navigate(`/admin/stripe-test/receivables/${policyId}`)
+              navigate(
+                createPath({
+                  path: ROUTES.POLICY_RECEIVABLES,
+                  params: { policyId },
+                }),
+              )
             }
           >
             Payments

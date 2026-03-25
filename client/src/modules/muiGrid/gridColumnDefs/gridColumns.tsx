@@ -1381,7 +1381,7 @@ export const userIdCol: GridColDef = {
   ...copyBaseProps,
 };
 
-// TODO: stripe dashboard url env var
+// TODO: stripe dashboard url env var / update to use sandbox
 const stripeDashUrl = `https://dashboard.stripe.com${
   import.meta.env.VITE_EMULATORS === 'true' ? '/test' : ''
 }`;
@@ -1503,6 +1503,49 @@ export const receiptNumberCol: GridColDef = {
   minWidth: 100,
   flex: 1,
   // TODO: make linkable if stripe provides receipt URL
+};
+
+export const totalTransferredCol: GridColDef = {
+  ...currencyCol,
+  field: 'totalTransferred',
+  headerName: 'Total Transferred',
+  description:
+    'Amount transferred within Stripe to connected accounts (agency/carrier)',
+  type: 'number',
+  minWidth: 140,
+  flex: 0.8,
+  editable: false,
+  sortable: false,
+  filterable: false,
+};
+
+export const totalAmountPaidCol: GridColDef = {
+  ...currencyCol,
+  field: 'totalAmountPaid',
+  headerName: 'Amount Paid',
+  description: 'Amount of receivable that has been paid',
+  type: 'number',
+  minWidth: 140,
+  flex: 0.8,
+  editable: false,
+  sortable: false,
+  filterable: false,
+};
+
+export const transfersByChargeCol: GridColDef = {
+  field: 'transfersByCharge',
+  headerName: 'TransfersByCharge',
+  description: 'Transfers initiated by charge ID',
+  type: 'string',
+  minWidth: 140,
+  flex: 0.8,
+  editable: false,
+  sortable: false,
+  filterable: false,
+  valueGetter: (params) =>
+    params.row.transfersByCharge
+      ? JSON.stringify(params.row.transfersByCharge)
+      : '',
 };
 
 export const billingEntityName: GridColDef = {

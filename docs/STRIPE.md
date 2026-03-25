@@ -13,12 +13,6 @@ Stripe is already used for:
 - Customer-facing receivable checkout with Stripe Elements
 - Webhook-driven post-payment processing for invoices, transfers, and refunds
 
-Stripe is not yet the primary processor for the main quote bind flow.
-
-- The production bind route is still `/quotes/:quoteId/bind`
-- That route still uses ePay for payment tokenization and payment execution
-- The Stripe-oriented bind flow currently lives under admin test routes such as `/admin/stripe-test/quote/bind/:quoteId`
-
 ## Core Pieces
 
 The Stripe integration spans these main areas:
@@ -91,7 +85,7 @@ The current UI uses both:
 Relevant client routes:
 
 - `/account/org` renders `CurrentUserOrgStripeConnectOnboarding`
-- `/admin/stripe-test/data/*` renders Connect embedded views
+- `/account/stripe/*` renders Connect embedded views
 
 ### 2. Stripe Customer / Billing Entity Setup
 
@@ -196,7 +190,9 @@ High level steps:
 
 Route:
 
-- `/admin/stripe-test/quote/bind/:quoteId`
+~~- `/admin/stripe-test/quote/bind/:quoteId`~~
+
+TODO: update docs - stripe moved to regular bind route
 
 This flow is much closer to the eventual Stripe-native model.
 
@@ -421,8 +417,7 @@ These are the main implementation gaps visible in the current code.
 
 ### 1. Make Stripe the canonical bind-time payment path
 
-- Replace ePay in `/quotes/:quoteId/bind`
-- either migrate the existing bind wizard or promote the Stripe bind wizard out of `/admin/stripe-test`
+- Replace ePay in `/quotes/:quoteId/bind` :white_check_mark:
 - ensure the public bind flow always creates or reuses Stripe customers before policy creation
 
 ### 2. Standardize the billing entity model
@@ -461,7 +456,7 @@ These are the main implementation gaps visible in the current code.
 
 ### 7. Promote test/admin routes into supported user flows
 
-- move Stripe bind and Connect management out of `/admin/stripe-test/*`
+- ~~move Stripe bind and Connect management out of `/admin/stripe-test/*`~~ :white_check_mark:
 - define final production routes and permissions
 - update docs, emails, and user-facing redirects to those routes
 

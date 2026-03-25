@@ -23,6 +23,9 @@ import {
   stripeCustomerIdCol,
   stripeHostedInvoiceUrlCol,
   taxesSumCol,
+  totalAmountPaidCol,
+  totalTransferredCol,
+  transfersByChargeCol,
   updatedCol,
 } from './gridColumns';
 
@@ -48,6 +51,9 @@ export const receivableCols: GridColDef<Receivable>[] = [
     sortable: true,
     filterable: true,
   },
+  totalAmountPaidCol,
+  totalTransferredCol,
+  transfersByChargeCol,
   dueDateCol,
   downloadInvoiceCol,
   locationAddressesCol,
@@ -83,6 +89,7 @@ export const RECEIVABLE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
   termPremiumAmount: false,
   fees: false,
   taxes: false,
+  transfersByCharge: false,
   stripeCustomerId: false,
   paymentIntentId: false,
   receiptNumber: false,

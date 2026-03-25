@@ -21,7 +21,9 @@ const usePaymentIntentDetails = (clientSecret: string) => {
       const result = await stripe?.retrievePaymentIntent(secret);
       if (result?.error) {
         console.log('TODO: handle error', result.error);
-        throw new Error(result.error.message || 'Error retrieving payment details');
+        throw new Error(
+          result.error.message || 'Error retrieving payment details',
+        );
       }
       console.log(result);
       const paymentIntent = result?.paymentIntent;
@@ -29,14 +31,9 @@ const usePaymentIntentDetails = (clientSecret: string) => {
       console.log('paymentIntent: ', paymentIntent);
       return paymentIntent;
     },
-    [stripe]
+    [stripe],
   );
 
-  // return useSuspenseQuery<PaymentIntent>({
-  //   queryKey: ['stripe', 'paymentIntents', clientSecret],
-  //   queryFn: () => fetchPaymentIntentDetails(clientSecret),
-  //   enabled: Boolean(clientSecret)
-  // });
   return useQuery<PaymentIntent>({
     queryKey: ['stripe', 'paymentIntents', clientSecret],
     queryFn: () => fetchPaymentIntentDetails(clientSecret),
@@ -50,8 +47,11 @@ interface StripePaymentIntentDetailsProps {
   clientSecret: string;
 }
 
-export const StripePaymentIntentDetails = ({ clientSecret }: StripePaymentIntentDetailsProps) => {
-  const { data, isError, isLoading, isPending } = usePaymentIntentDetails(clientSecret);
+export const StripePaymentIntentDetails = ({
+  clientSecret,
+}: StripePaymentIntentDetailsProps) => {
+  const { data, isError, isLoading, isPending } =
+    usePaymentIntentDetails(clientSecret);
 
   if (isLoading) return 'loading...';
   if (isPending) return 'pending...';
@@ -82,11 +82,11 @@ export const StripePaymentIntentDetails = ({ clientSecret }: StripePaymentIntent
 
 export const StripePaymentSuccess = () => {
   const [queryParams] = useSearchParams();
-  const paymentIntent = queryParams.get('payment_intent');
+  // const paymentIntent = queryParams.get('payment_intent');
   const clientSecret = queryParams.get('payment_intent_client_secret');
 
   if (!clientSecret) return null;
-  console.log('pmt intent: ', paymentIntent, clientSecret);
+  // console.log('pmt intent: ', paymentIntent, clientSecret);
 
   return (
     <StripeElementsWrapper clientSecret={clientSecret}>
@@ -108,7 +108,7 @@ const PaymentStatus = () => {
     // Retrieve the "payment_intent_client_secret" query parameter appended to
     // your return_url by Stripe.js
     const clientSecret = new URLSearchParams(window.location.search).get(
-      'payment_intent_client_secret'
+      'payment_intent_client_secret',
     );
     if (!clientSecret) return;
 
@@ -128,7 +128,9 @@ const PaymentStatus = () => {
           break;
 
         case 'processing':
-          setMessage("Payment processing. We'll update you when payment is received.");
+          setMessage(
+            "Payment processing. We'll update you when payment is received.",
+          );
           break;
 
         case 'requires_payment_method':
@@ -144,5 +146,5 @@ const PaymentStatus = () => {
     });
   }, [stripe]);
 
-  return message;
+  return <Typography>{message}</Typography>;
 };

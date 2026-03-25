@@ -1,6 +1,10 @@
 import { DescriptionRounded } from '@mui/icons-material';
 import { Box, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridColDef,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -15,12 +19,18 @@ import {
 } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
-import { POLICY_COLUMN_VISIBILITY, policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
+import {
+  POLICY_COLUMN_VISIBILITY,
+  policyCols,
+  statusCol,
+} from 'modules/muiGrid/gridColumnDefs';
 import { defaultPolicyIdCol } from 'modules/muiGrid/gridColumnDefs/policyCols';
-import { calcPolicyStatus } from 'modules/utils';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
-export type PoliciesGridProps = ServerDataGridCollectionProps<PolicyWithStatus, Policy> & {
+export type PoliciesGridProps = ServerDataGridCollectionProps<
+  PolicyWithStatus,
+  Policy
+> & {
   idCol?: GridColDef<Policy>;
 };
 
@@ -45,7 +55,7 @@ export const PoliciesGrid = ({
     (params) =>
       props?.pathSegments?.length
         ? `/${props.pathSegments.join('/')}/${params.id.toString()}`
-        : params.id.toString()
+        : params.id.toString(),
   );
 
   const viewPolicyDoc = useCallback(
@@ -55,7 +65,7 @@ export const PoliciesGrid = ({
 
       window.open(docObj.downloadUrl, '_blank');
     },
-    []
+    [],
   );
 
   const policyColumns: GridColDef<Policy>[] = useMemo(
@@ -75,26 +85,28 @@ export const PoliciesGrid = ({
             }
             onClick={viewPolicyDoc(params)}
             label='View Policy'
-            disabled={!(params.row.documents && params.row.documents[0]?.downloadUrl)}
+            disabled={
+              !(params.row.documents && params.row.documents[0]?.downloadUrl)
+            }
           />,
           ...renderShowJson(params),
         ],
       },
       idCol,
-      {
-        ...statusCol, // TODO: calc status with converter ??
-        valueOptions: ['active', 'inactive'], // TODO: other types ??
-        // valueOptions: [
-        //   POLICY_STATUS.PAID,
-        //   POLICY_STATUS.AWAITING_PAYMENT,
-        //   POLICY_STATUS.PAYMENT_PROCESSING,
-        //   POLICY_STATUS.CANCELLED,
-        // ],
-        editable: false, // iDAdminResult.hasRequiredClaims,
-        filterable: false,
-        sortable: false,
-        valueGetter: (params) => calcPolicyStatus(params.row),
-      },
+      // {
+      //   ...statusCol, // TODO: calc status with converter ??
+      //   valueOptions: ['active', 'inactive'], // TODO: other types ??
+      //   // valueOptions: [
+      //   //   POLICY_STATUS.PAID,
+      //   //   POLICY_STATUS.AWAITING_PAYMENT,
+      //   //   POLICY_STATUS.PAYMENT_PROCESSING,
+      //   //   POLICY_STATUS.CANCELLED,
+      //   // ],
+      //   editable: false, // iDAdminResult.hasRequiredClaims,
+      //   filterable: false,
+      //   sortable: false,
+      //   valueGetter: (params) => calcPolicyStatus(params.row),
+      // },
       {
         ...statusCol,
         field: 'paymentStatus',
@@ -108,7 +120,13 @@ export const PoliciesGrid = ({
       ...policyCols,
       ...(additionalColumns || []),
     ],
-    [viewPolicyDoc, renderActions, renderShowJson, additionalColumns, iDAdminResult]
+    [
+      viewPolicyDoc,
+      renderActions,
+      renderShowJson,
+      additionalColumns,
+      iDAdminResult,
+    ],
   );
 
   return (
@@ -120,7 +138,12 @@ export const PoliciesGrid = ({
         density='compact'
         autoHeight
         onRowDoubleClick={(params) =>
-          navigate(createPath({ path: ROUTES.POLICY, params: { policyId: params.id.toString() } }))
+          navigate(
+            createPath({
+              path: ROUTES.POLICY,
+              params: { policyId: params.id.toString() },
+            }),
+          )
         }
         slotProps={{
           toolbar: { csvOptions: { allColumns: false } },

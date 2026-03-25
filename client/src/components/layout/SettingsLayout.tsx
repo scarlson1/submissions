@@ -4,8 +4,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { ErrorFallback } from 'components/ErrorFallback';
+import LoadingComponent from 'components/layout/LoadingComponent';
 import { NavItem } from './Header';
-import { LoadingComponent } from './Layout';
 import { NavListItem } from './NavListItem';
 
 interface SettingsLayoutProps {
@@ -35,7 +35,10 @@ export const SettingsLayout = ({ navItems }: SettingsLayoutProps) => {
         </List>
       </Grid>
       <Grid xs>
-        <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[location.pathname]}>
+        <ErrorBoundary
+          FallbackComponent={ErrorFallback}
+          resetKeys={[location.pathname]}
+        >
           <Suspense fallback={<LoadingComponent />}>
             <Outlet />
           </Suspense>

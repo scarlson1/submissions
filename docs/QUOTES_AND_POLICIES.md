@@ -386,9 +386,11 @@ Stripe exists in this codebase, but it is not the primary payment processor for 
 
 ### Experimental Stripe Quote-Bind Flow
 
-There is a separate Stripe-oriented bind path under:
+~~There is a separate Stripe-oriented bind path under:~~
 
-- `/admin/stripe-test/quote/bind/:quoteId`
+~~- `/admin/stripe-test/quote/bind/:quoteId`~~
+
+TODO: update docs - stripe moved to regular bind route
 
 That experimental path does extra Stripe-specific work:
 

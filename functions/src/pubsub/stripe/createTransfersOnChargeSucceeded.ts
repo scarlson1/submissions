@@ -1,4 +1,4 @@
-import { getFirestore } from 'firebase-admin/firestore';
+import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
@@ -7,6 +7,8 @@ import {
   receivablesCollection,
   stripeSecretKey,
   transfersCollection,
+  type Receivable,
+  type UpdateData,
 } from '../../common/index.js';
 import { getQueryData } from '../../modules/db/utils.js';
 import { getStripe } from '../../services/stripe.js';
@@ -68,6 +70,9 @@ export default async (
 
     // const updatedTransfers: Receivable['transfers'] = [];
 
+    // After creating transfers, accumulate the total in the batch
+    let chargeTransferTotal = 0;
+
     for (const t of transfers) {
       // TODO: check if transfer already made ?? or set at receivable level ??
       // or set amountTransferred in case of partial payments ??
@@ -93,6 +98,8 @@ export default async (
       // TODO: update receivable transfer with transfer ID for idempotency (check before creating transfer)
       // or will it fail from setting source_transaction ?? (ex: not if 15% is transferred < 8 times)
 
+      chargeTransferTotal += transferAmount;
+
       const transferRef = transfersCol.doc(transfer.id);
       batch.set(transferRef, transfer);
 
@@ -106,6 +113,20 @@ export default async (
     // batch.update(receivablesCol.doc(receivable.id), {
     //   transfers: updatedTransfers,
     // });
+    // @ts-expect-error UpdateData issue
+    const receivableUpdates: UpdateData<Receivable> = {
+      [`chargesProcessed.${charge.id}`]: true,
+      [`transfersByCharge.${charge.id}`]: chargeTransferTotal,
+      totalTransferred: FieldValue.increment(
+        chargeTransferTotal,
+      ) as unknown as number,
+      totalAmountPaid: FieldValue.increment(
+        charge.amount_captured,
+      ) as unknown as number,
+    };
+
+    // Atomic increment — safe against concurrent partial payments
+    batch.update(receivablesCol.doc(receivable.id), receivableUpdates);
 
     await batch.commit();
   } catch (err: any) {

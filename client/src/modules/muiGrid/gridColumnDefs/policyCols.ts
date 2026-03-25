@@ -2,11 +2,6 @@ import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
 import { Policy } from 'common';
 import {
-  SLProducerOfRecordLicenseAddress,
-  SLProducerOfRecordLicenseNum,
-  SLProducerOfRecordLicensePhone,
-  SLProducerOfRecordLicenseState,
-  SLProducerOfRecordNameCol,
   agencyAddressCol,
   agencyNameCol,
   agentEmailCol,
@@ -40,6 +35,11 @@ import {
   nestedAgentUserIdCol,
   outStatePremiumCol,
   productCol,
+  SLProducerOfRecordLicenseAddress,
+  SLProducerOfRecordLicenseNum,
+  SLProducerOfRecordLicensePhone,
+  SLProducerOfRecordLicenseState,
+  SLProducerOfRecordNameCol,
   taxesSumCol,
   termDaysCol,
   termPremiumCol,
@@ -113,7 +113,7 @@ export const policyCols: GridColDef<Policy>[] = [
 export const POLICY_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
   id: false,
   product: false,
-  paymentStatus: false,
+  paymentStatus: true,
   'namedInsured.firstName': false,
   'namedInsured.lastName': false,
   'namedInsured.email': false,

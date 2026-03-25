@@ -29,7 +29,7 @@ export default async (
     info(
       `tax reversal transactions successfully created (${commitRes.length} records)`,
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     const msg = 'error creating transfers on charge.succeeded';
 
     reportErr(msg, { ...event }, err);

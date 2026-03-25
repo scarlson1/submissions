@@ -56,6 +56,7 @@ module.exports = {
     'arrow-parens': 'off',
     'no-trailing-spaces': 'warn',
     'no-multiple-empty-lines': 'warn',
+    'no-multi-spaces': ['warn', { ignoreEOLComments: true }],
     'require-jsdoc': [
       'warn',
       {

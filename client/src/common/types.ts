@@ -1226,6 +1226,9 @@ export const ReceivableZ = z.object({
   totalAmount: z.number().int().nonnegative(),
   locations: z.record(PolicyLocationZ),
   dueDate: TimestampZ,
+  totalTransferred: z.number().int().nonnegative().default(0), // cents
+  totalAmountPaid: z.number().int().nonnegative().default(0), // cents, mirrors Stripe
+  transfersByCharge: z.record(z.number().int()), // { [chargeId]: amountTransferred }
   // set charges ?? array ?? save to receivable on charge.complete or charge.created ??
   metadata: BaseMetadataZ,
 });

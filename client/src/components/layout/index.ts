@@ -3,7 +3,9 @@ export { Breadcrumbs, RouterLink } from './Breadcrumbs';
 export { ConfigLayout } from './ConfigLayout';
 export { Footer } from './Footer';
 export { Header } from './Header';
-export * from './Layout';
+// export * from './Layout';
+export { default as Layout } from './Layout';
+export { default as LoadingComponent } from './LoadingComponent';
 export { NavDrawer } from './NavDrawer'; // TODO: move Nav items out of /layout ??
 export { NavListItem } from './NavListItem';
 export { NavMenu } from './NavMenu';

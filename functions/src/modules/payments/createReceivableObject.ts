@@ -60,6 +60,9 @@ export const createReceivableObject = async (
     ...receivableAmounts,
     locations: billingEntityLocations, // getLcnSummariesByCusId(cusId, policyLocations),
     dueDate,
+    totalTransferred: 0,
+    totalAmountPaid: 0,
+    transfersByCharge: {},
     metadata: {
       created: Timestamp.now(),
       updated: Timestamp.now(),

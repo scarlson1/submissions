@@ -100,10 +100,6 @@ export const ViewQuote = () => {
                 label: 'Contact us',
                 action: createPath({ path: ROUTES.CONTACT }),
               },
-              {
-                label: 'Stripe Bind',
-                action: `/admin/stripe-test/quote/bind/${quoteId}`,
-              },
             ]}
             menuProps={{
               id: 'quote-action-menu',

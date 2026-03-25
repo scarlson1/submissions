@@ -1,14 +1,14 @@
 import { Policy, Totals, WithId } from '@idemand/common';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { sumBy } from 'lodash-es';
 import Stripe from 'stripe';
 import {
-  Receivable,
   getReportErrorFn,
   policiesCollection,
+  Receivable,
   receivablesCollection,
   stripeSecretKey,
 } from '../common/index.js';
@@ -32,7 +32,9 @@ import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 const reportErr = getReportErrorFn('createReceivablesOnPolicyBound');
 
-export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayload>>) => {
+export default async (
+  event: CloudEvent<MessagePublishedData<PolicyCreatedPayload>>,
+) => {
   // let policyId = null;
 
   // try {
@@ -50,7 +52,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
     verify(policyId, 'pub sub payload missing policyId');
     const policy = await getDocData<Policy>(
       policyCol.doc(policyId),
-      `policy not found (${policyId})`
+      `policy not found (${policyId})`,
     );
 
     const billingEntityIds = Object.keys(policy.billingEntities);
@@ -61,33 +63,40 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
       policy.commSource,
       policy.agency.orgId,
       policy.agent.userId,
-      policy.product
+      policy.product,
     );
 
     const stripe = getStripe(stripeSecretKey.value());
     const batch = db.batch();
 
     // for each billing entity
-    for (let cusId of billingEntityIds) {
+    for (const cusId of billingEntityIds) {
       const customer = await stripe.customers.retrieve(cusId);
       verify(!customer.deleted, `stripe customer deleted ${cusId}`);
 
-      const lineItems = billingEntityTotalsToLineItems({ ...policy, id: policyId }, customer);
+      const lineItems = billingEntityTotalsToLineItems(
+        { ...policy, id: policyId },
+        customer,
+      );
       console.log('billing entity lineItems: ', lineItems);
 
       const totals = policy.totalsByBillingEntity[cusId];
       verify(totals, `missing totals for billing ID ${cusId}`);
-      const transfers = getTransfersForNewPolicy(stripeAccountId, totals, subproducerCommissionPct);
-      info(`transfers: `, transfers);
+      const transfers = getTransfersForNewPolicy(
+        stripeAccountId,
+        totals,
+        subproducerCommissionPct,
+      );
+      info('transfers: ', transfers);
 
       const receivableAmounts = getReceivableAmounts(totals);
 
-      let billingEntityLocations: Policy['locations'] = {};
-      for (let [lcnId, lcn] of Object.entries(policy.locations)) {
+      const billingEntityLocations: Policy['locations'] = {};
+      for (const [lcnId, lcn] of Object.entries(policy.locations)) {
         if (lcn.billingEntityId === cusId) billingEntityLocations[lcnId] = lcn;
       }
 
-      let receivable: Receivable = {
+      const receivable: Receivable = {
         policyId,
         stripeCustomerId: cusId,
         billingEntityDetails: {
@@ -107,19 +116,22 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         locations: billingEntityLocations,
         dueDate: getInvoiceDueDateTS(
           policy?.metadata?.created || Timestamp.now(),
-          policy.effectiveDate
+          policy.effectiveDate,
         ),
+        totalTransferred: 0,
+        totalAmountPaid: 0,
+        transfersByCharge: {},
         metadata: {
           created: Timestamp.now(),
           updated: Timestamp.now(),
         },
       };
 
-      let receivableRef = receivablesCol.doc(`rec_${createDocId(7)}`);
+      const receivableRef = receivablesCol.doc(`rec_${createDocId(7)}`);
       batch.set(receivableRef, receivable);
     }
   } catch (err: any) {
-    let msg = 'Error creating receivables for new bound policy';
+    const msg = 'Error creating receivables for new bound policy';
 
     reportErr(msg, { ...event }, err);
   }
@@ -128,13 +140,17 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
 
 // TODO: replace totals by billing entity with line items ?? place total outside lineItems
 // = { lineItems: [lineItem1, lineItem2], total: 1234 }
-function billingEntityTotalsToLineItems(policy: WithId<Policy>, customer: Stripe.Customer) {
+function billingEntityTotalsToLineItems(
+  policy: WithId<Policy>,
+  customer: Stripe.Customer,
+) {
   const billingEntityTotals = policy.totalsByBillingEntity[customer.id];
   // TODO: enable zod validation
   // if (!TotalsByBillingEntity.safeParse(billingEntityTotals)) throw new Error(`missing billing entity totals for ${billingEntityId}`)
-  if (!billingEntityTotals) throw new Error(`missing billing entity totals for ${customer.id}`);
+  if (!billingEntityTotals)
+    throw new Error(`missing billing entity totals for ${customer.id}`);
 
-  let lineItems = [
+  const lineItems = [
     {
       displayName: 'iDemand Flood Insurance term premium',
       amount: billingEntityTotals.termPremium * 100,
@@ -144,7 +160,7 @@ function billingEntityTotalsToLineItems(policy: WithId<Policy>, customer: Stripe
     },
   ];
 
-  for (let fee of billingEntityTotals.fees) {
+  for (const fee of billingEntityTotals.fees) {
     lineItems.push({
       displayName: fee.displayName,
       amount: fee.value * 100,
@@ -152,7 +168,7 @@ function billingEntityTotalsToLineItems(policy: WithId<Policy>, customer: Stripe
     });
   }
 
-  for (let tax of billingEntityTotals.taxes) {
+  for (const tax of billingEntityTotals.taxes) {
     lineItems.push({
       displayName: tax.displayName,
       amount: tax.value * 100,
@@ -167,7 +183,7 @@ function billingEntityTotalsToLineItems(policy: WithId<Policy>, customer: Stripe
 function getTransfersForNewPolicy(
   stripeAccountId: string,
   billingEntityTotals: Totals,
-  subProducerCommissionPct: number
+  subProducerCommissionPct: number,
 ) {
   return [
     {
@@ -182,7 +198,7 @@ function getReceivableAmounts(totals: Totals) {
   const refundableTaxesAmount =
     sumBy(
       totals.taxes.filter((t) => t.refundable || t.refundable === undefined),
-      'value'
+      'value',
     ) * 100;
   const totalTaxesAmount = sumBy(totals.taxes, 'value') * 100;
   const totalFeesAmount = sumBy(totals.taxes, 'value') * 100;
@@ -190,10 +206,11 @@ function getReceivableAmounts(totals: Totals) {
     sumBy(
       // @ts-ignore
       totals.fees.filter((f) => f.refundable || f.refundable === undefined),
-      'value'
+      'value',
     ) * 100;
   const termPremiumAmount = totals.termPremium;
-  const totalRefundableAmount = totals.termPremium + refundableFeesAmount + refundableTaxesAmount;
+  const totalRefundableAmount =
+    totals.termPremium + refundableFeesAmount + refundableTaxesAmount;
   const totalAmount = totals.price * 100;
 
   return {

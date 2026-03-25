@@ -223,6 +223,8 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 
 ![quote presented](docs/quote-delivery.png)
 
+![policy details](docs/policy-details.png)
+
 ![taxes](docs/taxes.png)
 
 ![disclosures](docs/disclosures.png)
@@ -236,6 +238,10 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 ![add license](docs/add-license.png)
 
 ![stripe connect](docs/account-stripe.png)
+
+![transactions](docs/transactions.png)
+
+![receivables](docs/receivables.png)
 
 ---
 

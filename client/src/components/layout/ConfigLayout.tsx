@@ -1,6 +1,11 @@
 import { Box, Tab, TabProps, Tabs } from '@mui/material';
 import { Suspense, useEffect, useMemo, useState } from 'react';
-import { Outlet, Link as RouterLink, matchPath, useLocation } from 'react-router-dom';
+import {
+  matchPath,
+  Outlet,
+  Link as RouterLink,
+  useLocation,
+} from 'react-router-dom';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { LoadingComponent } from '.';
@@ -23,7 +28,11 @@ export function LinkTab({ to, label, ...props }: LinkTabProps) {
   );
 }
 
-export const getTab = (currPath: string, pathsArr: string[], isRetry: boolean = false): number => {
+export const getTab = (
+  currPath: string,
+  pathsArr: string[],
+  isRetry: boolean = false,
+): number => {
   for (const [i, p] of pathsArr.entries()) {
     if (matchPath({ path: p }, currPath)) return i;
   }
@@ -55,9 +64,9 @@ export const ConfigLayout = () => {
       createPath({ path: ADMIN_ROUTES.DATA_IMPORTS }),
       createPath({ path: ADMIN_ROUTES.EMAIL_ACTIVITY }),
       createPath({ path: ADMIN_ROUTES.TRANSACTIONS }),
-      createPath({ path: ADMIN_ROUTES.PAYABLES }),
+      createPath({ path: ADMIN_ROUTES.RECEIVABLES }),
     ],
-    []
+    [],
   );
   const [value, setValue] = useState(0);
 
@@ -90,7 +99,10 @@ export const ConfigLayout = () => {
           scrollButtons='auto'
           variant='scrollable'
         >
-          <LinkTab label='Taxes' to={createPath({ path: ADMIN_ROUTES.SL_TAXES })} />
+          <LinkTab
+            label='Taxes'
+            to={createPath({ path: ADMIN_ROUTES.SL_TAXES })}
+          />
           <LinkTab
             label='States'
             to={createPath({
@@ -98,13 +110,34 @@ export const ConfigLayout = () => {
               params: { productId: 'flood' },
             })}
           />
-          <LinkTab label='Moratoriums' to={createPath({ path: ADMIN_ROUTES.MORATORIUMS })} />
-          <LinkTab label='Licenses' to={createPath({ path: ADMIN_ROUTES.SL_LICENSES })} />
-          <LinkTab label='Disclosures' to={createPath({ path: ADMIN_ROUTES.DISCLOSURES })} />
-          <LinkTab label='Imports' to={createPath({ path: ADMIN_ROUTES.DATA_IMPORTS })} />
-          <LinkTab label='Emails' to={createPath({ path: ADMIN_ROUTES.EMAIL_ACTIVITY })} />
-          <LinkTab label='Transactions' to={createPath({ path: ADMIN_ROUTES.TRANSACTIONS })} />
-          <LinkTab label='Receivables' to={createPath({ path: ADMIN_ROUTES.PAYABLES })} />
+          <LinkTab
+            label='Moratoriums'
+            to={createPath({ path: ADMIN_ROUTES.MORATORIUMS })}
+          />
+          <LinkTab
+            label='Licenses'
+            to={createPath({ path: ADMIN_ROUTES.SL_LICENSES })}
+          />
+          <LinkTab
+            label='Disclosures'
+            to={createPath({ path: ADMIN_ROUTES.DISCLOSURES })}
+          />
+          <LinkTab
+            label='Imports'
+            to={createPath({ path: ADMIN_ROUTES.DATA_IMPORTS })}
+          />
+          <LinkTab
+            label='Emails'
+            to={createPath({ path: ADMIN_ROUTES.EMAIL_ACTIVITY })}
+          />
+          <LinkTab
+            label='Transactions'
+            to={createPath({ path: ADMIN_ROUTES.TRANSACTIONS })}
+          />
+          <LinkTab
+            label='Receivables'
+            to={createPath({ path: ADMIN_ROUTES.RECEIVABLES })}
+          />
         </Tabs>
       </Box>
       <Box sx={{ py: { xs: 2, md: 3 } }}>

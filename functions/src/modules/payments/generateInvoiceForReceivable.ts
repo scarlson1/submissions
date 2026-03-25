@@ -1,4 +1,4 @@
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { round } from 'lodash-es';
 import Stripe from 'stripe';
@@ -26,13 +26,13 @@ import { getDocData } from '../db/index.js';
 export const generateInvoiceForReceivable = async (
   stripe: Stripe,
   receivableId: string,
-  invoiceOptions?: Omit<Stripe.InvoiceCreateParams, 'customer'>
+  invoiceOptions?: Omit<Stripe.InvoiceCreateParams, 'customer'>,
 ) => {
   const db = getFirestore();
   const receivableRef = receivablesCollection(db).doc(receivableId);
   const receivable = await getDocData(
     receivableRef,
-    `Receivable not found (ID: ${receivableRef.id})`
+    `Receivable not found (ID: ${receivableRef.id})`,
   );
 
   const invoiceDueDate = receivable.dueDate;
@@ -42,10 +42,12 @@ export const generateInvoiceForReceivable = async (
     customer: receivable.stripeCustomerId,
 
     description: `Invoice for policy ${receivable.policyId}, billed to ${
-      receivable.billingEntityDetails?.name || receivable.billingEntityDetails.email
+      receivable.billingEntityDetails?.name ||
+      receivable.billingEntityDetails.email
     }`,
     collection_method: 'send_invoice',
     payment_settings: {
+      // TODO: enable card ??
       payment_method_types: ['us_bank_account', 'customer_balance'],
       // 'link' link requires card to be enabled ??
       // Err message: "To use 'link' with the PaymentElement, please pass both 'link' and 'card' as payment_method_types."
@@ -79,9 +81,12 @@ export const generateInvoiceForReceivable = async (
     ],
   });
 
-  info(`Stripe invoice created ${invoice.id} from receivable ${receivable.id}`, {
-    policyId: receivable.policyId,
-  });
+  info(
+    `Stripe invoice created ${invoice.id} from receivable ${receivable.id}`,
+    {
+      policyId: receivable.policyId,
+    },
+  );
 
   // The maximum number of invoice items is 250.
   // If set auto_advance to false, can continue to modify the invoice until it's finalized
@@ -101,7 +106,7 @@ export const generateInvoiceForReceivable = async (
       amount: round(f.value * 100),
       invoice: invoice.id,
       description: f.displayName,
-    })
+    }),
   );
   // TODO: switch to taxAmount (calc when receivable created)
   const taxItemPromises = receivable.taxes.map((f) =>
@@ -110,8 +115,12 @@ export const generateInvoiceForReceivable = async (
       amount: round(f.value * 100),
       invoice: invoice.id,
       description: f.displayName,
-    })
+    }),
   );
+  // TODO: subtract amount already paid (in case new invoice is generated after original invoice is partially paid ??)
+  // Implications for reversals/transfer calculations ??
+  // const remainingAmount = receivable.totalAmount - (receivable.totalAmountPaid ?? 0);
+
   const invoiceItems = await Promise.all([
     premiumItemPromise,
     ...feeItemPromises,
@@ -119,7 +128,9 @@ export const generateInvoiceForReceivable = async (
   ]);
 
   invoiceItems.forEach((invoiceItem) => {
-    info(`${invoiceItem.description} item (ID: ${invoiceItem.id}) added to invoice ${invoice.id}`);
+    info(
+      `${invoiceItem.description} item (ID: ${invoiceItem.id}) added to invoice ${invoice.id}`,
+    );
   });
 
   // set invoice Id on receivable

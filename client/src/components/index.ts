@@ -39,7 +39,7 @@ export { ReauthDialog } from './ReauthDialog';
 export { RemoteConfigWrapper } from './RemoteConfigWrapper';
 export * from './RenderGridCellHelpers';
 export { RequireAuth } from './RequireAuth';
-export { RouterErrorBoundary } from './RouterErrorBoundary';
+export { default as RouterErrorBoundary } from './RouterErrorBoundary';
 export { ServerDataGrid } from './ServerDataGrid';
 export { SvgIcon } from './SvgIcon';
 export { Toaster } from './Toaster';
