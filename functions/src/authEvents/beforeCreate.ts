@@ -177,12 +177,12 @@ export default async (event: AuthBlockingEvent) => {
           tenantId,
           null,
           user.displayName,
-          {
-            customArgs: {
-              firebaseEventId: event.eventId,
-              emailType: 'move_to_tenant_verification',
-            },
-          },
+          // {
+          //   customArgs: {
+          //     firebaseEventId: event.eventId,
+          //     emailType: 'move_to_tenant_verification',
+          //   },
+          // },
         );
         errMsg += '. click link in email to move account to new org.';
       } catch (err: any) {

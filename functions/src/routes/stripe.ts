@@ -685,11 +685,14 @@ app.get(
       const user = req.user;
       const isIDemandAdmin = user?.iDemandAdmin || false;
 
+      console.log(orgId, user?.firebase.tenant, req.user);
+
       if (!isIDemandAdmin && orgId !== user?.firebase.tenant)
         throw new Error('tenantId must match requested orgId');
 
       const db = getFirestore();
       const accountId = await getAccountId(db, orgId);
+      console.log(accountId);
 
       const stripe = getStripe(stripeSecretKey.value());
       const account = await stripe.accounts.retrieve(accountId);

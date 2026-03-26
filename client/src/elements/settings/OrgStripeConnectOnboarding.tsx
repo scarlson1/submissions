@@ -1,4 +1,8 @@
-import { AccountBalanceRounded, LaunchRounded, PaymentsRounded } from '@mui/icons-material';
+import {
+  AccountBalanceRounded,
+  LaunchRounded,
+  PaymentsRounded,
+} from '@mui/icons-material';
 import {
   Avatar,
   Box,
@@ -30,7 +34,11 @@ import { useClaims } from 'hooks';
 function ConnectItem({ title, value }: { title: string; value: ReactNode }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-start', py: 1 }}>
-      <Typography variant='body2' color='text.secondary' sx={{ flex: '0 0 160px' }}>
+      <Typography
+        variant='body2'
+        color='text.secondary'
+        sx={{ flex: '0 0 160px' }}
+      >
         {title}
       </Typography>
       <Typography
@@ -57,37 +65,8 @@ const useStripeAccount = (orgId: string) => {
   });
 };
 
-// function useStripeAccount(orgId: string) {
-//   const [account, setAccount] = useState<Record<string, any>>({});
-//   const [loading, setLoading] = useState(false);
-//   const prevOrgId = usePrevious(orgId);
-
-//   useEffect(() => {
-//     if (orgId !== prevOrgId || !account) {
-//       setLoading(true);
-//       functionsInstance
-//         .get(`/stripe/account/${orgId}`)
-//         .then(({ data }) => {
-//           setAccount({ ...data });
-//           setLoading(false);
-//         })
-//         .catch((e) => {
-//           console.log('ERR: ', e);
-//           setLoading(false);
-//         });
-//     }
-//   }, [orgId]);
-
-//   return useMemo(() => ({ account, loading }), [account, loading]);
-// }
-
 // TODO: rename component
 export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
-  // const { orgId } = useClaims();
-  // if (!orgId) throw new Error('missing org ID');
-  // const { data: org } = useDocData<Organization>('organizations', orgId);
-  // const accountId = org.stripeAccountId;
-  // if (!accountId) throw new Error('Org missing stripe account ID');
   // TODO: handle creating an account ID
 
   const { data: account } = useStripeAccount(orgId);
@@ -101,7 +80,13 @@ export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
           <Typography variant='h5' sx={{ mr: 3 }}>
             Stripe Connect Account
@@ -122,7 +107,11 @@ export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
         <Box>
           <Suspense fallback={<LoadingSpinner loading={true} />}>
             {submitted ? (
-              <StripeAccountLink orgId={orgId} title='Update Account' type='account_update' />
+              <StripeAccountLink
+                orgId={orgId}
+                title='Update Account'
+                type='account_update'
+              />
             ) : (
               <StripeAccountLink
                 orgId={orgId}
@@ -139,9 +128,15 @@ export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
         <Divider sx={{ my: 3 }} />
         <Grid container spacing={4}>
           <Grid xs={12} sm={6}>
-            <ConnectItem title='Doing business as' value={account?.business_profile?.name} />
+            <ConnectItem
+              title='Doing business as'
+              value={account?.business_profile?.name}
+            />
             <ConnectItem title='Email' value={account?.email} />
-            <ConnectItem title='Website' value={account?.business_profile?.url} />
+            <ConnectItem
+              title='Website'
+              value={account?.business_profile?.url}
+            />
           </Grid>
           <Grid xs={12} sm={6}>
             <ConnectItem
@@ -224,9 +219,16 @@ export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
                   <ListItemText
                     primary={
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography sx={{ mr: 2 }}>{`${b?.bank_name || ''}`}</Typography>
+                        <Typography
+                          sx={{ mr: 2 }}
+                        >{`${b?.bank_name || ''}`}</Typography>
                         {b?.default_for_currency ? (
-                          <Chip label='default' size='small' color='primary' sx={{ height: 20 }} />
+                          <Chip
+                            label='default'
+                            size='small'
+                            color='primary'
+                            sx={{ height: 20 }}
+                          />
                         ) : null}
                       </Box>
                     }
@@ -246,21 +248,23 @@ export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
         <Typography variant='h6'>Capabilities</Typography>
         <Divider sx={{ my: 3 }} />
         <Grid container spacing={4}>
-          {Object.entries(account?.capabilities || {}).map(([capability, capStatus]) => (
-            <Grid xs={6} key={capability}>
-              <ConnectItem
-                title={capability?.split('_').join(' ')}
-                value={
-                  <Chip
-                    label={(capStatus as string) || ''}
-                    size='small'
-                    sx={{ height: 20 }}
-                    color={capStatus === 'active' ? 'primary' : 'secondary'}
-                  />
-                }
-              />
-            </Grid>
-          ))}
+          {Object.entries(account?.capabilities || {}).map(
+            ([capability, capStatus]) => (
+              <Grid xs={6} key={capability}>
+                <ConnectItem
+                  title={capability?.split('_').join(' ')}
+                  value={
+                    <Chip
+                      label={(capStatus as string) || ''}
+                      size='small'
+                      sx={{ height: 20 }}
+                      color={capStatus === 'active' ? 'primary' : 'secondary'}
+                    />
+                  }
+                />
+              </Grid>
+            ),
+          )}
         </Grid>
       </Box>
     </Box>
@@ -277,10 +281,10 @@ export const CurrentUserOrgStripeConnectOnboarding = () => {
 type StripeAccountLinkType = 'account_onboarding' | 'account_update';
 
 const fetchAccountLink = async (orgId: string, type: StripeAccountLinkType) => {
-  const { data } = await functionsInstance.post<any, AxiosResponse<{ accountLink: string }>>(
-    '/stripe/accountLink',
-    { orgId, type }
-  );
+  const { data } = await functionsInstance.post<
+    any,
+    AxiosResponse<{ accountLink: string }>
+  >('/stripe/accountLink', { orgId, type });
 
   return data.accountLink || null;
 };

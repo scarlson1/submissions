@@ -171,13 +171,13 @@ async function handleRequestNotifications(
       `policy change (${data.trxType})`,
       requestId,
       changes,
-      {
-        customArgs: {
-          firebaseEventId: eventId,
-          emailType: 'policy_change_request',
-          trxType: data.trxType,
-        },
-      },
+      // {
+      //   customArgs: {
+      //     firebaseEventId: eventId,
+      //     emailType: 'policy_change_request',
+      //     trxType: data.trxType,
+      //   },
+      // },
     );
 
     // TODO: fetch policy & get emails from doc
@@ -191,11 +191,11 @@ async function handleRequestNotifications(
       const toName = displayName ? displayName.split(' ')[0] : undefined;
 
       await sendMessage(sgKey, insuredTo, msgBody, subject, toName, {
-        customArgs: {
-          firebaseEventId: eventId,
-          emailType: 'policy_change_request',
-          trxType: data.trxType,
-        },
+        // customArgs: {
+        //   firebaseEventId: eventId,
+        //   emailType: 'policy_change_request',
+        //   trxType: data.trxType,
+        // },
       });
     }
   } catch (err: any) {

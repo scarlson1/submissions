@@ -94,11 +94,11 @@ const sendAgencyApprovedNotification = async ({
       contact.firstName,
       contact.lastName,
       msg,
-      {
-        customArgs: {
-          emailType: 'agency_approved',
-        },
-      },
+      // {
+      //   customArgs: {
+      //     emailType: 'agency_approved',
+      //   },
+      // },
     );
     info('Invites sent', { to, orgName });
 

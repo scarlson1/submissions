@@ -1,14 +1,14 @@
 import { InviteClass } from '@idemand/common';
 import { getAuth } from 'firebase-admin/auth';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { inviteConverter } from '../common/converters/index.js';
 import {
   CLAIMS,
-  INVITE_STATUS,
   hostingBaseURL,
   iDemandOrgId,
+  INVITE_STATUS,
   invitesCollection,
   orgsCollection,
 } from '../common/index.js';
@@ -21,7 +21,12 @@ import { onCallWrapper } from '../services/sentry/index.js';
 export interface NewUser {
   email: string;
   name: string;
-  access: CLAIMS.ORG_ADMIN | CLAIMS.AGENT | CLAIMS.IDEMAND_ADMIN | CLAIMS.IDEMAND_USER | ''; // AccessLevels | '';
+  access:
+    | CLAIMS.ORG_ADMIN
+    | CLAIMS.AGENT
+    | CLAIMS.IDEMAND_ADMIN
+    | CLAIMS.IDEMAND_USER
+    | ''; // AccessLevels | '';
 }
 
 export interface InviteUsersRequest {
@@ -40,7 +45,10 @@ export interface InviteUsersResponse {
   };
 }
 
-const inviteUsers = async ({ data, auth }: CallableRequest<InviteUsersRequest>) => {
+const inviteUsers = async ({
+  data,
+  auth,
+}: CallableRequest<InviteUsersRequest>) => {
   if (!auth?.uid) throw new HttpsError('unauthenticated', 'Must be signed in.');
 
   const isIDemandAdmin = auth?.token[CLAIMS.IDEMAND_ADMIN];
@@ -55,7 +63,10 @@ const inviteUsers = async ({ data, auth }: CallableRequest<InviteUsersRequest>) 
 
   // allow other users to invite (super admins, etc. ??)
   if (!data.users || !Array.isArray(data.users))
-    throw new HttpsError('failed-precondition', 'Request body missing array of users');
+    throw new HttpsError(
+      'failed-precondition',
+      'Request body missing array of users',
+    );
 
   const userTenantId = auth?.token.firebase.tenant;
   let { users, tenantId, orgId } = data;
@@ -65,13 +76,20 @@ const inviteUsers = async ({ data, auth }: CallableRequest<InviteUsersRequest>) 
     if (!orgId) orgId = tenantId;
 
     if (!tenantId)
-      throw new HttpsError('failed-precondition', 'Missing user tenant and request tenantId');
+      throw new HttpsError(
+        'failed-precondition',
+        'Missing user tenant and request tenantId',
+      );
   }
 
   if (userTenantId !== tenantId && !isIDemandAdmin)
-    throw new HttpsError('permission-denied', 'Invites must be to your organization');
+    throw new HttpsError(
+      'permission-denied',
+      'Invites must be to your organization',
+    );
 
-  if (!tenantId && !isIDemandAdmin) throw new HttpsError('failed-precondition', 'Missing tenantId');
+  if (!tenantId && !isIDemandAdmin)
+    throw new HttpsError('failed-precondition', 'Missing tenantId');
 
   if (!orgId) throw new HttpsError('failed-precondition', 'Missing orgId');
 
@@ -80,7 +98,10 @@ const inviteUsers = async ({ data, auth }: CallableRequest<InviteUsersRequest>) 
   const orgsColRef = orgsCollection(db);
   const orgSnap = await orgsColRef.doc(orgId).get();
   if (!orgSnap.exists) {
-    throw new HttpsError('failed-precondition', `Org doc not found with ID ${orgId}`);
+    throw new HttpsError(
+      'failed-precondition',
+      `Org doc not found with ID ${orgId}`,
+    );
   }
   const orgData = orgSnap.data();
 
@@ -105,7 +126,7 @@ const inviteUsers = async ({ data, auth }: CallableRequest<InviteUsersRequest>) 
         .doc(user.email.toLocaleLowerCase().trim());
 
       info(
-        `Creating invite doc for ${user.name} - ${user.email} with permission level: ${user.access}`
+        `Creating invite doc for ${user.name} - ${user.email} with permission level: ${user.access}`,
       );
       // TODO: check if already exist? allow multiple accounts in different tenants?
 
@@ -136,7 +157,7 @@ const inviteUsers = async ({ data, auth }: CallableRequest<InviteUsersRequest>) 
           },
         },
         hostingBaseURL.value(),
-        iDemandOrgId.value()
+        iDemandOrgId.value(),
       );
 
       batch.set(inviteDocRef, newInvite);
@@ -156,10 +177,10 @@ const inviteUsers = async ({ data, auth }: CallableRequest<InviteUsersRequest>) 
 
     info('INVITE USERS RES: ', { res });
     return { ...res };
-  } catch (err: any) {
+  } catch (err: unknown) {
     // return err;
-    let msg = `Error generating invite docs`;
-    if (err?.message) msg = err.message;
+    let msg = 'Error generating invite docs';
+    if (err instanceof Error) msg = err.message;
 
     error(msg, { err });
     throw new HttpsError('internal', msg);

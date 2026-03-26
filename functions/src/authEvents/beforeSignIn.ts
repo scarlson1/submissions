@@ -35,14 +35,14 @@ export default async (event: AuthBlockingEvent) => {
           user.tenantId,
           user.displayName,
           // TODO: switch to resend templates ?? need to update admin email grid to use resend
-          {
-            customArgs: {
-              firebaseEventId: event.eventId,
-              emailType: 'email_verification',
-              // projectId: projectID.value(),
-              // environment: env.value(),
-            },
-          },
+          // {
+          //   customArgs: {
+          //     firebaseEventId: event.eventId,
+          //     emailType: 'email_verification',
+          //     // projectId: projectID.value(),
+          //     // environment: env.value(),
+          //   },
+          // },
         );
 
         throw new HttpsError(

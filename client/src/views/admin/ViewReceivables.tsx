@@ -18,7 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { Receivable, WithId } from 'common';
 import { useCollectionData, useSafeParams, useShowJson } from 'hooks';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 // temp component for testing receivables data structure / joining receivables data with location data
 // get client secret for payment intent
@@ -75,7 +75,9 @@ const ReceivableCard = ({ data }: ReceivableCardProps) => {
       <CardActionArea onClick={() => alert('TODO: nav to receivable view')}>
         <CardHeader
           avatar={
-            <Avatar aria-label='billing entity'>{data.billingEntityDetails?.name || null}</Avatar>
+            <Avatar aria-label='billing entity'>
+              {data.billingEntityDetails?.name || null}
+            </Avatar>
           }
           // action={
           //   <IconButton aria-label='settings'>
@@ -99,7 +101,9 @@ const ReceivableCard = ({ data }: ReceivableCardProps) => {
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Box>
-              <Typography variant='h6'>{dollarFormat(data.totalAmount / 100)}</Typography>
+              <Typography variant='h6'>
+                {dollarFormat(data.totalAmount / 100)}
+              </Typography>
               <Typography variant='body2' color='text.secondary'>
                 {`Due ${formatFirestoreTimestamp(data.dueDate, 'date')}`}
               </Typography>
@@ -127,7 +131,10 @@ const ReceivableCard = ({ data }: ReceivableCardProps) => {
           <Button
             onClick={() =>
               navigate(
-                createPath({ path: ROUTES.PAYABLE_CHECKOUT, params: { receivableId: data.id } })
+                createPath({
+                  path: ROUTES.POLICY_RECEIVABLE_CHECKOUT,
+                  params: { receivableId: data.id },
+                }),
               )
             }
           >
@@ -136,7 +143,13 @@ const ReceivableCard = ({ data }: ReceivableCardProps) => {
         ) : null}
         {data.hostedInvoiceUrl ? (
           <Button
-            onClick={() => window.open(data.hostedInvoiceUrl!, '_blank', 'noreferrer noopener')}
+            onClick={() =>
+              window.open(
+                data.hostedInvoiceUrl!,
+                '_blank',
+                'noreferrer noopener',
+              )
+            }
             endIcon={<LaunchRounded />}
             // variant='contained'
           >

@@ -1,6 +1,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
+  AccountBalanceRounded,
   Brightness4,
   Brightness7,
   ContactSupportRounded,
@@ -36,14 +37,29 @@ import {
   Typography,
 } from '@mui/material';
 import { useColorScheme, useTheme } from '@mui/material/styles';
-import { Link as RouterLink, matchPath, useLocation, useNavigate } from 'react-router-dom';
+import {
+  matchPath,
+  Link as RouterLink,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { MAPBOX_DARK, MAPBOX_LIGHT, usePreferredMapStyle } from 'components/MapStyleControl';
+import {
+  MAPBOX_DARK,
+  MAPBOX_LIGHT,
+  usePreferredMapStyle,
+} from 'components/MapStyleControl';
 import { AuthActionsProvider, useAuthActions } from 'context';
 import { useClaims } from 'hooks';
 import { stringAvatar } from 'modules/utils';
-import { ACCOUNT_ROUTES, ADMIN_ROUTES, AUTH_ROUTES, ROUTES, createPath } from 'router';
+import {
+  ACCOUNT_ROUTES,
+  ADMIN_ROUTES,
+  AUTH_ROUTES,
+  createPath,
+  ROUTES,
+} from 'router';
 import { NavDrawer } from './NavDrawer';
 import { NavListItem } from './NavListItem';
 import { NavMenu as PopperNavMenu } from './NavMenu';
@@ -78,7 +94,10 @@ export const Header = (props: HeaderProps) => {
     () => [
       {
         title: 'New Submission',
-        route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
+        route: createPath({
+          path: ROUTES.SUBMISSION_NEW,
+          params: { productId: 'flood' },
+        }),
         icon: <FiberNewRounded color='primary' fontSize='small' />,
       },
       {
@@ -97,7 +116,7 @@ export const Header = (props: HeaderProps) => {
         icon: <PolicyRounded color='primary' fontSize='small' />,
       },
     ],
-    []
+    [],
   );
 
   const adminNavPages = useMemo(
@@ -138,14 +157,17 @@ export const Header = (props: HeaderProps) => {
         ],
       },
     ],
-    [authedNavPages]
+    [authedNavPages],
   );
 
   const userNavPages = useMemo(() => {
     const userPages = [
       {
         title: 'Quote',
-        route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
+        route: createPath({
+          path: ROUTES.SUBMISSION_NEW,
+          params: { productId: 'flood' },
+        }),
       },
     ];
     if (user) {
@@ -172,6 +194,16 @@ export const Header = (props: HeaderProps) => {
   const navPages = useMemo<NavItem[]>(() => {
     if (!!claims?.iDemandAdmin) {
       return adminNavPages;
+    }
+    if (!!claims?.orgAdmin) {
+      return [
+        ...authedNavPages,
+        {
+          title: 'Payouts',
+          route: createPath({ path: ROUTES.STRIPE_PAYOUTS }),
+          icon: <AccountBalanceRounded color='primary' fontSize='small' />,
+        },
+      ];
     }
     if (!!claims?.agent) {
       return authedNavPages; // agentNavPages;
@@ -204,7 +236,9 @@ export const Header = (props: HeaderProps) => {
               display: { xs: 'none', md: 'flex' },
               mr: 2,
               color: (theme) =>
-                theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
+                theme.palette.mode === 'dark'
+                  ? 'white'
+                  : theme.palette.text.primary,
 
               '&:hover': {
                 cursor: 'pointer',
@@ -246,7 +280,12 @@ export const Header = (props: HeaderProps) => {
                     icon={icon}
                     key={key}
                     selected={
-                      (route && !!matchPath({ path: route as string }, location.pathname)) || false
+                      (route &&
+                        !!matchPath(
+                          { path: route as string },
+                          location.pathname,
+                        )) ||
+                      false
                     }
                     // handleClose={toggleDrawer}
                   />
@@ -259,7 +298,9 @@ export const Header = (props: HeaderProps) => {
               display: { xs: 'flex', md: 'none' },
               mr: 2,
               color: (theme) =>
-                theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
+                theme.palette.mode === 'dark'
+                  ? 'white'
+                  : theme.palette.text.primary,
               '&:hover': {
                 cursor: 'pointer',
               },
@@ -305,7 +346,9 @@ export const Header = (props: HeaderProps) => {
                       sx: {
                         my: 2,
                         color: (theme) =>
-                          theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
+                          theme.palette.mode === 'dark'
+                            ? 'white'
+                            : theme.palette.text.primary,
                         whiteSpace: 'nowrap',
                       },
                     }}
@@ -313,7 +356,9 @@ export const Header = (props: HeaderProps) => {
                     renderItem={({ route, title, handleClose }) => {
                       // matchPath(route, { path: key, exact: true });
                       let selected =
-                        (route && !!matchPath({ path: route }, location.pathname)) || false;
+                        (route &&
+                          !!matchPath({ path: route }, location.pathname)) ||
+                        false;
 
                       return (
                         <ListItemButton
@@ -352,7 +397,9 @@ export const Header = (props: HeaderProps) => {
                     my: 2,
                     display: 'block',
                     color: (theme) =>
-                      theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
+                      theme.palette.mode === 'dark'
+                        ? 'white'
+                        : theme.palette.text.primary,
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -372,7 +419,11 @@ export const Header = (props: HeaderProps) => {
               textAlign: 'center',
             }}
           >
-            <IconButton sx={{ mx: { xs: 1, sm: 2, md: 3 } }} onClick={toggleTheme} color='primary'>
+            <IconButton
+              sx={{ mx: { xs: 1, sm: 2, md: 3 } }}
+              onClick={toggleTheme}
+              color='primary'
+            >
               {theme.palette.mode === 'dark' ? (
                 <Brightness7 fontSize='small' />
               ) : (
@@ -390,7 +441,9 @@ export const Header = (props: HeaderProps) => {
             ) : (
               <Button
                 onClick={() =>
-                  navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
+                  navigate(createPath({ path: AUTH_ROUTES.LOGIN }), {
+                    state: { from: location },
+                  })
                 }
                 sx={{ maxHeight: 34 }}
               >
@@ -480,7 +533,8 @@ const UserMenu = (props: UserMenuProps) => {
     if (authCheckResult?.user && !authCheckResult?.user?.isAnonymous)
       sItems.unshift({
         label: 'Account Settings',
-        onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.USER_SETTINGS })),
+        onClick: () =>
+          navigate(createPath({ path: ACCOUNT_ROUTES.USER_SETTINGS })),
         icon: <ManageAccountsRounded fontSize='small' />,
       });
 
@@ -488,13 +542,17 @@ const UserMenu = (props: UserMenuProps) => {
       sItems.push({
         label: 'Create Account',
         onClick: () =>
-          navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), { state: { from: location } }),
+          navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), {
+            state: { from: location },
+          }),
         icon: <PersonRounded fontSize='small' />,
       });
       sItems.push({
         label: 'Have an account? Login',
         onClick: () =>
-          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } }),
+          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), {
+            state: { from: location },
+          }),
         icon: <PasswordRounded fontSize='small' />,
       });
     }
@@ -519,12 +577,15 @@ const UserMenu = (props: UserMenuProps) => {
             />
           ) : null}
 
-          {!authCheckResult?.user?.photoURL && authCheckResult?.user?.displayName ? (
+          {!authCheckResult?.user?.photoURL &&
+          authCheckResult?.user?.displayName ? (
             <Avatar {...stringAvatar(authCheckResult!.user!.displayName)} />
           ) : null}
 
           {!authCheckResult.user ||
-          !(authCheckResult.user?.displayName || authCheckResult?.user?.photoURL) ? (
+          !(
+            authCheckResult.user?.displayName || authCheckResult?.user?.photoURL
+          ) ? (
             <Avatar />
           ) : null}
         </IconButton>
@@ -558,13 +619,19 @@ const UserMenu = (props: UserMenuProps) => {
           >
             <AuthWrapper fallback={<Typography>Not signed in</Typography>}>
               {authCheckResult?.user?.displayName ? (
-                <Typography fontWeight={500}>{authCheckResult?.user.displayName}</Typography>
+                <Typography fontWeight={500}>
+                  {authCheckResult?.user.displayName}
+                </Typography>
               ) : null}
               {authCheckResult?.user?.email ? (
                 <Typography
                   variant='body2'
                   color='text.secondary'
-                  sx={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                  }}
                 >
                   {authCheckResult?.user.email}
                 </Typography>
@@ -575,18 +642,31 @@ const UserMenu = (props: UserMenuProps) => {
                     variant='body1'
                     onClick={() => {
                       handleCloseMenu();
-                      navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), {
-                        state: { from: location },
-                      });
+                      navigate(
+                        createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }),
+                        {
+                          state: { from: location },
+                        },
+                      );
                     }}
-                    sx={{ pb: 1, '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
+                    sx={{
+                      pb: 1,
+                      '&:hover': {
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                      },
+                    }}
                   >
                     Create an account to save progress
                   </Typography>
                   <Typography
                     variant='body2'
                     color='text.secondary'
-                    sx={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
+                    sx={{
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                    }}
                   >{`User ID: ${authCheckResult.user.uid}`}</Typography>
                 </>
               ) : null}
@@ -608,7 +688,9 @@ const UserMenu = (props: UserMenuProps) => {
         ))}
         <Divider sx={{ my: 0 }} />
         <Box sx={{ display: 'flex', justifyContent: 'center', pb: 1 }}>
-          <Suspense fallback={<Skeleton variant='rounded' width={80} height={36} />}>
+          <Suspense
+            fallback={<Skeleton variant='rounded' width={80} height={36} />}
+          >
             <AuthWrapper
               fallback={
                 <Button

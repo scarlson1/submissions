@@ -205,7 +205,7 @@ service cloud.firestore {
     }
 
     match /receivables/{receivableId} {
-      allow read, write: if isSignedIn() && isIDemandAdmin(); // TODO: permissions using existingData().policyId
+      allow read, write: if isSignedIn() // TODO: permissions using existingData().policyId
     }
 
     // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)

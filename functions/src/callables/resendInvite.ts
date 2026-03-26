@@ -65,15 +65,16 @@ const resendInvite = async ({
       inviteData.firstName ?? inviteData.displayName,
       inviteData.invitedBy?.name || '',
       undefined,
-      {
-        customArgs: {
-          emailType: 'resend_invite',
-        },
-      },
+      // {
+      //   customArgs: {
+      //     emailType: 'resend_invite',
+      //   },
+      // },
     );
 
     return { status: 'sent' };
   } catch (err) {
+    console.log(`ERROR: ${err}`);
     throw new HttpsError('internal', 'Error delivering invite');
   }
 };

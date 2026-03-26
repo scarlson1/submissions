@@ -1,11 +1,21 @@
 import { FirebaseError } from '@firebase/util';
 import { LoadingButton } from '@mui/lab';
-import { Button, Container, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import {
+  Button,
+  Container,
+  Unstable_Grid2 as Grid,
+  Typography,
+} from '@mui/material';
 import { AuthError, getAuth } from 'firebase/auth'; // , ProviderId
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import * as yup from 'yup';
 
 import FormikTextField from 'components/forms/FormikTextField';
@@ -69,7 +79,10 @@ export const Login = () => {
     formikRef.current?.submitForm();
   }, []);
 
-  const handleSubmit = async (values: LoginValues, actions: FormikHelpers<LoginValues>) => {
+  const handleSubmit = async (
+    values: LoginValues,
+    actions: FormikHelpers<LoginValues>,
+  ) => {
     const { email, password } = values;
 
     try {
@@ -114,7 +127,11 @@ export const Login = () => {
   return (
     <Container maxWidth='xs' sx={{ py: { sm: 6, md: 8 } }}>
       <Typography variant='h4'>Login</Typography>
-      <Typography variant='subtitle1' gutterBottom sx={{ pt: 1, pb: 3, color: 'text.secondary' }}>
+      <Typography
+        variant='subtitle1'
+        gutterBottom
+        sx={{ pt: 1, pb: 3, color: 'text.secondary' }}
+      >
         Hi, welcome back 👋
       </Typography>
       {/* <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 2, my: { xs: 4, md: 6 } }}>
@@ -125,14 +142,24 @@ export const Login = () => {
       <Formik
         initialValues={{
           email: queryParams.get('email') || '',
-          password: '',
+          password: queryParams.get('password') || '',
         }}
         validationSchema={loginValidation}
         onSubmit={handleSubmit}
         innerRef={formikRef}
       >
-        {({ isValid, isValidating, isSubmitting, dirty, values }: FormikProps<LoginValues>) => (
-          <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+        {({
+          isValid,
+          isValidating,
+          isSubmitting,
+          dirty,
+          values,
+        }: FormikProps<LoginValues>) => (
+          <Grid
+            container
+            rowSpacing={{ xs: 3, sm: 4 }}
+            columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+          >
             {/* <Grid xs={12}>
               <Divider variant='middle'>
                 <Typography
@@ -193,7 +220,13 @@ export const Login = () => {
                 Login
               </LoadingButton>
             </Grid>
-            <Grid xs={12} display='flex' justifyContent='center' alignItems='center' sx={{ py: 0 }}>
+            <Grid
+              xs={12}
+              display='flex'
+              justifyContent='center'
+              alignItems='center'
+              sx={{ py: 0 }}
+            >
               <Button
                 variant='text'
                 size='small'
@@ -208,7 +241,7 @@ export const Login = () => {
                     }),
                     {
                       state: { ...location.state },
-                    }
+                    },
                   )
                 }
                 sx={{

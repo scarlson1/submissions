@@ -18,6 +18,8 @@ import {
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims, validate } from './utils/index.js';
 
+// TODO: MOST OF THE SENDGRID ACTIONS ARE JUST SCAFFOLDING - NEED TO BE IMPLEMENTED IN services/actions/*
+
 // TODO: discriminating union for template props
 // type BaseProps = { templateId:  }
 export type SendEmailProps =
@@ -34,25 +36,24 @@ const sendEmail = async ({ data, auth }: CallableRequest<SendEmailProps>) => {
   validate(to, 'failed-precondition', 'missing "to" (recipients)');
   validate(templateId, 'failed-precondition', 'missing templateId');
 
-  const sgKey = resendKey.value();
+  const key = resendKey.value();
 
   switch (data.templateId) {
     case 'contact':
-      // @ts-ignore
       validate(
         data.userEmail && data.body,
         'failed-precondition',
         'missing email or body',
       );
 
-      return sendContact(sgKey, {
+      return sendContact(key, {
         ...data,
       });
 
     case 'agency_approved':
       // TODO: check permissions
       requireIDemandAdminClaims(auth?.token);
-      return sendAgencyApproved(sgKey, {
+      return sendAgencyApproved(key, {
         ...data,
         // customArgs: {
         //   // TODO: delete (move to sendAgencyApproved)
@@ -62,21 +63,21 @@ const sendEmail = async ({ data, auth }: CallableRequest<SendEmailProps>) => {
 
     case 'invite':
       // TODO: finish handleSendInvite
-      return sendInvite(sgKey, {
+      return sendInvite(key, {
         ...data,
         // templateId: 'invite',
       });
 
     case 'new_quote':
       // TODO: finish sendNewQuote
-      return sendNewQuote(sgKey, {
+      return sendNewQuote(key, {
         ...data,
         // templateId: 'new_quote',
       });
 
     case 'policy_doc_delivery':
       // TODO: finish handlePolicyDelivery
-      return sendPolicyDelivery(sgKey, {
+      return sendPolicyDelivery(key, {
         ...data,
         // templateId: 'policy_doc_delivery',
       });

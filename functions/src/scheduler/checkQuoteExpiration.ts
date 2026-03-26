@@ -148,11 +148,11 @@ export default async (event: ScheduledEvent) => {
             link,
             addressLine1,
             undefined,
-            {
-              customArgs: {
-                emailType: 'quote_expiring',
-              },
-            },
+            // {
+            //   customArgs: {
+            //     emailType: 'quote_expiring',
+            //   },
+            // },
           );
         }
       }

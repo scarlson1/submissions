@@ -59,12 +59,12 @@ export default async (
       to,
       firstName ?? displayName,
       data.invitedBy?.name || '',
-      {
-        customArgs: {
-          firebaseEventId: event.id,
-          emailType: 'user_invite',
-        },
-      },
+      // {
+      //   customArgs: {
+      //     firebaseEventId: event.id,
+      //     emailType: 'user_invite',
+      //   },
+      // },
     );
     await markSent(inviteRef);
     info(

@@ -77,12 +77,12 @@ export default async (
     policyId,
     transactionLink,
     transactionId,
-    {
-      customArgs: {
-        firebaseEventId: event.id,
-        emailType: 'payment_complete', // TODO: use zod from email type & args to sendAdminNotification
-      },
-    },
+    // {
+    //   customArgs: {
+    //     firebaseEventId: event.id,
+    //     emailType: 'payment_complete', // TODO: use zod from email type & args to sendAdminNotification
+    //   },
+    // },
   );
 
   return;
