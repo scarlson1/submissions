@@ -10,7 +10,7 @@ import {
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { useField } from 'formik';
-import { UseAlgoliaOptions, useAlgolia } from 'hooks/useAlgolia';
+import { useAlgolia, UseAlgoliaOptions } from 'hooks/useAlgolia';
 import { useDebounce } from 'hooks/utils';
 import { BaseHit } from '..';
 
@@ -19,20 +19,27 @@ import { BaseHit } from '..';
 type WithBaseHit<T> = BaseHit & T;
 
 // TODO: extends AutocompleteProps
-interface AlgoliaAutocompleteProps<T>
-  extends Omit<
-    AutocompleteProps<T, false, false, false>,
-    'options' | 'value' | 'onChange' | 'onInputChange' | 'renderInput' | 'onOpen' | 'onClose'
-  > {
+interface AlgoliaAutocompleteProps<T> extends Omit<
+  AutocompleteProps<T, false, false, false>,
+  | 'options'
+  | 'value'
+  | 'onChange'
+  | 'onInputChange'
+  | 'renderInput'
+  | 'onOpen'
+  | 'onClose'
+> {
   onSelectItem: (val: WithBaseHit<T>) => void;
   searchOptions?: Omit<UseAlgoliaOptions, 'query' | 'indexName'>;
   name: string;
   label?: string;
   resetFields?: () => void;
   textFieldProps?: Omit<TextFieldProps, 'value' | 'onChange'>;
+  indexName: string;
 }
 
 export const AlgoliaAutocomplete = <T,>({
+  indexName,
   searchOptions,
   onSelectItem,
   name,
@@ -48,7 +55,7 @@ export const AlgoliaAutocomplete = <T,>({
   const active = useRef(false);
 
   const { hits, isFetching } = useAlgolia<WithBaseHit<T>>({
-    indexName: import.meta.env.VITE_ALGOLIA_INDEX_NAME as string,
+    indexName, // import.meta.env.VITE_ALGOLIA_INDEX_NAME as string,
     query: debouncedQuery,
     hitsPerPage: 5,
     staleTime: 1000 * 60, // 60s
@@ -73,7 +80,7 @@ export const AlgoliaAutocomplete = <T,>({
       // set formik values in onSelectItem fn
       onSelectItem && newValue && onSelectItem(newValue);
     },
-    [onSelectItem]
+    [onSelectItem],
   );
 
   return (
@@ -93,7 +100,8 @@ export const AlgoliaAutocomplete = <T,>({
         event.stopPropagation();
 
         if (reason === 'clear' && resetFields) resetFields();
-        if (reason === 'clear' || reason === 'selectOption') handleSelect(newValue);
+        if (reason === 'clear' || reason === 'selectOption')
+          handleSelect(newValue);
       }}
       inputValue={field.value}
       onInputChange={(event, newInputValue) => {
@@ -123,14 +131,23 @@ export const AlgoliaAutocomplete = <T,>({
         // TODO: word match highlight (option._highlightResult)
         return (
           <li {...props} key={option.objectID}>
-            <Grid container spacing={2} alignItems='center' disableEqualOverflow>
+            <Grid
+              container
+              spacing={2}
+              alignItems='center'
+              disableEqualOverflow
+            >
               {/* <Grid item sx={{ display: 'flex', width: 44 }}>
                 <LocationOnIcon sx={{ color: 'text.secondary' }} />
               </Grid> */}
               {/* width: 'calc(100% - 44px)', */}
               <Grid sx={{ wordWrap: 'break-word' }}>
                 <Typography
-                  sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
                   {option.searchTitle}
                 </Typography>
@@ -146,7 +163,11 @@ export const AlgoliaAutocomplete = <T,>({
                 <Typography
                   variant='body2'
                   color='text.secondary'
-                  sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
                   {option.searchSubtitle}
                 </Typography>

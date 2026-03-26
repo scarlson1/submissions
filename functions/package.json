@@ -17,6 +17,10 @@
     "logs": "firebase functions:log",
     "ngrok": "ngrok http --url=wondrous-opossum-sensible.ngrok-free.app 5001"
   },
+  "files": [
+    "src",
+    "dist"
+  ],
   "jest": {
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
@@ -43,6 +47,7 @@
   },
   "main": "dist/index.js",
   "dependencies": {
+    "@google-cloud/functions-framework": "^5.0.2",
     "@google-cloud/pubsub": "^4.0.6",
     "@google-cloud/storage": "^7.5.0",
     "@idemand/common": "^1.0.33",

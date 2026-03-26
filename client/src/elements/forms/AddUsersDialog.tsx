@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
 
 import {
+  alpha,
   Button,
   ButtonProps,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  alpha,
 } from '@mui/material';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import { array, object, string } from 'yup';
@@ -36,7 +36,9 @@ const initialValues: AddUserValues = {
 const validation = object().shape({
   users: array().of(
     object().shape({
-      email: string().email('Must be a valid email').required('Email is required'),
+      email: string()
+        .email('Must be a valid email')
+        .required('Email is required'),
       name: string()
         .min(3, 'Please enter full name')
         .max(40, 'Must be less than 40 characters')
@@ -44,7 +46,7 @@ const validation = object().shape({
       access: string()
         .oneOf(['agent', 'orgAdmin'], 'Please select an option')
         .required('Access level required'),
-    })
+    }),
   ),
 });
 
@@ -85,12 +87,13 @@ export const AddUsersDialog = ({
   const handleSubmit = useCallback(
     async (values: AddUserValues, helpers: FormikHelpers<AddUserValues>) => {
       console.log('values => ', values);
-      let tenantId = orgId === 'idemand' ? null : orgId;
+      let tenantId =
+        orgId === import.meta.env.VITE_IDEMAND_ORG_ID ? null : orgId;
 
       await inviteUsers(values.users, tenantId, orgId);
       helpers.setSubmitting(false);
     },
-    [inviteUsers, orgId]
+    [inviteUsers, orgId],
   );
 
   return (

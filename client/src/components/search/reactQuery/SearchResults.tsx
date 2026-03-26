@@ -30,24 +30,39 @@ export type BaseHit = {
   searchSubtitle: string;
 } & Record<string, any>;
 
-type SearchResultsProps = SearchOptions & { onSelect: (item: Hit<BaseHit>) => void };
+type SearchResultsProps = SearchOptions & {
+  indexName: string;
+  onSelect: (item: Hit<BaseHit>) => void;
+};
 
 // TODO: onSelect handler
 
-export function SearchResults({ query = '', onSelect, ...props }: SearchResultsProps) {
-  const { hits, isLoading, isFetching, status, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useAlgolia<BaseHit>({
-      // TODO: hit type
-      // Product
-      // indexName: 'best_buy',
-      indexName: import.meta.env.VITE_ALGOLIA_INDEX_NAME as string,
-      query,
-      hitsPerPage: 5,
-      staleTime: 1000 * 60, // 60s
-      gcTime: 1000 * 60 * 15, // 15m
-      enabled: !!query,
-      ...props,
-    });
+export function SearchResults({
+  indexName,
+  query = '',
+  onSelect,
+  ...props
+}: SearchResultsProps) {
+  const {
+    hits,
+    isLoading,
+    isFetching,
+    status,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useAlgolia<BaseHit>({
+    // TODO: hit type
+    // Product
+    // indexName: 'best_buy',
+    indexName, // .VITE_ALGOLIA_INDEX_NAME as string,
+    query,
+    hitsPerPage: 5,
+    staleTime: 1000 * 60, // 60s
+    gcTime: 1000 * 60 * 15, // 15m
+    enabled: !!query,
+    ...props,
+  });
 
   if (!query) return null;
 
@@ -64,8 +79,13 @@ export function SearchResults({ query = '', onSelect, ...props }: SearchResultsP
             <Fragment key={hit.objectID}>
               <ListItem dense alignItems='flex-start'>
                 <ListItemButton onClick={() => onSelect(hit)}>
-                  <ListItemIcon>{getCollectionIcon(hit.collectionName)}</ListItemIcon>
-                  <ListItemText primary={hit.searchTitle} secondary={hit.searchSubtitle} />
+                  <ListItemIcon>
+                    {getCollectionIcon(hit.collectionName)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={hit.searchTitle}
+                    secondary={hit.searchSubtitle}
+                  />
                 </ListItemButton>
               </ListItem>
               <Divider component='li' />

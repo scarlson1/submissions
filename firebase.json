@@ -12,7 +12,8 @@
       ".git",
       "firebase-debug.log",
       "firebase-debug.*.log"
-    ]
+    ],
+    "isolate": true
   },
   "hosting": {
     "public": "/client/build",

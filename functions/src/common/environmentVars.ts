@@ -51,10 +51,12 @@ export const ePayBaseURL = defineString('EPAY_BASE_URL');
 export const attomBaseURL = defineString('ATTOM_BASE_URL');
 export const mapboxPublicToken = defineString('MAPBOX_PUBLIC_TOKEN');
 export const counties20mURL = defineString('COUNTIES_URL');
-export const algoliaIndex = defineString('ALGOLIA_INDEX');
-export const algoliaAppId = defineString('ALGOLIA_APP_ID');
+// export const algoliaIndex = defineString('ALGOLIA_INDEX');
+// export const algoliaAppId = defineString('ALGOLIA_APP_ID');
 export const defaultFloodZone = defineString('DEFAULT_FLOOD_ZONE');
-export const iDemandOrgId = defineString('IDEMAND_ORG_ID');
+export const iDemandOrgId = defineString('IDEMAND_ORG_ID', {
+  default: 'idemand',
+});
 export const storageBaseUrl = defineString('STORAGE_BASE_URL');
 export const submissionsApiBaseURL = defineString('SUBMISSIONS_API_BASE_URL');
 export const env = defineString('ENV');

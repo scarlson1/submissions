@@ -18,7 +18,8 @@ export const useClaims = () => {
   // use id token result hook instead ??
 
   let orgId = orgAdminResult.user?.tenantId || null;
-  if (iDAdminResult.user?.email?.endsWith('@idemandinsurance.com')) orgId = 'idemand';
+  if (iDAdminResult.user?.email?.endsWith('@idemandinsurance.com'))
+    orgId = import.meta.env.VITE_IDEMAND_ORG_ID;
 
   return useMemo(
     () => ({
@@ -31,6 +32,6 @@ export const useClaims = () => {
         [CLAIMS.AGENT]: agentResult.hasRequiredClaims,
       },
     }),
-    [iDAdminResult, orgAdminResult, agentResult, orgId]
+    [iDAdminResult, orgAdminResult, agentResult, orgId],
   );
 };

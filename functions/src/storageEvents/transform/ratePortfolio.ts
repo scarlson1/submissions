@@ -1,11 +1,19 @@
 import { Basement, FloodZone, PriorLossCount, State } from '@idemand/common';
 import { toLower, toUpper } from 'lodash-es';
-import { DeepNullable, extractNumber, extractNumberNeg } from '../../common/index.js';
-import { RatePortfolioInputRow, TransformedRatePortfolioRow } from '../models/index.js';
+import {
+  DeepNullable,
+  extractNumber,
+  extractNumberNeg,
+  iDemandOrgId,
+} from '../../common/index.js';
+import {
+  RatePortfolioInputRow,
+  TransformedRatePortfolioRow,
+} from '../models/index.js';
 import { TRowWithAAL } from '../ratePortfolio.js';
 
 export function transformRatePortfolioRowZod(
-  data: RatePortfolioInputRow
+  data: RatePortfolioInputRow,
 ): DeepNullable<TransformedRatePortfolioRow> {
   const limitA = data.limitA ? extractNumber(data.limitA) : 0;
   const limitB = data.limitB ? extractNumber(data.limitB) : 0;
@@ -45,7 +53,9 @@ export function transformRatePortfolioRowZod(
       total: totalRcv,
     },
     deductible: data.deductible ? extractNumber(data.deductible) : null,
-    mgaCommissionPct: data.mgaCommissionPct ? extractNumber(data.mgaCommissionPct) : null,
+    mgaCommissionPct: data.mgaCommissionPct
+      ? extractNumber(data.mgaCommissionPct)
+      : null,
     ffh: data.ffh ? extractNumberNeg(data.ffh) : 0,
     basement: toLower(data.basement) as Basement,
     floodZone: floodZone as FloodZone,
@@ -58,7 +68,7 @@ export function transformRatePortfolioRowZod(
 
 function getGoogleMapsUrl(
   latitude: number | string | undefined,
-  longitude: number | string | undefined
+  longitude: number | string | undefined,
 ) {
   if (!(latitude && longitude)) return '';
   return `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`;
@@ -93,8 +103,8 @@ export function getPremCalcVars(row: TRowWithAAL) {
  * @returns {object} variables for Swiss Re xml template
  */
 export function getSRVarsZod(row: TransformedRatePortfolioRow) {
-  let rcvB = row.RCVs?.otherStructures || 0;
-  let limitB = row.limits?.limitB || 0;
+  const rcvB = row.RCVs?.otherStructures || 0;
+  const limitB = row.limits?.limitB || 0;
 
   return {
     lat: row.coordinates?.latitude,
@@ -108,6 +118,6 @@ export function getSRVarsZod(row: TransformedRatePortfolioRow) {
     limitD: row.limits?.limitD,
     deductible: row.deductible,
     numStories: row.numStories || '1',
-    externalRef: row.locationId || 'idemand',
+    externalRef: row.locationId || iDemandOrgId.value(),
   };
 }

@@ -12,6 +12,7 @@ import {
   functionsBaseURL,
   getReportErrorFn,
   hostingBaseURL,
+  iDemandOrgId,
   orgsCollection,
   RequestUserAuth,
   stripeEndpointSecret,
@@ -571,7 +572,7 @@ function extractUserOrg(req: RequestUserAuth) {
     req.user?.email?.endsWith('@idemandinsurance.com') &&
     req.user?.email_verified
   ) {
-    orgId = 'idemand';
+    orgId = iDemandOrgId.value();
   }
   if (!orgId) throw new Error('Tenant required');
   return orgId;

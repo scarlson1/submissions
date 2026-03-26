@@ -252,7 +252,8 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 ### TODOs
 
 - include types module & switch to pnpm workspace (cloud run api, @idemand/common types, client, functions, etc.)
-- deploy via github workflow (& validate secrets, variables, etc.)
+  - configure [firebase-tools-with-isolate](https://github.com/0x80/firebase-tools-with-isolate)
+- deploy via github workflow (& validate secrets, variables, etc.). Only deploy functions with changes
 - documentation
   - agency management (onboarding, permissions)
   - admin - moratorium, active states, licenses, etc.

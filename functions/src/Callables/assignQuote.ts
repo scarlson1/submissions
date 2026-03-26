@@ -1,10 +1,11 @@
 import { Quote } from '@idemand/common';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
   CLAIMS,
+  iDemandOrgId,
   // Quote,
   orgsCollection,
   quotesCollection,
@@ -17,7 +18,10 @@ interface AssignQuoteProps {
   quoteId: string;
 }
 
-const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) => {
+const assignQuote = async ({
+  data,
+  auth,
+}: CallableRequest<AssignQuoteProps>) => {
   info('ASSIGN QUOTE CALLED', { ...data });
   const { quoteId } = data;
 
@@ -31,23 +35,26 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
     const db = getFirestore();
     const quoteSnap = await quotesCollection(db).doc(quoteId).get();
 
-    if (!quoteSnap.exists) throw new HttpsError('not-found', `Quote not found with ID ${quoteId}`);
+    if (!quoteSnap.exists)
+      throw new HttpsError('not-found', `Quote not found with ID ${quoteId}`);
 
     const userSnap = await usersCollection(db).doc(uid).get();
-    if (!userSnap.exists) throw new HttpsError('not-found', `No user doc found with ID ${uid}`);
+    if (!userSnap.exists)
+      throw new HttpsError('not-found', `No user doc found with ID ${uid}`);
     const userDoc = userSnap.data();
 
     // TODO: check to see if quote is already claimed ??
     let updates: Partial<Quote> = {};
     if (isAgent) {
-      let orgId = token.email?.endsWith('@idemandinsurance.com')
-        ? 'idemand'
+      const orgId = token.email?.endsWith('@idemandinsurance.com')
+        ? iDemandOrgId.value()
         : token?.firebase.tenant;
       if (!orgId) {
-        throw new HttpsError('internal', `Missing tenant ID for Agent`);
+        throw new HttpsError('internal', 'Missing tenant ID for Agent');
       }
       const orgSnap = await orgsCollection(db).doc(orgId).get();
-      if (!orgSnap.exists) throw new HttpsError('not-found', `No org found with ID ${orgId}`);
+      if (!orgSnap.exists)
+        throw new HttpsError('not-found', `No org found with ID ${orgId}`);
       const org = orgSnap.data();
 
       updates = {
@@ -94,7 +101,10 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
 
     // update --> type error
     // quoteSnap.ref.update({ ...updates, 'metadata.updated': Timestamp.now() });
-    quoteSnap.ref.set({ ...updates, metadata: { updated: Timestamp.now() } }, { merge: true });
+    quoteSnap.ref.set(
+      { ...updates, metadata: { updated: Timestamp.now() } },
+      { merge: true },
+    );
 
     const message = `Quote ${quoteId} ${isAgent ? 'agentId' : 'userId'} updated to ${uid}`;
     info(message);
@@ -109,7 +119,7 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
     });
     throw new HttpsError(
       'internal',
-      `Failed to set ${isAgent ? 'agentId' : 'userId'} on quote ${quoteId}.`
+      `Failed to set ${isAgent ? 'agentId' : 'userId'} on quote ${quoteId}.`,
     );
   }
 };

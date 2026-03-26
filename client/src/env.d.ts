@@ -16,8 +16,8 @@ interface ImportMetaEnv {
   readonly VITE_EPAY_BASE_URL: string;
   readonly VITE_EPAY_HOSTING_BASE_URL: string;
   readonly VITE_EPAY_PUBLIC_KEY: string;
-  readonly VITE_ALGOLIA_APP_ID: string;
-  readonly VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY: string;
+  // readonly VITE_ALGOLIA_APP_ID: string;
+  // readonly VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY: string;
   readonly VITE_DEV: string;
   readonly VITE_RECAPTCHA_ENTERPRISE_KEY: string;
   readonly VITE_STRIPE_PUBLISHABLE_KEY: string;
@@ -26,6 +26,7 @@ interface ImportMetaEnv {
   readonly VITE_TYPESENSE_PORT: string;
   readonly VITE_TYPESENSE_PROTOCOL: string;
   readonly VITE_TYPESENSE_COLLECTION_PREFIX: string;
+  readonly VITE_IDEMAND_ORG_ID: string;
 }
 
 interface ImportMeta {

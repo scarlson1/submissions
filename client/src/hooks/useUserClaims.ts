@@ -2,7 +2,12 @@ import type { ParsedToken, User } from 'firebase/auth';
 import { doc } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
 import { useRef } from 'react';
-import { ObservableStatus, useAuth, useFirestore, useObservable } from 'reactfire';
+import {
+  ObservableStatus,
+  useAuth,
+  useFirestore,
+  useObservable,
+} from 'reactfire';
 import { authState } from 'rxfire/auth';
 import { doc as rxDoc } from 'rxfire/firestore';
 import { from, of } from 'rxjs';
@@ -40,19 +45,24 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
       if (!user) return of(getResult(null, null, null));
 
       let orgId = user.tenantId ?? null;
-      if (!orgId && user.email?.endsWith('@idemandinsurance.com')) orgId = 'idemand';
+      if (!orgId && user.email?.endsWith('@idemandinsurance.com'))
+        orgId = import.meta.env.VITE_IDEMAND_ORG_ID;
 
       // if no org, return user without orgId or claims
       if (!orgId) return of(getResult(user, null, null));
 
       // subscribe to claims document
-      const claimsDocRef = doc(userClaimsCollection(firestore, orgId), user.uid);
+      const claimsDocRef = doc(
+        userClaimsCollection(firestore, orgId),
+        user.uid,
+      );
 
       return from(rxDoc(claimsDocRef)).pipe(
         switchMap((claimsDoc) => {
           const claimsData = claimsDoc.data();
 
-          if (!claimsData || isEmpty(claimsData)) return of(getResult(user, orgId, {}));
+          if (!claimsData || isEmpty(claimsData))
+            return of(getResult(user, orgId, {}));
 
           // only refresh when doc updated
           let requiresRefresh =
@@ -60,16 +70,19 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
             lastCommittedRef.current &&
             !claimsData._lastCommitted.isEqual(lastCommittedRef.current);
 
-          if (claimsData?._lastCommitted) lastCommittedRef.current = claimsData._lastCommitted;
+          if (claimsData?._lastCommitted)
+            lastCommittedRef.current = claimsData._lastCommitted;
 
           // get iD token (refresh new token from server if claims doc changed)
           return from(user.getIdTokenResult(requiresRefresh)).pipe(
             // map((idTokenResult) => getResult(user, orgId, idTokenResult.claims))
-            switchMap((idTokenResult) => of(getResult(user, orgId, idTokenResult.claims)))
+            switchMap((idTokenResult) =>
+              of(getResult(user, orgId, idTokenResult.claims)),
+            ),
           );
-        })
+        }),
       );
-    })
+    }),
   );
 
   return useObservable(observableId, observable$, { suspense: true });
@@ -78,7 +91,7 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
 function getResult(
   user: User | null,
   orgId: string | null,
-  claims: ParsedToken | null | undefined
+  claims: ParsedToken | null | undefined,
 ): UserWithClaimsResult {
   let customClaims = !claims
     ? null
