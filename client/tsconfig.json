@@ -19,8 +19,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": "src",
-    "types": ["vite/client"]
+    // "types": ["vite/client"], // redundant with reference at the top ??
     // "preserveSymlinks": true // disable for pnpm ??
+    "typeRoots": ["./node_modules/@types", "./node_modules"]
   },
   "include": ["src"]
 }

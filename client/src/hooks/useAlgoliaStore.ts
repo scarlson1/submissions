@@ -15,7 +15,7 @@ interface SearchStore {
 }
 
 export const useAlgoliaStore = create<SearchStore>((set) => ({
-  apiKey: import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY,
+  apiKey: import.meta.env.VITE_TYPESENSE_NOT_AUTHED_SEARCH_KEY,
   generateKey: async (functions: Functions) => {
     try {
       const { data } = await generateSearchKey(functions);
@@ -26,7 +26,9 @@ export const useAlgoliaStore = create<SearchStore>((set) => ({
     }
   },
   resetKey: () =>
-    set(() => ({ apiKey: import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY })),
+    set(() => ({
+      apiKey: import.meta.env.VITE_TYPESENSE_NOT_AUTHED_SEARCH_KEY,
+    })),
 }));
 
 export const useTypesenseStore = create<SearchStore>((set) => ({

@@ -12,6 +12,7 @@ export {
   setClaimsFromInvite,
   setUidByEmailOnCreate,
 } from './authEvents/index.js';
+
 export {
   addbillingentity,
   approvechangerequest,
@@ -48,6 +49,7 @@ export {
   submitclaim,
   verifyepaytoken,
 } from './callables/index.js';
+
 export {
   syncusersvisibleby,
   typesensesynclocations,
@@ -58,6 +60,8 @@ export {
   typesensesynctransactions,
   typesensesyncusers,
 } from './firestoreEvents/algolia/index.js';
+// npx firebase deploy --only functions:syncusersvisibleby,functions:typesensesynclocations,functions:typesensesyncorgs,functions:typesensesyncpolicies,functions:typesensesyncquotes,functions:typesensesyncsubmissions,functions:typesensesynctransactions,functions:typesensesyncusers
+
 export {
   createreceivableonpolicycreated,
   createstripeaccount,
@@ -76,6 +80,11 @@ export {
   updateuseraccessonpolicychange,
   updateuseraccessonquotechange,
 } from './firestoreEvents/index.js';
+
+// npx firebase deploy --only functions:createreceivableonpolicycreated,functions:createstripeaccount,functions:getstaticsubmissionimg,functions:getsubmissionaal,functions:getsubmissionfips,functions:locationcreated,functions:mirrorcustomclaims,functions:newagencyappnotification
+
+// npx firebase deploy --only functions:newsubmissionnotifications,functions:policychangerequest,functions:sendinviteemail,functions:updatedocsonorgchange,functions:updatedocsonuserchange,functions:updateuseraccessonpolicychange,functions:updateuseraccessonquotechange
+
 export {
   versionlocation,
   versionorganization,
@@ -84,6 +93,9 @@ export {
   versionsubmission,
   versiontransaction,
 } from './firestoreEvents/versions/index.js';
+
+// npx firebase deploy --only functions:versionlocation,functions:versionorganization,functions:versionpolicy,functions:versionquote,functions:versionsubmission,functions:versiontransaction
+
 export {
   amendmentlistener,
   endorsementlistener,
@@ -94,6 +106,9 @@ export {
   policycreatedlistener,
   policyrenewallistener,
 } from './pubsub/index.js';
+
+// npx firebase deploy --only functions:amendmentlistener,functions:endorsementlistener,functions:getstaticmapimages,functions:getstaticpolicymapimages,functions:locationcancellistener,functions:markpaidonpaymentcomplete,functions:policycreatedlistener,functions:policyrenewallistener
+
 export {
   createtaxtransactions,
   createtransfers,
@@ -101,6 +116,9 @@ export {
   reversetaxtransactions,
   reversetransfers,
 } from './pubsub/stripe/index.js';
+
+// npx firebase deploy --only functions:createtaxtransactions,functions:createtransfers,functions:markpolicypaid,functions:reversetaxtransactions,functions:reversetransfers
+
 export {
   authRequests,
   authrequeststest,
@@ -111,6 +129,9 @@ export {
   stripe,
 } from './routes/index.js';
 export { checkachstatus } from './scheduler/index.js';
+
+// npx firebase deploy --only functions:authRequests,functions:authrequeststest,functions:copytaxes,functions:generatepdf,functions:quickbooks,functions:resend,functions:stripe,functions:checkachstatus
+
 export {
   getfips,
   importpolicies,
@@ -121,3 +142,5 @@ export {
 
 export { pubsubhelper } from './routes/index.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';
+
+// npx firebase deploy --only functions:getfips,functions:importpolicies,functions:importquotes,functions:importtransactions,functions:rateportfolio

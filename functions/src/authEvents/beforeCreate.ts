@@ -1,4 +1,4 @@
-import { Collection } from '@idemand/common';
+import { Collection, InviteClass } from '@idemand/common';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
@@ -49,7 +49,7 @@ export default async (event: AuthBlockingEvent) => {
       .get();
 
     if (!inviteSnap.empty) {
-      const invite = inviteSnap.docs[0]?.data(); // .map((snap) => snap.data());
+      const invite: InviteClass = inviteSnap.docs[0]?.data(); // .map((snap) => snap.data());
       // const invite = inviteData[0];
       if (invite && invite?.orgId !== iDemandOrgId.value()) {
         try {

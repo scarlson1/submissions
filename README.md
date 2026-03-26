@@ -79,9 +79,13 @@ stripe listen --load-from-webhooks-api --forward-to localhost:5001/<PROJECT_ID>/
 
 ## Deployment
 
+[firebase-tools-with-isolate](https://github.com/0x80/firebase-tools-with-isolate) is used to support pnpm (firebase only supports pnpm for client/hosting). It's added as a dev dependency at the project root.
+
 ### Functions deployment
 
 ```bash
+npx firebase login
+
 cd functions
 
 # set target project in firebase cli
@@ -91,7 +95,8 @@ pnpm use:dev # or use:prod or firebase use [alias]
 pnpm build
 
 # deploy (firebase deploy --only functions)
-pnpm deploy:dev
+# pnpm deploy:dev [old command]
+npx firebase deploy --only functions:[FUNCTION_NAME]
 ```
 
 ### Hosting deployment (client)
@@ -253,6 +258,8 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 
 - include types module & switch to pnpm workspace (cloud run api, @idemand/common types, client, functions, etc.)
   - configure [firebase-tools-with-isolate](https://github.com/0x80/firebase-tools-with-isolate)
+  - group functions into codebases [monorepo](https://firebase.google.com/docs/functions/organize-functions#managing_multiple_source_packages_monorepo_2) / [group functions](https://firebase.google.com/docs/functions/organize-functions#group_functions) (grouped function will result in prefix before function name)
+    - codebases approach skips unchanged functions, grouped does not
 - deploy via github workflow (& validate secrets, variables, etc.). Only deploy functions with changes
 - documentation
   - agency management (onboarding, permissions)
