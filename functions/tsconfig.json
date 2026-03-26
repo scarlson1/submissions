@@ -10,10 +10,13 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
-    "checkJs": false
+    "skipLibCheck": true, // Add this to skip type checking of declaration files
+    "checkJs": false,
+    "types": ["node"] // Only include the types you need
   },
   "compileOnSave": true,
   "include": ["./src/**/*.ts", "./src/**/*.tsx"],
-  "exclude": ["src/**/*.js", "src/**/*.jsx"]
+  "exclude": ["src/**/*.js", "src/**/*.jsx", "node_modules"]
 }

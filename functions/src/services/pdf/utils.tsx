@@ -4,9 +4,13 @@ import { flatten } from 'lodash-es';
 
 import { ILocation, Policy, WithId } from '@idemand/common';
 import { format } from 'date-fns';
-import { JSONContent, dollarFormat, dollarFormat2 } from '../../common/index.js';
 import {
-  EDITOR_EXTENSION_DEFAULTS,
+  dollarFormat,
+  dollarFormat2,
+  JSONContent,
+} from '../../common/index.js';
+import { getEditorExtensions } from '../../utils/editorExtensions.js';
+import {
   getFormattedAddress,
   getFormattedAddressArray,
 } from '../../utils/index.js';
@@ -23,19 +27,34 @@ export function formatLocationData(locations: WithId<ILocation>[]) {
     const endDateTS = location.cancelEffDate ?? location.expirationDate;
     const termDates = `${format(location.effectiveDate.toDate(), 'MM/dd/yyyy')} - ${format(
       endDateTS.toDate(),
-      'MM/dd/yyyy'
+      'MM/dd/yyyy',
     )}`;
 
     const rowData = {
       address: getFormattedAddressArray(location.address),
-      locationId: [location.externalId || location.id || '', termDates] as [string, string],
-      limitA: location.limits?.limitA ? dollarFormat(location.limits?.limitA) : '',
-      limitB: location.limits?.limitA ? dollarFormat(location.limits?.limitB) : '',
-      limitC: location.limits?.limitA ? dollarFormat(location.limits?.limitC) : '',
-      limitD: location.limits?.limitA ? dollarFormat(location.limits?.limitD) : '',
+      locationId: [location.externalId || location.id || '', termDates] as [
+        string,
+        string,
+      ],
+      limitA: location.limits?.limitA
+        ? dollarFormat(location.limits?.limitA)
+        : '',
+      limitB: location.limits?.limitA
+        ? dollarFormat(location.limits?.limitB)
+        : '',
+      limitC: location.limits?.limitA
+        ? dollarFormat(location.limits?.limitC)
+        : '',
+      limitD: location.limits?.limitA
+        ? dollarFormat(location.limits?.limitD)
+        : '',
       deductible: dollarFormat(location.deductible),
-      annualPremium: location.annualPremium ? dollarFormat(location.annualPremium) : '',
-      termPremium: location.termPremium ? dollarFormat2(location.termPremium) : '',
+      annualPremium: location.annualPremium
+        ? dollarFormat(location.annualPremium)
+        : '',
+      termPremium: location.termPremium
+        ? dollarFormat2(location.termPremium)
+        : '',
     };
 
     formatted.push(rowData);
@@ -45,23 +64,30 @@ export function formatLocationData(locations: WithId<ILocation>[]) {
 }
 
 // TODO: refactor - use for loops instead of map and remove flatten
-export function getLocationInterests(locations: ILocation[]): AdditionalInterestsItem[] {
+export function getLocationInterests(
+  locations: ILocation[],
+): AdditionalInterestsItem[] {
   let interests = locations.map((l) => {
     const addr = getFormattedAddress(l.address);
-    const additionalInsureds: AdditionalInterestsItem[] = l.additionalInsureds?.map((ai) => ({
-      locationAddress: addr,
-      locationId: l.locationId,
-      interestType: 'additional insured',
-      name: ai.name,
-      interestAddress: ai.address?.addressLine1 ? getFormattedAddress(ai.address) : '',
-      loanNumber: '',
-    }));
+    const additionalInsureds: AdditionalInterestsItem[] =
+      l.additionalInsureds?.map((ai) => ({
+        locationAddress: addr,
+        locationId: l.locationId,
+        interestType: 'additional insured',
+        name: ai.name,
+        interestAddress: ai.address?.addressLine1
+          ? getFormattedAddress(ai.address)
+          : '',
+        loanNumber: '',
+      }));
     const mortgagee = l.mortgageeInterest?.map((mi) => ({
       locationAddress: addr,
       locationId: l.locationId,
       interestType: 'mortgagee',
       name: mi.name,
-      interestAddress: mi.address?.addressLine1 ? getFormattedAddress(mi.address) : '',
+      interestAddress: mi.address?.addressLine1
+        ? getFormattedAddress(mi.address)
+        : '',
       loanNumber: mi.loanNumber || ('' as string),
     }));
     return [...additionalInsureds, ...mortgagee];
@@ -117,7 +143,8 @@ export function getPremiumTable(policy: Policy): PremiumTableItem[] {
  * @returns {string} string after using html-to-text to remove html tags
  */
 export function tiptapJsonToText(content: JSONContent) {
-  const html = generateHTML(content, EDITOR_EXTENSION_DEFAULTS);
+  const extensions = getEditorExtensions(); // Get mutable extensions
+  const html = generateHTML(content, extensions); // EDITOR_EXTENSION_DEFAULTS);
 
   return convert(html);
 }

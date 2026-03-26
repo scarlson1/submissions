@@ -34,17 +34,6 @@
   "engines": {
     "node": "22"
   },
-  "pnpm": {
-    "overrides": {
-      "@types/node": "22",
-      "firebase-admin": "12.7.0",
-      "@google-cloud/firestore": "7.7.0"
-    },
-    "onlyBuiltDependencies": [
-      "protobufjs",
-      "sharp"
-    ]
-  },
   "main": "dist/index.js",
   "dependencies": {
     "@google-cloud/functions-framework": "^5.0.2",
@@ -119,6 +108,7 @@
     "@types/jest": "^29.5.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lodash-es": "^4.17.9",
+    "@types/node": "~22.19.15",
     "@types/numeral": "^2.0.2",
     "@types/react": "^18.2.16",
     "@types/supertest": "^2.0.12",

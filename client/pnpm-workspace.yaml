@@ -1,8 +1,0 @@
-ignoredBuiltDependencies:
-  - '@vaadin/vaadin-usage-statistics'
-
-onlyBuiltDependencies:
-  - '@firebase/util'
-  - core-js-pure
-  - esbuild
-  - protobufjs
