@@ -13,8 +13,8 @@
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": "src"
-    // "types": ["vite/client"], // redundant with reference at the top ??
+    "baseUrl": "src",
+    "types": ["vite/client"] // only load the types explicitly listed
     // "preserveSymlinks": true // disable for pnpm workspace ??
     // "typeRoots": ["./node_modules/@types", "./node_modules"]
   },
