@@ -1,18 +1,12 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "module": "ES2022",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "dist",
     "sourceMap": true,
     "strict": true,
-    "target": "es2022",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "jsx": "react-jsx",
-    "skipLibCheck": true, // Add this to skip type checking of declaration files
     "checkJs": false,
     "types": ["node"], // Only include the types you need
     "typeRoots": ["./node_modules/@types"]
@@ -26,4 +20,8 @@
     "../client/node_modules",
     "../client"
   ]
+  // "references": [
+  //   // Reference a local library, using the workspace protocol
+  //   { "path": "../../libs/common-ui" }
+  // ]
 }

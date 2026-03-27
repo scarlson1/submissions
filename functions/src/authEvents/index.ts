@@ -13,7 +13,7 @@ export const beforesignin = beforeUserSignedIn(
   {
     secrets: [resendKey, emailVerificationKey],
     minInstances: minInstancesAuth,
-    memory: '128MiB',
+    memory: '256MiB',
   },
   async (event) => {
     await (await import('./beforeSignIn.js')).default(event);

@@ -1,0 +1,142 @@
+name: Deploy Firebase Codebases Conditionally
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/**'
+      - '.github/workflows/firebase-deploy.yml' # Ensure workflow changes
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      callables: ${{ steps.filter.outputs.callables }}
+      routes: ${{ steps.filter.outputs.routes }}
+      pubsub: ${{ steps.filter.outputs.pubsub }}
+      auth: ${{ steps.filter.outputs.auth }}
+      firestore: ${{ steps.filter.outputs.firestore }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v4
+        # with:
+        #   fetch-depth: 2 # Required for accurate diffing
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            callables:
+              - 'functions/src/callables/**'
+            routes:
+              - 'functions/src/routes/**'
+            pubsub:
+              - 'functions/src/pubsub/**'
+            auth:
+              - 'functions/src/authEvents/**'
+            firestore:
+              - 'functions/src/firestoreEvents/**'
+            shared:
+              - 'functions/src/common/**'
+              - 'functions/src/services/**'
+              - 'functions/src/utils/**'
+              - 'functions/package.json'
+
+    #   # run build if any are true
+    #   - name: build-functions
+    #     if: steps.filter.outputs.callables == 'true' || steps.filter.outputs.routes == 'true' || steps.filter.outputs.pubsub == 'true' || steps.filter.outputs.auth == 'true' || steps.filter.outputs.firestore == 'true' || steps.filter.outputs.shared == 'true'
+    #     run:
+
+    #   - name: deploy-auth-fns
+    #     if: steps.filter.outputs.auth == 'true'
+    #     run:
+
+  build:
+    needs: detect-changes
+    if: >-
+      needs.detect-changes.outputs.callables == 'true' ||
+      needs.detect-changes.outputs.routes == 'true' ||
+      needs.detect-changes.outputs.pubsub == 'true' ||
+      needs.detect-changes.outputs.auth == 'true' ||
+      needs.detect-changes.outputs.firestore == 'true' ||
+      needs.detect-changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY_DEV }}
+      FIREBASE_PROJECT: ${{ vars.FIREBASE_PROJECT_ID_DEV }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --filter . --frozen-lockfile && pnpm install --filter functions --frozen-lockfile
+
+      - name: Set Project Alias
+        run: pnpm use:dev --filter functions
+
+      # already handled by predeploy build config ??
+      - name: Build Functions
+        run: pnpm build --filter functions
+
+      - name: deploy-auth-fns
+        if: steps.filter.outputs.auth == 'true'
+        run: npx firebase deploy --only functions:auth
+
+#   deploy-auth-fns:
+#     runs-on: ubuntu-latest
+#     if: jobs.detect-changes.steps.auth == 'true'
+#     steps:
+#         - name:
+
+#   deploy-team-a:
+#     runs-on: ubuntu-latest
+#     # Check if any files in the 'codebases/team-a' directory were modified
+#     if: contains(github.event.commits[0].modified, 'codebases/team-a/')
+#     steps:
+#       - uses: actions/checkout@v4 # (https://github.com)
+#         with:
+#           sparse-checkout: |
+#             functions
+#             .firebaserc
+#             firebase.json
+#             package.json
+#             pnpm-workspace.yaml
+#       - name: Install dependencies
+#         run: npm install
+#       - name: Deploy Team A Codebase
+#         # Use the specific firebase deploy command
+#         uses: FirebaseExtended/action-hosting-deploy@v0 #(https://github.com) # Or another suitable action like w9jds/firebase-action
+#         with:
+#           repoToken: '${{ secrets.GITHUB_TOKEN }}'
+#           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+#           channelId: live
+#           projectId: your-firebase-project-id
+#           entryPoint: codebases/team-a/ # Specify the directory
+#           args: '--only functions:team-a' # Deploy only the specific codebase
+
+#   deploy-team-b:
+#     runs-on: ubuntu-latest
+#     # Check for changes in 'codebases/team-b'
+#     if: contains(github.event.commits[0].modified, 'codebases/team-b/')
+#     steps:
+#       - uses: actions/checkout@v4
+#       - name: Install dependencies
+#         run: npm install
+#       - name: Deploy Team B Codebase
+#         uses: FirebaseExtended/action-hosting-deploy@v0
+#         with:
+#           repoToken: '${{ secrets.GITHUB_TOKEN }}'
+#           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+#           channelId: live
+#           projectId: your-firebase-project-id
+#           entryPoint: codebases/team-b/
+#           args: '--only functions:team-b'

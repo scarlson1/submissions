@@ -5,13 +5,30 @@ initializeApp();
 
 // TODO: reset routes/sendgrid to v1 so URL is consistent on all deploys (or set up hosting rewrite ??)
 
-export {
+// export {
+//   beforecreate,
+//   beforesignin,
+//   createFirestoreUser,
+//   setClaimsFromInvite,
+//   setUidByEmailOnCreate,
+// } from './authEvents/index.js';
+
+import {
   beforecreate,
   beforesignin,
   createFirestoreUser,
   setClaimsFromInvite,
   setUidByEmailOnCreate,
 } from './authEvents/index.js';
+
+// prefixes 'auth-' to each function name
+export const auth = {
+  beforesignin,
+  beforecreate,
+  createFirestoreUser,
+  setClaimsFromInvite,
+  setUidByEmailOnCreate,
+};
 
 export {
   addbillingentity,
@@ -60,7 +77,6 @@ export {
   typesensesynctransactions,
   typesensesyncusers,
 } from './firestoreEvents/algolia/index.js';
-// npx firebase deploy --only functions:syncusersvisibleby,functions:typesensesynclocations,functions:typesensesyncorgs,functions:typesensesyncpolicies,functions:typesensesyncquotes,functions:typesensesyncsubmissions,functions:typesensesynctransactions,functions:typesensesyncusers
 
 export {
   createreceivableonpolicycreated,
@@ -81,10 +97,6 @@ export {
   updateuseraccessonquotechange,
 } from './firestoreEvents/index.js';
 
-// npx firebase deploy --only functions:createreceivableonpolicycreated,functions:createstripeaccount,functions:getstaticsubmissionimg,functions:getsubmissionaal,functions:getsubmissionfips,functions:locationcreated,functions:mirrorcustomclaims,functions:newagencyappnotification
-
-// npx firebase deploy --only functions:newsubmissionnotifications,functions:policychangerequest,functions:sendinviteemail,functions:updatedocsonorgchange,functions:updatedocsonuserchange,functions:updateuseraccessonpolicychange,functions:updateuseraccessonquotechange
-
 export {
   versionlocation,
   versionorganization,
@@ -93,8 +105,6 @@ export {
   versionsubmission,
   versiontransaction,
 } from './firestoreEvents/versions/index.js';
-
-// npx firebase deploy --only functions:versionlocation,functions:versionorganization,functions:versionpolicy,functions:versionquote,functions:versionsubmission,functions:versiontransaction
 
 export {
   amendmentlistener,
@@ -107,8 +117,6 @@ export {
   policyrenewallistener,
 } from './pubsub/index.js';
 
-// npx firebase deploy --only functions:amendmentlistener,functions:endorsementlistener,functions:getstaticmapimages,functions:getstaticpolicymapimages,functions:locationcancellistener,functions:markpaidonpaymentcomplete,functions:policycreatedlistener,functions:policyrenewallistener
-
 export {
   createtaxtransactions,
   createtransfers,
@@ -116,8 +124,6 @@ export {
   reversetaxtransactions,
   reversetransfers,
 } from './pubsub/stripe/index.js';
-
-// npx firebase deploy --only functions:createtaxtransactions,functions:createtransfers,functions:markpolicypaid,functions:reversetaxtransactions,functions:reversetransfers
 
 export {
   authRequests,
@@ -130,8 +136,6 @@ export {
 } from './routes/index.js';
 export { checkachstatus } from './scheduler/index.js';
 
-// npx firebase deploy --only functions:authRequests,functions:authrequeststest,functions:copytaxes,functions:generatepdf,functions:quickbooks,functions:resend,functions:stripe,functions:checkachstatus
-
 export {
   getfips,
   importpolicies,
@@ -142,5 +146,3 @@ export {
 
 export { pubsubhelper } from './routes/index.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';
-
-// npx firebase deploy --only functions:getfips,functions:importpolicies,functions:importquotes,functions:importtransactions,functions:rateportfolio

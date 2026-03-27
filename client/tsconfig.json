@@ -2,26 +2,21 @@
 /// <reference types="vite/client" />
 
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "target": "es2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
-    "baseUrl": "src",
+    "baseUrl": "src"
     // "types": ["vite/client"], // redundant with reference at the top ??
-    // "preserveSymlinks": true // disable for pnpm ??
-    "typeRoots": ["./node_modules/@types", "./node_modules"]
+    // "preserveSymlinks": true // disable for pnpm workspace ??
+    // "typeRoots": ["./node_modules/@types", "./node_modules"]
   },
   "include": ["src"]
 }

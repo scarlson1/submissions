@@ -252,6 +252,8 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 
 ![receivables](docs/receivables.png)
 
+![import documents](docs/import-records.png)
+
 ---
 
 ### TODOs
