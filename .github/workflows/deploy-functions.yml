@@ -93,8 +93,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --filter . --frozen-lockfile && pnpm install --filter functions --frozen-lockfile
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_DEV }}
+
       - name: Set Project Alias
-        run: pnpm exec firebase use ${{ vars.FIREBASE_PROJECT_ID_DEV }}
+        run: pnpm exec firebase use ${{ vars.FIREBASE_PROJECT_ID_DEV }} --non-interactive
 
       # already handled by predeploy build config ??
       - name: Build Functions
