@@ -17,7 +17,7 @@ export default async (
       inviteId: string;
     }
   >,
-) => {
+): Promise<void | { status: string }> => {
   const { inviteId, orgId } = event.params;
   const snap = event.data;
   const inviteRef = event.data?.ref as DocumentReference<Invite> | undefined;

@@ -10,12 +10,15 @@ export const getReinstatementTrx = (
   location: ILocation,
   prevTrx: OffsetTransaction,
   trxEffDate: Timestamp,
-  eventId: string
+  eventId: string,
 ): PremiumTransaction => {
   const trxExpDate = location.expirationDate; // TODO: verify correct date being used
   const trxDays = getTermDays(trxEffDate.toDate(), trxExpDate.toDate());
 
-  const bookingDate = getBookingDate(trxEffDate.toMillis(), location.effectiveDate.toMillis());
+  const bookingDate = getBookingDate(
+    trxEffDate.toMillis(),
+    location.effectiveDate.toMillis(),
+  );
 
   // TODO: decide whether to calculate or use the term premium from location ?? need to recalc in reinstatement handler before emitting policy.reinstated event
   const termPremium = round(trxDays * prevTrx.dailyPremium, 2);
@@ -61,5 +64,25 @@ export const getReinstatementTrx = (
       created: Timestamp.now(),
       updated: Timestamp.now(),
     },
+    trxInterfaceType: 'premium',
+    // TODO: below added to satisfy type - may not be correct (added to deploy demo/dev)
+    MGACommissionPct: prevTrx.MGACommissionPct,
+    netDWP: prevTrx.netDWP,
+    dailyPremium: prevTrx.dailyPremium,
+    termProratedPct: 0,
+    surplusLinesTax: prevTrx.surplusLinesTax,
+    surplusLinesRegulatoryFee: prevTrx.surplusLinesRegulatoryFee,
+    MGAFee: prevTrx.MGAFee,
+    inspectionFee: prevTrx.inspectionFee,
+    billingEntityId: policy.defaultBillingEntityId,
+    billingEntity: policy.billingEntities[policy.defaultBillingEntityId],
+    billingEntityTotals: {
+      taxes: [],
+      termPremium: 0,
+      fees: [],
+      price: 0,
+    },
+    agent: policy.agent,
+    agency: policy.agency,
   };
 };

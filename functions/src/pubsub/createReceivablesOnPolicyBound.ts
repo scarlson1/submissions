@@ -71,8 +71,9 @@ export default async (
 
     // for each billing entity
     for (const cusId of billingEntityIds) {
-      const customer = await stripe.customers.retrieve(cusId);
-      verify(!customer.deleted, `stripe customer deleted ${cusId}`);
+      let customerRes = await stripe.customers.retrieve(cusId);
+      verify(!customerRes.deleted, `stripe customer deleted ${cusId}`);
+      const customer = customerRes as Stripe.Customer;
 
       const lineItems = billingEntityTotalsToLineItems(
         { ...policy, id: policyId },

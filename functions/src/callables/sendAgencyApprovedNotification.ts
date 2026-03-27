@@ -21,7 +21,10 @@ interface SendAgencyApprovedNotificationProps {
 const sendAgencyApprovedNotification = async ({
   data,
   auth,
-}: CallableRequest<SendAgencyApprovedNotificationProps>) => {
+}: CallableRequest<SendAgencyApprovedNotificationProps>): Promise<void | {
+  status: string;
+  emails: string[];
+}> => {
   try {
     const applicationDocId = data.docId;
     const msg = data.message || null;

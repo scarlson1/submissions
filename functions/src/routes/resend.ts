@@ -115,7 +115,7 @@ app.post(
 
       // let body =
       resend.webhooks.verify({
-        payload: req.rawBody.toString('utf8'),
+        payload: req.rawBody.toString('utf8'), // @ts-expect-error id required
         headers,
         webhookSecret: resendSecret.value(),
       }) as Payload;

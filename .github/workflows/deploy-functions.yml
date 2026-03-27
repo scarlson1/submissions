@@ -71,7 +71,7 @@ jobs:
       needs.detect-changes.outputs.request == 'true' ||
       needs.detect-changes.outputs.cron == 'true' ||
       needs.detect-changes.outputs.storage == 'true' ||
-      needs.detect-changes.outputs.shared == 'true'
+      needs.detect-changes.outputs.shared == 'true' || 'true' == 'true'
     runs-on: ubuntu-latest
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY_DEV }}
@@ -101,6 +101,9 @@ jobs:
 
       - name: Set Project Alias
         run: pnpm exec firebase use ${{ vars.FIREBASE_PROJECT_ID_DEV }} --non-interactive
+
+      - name: Typecheck Functions
+        run: pnpm --filter functions typecheck
 
       # already handled by predeploy build config ??
       - name: Build Functions

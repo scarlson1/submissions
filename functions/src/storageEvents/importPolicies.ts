@@ -532,7 +532,7 @@ async function getSPLPofR(
   return {
     name: data.licensee || '',
     licenseNum: data.licenseNumber || '',
-    licenseState: state || '',
+    licenseState: (state || '') as State,
     phone: data.phone || '',
   };
 }

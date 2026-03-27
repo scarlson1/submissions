@@ -1,18 +1,21 @@
 import {
-  FeatureCollection,
-  Polygon,
   booleanPointInPolygon,
+  FeatureCollection,
   featureEach,
   point,
+  Polygon,
   polygon,
 } from '@turf/turf';
 import axios from 'axios';
-import { Timestamp, type QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import {
+  Timestamp,
+  type QueryDocumentSnapshot,
+} from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { Submission } from '@idemand/common';
-import { FIPS, counties20mURL } from '../common/index.js';
+import { counties20mURL, FIPS } from '../common/index.js';
 
 export interface CountyJsonProperties {
   STATEFP: string;
@@ -25,7 +28,9 @@ export interface CountyJsonProperties {
   ALAND: number;
   AWATER: number;
 }
-export let countiesJson: FeatureCollection<Polygon, CountyJsonProperties> | undefined;
+export let countiesJson:
+  | FeatureCollection<Polygon, CountyJsonProperties>
+  | undefined;
 
 export default async (
   event: FirestoreEvent<
@@ -33,8 +38,8 @@ export default async (
     {
       submissionId: string;
     }
-  >
-) => {
+  >,
+): Promise<void | object> => {
   const snap = event.data;
   if (!snap) {
     warn('No data associated with event');
@@ -46,7 +51,9 @@ export default async (
     try {
       await loadCountiesGeoJson();
     } catch (err) {
-      error(`ERROR GETTING COUNTRY DATA FROM ${counties20mURL.value()}. RETURNING EARLY`);
+      error(
+        `ERROR GETTING COUNTRY DATA FROM ${counties20mURL.value()}. RETURNING EARLY`,
+      );
       return;
     }
   }
@@ -64,7 +71,7 @@ export default async (
     if (!fips && coordinates && coordinates.latitude && coordinates.longitude) {
       const matchProperties = await getCountyFromGeoJson(
         coordinates.latitude,
-        coordinates.longitude
+        coordinates.longitude,
       );
       if (matchProperties) {
         fips = matchProperties.GEOID;
@@ -95,7 +102,9 @@ export function getFIPS(countyName: string, state: string) {
   const details = FIPS.find(
     (e) =>
       e.state === state &&
-      e.countyName.toLowerCase().includes(countyName.split(' ')[0].toLowerCase())
+      e.countyName
+        .toLowerCase()
+        .includes(countyName.split(' ')[0].toLowerCase()),
   );
   if (!details) return '';
 
@@ -105,7 +114,10 @@ export function getFIPS(countyName: string, state: string) {
   return `${details.stateFP}${details.countyFP}`;
 }
 
-export async function getCountyFromGeoJson(latitude: number, longitude: number) {
+export async function getCountyFromGeoJson(
+  latitude: number,
+  longitude: number,
+) {
   if (!countiesJson) throw new Error('Missing counties JSON');
 
   let matchProperties: CountyJsonProperties | undefined; // Properties | undefined;
@@ -127,7 +139,8 @@ export async function getCountyFromGeoJson(latitude: number, longitude: number) 
 export async function loadCountiesGeoJson() {
   info(`Loading county GeoJSON from ${counties20mURL.value()}`);
   const { data } = await axios.get(counties20mURL.value());
-  if (!data) throw new Error(`Missing county data from ${counties20mURL.value()}`);
+  if (!data)
+    throw new Error(`Missing county data from ${counties20mURL.value()}`);
 
   countiesJson = data;
 }

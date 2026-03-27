@@ -1,12 +1,16 @@
-import { ILocation, Policy, ValueByRiskType } from '@idemand/common';
-import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { ILocation, Policy, ValueByRiskType, type RCVs } from '@idemand/common';
+import {
+  DocumentReference,
+  getFirestore,
+  Timestamp,
+} from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { isObject } from 'lodash-es';
 import {
   ChangeRequest,
+  changeRequestsCollection,
   ChangeRequestStatus,
   DeepPartial,
-  changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
   policiesCollection,
@@ -18,13 +22,13 @@ import {
 import { verify } from '../../utils/index.js';
 import { createDocId, getDocData } from '../db/index.js';
 import {
-  GetAALRes,
-  GetPremiumProps,
   calcPolicyPremiumAndTaxes,
+  GetAALRes,
   getAALs,
   getInStatePremium,
   getOutStatePremium,
   getPremium,
+  GetPremiumProps,
   requiresRerate,
   sumFeesTaxesPremium,
   sumPolicyTermPremium,
@@ -37,19 +41,21 @@ import { calcTerm } from './utils.js';
 
 // TODO: delete ?? (replace by calcLocationChanges)
 
-const reportErr = getReportErrorFn('policyChangeRequest.handleEndorsementRating');
+const reportErr = getReportErrorFn(
+  'policyChangeRequest.handleEndorsementRating',
+);
 
 export async function handleRatingForEndorsement(
   data: ChangeRequest,
   policyId: string,
-  requestId: string
+  requestId: string,
 ) {
   let changeRequestRef;
 
   try {
     verify(
       data.scope === 'location',
-      'endorsement change request event should always be at the location scope'
+      'endorsement change request event should always be at the location scope',
     );
 
     const { locationChanges, locationId } = data;
@@ -61,9 +67,13 @@ export async function handleRatingForEndorsement(
     const policy = await getDocData<Policy>(policyRef);
     changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
 
-    const { [locationId]: locationSummary, ...otherLocations } = policy.locations;
+    const { [locationId]: locationSummary, ...otherLocations } =
+      policy.locations;
 
-    verify(locationSummary, `location not found on policy (Location ID: ${locationId})`);
+    verify(
+      locationSummary,
+      `location not found on policy (Location ID: ${locationId})`,
+    );
 
     const locationSnap = await locationsCol.doc(locationId).get();
     const location = locationSnap.exists ? locationSnap.data() : null;
@@ -83,16 +93,18 @@ export async function handleRatingForEndorsement(
     } = location;
 
     // @ts-ignore
-    const effDateTS: Timestamp = locationChanges.effectiveDate || location.effectiveDate;
+    const effDateTS: Timestamp =
+      locationChanges.effectiveDate || location.effectiveDate;
     // @ts-ignore
-    const expDateTS: Timestamp = locationChanges.expirationDate || location.expirationDate;
+    const expDateTS: Timestamp =
+      locationChanges.expirationDate || location.expirationDate;
 
     // if only exp date --> recalc termPremium, taxes, etc. (no need to rerate)
     if (expDateOnly) {
       const { termPremium: locationTermPremium, termDays } = calcTerm(
         annualPremium,
         effDateTS.toDate(),
-        expDateTS.toDate()
+        expDateTS.toDate(),
       );
 
       const locationChangesWithRating: Partial<ILocation> = {
@@ -113,7 +125,7 @@ export async function handleRatingForEndorsement(
         newLocationsSummaryArr,
         policy.homeState,
         policy.taxes,
-        policy.fees
+        policy.fees,
       );
 
       const policyChanges: DeepPartial<Policy> = {
@@ -164,7 +176,7 @@ export async function handleRatingForEndorsement(
       const limits = { ...locLimits, ...(locationChanges.limits || {}) };
 
       // TODO: validate inputs (replacementCost, limits, etc.) need to recalc RCVs if limits changed ??
-      validateRCVs(RCVs);
+      validateRCVs(RCVs as RCVs); // TODO: remove type assertion once switched to @idemand/common RCVs
       validateLimits(limits);
 
       try {
@@ -174,8 +186,12 @@ export async function handleRatingForEndorsement(
           srSubKey: swissReSubscriptionKey.value(),
           replacementCost: RCVs.building,
           limits,
-          deductible: (locationChanges?.deductible as number | undefined) || deductible, // TODO: fix typing
-          coordinates: { latitude: coordinates.latitude, longitude: coordinates.longitude },
+          deductible:
+            (locationChanges?.deductible as number | undefined) || deductible, // TODO: fix typing
+          coordinates: {
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude,
+          },
           numStories: location.ratingPropertyData?.numStories || 1,
         });
       } catch (err: any) {
@@ -192,7 +208,8 @@ export async function handleRatingForEndorsement(
         basement: ratingPropertyData.basement,
         floodZone: ratingPropertyData.floodZone,
         priorLossCount: ratingPropertyData.priorLossCount || '0',
-        commissionPct: prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15, // TODO: throw error if no rating doc or default to 15% commission ??
+        commissionPct:
+          prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15, // TODO: throw error if no rating doc or default to 15% commission ??
       };
     } else {
       const AALs = prevRatingData?.AALs;
@@ -205,7 +222,8 @@ export async function handleRatingForEndorsement(
         basement: ratingPropertyData.basement,
         floodZone: ratingPropertyData.floodZone,
         priorLossCount: ratingPropertyData.priorLossCount || '0',
-        commissionPct: prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15, // TODO: throw error if no rating doc or default to 15% commission ??
+        commissionPct:
+          prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15, // TODO: throw error if no rating doc or default to 15% commission ??
       };
     }
 
@@ -222,7 +240,8 @@ export async function handleRatingForEndorsement(
     await ratingDocRef.set({
       submissionId: prevRatingData?.submissionId || null,
       locationId,
-      deductible: (locationChanges.deductible as number | undefined) || deductible, // TODO: fix typing
+      deductible:
+        (locationChanges.deductible as number | undefined) || deductible, // TODO: fix typing
       limits: getPremiumInputs.limits,
       TIV: result.tiv,
       RCVs,
@@ -241,13 +260,16 @@ export async function handleRatingForEndorsement(
     });
 
     const { premiumData } = result;
-    verify(premiumData?.annualPremium && premiumData?.annualPremium > 100, 'premium < 100');
+    verify(
+      premiumData?.annualPremium && premiumData?.annualPremium > 100,
+      'premium < 100',
+    );
     // TODO: validate results (premium, etc.)
 
     const { termPremium, termDays } = calcTerm(
       premiumData.annualPremium,
       effDateTS.toDate(),
-      expDateTS.toDate()
+      expDateTS.toDate(),
     );
 
     const locationChangesWithRating: Partial<ILocation> = {
@@ -256,7 +278,7 @@ export async function handleRatingForEndorsement(
       TIV: result.tiv,
       termPremium,
       termDays,
-      RCVs,
+      RCVs: RCVs as RCVs,
     };
     info('LOCATION CHANGES WITH RATING: ', { locationChangesWithRating });
 
@@ -267,8 +289,14 @@ export async function handleRatingForEndorsement(
     ];
 
     const newPolicyTermPremium = sumPolicyTermPremium(newLocationsSummaryArr);
-    const inStatePremium = getInStatePremium(policy.homeState, newLocationsSummaryArr);
-    const outStatePremium = getOutStatePremium(policy.homeState, newLocationsSummaryArr);
+    const inStatePremium = getInStatePremium(
+      policy.homeState,
+      newLocationsSummaryArr,
+    );
+    const outStatePremium = getOutStatePremium(
+      policy.homeState,
+      newLocationsSummaryArr,
+    );
 
     // recalc taxes based on new term premium
     const newTaxes = recalcTaxes({
@@ -279,7 +307,11 @@ export async function handleRatingForEndorsement(
       fees: policy.fees,
     });
 
-    const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
+    const newPrice = sumFeesTaxesPremium(
+      policy.fees,
+      newTaxes,
+      newPolicyTermPremium,
+    );
 
     const policyChanges: DeepPartial<Policy> = {
       termPremium: newPolicyTermPremium,
@@ -315,7 +347,7 @@ export async function handleRatingForEndorsement(
     reportErr(
       'Error calculating new rating values for endorsement',
       { data, policyId, requestId },
-      err
+      err,
     );
 
     let errMsg = err?.message || 'Error calculating endorsement premium';
@@ -325,7 +357,10 @@ export async function handleRatingForEndorsement(
   }
 }
 
-export async function setChangeRequestErr(ref: DocumentReference, errMsg: string) {
+export async function setChangeRequestErr(
+  ref: DocumentReference,
+  errMsg: string,
+) {
   try {
     await ref.update({ status: ChangeRequestStatus.enum.error, error: errMsg });
   } catch (err) {

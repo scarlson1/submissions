@@ -6,14 +6,18 @@ import {
   Mortgagee,
   PolicyLocation,
 } from '@idemand/common';
-import { AddressWithCoords, LcnWithTermPrem, PolicyLcnWithPrem } from '../common/index.js';
+import {
+  AddressWithCoords,
+  LcnWithTermPrem,
+  PolicyLcnWithPrem,
+} from '../common/index.js';
 import { compressAddress } from './helpers.js';
 
 // Location <--> Policy Location
 
 export const locationToPolicyLocation = (
   location: ILocation,
-  billingEntityId: string
+  billingEntityId: string,
 ): PolicyLocation => {
   let lcn: PolicyLocation = {
     coords: location.coordinates,
@@ -30,12 +34,15 @@ export const locationToPolicyLocation = (
 };
 
 // TODO: need to check if needs to require billing entity ID (check all instances where fn is used)
-export const partialLcnToPolicyLcn = (lcn: LcnWithTermPrem): PolicyLcnWithPrem => {
+export const partialLcnToPolicyLcn = (
+  lcn: LcnWithTermPrem,
+): PolicyLcnWithPrem => {
   let policyLcn: PolicyLcnWithPrem = {
     termPremium: lcn.termPremium,
     annualPremium: lcn.annualPremium || lcn.termPremium, // TEMP FALLBACK TO TERM PREM TO AVOID FIRESTORE undefined ERROR
   };
-  if (lcn.address) policyLcn['address'] = compressAddress(lcn.address as Address);
+  if (lcn.address)
+    policyLcn['address'] = compressAddress(lcn.address as Address);
   if (lcn.coordinates) policyLcn['coords'] = lcn.coordinates;
   if (lcn.cancelEffDate) policyLcn['cancelEffDate'] = lcn.cancelEffDate;
   if (lcn.metadata?.version) policyLcn['version'] = lcn.metadata?.version;
@@ -46,7 +53,7 @@ export const partialLcnToPolicyLcn = (lcn: LcnWithTermPrem): PolicyLcnWithPrem =
 // ADDITIONAL INTEREST <--> MORTGAGEE / ADDITIONAL NAMED INSURED
 
 export function convertAdditionalInsuredsToAdditionalInterests(
-  additionalInsureds: AdditionalInsured[]
+  additionalInsureds: AdditionalInsured[], // TODO: update type to include coords (optional)
 ): AdditionalInterest[] {
   return additionalInsureds.map((ai) => ({
     type: 'additional_insured',
@@ -58,12 +65,14 @@ export function convertAdditionalInsuredsToAdditionalInterests(
       city: ai.address?.city || '',
       state: ai.address?.state || '',
       postal: ai.address?.postal || '',
+      latitude: (ai.address as any)?.latitude ?? 0,
+      longitude: (ai.address as any)?.longitude ?? 0,
     } as AddressWithCoords,
-  }));
+  })) as AdditionalInterest[];
 }
 
 export function convertMortgageesToAdditionalInterests(
-  mortgagees: Mortgagee[]
+  mortgagees: Mortgagee[], // TODO: update type to include coords (optional)
 ): AdditionalInterest[] {
   return mortgagees.map((m) => ({
     type: 'mortgagee',
@@ -75,20 +84,22 @@ export function convertMortgageesToAdditionalInterests(
       city: m.address?.city || '',
       state: m.address?.state || '',
       postal: m.address?.postal || '',
+      latitude: (m.address as any)?.latitude ?? 0,
+      longitude: (m.address as any)?.longitude ?? 0,
     } as AddressWithCoords,
-  }));
+  })) as AdditionalInterest[];
 }
 
 export const combineToAdditionalInterests = (
   additionalInsureds: AdditionalInsured[],
-  mortgagees: Mortgagee[]
+  mortgagees: Mortgagee[],
 ) => [
   ...convertAdditionalInsuredsToAdditionalInterests(additionalInsureds),
   ...convertMortgageesToAdditionalInterests(mortgagees),
 ];
 
 export function additionalInterestToMortgagee(
-  additionalInterests: AdditionalInterest[]
+  additionalInterests: AdditionalInterest[],
 ): Mortgagee[] {
   return (
     additionalInterests
@@ -105,6 +116,8 @@ export function additionalInterestToMortgagee(
               city: m.address?.city ?? '',
               state: m.address?.state ?? '',
               postal: m.address?.postal ?? '',
+              latitude: (m.address as any)?.latitude ?? 0,
+              longitude: (m.address as any)?.longitude ?? 0,
             }
           : null,
       })) || []
@@ -112,11 +125,15 @@ export function additionalInterestToMortgagee(
 }
 
 export function additionalInterestToAdditionalInsured(
-  additionalInterests: AdditionalInterest[]
+  additionalInterests: AdditionalInterest[],
 ): AdditionalInsured[] {
   return (
     additionalInterests
-      ?.filter((ai) => ai.type === 'additional_named_insured' || ai.type === 'additional_insured')
+      ?.filter(
+        (ai) =>
+          ai.type === 'additional_named_insured' ||
+          ai.type === 'additional_insured',
+      )
       .map((additionalNI) => ({
         name: additionalNI.name,
         email: additionalNI.email || '',
@@ -127,15 +144,20 @@ export function additionalInterestToAdditionalInsured(
               city: additionalNI.address?.city ?? '',
               state: additionalNI.address?.state ?? '',
               postal: additionalNI.address?.postal ?? '',
+              latitude: (additionalNI.address as any)?.latitude ?? 0,
+              longitude: (additionalNI.address as any)?.longitude ?? 0,
             }
           : null,
       })) || []
   );
 }
 
-export function separateAdditionalInterests(additionalInterests: AdditionalInterest[]) {
+export function separateAdditionalInterests(
+  additionalInterests: AdditionalInterest[],
+) {
   return {
-    additionalInsureds: additionalInterestToAdditionalInsured(additionalInterests),
+    additionalInsureds:
+      additionalInterestToAdditionalInsured(additionalInterests),
     mortgageeInterest: additionalInterestToMortgagee(additionalInterests),
   };
 }

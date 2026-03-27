@@ -6,11 +6,13 @@ import {
   Quote,
   State,
   WithId,
+  type RCVs,
 } from '@idemand/common';
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 import { sum } from 'lodash-es';
+import type { Concrete } from '../../common/types.js';
 import { createDocId } from '../../modules/db/index.js';
 import {
   calcPolicyPremium,
@@ -44,7 +46,8 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
     data.additionalInterests || [],
   );
 
-  const RCVs = getRCVs(data.ratingPropertyData.replacementCost, data.limits);
+  const rawRCVs = getRCVs(data.ratingPropertyData.replacementCost, data.limits);
+  const RCVs = rawRCVs as Concrete<RCVs>;
 
   const ts = Timestamp.now();
   // TODO: take lesser of policy exp date and location eff. + 365 for location once using multi-location
