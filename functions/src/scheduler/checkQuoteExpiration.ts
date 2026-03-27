@@ -67,10 +67,11 @@ export default async (event: ScheduledEvent) => {
     // quoteDocs.forEach(q => console.log(`QUOTE ${q.id} expires ${new Date(q.quoteExpiration.seconds * 1000).toString()}`))
   } catch (err: any) {
     error('ERROR FETCHING QUOTES EXPIRING WITH 24 HOURS', { err });
+    return;
   }
 
-  const expired = [];
-  const expireIn24Hours = [];
+  const expired: WithId<Quote>[] = [];
+  const expireIn24Hours: WithId<Quote>[] = [];
 
   try {
     const currDateSeconds = currentDate.getTime();
@@ -123,7 +124,7 @@ export default async (event: ScheduledEvent) => {
     if (expireIn24Hours.length) {
       // TODO: send notifications
       for (const quote of expireIn24Hours) {
-        const to = [];
+        const to: string[] = [];
         if (quote.namedInsured?.email) to.push(quote.namedInsured?.email);
         if (quote.agent?.email) to.push(quote.agent?.email);
         if (
