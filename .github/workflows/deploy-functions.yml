@@ -75,7 +75,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY_DEV }}
-      #   RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       RESEND_SECRET: ${{ secrets.RESEND_SECRET }}
       EMAIL_VERIFICATION_KEY: ${{ secrets.EMAIL_VERIFICATION_KEY }}
       SWISS_RE_CLIENT_ID: ${{ secrets.SWISS_RE_CLIENT_ID }}
