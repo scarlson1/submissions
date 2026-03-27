@@ -5,6 +5,7 @@ import {
   getReportErrorFn,
   swissReAccessTokenURL,
   swissReAuthScope,
+  swissReBaseURL,
   swissReProductCode,
   swissReToolCode,
 } from '../common/index.js';
@@ -25,7 +26,7 @@ export const getSwissReInstance = (
   subscriptionKey: string
 ) => {
   const swissReInstance = axios.create({
-    baseURL: process.env.SWISS_RE_BASE_URL,
+    baseURL: swissReBaseURL.value(),
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',

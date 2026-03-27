@@ -9,17 +9,24 @@ import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
 import { calcLocationChanges } from 'api';
 import { CheckmarkLottie } from 'assets';
-import { ILocation, LocationChangeRequest } from 'common';
+import { AdditionalInterest, ILocation, Limits, LocationChangeRequest } from 'common';
 import { Wizard } from 'components/forms';
 import { useDialog, useDocData } from 'hooks';
 import { createChangeRequest } from 'modules/db';
 import { combineToAdditionalInterests } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
-import { LocationChangeValues } from '../LocationChangeFormOld';
 import { LocationChangesStep } from './LocationChangesStep';
 import { ReviewStep } from './ReviewStep';
 
 // TODO: need to set userId, agent, org at some point
+
+export interface LocationChangeValues {
+  limits: Limits;
+  deductible: number;
+  additionalInterests: AdditionalInterest[];
+  externalId: string;
+  requestEffDate: Date;
+}
 
 interface ChangeLocationComponentProps {
   changeRequestDocResource: ReturnType<typeof createChangeRequest<LocationChangeRequest>>;
@@ -39,7 +46,7 @@ export const LocationChangeWizard = ({
 
   const { data: changeRequest } =
     useFirestoreDocData<Partial<LocationChangeRequest>>(changeRequestRef);
-  const { data: location } = useDocData<ILocation>('LOCATIONS', locationId);
+  const { data: location } = useDocData<ILocation>('locations', locationId);
   const { data: user } = useUser();
   const dialog = useDialog();
 
@@ -122,7 +129,7 @@ export const LocationChangeWizard = ({
   return (
     // <Container maxWidth='md' sx={{ py: 8 }} disableGutters>
     // </Container>
-    (<Wizard maxWidth='md'>
+    <Wizard maxWidth='md'>
       <LocationChangesStep
         // initialValues={initialValues.current}
         initialValues={{
@@ -176,6 +183,6 @@ export const LocationChangeWizard = ({
           </Button>
         </Box>
       </Box>
-    </Wizard>)
+    </Wizard>
   );
 };

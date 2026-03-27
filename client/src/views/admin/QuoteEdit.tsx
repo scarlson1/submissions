@@ -15,6 +15,8 @@ import { CARD_FEE_RATE } from 'hooks/useCreateQuote';
 import { addToDate, extractNumber } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
 
+// TODO: better validation
+
 const useEditQuote = (
   quoteId: string,
   onSuccess?: () => void,
@@ -37,6 +39,8 @@ const useEditQuote = (
           'Must have at least one email (insured or agent)'
         );
         invariant(isValid(newValues.effectiveDate), 'Invalid effective date');
+        invariant(typeof newValues.coordinates?.longitude === 'number');
+        invariant(typeof newValues.coordinates?.latitude === 'number');
 
         let effDateStartOfDay = startOfDay(newValues.effectiveDate);
         // let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
@@ -60,16 +64,17 @@ const useEditQuote = (
           address: newValues?.address,
           // TODO: add homeState to the form
           homeState: newValues?.homeState,
-          coordinates:
-            newValues.coordinates?.longitude && newValues.coordinates?.latitude
-              ? new GeoPoint(newValues.coordinates.latitude, newValues.coordinates.longitude)
-              : null,
+          coordinates: new GeoPoint(
+            newValues.coordinates.latitude,
+            newValues.coordinates.longitude
+          ),
           limits: newValues?.limits,
           deductible: newValues?.deductible,
           fees: numFees || [], // newValues?.fees || [],
           taxes: numTaxes || [], //  newValues?.taxes || [],
           annualPremium: newValues.annualPremium,
-          subproducerCommission: newValues?.subproducerCommission,
+          commSource: newValues.commSource,
+          // subproducerCommission: newValues?.subproducerCommission,
           cardFee: round(newValues.quoteTotal * CARD_FEE_RATE, 2),
           quoteTotal: round(newValues.quoteTotal, 2),
           mailingAddress: {
@@ -85,6 +90,7 @@ const useEditQuote = (
           agency: {
             orgId: newValues?.agency?.orgId || null,
             name: newValues?.agency?.name || null,
+            stripeAccountId: newValues?.agency?.stripeAccountId || null,
             address: newValues?.agency?.address || null,
           },
           userId: newValues?.namedInsured?.userId || null,
@@ -138,7 +144,7 @@ export const QuoteEdit = () => {
   const toast = useAsyncToast();
   invariant(quoteId);
 
-  const { data: quoteData } = useDocDataOnce<Quote>('QUOTES', quoteId, { suspense: true });
+  const { data: quoteData } = useDocDataOnce<Quote>('quotes', quoteId);
 
   const editQuote = useEditQuote(
     quoteId,
@@ -190,7 +196,8 @@ export const QuoteEdit = () => {
           rate: `${t.rate ?? ''}`,
         })) || [],
       annualPremium: quoteData?.annualPremium ?? null,
-      subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
+      // subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
+      commSource: quoteData?.commSource ?? 'agent',
       quoteTotal: quoteData?.quoteTotal ?? null,
       namedInsured: {
         firstName: quoteData?.namedInsured?.firstName ?? '',
@@ -214,6 +221,19 @@ export const QuoteEdit = () => {
           state: '',
           postal: '',
         },
+      },
+      carrier: {
+        name: quoteData?.carrier?.name || '',
+        orgId: quoteData?.carrier?.orgId || '',
+        stripeAccountId: quoteData?.carrier?.stripeAccountId || '',
+        address: quoteData?.carrier?.address || {
+          addressLine1: '',
+          addressLine2: '',
+          city: '',
+          state: '',
+          postal: '',
+        },
+        photoURL: quoteData?.carrier?.photoURL || '',
       },
       ratingPropertyData: {
         CBRSDesignation: quoteData?.ratingPropertyData?.CBRSDesignation ?? '',
@@ -291,5 +311,8 @@ function getRatingInputsFromQuote(data: Partial<Quote> | null) {
     inlandAAL: data?.AALs?.inland, // @ts-ignore
     surgeAAL: data?.AALs?.surge, // @ts-ignore
     tsunamiAAL: data?.AALs?.tsunami,
+    commSource: data?.commSource,
+    agentId: data?.agent?.userId,
+    orgId: data?.agency?.orgId,
   };
 }

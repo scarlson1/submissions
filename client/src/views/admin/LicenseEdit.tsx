@@ -18,7 +18,7 @@ export const LicenseEdit = () => {
   const { licenseId } = useParams();
   if (!licenseId) throw new Error('Missing license ID in URL params');
 
-  const { data } = useDocData<License>('LICENSES', licenseId);
+  const { data } = useDocData<License>('licenses', licenseId);
 
   const updateLicense = useCallback(
     async (values: LicenseValues) => {

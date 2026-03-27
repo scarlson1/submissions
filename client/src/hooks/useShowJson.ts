@@ -11,7 +11,7 @@ import { toast } from 'react-hot-toast';
 import { useFirestore } from 'reactfire';
 import { DocumentData } from 'rxfire/firestore/interfaces';
 
-import { WithId } from 'common';
+import { TCollection, WithId } from 'common';
 import { DialogOptions } from 'context';
 import { useJsonDialog } from './useJsonDialog';
 
@@ -19,7 +19,7 @@ import { useJsonDialog } from './useJsonDialog';
 // showJsonWhere
 
 export const useShowJson = <T extends DocumentData>(
-  colName: string,
+  colName: TCollection,
   paths: string[] = [],
   getTitle?: null | ((data: WithId<T>) => string),
   converter?: FirestoreDataConverter<T> | null,

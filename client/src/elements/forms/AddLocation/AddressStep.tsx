@@ -9,6 +9,7 @@ import {
   Address,
   Coordinates,
   DraftAddLocationRequest,
+  NESTED_ADDRESS_FIELD_NAMES,
   Nullable,
   TProduct,
   addressValidationActiveStates,
@@ -17,8 +18,8 @@ import {
 import { FormikWizardNavButtons } from 'components/forms';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
 import { DEFAULT_INIT_VALUES } from 'hooks/usePropertyDetails';
+import { logDev } from 'modules/utils';
 import { AddressStep as AddrStep } from '../AddressStep';
-import { NESTED_ADDRESS_FIELD_NAMES } from '../FormikAddress';
 import { BaseStepProps } from './AddLocationWizard';
 
 export interface AddressValues {
@@ -43,7 +44,7 @@ export function AddressStep({
   ...props
 }: AddressStepProps) {
   const functions = useFunctions();
-  const { data: activeStates } = useDocData('ACTIVE_STATES', product);
+  const { data: activeStates } = useDocData('states', product);
   const toast = useAsyncToast({ position: 'top-right' });
   const { nextStep } = useWizard();
   const fetchDetails = getPropertyDetailsAttom(functions);
@@ -80,7 +81,7 @@ export function AddressStep({
             ...address,
             coordinates,
           });
-          if (process.env.REACT_APP_PROD !== 'true') console.log('ATTOM RES: ', data);
+          logDev('ATTOM RES: ', data);
           const newRatingPropertyData = {
             CBRSDesignation: data.CBRSDesignation || null,
             basement: data.basement || null,

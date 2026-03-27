@@ -1,15 +1,9 @@
+import { Collection, ILocation } from '@idemand/common';
 import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
-
-import {
-  Collection,
-  ILocation,
-  getReportErrorFn,
-  policiesCollection,
-  versionsCollection,
-} from '../../common/index.js';
+import { getReportErrorFn, policiesCollection, versionsCollection } from '../../common/index.js';
 import { getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_LOCATION_DIFF_KEYS = [
@@ -26,15 +20,6 @@ const VERSION_LOCATION_DIFF_KEYS = [
 ];
 
 const reportErr = getReportErrorFn('versionLocation');
-
-// TODO: location refactor:
-//    - if creates new location version -->
-//    - save previous data in subcollection
-//    - update the policy doc with new version number for location
-//    - need to use transaction / batch ??
-//    - issues:
-//    - will create new policy version for every location changes
-//    - if that's an issue, need to use transaction to process all updates at once
 
 export default async (
   event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { locationId: string }>
@@ -64,7 +49,7 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, Collection.enum.LOCATIONS, locationId);
+    const versionsCol = versionsCollection(db, Collection.enum.locations, locationId);
     const policiesCol = policiesCollection(db);
 
     const batch = db.batch();
@@ -83,7 +68,7 @@ export default async (
     // policy snap race condition ??
 
     if (afterData?.policyId) {
-      const oldVersion = afterData?.metadata?.version ?? 0;
+      // const oldVersion = afterData?.metadata?.version ?? 0;
       let policySnap = await policiesCol.doc(afterData.policyId).get();
       // might not exist if policy import from CSV
       if (policySnap.exists) {
@@ -91,9 +76,11 @@ export default async (
         let policyLcns = policySnap.data()?.locations;
         let policyLcn = policyLcns ? policyLcns[locationId] : null;
         if (policyLcn) {
-          const policyUpdates = {
-            [`locations.${locationId}.version`]: oldVersion + 1,
-          };
+          const policyUpdates: Record<string, any> = {};
+          policyUpdates[`locations.${locationId}.version`] = FieldValue.increment(1);
+          // const policyUpdates = {
+          //   [`locations.${locationId}.version`]: oldVersion + 1,
+          // };
           batch.update(policySnap.ref, policyUpdates);
         }
       }

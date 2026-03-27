@@ -1,10 +1,26 @@
 import { FirebaseError } from '@firebase/util';
 import { alpha } from '@mui/material';
-import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
-import { Duration, add, endOfToday, format, formatDistance, isFuture, isPast } from 'date-fns';
-import { Color } from 'deck.gl/typed';
+import {
+  GridValueFormatterParams,
+  GridValueGetterParams,
+} from '@mui/x-data-grid';
+import {
+  Duration,
+  add,
+  endOfToday,
+  format,
+  formatDistance,
+  isFuture,
+  isPast,
+} from 'date-fns';
+import { Color } from 'deck.gl';
 import type { AuthError } from 'firebase/auth';
-import { FirestoreError, GeoPoint, Timestamp, WhereFilterOp } from 'firebase/firestore';
+import {
+  FirestoreError,
+  GeoPoint,
+  Timestamp,
+  WhereFilterOp,
+} from 'firebase/firestore';
 import { geohashForLocation } from 'geofire-common';
 import {
   ceil,
@@ -34,7 +50,11 @@ import {
   TRoundingType,
   TTaxItem,
 } from 'common';
-import { AddressComponent, AddressComponentType, NewAddress } from 'components/forms';
+import {
+  AddressComponent,
+  AddressComponentType,
+  NewAddress,
+} from 'components/forms';
 
 /**
  * extracts address string from Google address_components object.
@@ -44,24 +64,38 @@ import { AddressComponent, AddressComponentType, NewAddress } from 'components/f
  */
 export const findAddressValueByType = (
   addressObj: AddressComponent[],
-  addressType: AddressComponentType
+  addressType: AddressComponentType,
 ) => {
   return find(addressObj, (o) => {
     return o.types[0] === addressType;
   });
 };
 
-export function extractAddressFromGeoCode({ address_components, geometry }: NewAddress) {
-  const newStreetNumber = findAddressValueByType(address_components, 'street_number');
+export function extractAddressFromGeoCode({
+  address_components,
+  geometry,
+}: NewAddress) {
+  const newStreetNumber = findAddressValueByType(
+    address_components,
+    'street_number',
+  );
   const newStreetName = findAddressValueByType(address_components, 'route');
 
   return {
-    addressLine1: `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim(),
+    addressLine1:
+      `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim(),
     addressLine2: '', // TODO: any scenario where google includes addr2 ??
     city: findAddressValueByType(address_components, 'locality')?.long_name,
-    state: findAddressValueByType(address_components, 'administrative_area_level_1')?.short_name,
-    postal: findAddressValueByType(address_components, 'postal_code')?.long_name,
-    county: findAddressValueByType(address_components, 'administrative_area_level_2')?.long_name,
+    state: findAddressValueByType(
+      address_components,
+      'administrative_area_level_1',
+    )?.short_name,
+    postal: findAddressValueByType(address_components, 'postal_code')
+      ?.long_name,
+    county: findAddressValueByType(
+      address_components,
+      'administrative_area_level_2',
+    )?.long_name,
     latitude: geometry?.location.lat(),
     longitude: geometry?.location.lng(),
   };
@@ -103,9 +137,15 @@ export const formatPhoneNumber = (str: string) => {
     // Non-breakable space is char 160
     let intlCode = match[1] ? `+1${String.fromCharCode(160)}` : '';
     // return [intlCode, '(', match[2], ') ', match[3], '-', match[4]].join('');
-    return [intlCode, '(', match[2], `)${String.fromCharCode(160)}`, match[3], '-', match[4]].join(
-      ''
-    );
+    return [
+      intlCode,
+      '(',
+      match[2],
+      `)${String.fromCharCode(160)}`,
+      match[3],
+      '-',
+      match[4],
+    ].join('');
   }
 
   return null;
@@ -116,21 +156,24 @@ export const formatPhoneNumber = (str: string) => {
  * @param {string | number} val - value to format
  * @return {string} string value with dollar formatting
  */
-export const dollarFormat = (val: string | number) => numeral(val).format('$0,0[.]00');
+export const dollarFormat = (val: string | number) =>
+  numeral(val).format('$0,0[.]00');
 
 /**
  * formats value as dollar, with 2 decimal places
  * @param {string | number} val - value to format
  * @return {string} string value with dollar formatting
  */
-export const dollarFormat2 = (val: string | number) => numeral(val).format('$0,0.00');
+export const dollarFormat2 = (val: string | number) =>
+  numeral(val).format('$0,0.00');
 
 /**
  * formats value as string with commas
  * @param {string | number} val - value to format
  * @return {string} string value with comma formatting
  */
-export const numberFormat = (val: string | number) => numeral(val).format('0,0');
+export const numberFormat = (val: string | number) =>
+  numeral(val).format('0,0');
 
 /**
  * format a string or number as a percent
@@ -148,7 +191,9 @@ export const percentFormat = (val: string | number, round: number = 1) =>
  */
 export const getRedirectPath = (location: Location) => {
   let redirectProvided =
-    location.state && location.state.redirectPath ? location.state.redirectPath : null;
+    location.state && location.state.redirectPath
+      ? location.state.redirectPath
+      : null;
   let from = location.state?.from?.pathname || '/';
   let redirectPath = redirectProvided || from;
 
@@ -190,7 +235,7 @@ export const formatDate = (date: Date, options: string = 'MMM dd, yyyy') => {
  */
 export const formatFirestoreTimestamp = (
   ts?: Timestamp | null | undefined,
-  formatType: 'date' | 'relative' = 'relative'
+  formatType: 'date' | 'relative' = 'relative',
 ) => {
   if (!ts) return '';
   let tsDate = new Date(ts.seconds * 1000);
@@ -199,10 +244,16 @@ export const formatFirestoreTimestamp = (
     : formatDate(tsDate);
 };
 
-export const formatGridFirestoreTimestamp = (params: GridValueFormatterParams<Timestamp>) =>
-  params.value == null || !params.value.seconds ? '' : formatFirestoreTimestamp(params.value);
+export const formatGridFirestoreTimestamp = (
+  params: GridValueFormatterParams<Timestamp>,
+) =>
+  params.value == null || !params.value.seconds
+    ? ''
+    : formatFirestoreTimestamp(params.value);
 
-export const formatGridFirestoreTimestampAsDate = (params: GridValueFormatterParams<Timestamp>) =>
+export const formatGridFirestoreTimestampAsDate = (
+  params: GridValueFormatterParams<Timestamp>,
+) =>
   params.value == null || !params.value.seconds
     ? ''
     : formatFirestoreTimestamp(params.value, 'date');
@@ -227,7 +278,7 @@ export const addToDate = (duration: Duration, date: Date = new Date()) => {
  */
 export const isCurrentDateBetween = (
   pastDate?: Date | number | null,
-  futureDate?: Date | number | null
+  futureDate?: Date | number | null,
 ) => {
   const p = pastDate ? isPast(pastDate) : true;
   const f = futureDate ? isFuture(futureDate) : true;
@@ -265,7 +316,7 @@ export const validateRoutingNumber = (val?: string) => {
 export const isValidEmail = (str: string) => {
   // eslint-disable-next-line
   return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-    str
+    str,
   );
 };
 
@@ -299,7 +350,8 @@ export const sumArr = (arr: (number | string)[]) => {
 //   return Math.round((num + Number.EPSILON) * factor) / factor;
 // };
 
-export const isLongitude = (num: number) => isFinite(num) && Math.abs(num) <= 180;
+export const isLongitude = (num: number) =>
+  isFinite(num) && Math.abs(num) <= 180;
 export const isLatitude = (num: number) => isFinite(num) && Math.abs(num) <= 90;
 
 /**
@@ -329,7 +381,10 @@ export const isErrorWithCode = (err: unknown): err is ErrorWithCode => {
   );
 };
 
-export const getErrorCode = (maybeError: unknown, defaultVal: string = 'unknown'): string => {
+export const getErrorCode = (
+  maybeError: unknown,
+  defaultVal: string = 'unknown',
+): string => {
   if (isErrorWithCode(maybeError)) return maybeError.code;
 
   return defaultVal; // 'auth/auth-error-occurred';
@@ -370,7 +425,8 @@ export const getErrorMessage = (error: unknown) => {
 
 export const getErrorDetails = (err: unknown) => {
   const code = err instanceof FirebaseError ? err.code : getErrorCode(err);
-  const message = err instanceof FirebaseError ? err.message : getErrorMessage(err);
+  const message =
+    err instanceof FirebaseError ? err.message : getErrorMessage(err);
   let readableCode = code;
   let split = code.split('/');
   if (split.length === 2) readableCode = split[1].replaceAll('-', ' ');
@@ -382,22 +438,32 @@ export function getRandomItem(items: any[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-export const maskStringShowLast = (str: string, showLast: number = 4, mask: string = '*') => {
-  return ('' + str).slice(0, -showLast).replace(/./g, mask) + ('' + str).slice(-showLast);
+export const maskStringShowLast = (
+  str: string,
+  showLast: number = 4,
+  mask: string = '*',
+) => {
+  return (
+    ('' + str).slice(0, -showLast).replace(/./g, mask) +
+    ('' + str).slice(-showLast)
+  );
 };
 
 export const readableFirebaseCode = (err: AuthError | FirestoreError) => {
-  return err?.code?.split('/')[1].split('-').join(' ');
+  return err?.code?.split('/')[1]?.split('-').join(' ');
 };
 
-export function getAddressComponent(address: Address, addressComponent: keyof Address) {
+export function getAddressComponent(
+  address: Address,
+  addressComponent: keyof Address,
+) {
   if (!address || !address[addressComponent]) return '';
   return address[addressComponent];
 }
 
 export function getGridAddressComponent(
   params: GridValueGetterParams<any, any>,
-  addressComponent: keyof Address
+  addressComponent: keyof Address,
 ) {
   if (!params.row || !params.row.address) return '';
   return getAddressComponent(params.row.address, addressComponent);
@@ -458,7 +524,7 @@ export interface Obj {
  * @return {object} differences
  */
 
-export function getDifference(origObj: any, newObj: any) {
+export function getDifference<T>(origObj: T, newObj: T) {
   function changes(newObj: any, origObj: any) {
     let arrayIndexCounter = 0;
 
@@ -471,12 +537,14 @@ export function getDifference(origObj: any, newObj: any) {
 
         // set the difference
         acc[resultKey] =
-          isObject(value) && isObject(origObj[key]) ? changes(value, origObj[key]) : value;
+          isObject(value) && isObject(origObj[key])
+            ? changes(value, origObj[key])
+            : value;
       }
     });
   }
 
-  return changes(newObj, origObj);
+  return changes(newObj, origObj) as Partial<T>;
 }
 
 /* USAGE */
@@ -537,7 +605,10 @@ export function getDifference(origObj: any, newObj: any) {
  */
 export function noop(..._args: any[]): void {}
 
-export const getDateShortcuts = (addDays: number[], date: Date = endOfToday()) => {
+export const getDateShortcuts = (
+  addDays: number[],
+  date: Date = endOfToday(),
+) => {
   return addDays.map((days) => ({
     label: `${days} days`,
     getValue: () => {
@@ -546,10 +617,27 @@ export const getDateShortcuts = (addDays: number[], date: Date = endOfToday()) =
   }));
 };
 
-export const getGeoHash = (
-  coordinates?: { latitude: number | null; longitude: number | null } | GeoPoint | null | undefined
+export const getDateShortcutsWeeks = (
+  addWeeks: number[],
+  date: Date = endOfToday(),
 ) => {
-  if (!(coordinates && coordinates.latitude && coordinates.longitude)) return null;
+  return addWeeks.map((weeks) => ({
+    label: `${weeks} weeks`,
+    getValue: () => {
+      return addToDate({ weeks });
+    },
+  }));
+};
+
+export const getGeoHash = (
+  coordinates?:
+    | { latitude: number | null; longitude: number | null }
+    | GeoPoint
+    | null
+    | undefined,
+) => {
+  if (!(coordinates && coordinates.latitude && coordinates.longitude))
+    return null;
 
   return geohashForLocation([coordinates.latitude, coordinates.longitude]);
 };
@@ -577,7 +665,11 @@ export const flattenObj = <T extends Record<string, any>>(obj: T) => {
   return result as Record<FlattenObjectKeys<T>, any>;
 };
 
-export function sumFeesTaxesPremium(fees: TFeeItem[], taxes: TTaxItem[], premium: number) {
+export function sumFeesTaxesPremium(
+  fees: TFeeItem[],
+  taxes: TTaxItem[],
+  premium: number,
+) {
   const feeTotal = sumArr(fees.map((f) => f.value));
   const taxTotal = sumArr(taxes.map((t) => t.value));
 
@@ -597,11 +689,17 @@ export function sumByTypes<T>(
   arr: T[],
   searchKey: Path<T>, //  keyof T,
   searchValues: any | any[],
-  valKey: Path<T>
+  valKey: Path<T>,
 ) {
-  searchValues = Array.isArray(searchValues) ? searchValues : ([searchValues] as any[]);
+  searchValues = Array.isArray(searchValues)
+    ? searchValues
+    : ([searchValues] as any[]);
   return arr.reduce((acc, f) => {
-    if (searchValues.some((searchVal: any) => isEqual(get(f, searchKey), searchVal))) {
+    if (
+      searchValues.some((searchVal: any) =>
+        isEqual(get(f, searchKey), searchVal),
+      )
+    ) {
       let num =
         typeof get(f, valKey) === 'string'
           ? extractNumber(get(f, valKey) as string)
@@ -631,7 +729,7 @@ export function openGoogleMaps(latitude: number, longitude: number) {
   const w = window.open(
     `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`,
     '_blank',
-    'noopener'
+    'noopener',
   );
 
   if (popUpWasBlocked(w)) toast.error('Google maps window blocked by browser');
@@ -684,13 +782,19 @@ export function hasValue<T>(value: T | undefined | null): value is T {
   return value !== undefined && value !== null;
 }
 
-export function removeEmptyElementsFromArray<T>(array: Array<T | undefined | null>): T[] {
+export function removeEmptyElementsFromArray<T>(
+  array: Array<T | undefined | null>,
+): T[] {
   return array.filter(hasValue);
 }
 
 export const uniq = (a: any) => [...new Set(a)];
 
-export function onlyUnique(value: string | number, index: number, array: (string | number)[]) {
+export function onlyUnique(
+  value: string | number,
+  index: number,
+  array: (string | number)[],
+) {
   return array.indexOf(value) === index;
 }
 
@@ -722,7 +826,7 @@ export function hexToRgbObj(hex: string) {
 export function getRGBAArray(
   hex: string,
   alpha: number = 255,
-  fallback: Color = [255, 255, 255, alpha]
+  fallback: Color = [255, 255, 255, alpha],
 ): Color {
   const rgb = hexToRgbObj(hex);
   if (!rgb) return fallback;
@@ -743,7 +847,7 @@ export function getDuplicates(arr: string[]) {
 export function saveDownload(
   blobParts: BlobPart[],
   filename: string,
-  options?: BlobPropertyBag | undefined
+  options?: BlobPropertyBag | undefined,
 ) {
   if ('download' in HTMLAnchorElement.prototype) {
     const objectUrl = window.URL.createObjectURL(new Blob(blobParts, options));
@@ -786,7 +890,7 @@ const DEFAULT_OPTIONS = {
 };
 export function compressedToFormattedAddr(
   addr: CompressedAddress,
-  options?: Partial<BoolRecord<CompressedAddress>>
+  options?: Partial<BoolRecord<CompressedAddress>>,
 ): string {
   options = { ...DEFAULT_OPTIONS, ...options };
   let result = '';
@@ -800,7 +904,8 @@ export function compressedToFormattedAddr(
 }
 
 export const logDev = (...props: any[]) => {
-  if (process.env.REACT_APP_FB_PROJECT_ID === 'idemand-submissions-dev') console.log(props);
+  if (import.meta.env.VITE_FB_PROJECT_ID === 'idemand-submissions-dev')
+    console.log(props);
 };
 
 /**
@@ -812,7 +917,8 @@ export const logDev = (...props: any[]) => {
 export function splitChunks<T = any>(data: T[], size: number) {
   let chunks = [];
   // for (let i = 0; i < data.length; i += size) chunks.push(data.slice(i, i + size));
-  if (size < 1) throw new Error('splitChunks array size must be a positive number');
+  if (size < 1)
+    throw new Error('splitChunks array size must be a positive number');
   for (let i = 0; i < data.length; i += size) {
     chunks.push(data.slice(i, i + size));
   }

@@ -1,4 +1,4 @@
-import { FlyToInterpolator, MapViewState } from '@deck.gl/core/typed';
+import { FlyToInterpolator, MapViewState } from '@deck.gl/core';
 import { PlaceRounded } from '@mui/icons-material';
 import { Card, CircularProgress, Grid2Props, Typography } from '@mui/material';
 import { useFormikContext } from 'formik';
@@ -18,7 +18,10 @@ export interface AddressStepValues {
   coordinates: Nullable<Coordinates>;
 }
 
-export interface AddressStepProps extends Omit<FormikAddressProps, 'setFieldValue'> {
+export interface AddressStepProps extends Omit<
+  FormikAddressProps,
+  'setFieldValue'
+> {
   activeStates?: { [key: string]: boolean };
   shouldValidateStates?: boolean;
   withMap?: boolean;
@@ -40,21 +43,23 @@ export const AddressStep = ({
 }: AddressStepProps) => {
   const { values, validateForm } = useFormikContext<AddressStepValues>();
   const [showMarker, setShowMarker] = useState(
-    Boolean(values.coordinates?.latitude && values.coordinates?.longitude)
+    Boolean(values.coordinates?.latitude && values.coordinates?.longitude),
   );
   const [mapViewState, setMapViewState] = useState<MapViewState>({
     latitude: values.coordinates?.latitude || 37.25,
     longitude: values.coordinates?.longitude || -94.75,
-    zoom: values.coordinates?.latitude && values.coordinates?.longitude ? 15 : 2.5,
+    zoom:
+      values.coordinates?.latitude && values.coordinates?.longitude ? 15 : 2.5,
     maxZoom: 16,
     minZoom: 2,
     bearing: 0,
     pitch: 0,
   });
-  const { registerEmailDialog, handleUnavailableState } = useRegisterEmailNotification({
-    onSuccess: () => toast.success(`Thanks! We'll be in touch`),
-    onError: console.log,
-  });
+  const { registerEmailDialog, handleUnavailableState } =
+    useRegisterEmailNotification({
+      onSuccess: () => toast.success(`Thanks! We'll be in touch`),
+      onError: console.log,
+    });
 
   const flyToCoords = useCallback(
     ({ lat, lng }: { lat: number | null; lng: number | null }) => {
@@ -74,22 +79,37 @@ export const AddressStep = ({
         setShowMarker(true);
       }, 2300);
     },
-    [mapViewState]
+    [mapViewState],
   );
 
   const addressChangeCb = useCallback(
-    async (coords: { lat: number | null; lng: number | null }, state?: string) => {
+    async (
+      coords: { lat: number | null; lng: number | null },
+      state?: string,
+    ) => {
       if (withMap) flyToCoords(coords);
 
       setTimeout(async () => {
         await validateForm();
       }, 100);
 
-      if (!!shouldValidateStates && state && activeStates && !activeStates[state]) {
+      if (
+        !!shouldValidateStates &&
+        state &&
+        activeStates &&
+        !activeStates[state]
+      ) {
         await handleUnavailableState(state);
       }
     },
-    [flyToCoords, validateForm, handleUnavailableState, withMap, shouldValidateStates, activeStates]
+    [
+      flyToCoords,
+      validateForm,
+      handleUnavailableState,
+      withMap,
+      shouldValidateStates,
+      activeStates,
+    ],
   );
 
   const handleNotificationRegistry = useCallback(async () => {
@@ -98,32 +118,37 @@ export const AddressStep = ({
 
   return (
     // </FormikAddress>
-    (<>
+    <>
       <FormikAddress cb={addressChangeCb} gridProps={gridProps} {...props} />
       {!!withMap && (
         <>
           <Card sx={{ height: 280, width: '100%', mt: 5 }}>
             <ErrorBoundary
-              FallbackComponent={() => <Typography>Error loading active states</Typography>}
+              FallbackComponent={() => (
+                <Typography>Error loading active states</Typography>
+              )}
             >
               <Suspense fallback={<CircularProgress />}>
                 <ActiveStateMap
                   handleClick={(i, e) => {}}
                   statesValues={activeStates}
-                  mapViewState={mapViewState}
+                  // mapViewState={mapViewState}
+                  initialViewState={mapViewState}
                   // controller={{ scrollZoom: false, touchZoom: true }}
                 >
-                  {showMarker && values.coordinates?.latitude && values.coordinates?.longitude && (
-                    <Marker
-                      longitude={values.coordinates?.longitude}
-                      latitude={values.coordinates?.latitude}
-                      anchor='center'
-                      style={{ height: '35px', width: '35px' }}
-                      offset={[-1, -15]}
-                    >
-                      <PlaceRounded color='primary' fontSize='large' />
-                    </Marker>
-                  )}
+                  {showMarker &&
+                    values.coordinates?.latitude &&
+                    values.coordinates?.longitude && (
+                      <Marker
+                        longitude={values.coordinates?.longitude}
+                        latitude={values.coordinates?.latitude}
+                        anchor='center'
+                        style={{ height: '35px', width: '35px' }}
+                        offset={[-1, -15]}
+                      >
+                        <PlaceRounded color='primary' fontSize='large' />
+                      </Marker>
+                    )}
                 </ActiveStateMap>
               </Suspense>
             </ErrorBoundary>
@@ -145,7 +170,9 @@ export const AddressStep = ({
               variant='caption'
               color='text.secondary'
               fontWeight='fontWeightMedium'
-              sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
+              sx={{
+                '&:hover': { textDecoration: 'underline', cursor: 'pointer' },
+              }}
               onClick={handleNotificationRegistry}
             >
               Leave your email
@@ -154,8 +181,6 @@ export const AddressStep = ({
           </Typography>
         </>
       )}
-    </>)
+    </>
   );
 };
-
-export default AddressStep;

@@ -1,16 +1,15 @@
-import algoliasearch from 'algoliasearch';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
+import { Collection } from '@idemand/common';
+import { typesenseCollectionPrefix, User } from '../../common/index.js';
 import {
-  COLLECTIONS,
-  User,
-  algoliaAdminKey,
-  algoliaAppId,
-  algoliaIndex,
-} from '../../common/index.js';
-import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
+  ensureCollections,
+  getTypesenseClient,
+} from '../../services/typesense/index.js';
+import { getVisibleBy, VisibleByTypes } from '../../utils/index.js';
+import { removeTypesenseRecord } from './syncPolicies.js';
 
 export default async (
   event: FirestoreEvent<
@@ -18,35 +17,39 @@ export default async (
     {
       userId: string;
     }
-  >
+  >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) {
-    // TODO: report to sentry
-    error('Missing Algolia credentials returning early');
-    return;
-  }
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
+  // if (!(appId && adminKey)) {
+  //   // TODO: report to sentry
+  //   error('Missing Algolia credentials returning early');
+  //   return;
+  // }
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
+
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.userId;
 
   // If the document does not exist, it was deleted
   const newValue = event?.data?.after.data() as User | undefined;
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.users}`;
   if (!newValue) {
     try {
-      info(`DELETING DOC ${docId} FROM ALGOLIA USERS INDEX`);
-      const res = await index.deleteObject(docId);
-      info(`SUCCESSFULLY DELETED ${docId} FROM USERS INDEX (taskId: ${res.taskID})`);
+      info(`DELETING DOC ${docId} FROM TYPESENSE USERS INDEX`);
+      // const res = await index.deleteObject(docId);
+      await removeTypesenseRecord(typesenseColName, docId);
+      info(`SUCCESSFULLY DELETED ${docId} FROM USERS INDEX`);
       return;
     } catch (err) {
-      error('ERROR DELETING USER FROM ALGOLIA USERS INDEX: ', err);
+      error('ERROR DELETING USER FROM TYPESENSE USERS INDEX: ', err);
     }
   } else {
     try {
-      // TODO: if coordinates (mailing address), need to use _geoloc: { lat, lng }
       const searchTitle = newValue.displayName
         ? newValue.displayName
         : `${newValue.firstName} ${newValue.lastName}`.trim() || docId;
@@ -54,6 +57,7 @@ export default async (
       let searchSubtitle = newValue.email || `UID: ${docId}`;
       if (newValue.orgName) searchSubtitle += ` - ${newValue.orgName}`;
 
+      // TODO: need to set user visibleBy from /users/{uid}/permissions doc
       const ids = {
         userId: docId,
         agentId: null,
@@ -61,23 +65,28 @@ export default async (
       };
       const groups: VisibleByTypes[] = ['user', 'orgAdmin', 'orgUser'];
       const visibleBy = getVisibleBy(ids, groups);
+      const isOrgUser = Boolean(newValue.orgId);
 
       const records: Record<string, any>[] = [
         {
           ...newValue,
-          objectID: docId,
+          id: docId,
           visibleBy,
           userId: docId,
           docType: 'user',
-          collectionName: COLLECTIONS.USERS,
+          collectionName: Collection.enum.users,
+          isOrgUser,
           searchTitle,
           searchSubtitle,
+          _geopoint: newValue.coordinates
+            ? [newValue.coordinates.latitude, newValue.coordinates.longitude]
+            : null,
           metadata: {
             ...(newValue.metadata || {}),
-            created: newValue.metadata?.created?.toDate() || null,
-            updated: newValue.metadata?.updated?.toDate() || null,
-            createdTimestamp: newValue.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
+            created: newValue.metadata?.created?.toMillis() || null,
+            updated: newValue.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newValue.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
           },
         },
       ];
@@ -87,13 +96,14 @@ export default async (
           lng: newValue.coordinates.longitude,
         };
       }
-      info(`SAVING USER CHANGE TO ALGILIA INDEX ${docId}...`);
+      info(`SAVING USER CHANGE TO TYPESENSE INDEX ${docId}...`);
 
-      const { objectIDs } = await index.saveObjects(records);
+      // const { objectIDs } = await index.saveObjects(records);
+      await client.collections(typesenseColName).documents().upsert(records[0]);
 
-      info(`ALGOLIA DOC UPDATED: ${JSON.stringify(objectIDs)}`);
-    } catch (err: any) {
-      error(`ERROR UPDATING USER IN ALGOLIA INDEX (${docId})`, { ...err });
+      info('TYPESENSE DOC UPDATED ');
+    } catch (err: unknown) {
+      error(`ERROR UPDATING USER IN TYPESENSE INDEX (${docId})`, err);
       // TODO: report to sentry ??
     }
   }

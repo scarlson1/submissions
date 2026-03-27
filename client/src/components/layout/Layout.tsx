@@ -3,18 +3,10 @@ import { Suspense } from 'react';
 import { Box, Container, ContainerProps, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
-import { LoadingSpinner } from 'components';
-import { Header, Footer, Breadcrumbs } from './';
+import { DevWarningBanner } from 'elements';
+import { Breadcrumbs, Footer, Header, LoadingComponent } from './';
 // import { useConcurrentLocation } from 'hooks';
 // import ProgressBar from './ProgressBar';
-
-export const LoadingComponent = () => {
-  return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', py: { xs: 3, md: 5, lg: 8 } }}>
-      <LoadingSpinner loading={true} />
-    </Box>
-  );
-};
 
 export interface LayoutProps {
   noPadding?: boolean;
@@ -24,7 +16,7 @@ export interface LayoutProps {
   withBreadcrumbs?: boolean;
 }
 
-export const Layout = ({
+const Layout = ({
   noPadding = false,
   mainSX,
   bodyWrapperSX,
@@ -56,6 +48,9 @@ export const Layout = ({
         }}
       >
         {/* <ProgressBar isAnimating={true} /> */}
+        {import.meta.env.VITE_FB_PROJECT_ID === 'idemand-submissions-dev' ? (
+          <DevWarningBanner />
+        ) : null}
         <Header />
         <Container {...containerProps}>
           <Box
@@ -82,7 +77,7 @@ export const Layout = ({
   );
 };
 
-// export default Layout;
+export default Layout;
 
 // {state && state.backgroundLocation && (
 //   <Routes>

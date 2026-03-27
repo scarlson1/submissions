@@ -6,9 +6,11 @@
     "additonal",
     "ADDL",
     "adipisicing",
+    "AFFGEOID",
     "agentphone",
     "Alachua",
     "Alamosa",
+    "ALAND",
     "algoliasearch",
     "algoliasyncorgs",
     "algoliasyncpolicies",
@@ -34,6 +36,7 @@
     "Autauga",
     "authrequeststest",
     "Avenir",
+    "AWATER",
     "Baca",
     "basicprofile",
     "beforecreate",
@@ -70,6 +73,8 @@
     "Consolas",
     "Coosa",
     "Costilla",
+    "COUNTYFP",
+    "COUNTYNS",
     "Craighead",
     "createpolicy",
     "createtenantfromsubmission",
@@ -167,6 +172,7 @@
     "locationcreated",
     "Lonoke",
     "Lowndes",
+    "LSAD",
     "lsale",
     "LSKDJF",
     "Lucie",
@@ -272,6 +278,7 @@
     "SPATIALKEY",
     "SRAALs",
     "Stanislaus",
+    "STATEFP",
     "subcollection",
     "subproducer",
     "subzone",
@@ -303,7 +310,15 @@
     "Yuba"
   ],
   "cSpell.ignoreWords": ["SQFT"],
-  "todo-tree.general.tags": ["TODO", "FIXME", "REVIEW", "HACK", "REF", "WARN", "PRE_DEPLOY"],
+  "todo-tree.general.tags": [
+    "TODO",
+    "FIXME",
+    "REVIEW",
+    "HACK",
+    "REF",
+    "WARN",
+    "PRE_DEPLOY"
+  ],
   "todo-tree.highlights.customHighlight": {
     "PRE_DEPLOY": {
       "background": "magenta",
@@ -313,5 +328,6 @@
       "type": "text-and-comment",
       "gutterIcon": true
     }
-  }
+  },
+  "eslint.workingDirectories": ["./functions", "./client"]
 }

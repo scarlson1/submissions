@@ -1,21 +1,22 @@
+/// <reference types="./vite-env-override.d.ts" />
+/// <reference types="vite/client" />
+
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "target": "es2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
+    "moduleResolution": "bundler",
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
     "baseUrl": "src"
+    // "types": ["vite/client"], // redundant with reference at the top ??
+    // "preserveSymlinks": true // disable for pnpm workspace ??
+    // "typeRoots": ["./node_modules/@types", "./node_modules"]
   },
   "include": ["src"]
 }

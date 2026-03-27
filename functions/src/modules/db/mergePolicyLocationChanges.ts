@@ -2,11 +2,10 @@ import { Firestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { merge, set } from 'lodash-es';
 
+import { ILocation, Policy } from '@idemand/common';
 import {
   CancellationRequest,
   ChangeRequestStatus,
-  ILocation,
-  Policy,
   PolicyChangeRequest,
   changeRequestsCollection,
   locationsCollection,

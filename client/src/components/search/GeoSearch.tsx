@@ -1,8 +1,8 @@
-import { ViewStateChangeParameters } from '@deck.gl/core/typed/controllers/controller';
+import { ViewStateChangeParameters } from '@deck.gl/core/controllers/controller';
 import algoliasearch from 'algoliasearch/lite';
 import { GeoHit } from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { InstantSearch, SearchBox, useSearchBox } from 'react-instantsearch-hooks-web';
+import { InstantSearch, SearchBox, useSearchBox } from 'react-instantsearch';
 
 import { Box } from '@mui/material';
 import {
@@ -11,7 +11,7 @@ import {
   MapViewState,
   PickingInfo,
   WebMercatorViewport,
-} from 'deck.gl/typed';
+} from 'deck.gl';
 import { DeckMap } from 'elements';
 import { useGeoSearch } from 'hooks';
 import { useDebounce } from 'hooks/utils';
@@ -49,10 +49,10 @@ export const GeoSearch = () => {
   const searchClient = useMemo(
     () =>
       algoliasearch(
-        process.env.REACT_APP_ALGOLIA_APP_ID as string,
-        '0b42f45ac2a41041974441d5b419d215'
+        import.meta.env.VITE_ALGOLIA_APP_ID as string,
+        '0b42f45ac2a41041974441d5b419d215',
       ),
-    []
+    [],
   );
 
   return (
@@ -111,7 +111,7 @@ export function Airports() {
       const newBounds = getBounds(viewState);
       setBounds(newBounds);
     },
-    [query, refineQuery]
+    [query, refineQuery],
   );
 
   useEffect(() => {
@@ -142,7 +142,8 @@ export function Airports() {
   const airportLayer = new IconLayer({
     id: 'icon-layer',
     data: items,
-    iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+    iconAtlas:
+      'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
     iconMapping: ICON_MAPPING,
     getIcon: (d) => 'marker',
     pickable: true,
@@ -153,12 +154,15 @@ export function Airports() {
 
   return (
     <DeckMap
-      mapViewState={viewState}
+      // mapViewState={viewState}
+      initialViewState={viewState}
       onViewStateChange={handleViewChange}
       layers={[airportLayer]}
       hoverInfo={hoverInfo}
       renderTooltipContent={(info: PickingInfo) => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>{info.object.iata_code || ''}</Box>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {info.object.iata_code || ''}
+        </Box>
       )}
       pickingRadius={5}
     />

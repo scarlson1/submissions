@@ -1,5 +1,6 @@
 import axios from 'axios';
 import FormData from 'form-data';
+import { signNowBaseURL } from '../common/index.js';
 
 export const getSignNowInstance = (
   basicAuthToken: string,
@@ -7,7 +8,7 @@ export const getSignNowInstance = (
   accountPW: string
 ) => {
   const signNowInstance = axios.create({
-    baseURL: process.env.SIGN_NOW_BASE_URL,
+    baseURL: signNowBaseURL.value(),
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
@@ -91,14 +92,12 @@ export const getSignNowInstance = (
 
 function generateSNAccessToken(basicAuthToken: string, accountEmail: string, accountPW: string) {
   return new Promise<string>(async (resolve, reject) => {
-    const snBaseURL = process.env.SIGN_NOW_BASE_URL;
-
-    if (!(accountEmail && accountPW && snBaseURL)) {
-      reject(new Error('Missing api credentials in Google Secret Manager or env vars.'));
+    if (!(accountEmail && accountPW)) {
+      reject(new Error('Missing api credentials in Secret Manager.'));
       return;
     }
 
-    const authURL = `${snBaseURL}/oauth2/token`;
+    const authURL = `${signNowBaseURL.value()}/oauth2/token`;
 
     // const reqBody = {
     //   grant_type: 'password',

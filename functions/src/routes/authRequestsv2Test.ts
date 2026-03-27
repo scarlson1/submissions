@@ -1,13 +1,13 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
 import * as bodyParser from 'body-parser';
+import cors from 'cors';
+import express, { Request, Response } from 'express';
 
 const app = express();
 
 app.use(cors({ origin: true }));
 // parse req.body as a Buffer (or use req.rawBody)
 // app.use(bodyParser.raw({ type: 'application/json'}))
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 const router = express.Router({ strict: false }); // eslint-disable-line

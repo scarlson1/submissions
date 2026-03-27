@@ -14,7 +14,7 @@ import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
 import { CheckmarkLottie } from 'assets';
-import { COLLECTIONS, PolicyClaim } from 'common';
+import { Collection, PolicyClaim } from 'common';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import { useDocData } from 'hooks';
 import { ROUTES, createPath } from 'router';
@@ -29,7 +29,7 @@ interface SuccessStepProps {
 
 export const SuccessStep = ({ policyId, claimId, claimRef }: SuccessStepProps) => {
   const navigate = useNavigate();
-  const { data } = useDocData<PolicyClaim>('POLICIES', policyId, COLLECTIONS.CLAIMS, claimId);
+  const { data } = useDocData<PolicyClaim>('policies', policyId, Collection.Enum.claims, claimId);
   // const { data } = useFirestoreDocData<PolicyClaim>(claimRef, { idField: 'id' });
 
   return (

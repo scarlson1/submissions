@@ -15,10 +15,10 @@ export const MinEarnedPremiumPage = () => {
       <View style={[styles.section]}>
         <Text style={[styles.paragraph, styles.textPrimary]}>
           In the event of early termination or change of coverage during the term of this policy,
-          the return unearned premium due or additional premium payable by “you” shall be calculated
-          prorata as to time, calculated by the number of days the coverage was in force as a
-          percent of the total number of days the coverage was purchased, subject to criteria as
-          follows:
+          the return unearned premium due or additional premium receivable by “you” shall be
+          calculated prorata as to time, calculated by the number of days the coverage was in force
+          as a percent of the total number of days the coverage was purchased, subject to criteria
+          as follows:
         </Text>
       </View>
       <View style={{ paddingHorizontal: 10 }}>

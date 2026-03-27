@@ -1,4 +1,20 @@
-import { Firestore, GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import {
+  Address,
+  Collection,
+  ILocation,
+  ILocationPolicy,
+  PaymentStatus,
+  Policy,
+  SLProdOfRecordDetails,
+  State,
+  ValueByRiskType,
+} from '@idemand/common';
+import {
+  Firestore,
+  GeoPoint,
+  getFirestore,
+  Timestamp,
+} from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { StorageEvent } from 'firebase-functions/v2/storage';
@@ -7,21 +23,9 @@ import { geohashForLocation } from 'geofire-common';
 import { round } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
-
 import {
-  Address,
-  COLLECTIONS,
-  CancellationReason,
-  ILocation,
-  ILocationPolicy,
-  PaymentStatus,
-  Policy,
-  RatingData,
-  SLProdOfRecordDetails,
-  StagedPolicyImport,
-  State,
-  ValueByRiskType,
   audience,
+  CancellationReason,
   getReportErrorFn,
   hostingBaseURL,
   importSummaryCollection,
@@ -29,23 +33,34 @@ import {
   locationsCollection,
   policiesCollection,
   printObj,
+  RatingData,
   ratingDataCollection,
-  sendgridApiKey,
+  resendKey,
   stagedImportsCollection,
+  StagedPolicyImport,
   throwIfExists,
 } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
-import { calcPolicyPremiumAndTaxes, getCarrierByState, getRCVs } from '../modules/rating/index.js';
 import {
-  ParseStreamToArrayRes,
+  calcPolicyPremiumAndTaxes,
+  getCarrierByState,
+  getRCVs,
+} from '../modules/rating/index.js';
+import {
   eventOlderThan,
   parseStreamToArray,
+  ParseStreamToArrayRes,
   shouldReturnEarly,
   transformHeadersCamelCase,
 } from '../modules/storage/index.js';
 import { calcTerm, getTermDays } from '../modules/transactions/index.js';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js';
-import { locationToPolicyLocation, randomFileName, unlinkFile, verify } from '../utils/index.js';
+import {
+  locationToPolicyLocation,
+  randomFileName,
+  unlinkFile,
+  verify,
+} from '../utils/index.js';
 import { CSVPolicyRow, ParsedPolicyRow } from './models/index.js';
 import { transformPolicyRow } from './transform/index.js';
 import { validatePolicyRowZod } from './validation/index.js';
@@ -60,7 +75,7 @@ import { validatePolicyRowZod } from './validation/index.js';
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 
 // store surplus lines producer of record info in global scope so it doesn't need to be refetched
-let surplusLinesLicenseByState: Record<string, any> = {};
+const surplusLinesLicenseByState: Record<string, any> = {};
 
 const reportErr = getReportErrorFn('importPolicies');
 
@@ -69,7 +84,8 @@ export default async (event: StorageEvent) => {
   const filePath = event.data.name;
   const fileName = path.basename(filePath || '');
 
-  if (shouldReturnEarly(event, IMPORT_POLICIES_FOLDER, 'text/csv', 'processed')) return;
+  if (shouldReturnEarly(event, IMPORT_POLICIES_FOLDER, 'text/csv', 'processed'))
+    return;
   // idempotency - Ignore events that are too old (1 min)
   if (eventOlderThan(event)) return;
 
@@ -97,14 +113,15 @@ export default async (event: StorageEvent) => {
       stream,
       { headers: transformHeadersCamelCase },
       transformPolicyRow,
-      validatePolicyRowZod
-      // validatePolicyRow
+      validatePolicyRowZod,
     );
 
     dataArr = [...parsed.dataArr];
     invalidRows = [...parsed.invalidRows];
 
-    info(`${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`);
+    info(
+      `${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`,
+    );
     if (parsed.invalidRows.length) {
       console.log('INVALID ROW 1');
       printObj(parsed.invalidRows[1]);
@@ -113,7 +130,7 @@ export default async (event: StorageEvent) => {
 
     await unlinkFile(tempFilePath);
   } catch (err: any) {
-    reportErr(`ERROR PARSING CSV. RETURNING EARLY`, {}, err);
+    reportErr('ERROR PARSING CSV. RETURNING EARLY', {}, err);
 
     await unlinkFile(tempFilePath);
     // TODO: report error to sentry or send email to admin
@@ -148,8 +165,8 @@ export default async (event: StorageEvent) => {
 
   const ratingEntries = Object.entries(ratingRecords);
 
-  let importedIds: string[] = [];
-  let createErrors: any[] = [];
+  const importedIds: string[] = [];
+  const createErrors: any[] = [];
 
   // Loop through policies --> create new record for each
   for (const [policyId, policyData] of Object.entries(policyRecords)) {
@@ -170,8 +187,13 @@ export default async (event: StorageEvent) => {
         await throwIfExists(locationRef);
         batch.set(locationRef, locationRecord);
 
-        const ratingEntMatch = ratingEntries.find((ratingEnt) => ratingEnt[1].locationId === key);
-        verify(ratingEntMatch, `Could not find incoming rating doc with location ID ${key}`);
+        const ratingEntMatch = ratingEntries.find(
+          (ratingEnt) => ratingEnt[1].locationId === key,
+        );
+        verify(
+          ratingEntMatch,
+          `Could not find incoming rating doc with location ID ${key}`,
+        );
 
         const ratingDocRef = ratingColRef.doc(ratingEntMatch[0]);
         batch.set(ratingDocRef, ratingEntMatch[1]);
@@ -183,7 +205,7 @@ export default async (event: StorageEvent) => {
         importMeta: {
           status: 'new',
           eventId: event.id,
-          targetCollection: COLLECTIONS.POLICIES,
+          targetCollection: Collection.Enum.policies,
         },
       };
 
@@ -203,7 +225,7 @@ export default async (event: StorageEvent) => {
   // Save import summary & send admin notification
   try {
     await importSummaryRef.set({
-      targetCollection: COLLECTIONS.POLICIES,
+      targetCollection: Collection.enum.policies,
       importDocIds: importedIds,
       docCreationErrors: createErrors,
       invalidRows,
@@ -213,12 +235,12 @@ export default async (event: StorageEvent) => {
     });
     info(`SAVED IMPORT SUMMARY TO DOC ${importSummaryRef.id}`);
 
-    const sgKey = sendgridApiKey.value();
-    const to = ['spencer.carlson@idemandinsurance.com'];
+    const sgKey = resendKey.value();
+    const to = ['spencer@s-carlson.com'];
     let link;
 
     if (audience.value() !== 'LOCAL HUMANS') {
-      to.push('ron.carlson@idemandinsurance.com');
+      to.push('noreply@s-carlson.com');
 
       link = `${hostingBaseURL.value}/admin/config/imports`;
     }
@@ -237,7 +259,7 @@ export default async (event: StorageEvent) => {
           firebaseEventId: event.id,
           emailType: 'policy_import',
         },
-      }
+      },
     );
   } catch (err: any) {
     error('Error saving summary or notifying admin', { err });
@@ -255,7 +277,7 @@ export default async (event: StorageEvent) => {
  * @returns {object} object of policies, locations and ratingData
  */
 async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
-  let policies: Record<
+  const policies: Record<
     string,
     Omit<
       Policy,
@@ -266,13 +288,13 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
       | 'totalsByBillingEntity'
     >
   > = {};
-  let locations: Record<string, ILocation> = {};
-  let ratingDocData: Record<string, RatingData> = {};
-  let lcnIdMap: Record<string, string> = {};
+  const locations: Record<string, ILocation> = {};
+  const ratingDocData: Record<string, RatingData> = {};
+  const lcnIdMap: Record<string, string> = {};
   const ts = Timestamp.now();
 
   for (const row of data) {
-    let lcnId = createDocId();
+    const lcnId = createDocId();
     lcnIdMap[lcnId] = row.externalId;
     info(`Formatting location ${row.externalId}`);
     const formattedLocation = formatPolicyLocation(row, lcnId, ts);
@@ -292,12 +314,15 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
       formattedLocation,
       row.mgaCommissionPct as number,
       AALs,
-      techPremium
+      techPremium,
     );
     ratingDocData[ratingDocId] = ratingData;
 
     const locationWithRatingId = { ...formattedLocation, ratingDocId };
-    locations[lcnId] = { ...locationWithRatingId, policyId: row.policyId as string };
+    locations[lcnId] = {
+      ...locationWithRatingId,
+      policyId: row.policyId as string,
+    };
 
     const fees = row.fees;
     const taxes = row.taxes;
@@ -305,7 +330,10 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     const policyId = row.policyId as string;
     const existingPolicy = policies[policyId] || null;
 
-    const policyLocation = locationToPolicyLocation(formattedLocation, row.billingEntityId);
+    const policyLocation = locationToPolicyLocation(
+      formattedLocation,
+      row.billingEntityId,
+    );
 
     if (existingPolicy) {
       info(`adding location to policy ${row.externalId}`);
@@ -319,7 +347,11 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
       policies[policyId] = updatedPolicy;
     } else {
       info(`creating policy and adding location ${row.externalId}`);
-      const policyWithoutLocation = await getPolicyWithoutLocation(row, ts, firestore);
+      const policyWithoutLocation = await getPolicyWithoutLocation(
+        row,
+        ts,
+        firestore,
+      );
 
       policies[policyId] = {
         ...policyWithoutLocation,
@@ -340,7 +372,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
       Object.values(policy.locations),
       policy.homeState,
       policy.taxes,
-      policy.fees
+      policy.fees,
     );
 
     formattedPolicies[policyId] = {
@@ -355,18 +387,27 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
 function formatPolicyLocation(
   data: ParsedPolicyRow,
   locationId: string,
-  ts: Timestamp
+  ts: Timestamp,
 ): ILocationPolicy {
-  const geoHash = geohashForLocation([data.coordinates!.latitude, data.coordinates!.longitude]);
+  const geoHash = geohashForLocation([
+    data.coordinates!.latitude,
+    data.coordinates!.longitude,
+  ]);
 
   const effDate = data.effectiveDate || (data.policyEffectiveDate as Date);
   const expDate = data.expirationDate || (data.policyExpirationDate as Date);
 
   const effDateTs = Timestamp.fromDate(effDate);
   const expDateTs = Timestamp.fromDate(expDate);
-  const cancelEffDate = data.cancelEffDate ? Timestamp.fromDate(data.cancelEffDate) : null;
+  const cancelEffDate = data.cancelEffDate
+    ? Timestamp.fromDate(data.cancelEffDate)
+    : null;
 
-  const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expDate);
+  const { termDays, termPremium } = calcTerm(
+    data.annualPremium,
+    effDate,
+    expDate,
+  );
 
   const location: ILocationPolicy = {
     parentType: 'policy', // parentType || null,
@@ -406,7 +447,7 @@ function formatPolicyLocation(
 async function getPolicyWithoutLocation(
   data: ParsedPolicyRow,
   ts: Timestamp,
-  firestore: Firestore
+  firestore: Firestore,
 ) {
   let SLPofR = surplusLinesLicenseByState[data.homeState as string] || null;
   if (!SLPofR) {
@@ -458,10 +499,12 @@ async function getPolicyWithoutLocation(
     userId: data.userId,
     agent: data.agent,
     agency: data.agency,
+    carrier: data.carrier,
     surplusLinesProducerOfRecord: SLPofR,
     issuingCarrier: getCarrierByState(data.homeState),
     documents: [],
     quoteId: data.quoteId || null,
+    commSource: data.commSource || 'default',
     metadata: {
       created: ts,
       updated: ts,
@@ -472,9 +515,14 @@ async function getPolicyWithoutLocation(
 }
 
 // TODO: move to modules/db
-async function getSPLPofR(firestore: Firestore, state: State): Promise<SLProdOfRecordDetails> {
+async function getSPLPofR(
+  firestore: Firestore,
+  state: State,
+): Promise<SLProdOfRecordDetails> {
   const colRef = licensesCollection(firestore);
-  const q = colRef.where('state', '==', state).where('surplusLinesProducerOfRecord', '==', true);
+  const q = colRef
+    .where('state', '==', state)
+    .where('surplusLinesProducerOfRecord', '==', true);
 
   const snap = await q.get();
 
@@ -494,7 +542,7 @@ function getRatingData(
   data: ILocation,
   mgaCommissionPct: number,
   AALs: any,
-  techPremium: ValueByRiskType
+  techPremium: ValueByRiskType,
 ): RatingData {
   return {
     submissionId: null,

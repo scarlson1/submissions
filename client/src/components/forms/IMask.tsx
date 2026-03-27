@@ -1,6 +1,8 @@
 import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 import { IMaskInputProps } from 'react-imask/dist/mixin';
+// import { IMaskInputProps } from 'react-imask/esm/mixin';
+// import type { InputMaskElement } from 'react-imask/esm/index';
 import { MaskedRange } from 'imask';
 
 export interface IMaskProps {
@@ -15,7 +17,7 @@ export const IMask = forwardRef<HTMLElement, IMaskProps>(function TextMaskCustom
   return (
     <IMaskInput
       {...other}
-      signed={false}
+      // signed={false} // not a prop for all mask types (TODO: add to required types)
       normalizeZeros={true}
       unmask={true} // @ts-ignore
       inputRef={ref}
@@ -34,6 +36,8 @@ export const IMask = forwardRef<HTMLElement, IMaskProps>(function TextMaskCustom
 //   maskComponent={IMask}
 //   inputProps={{ maskProps: { mask: '#000', definitions: { '#': /[1-2]/ } } }}
 // />;
+
+// should type be IMask.AnyMaskedOptions instead of IMaskInputProps ??
 
 export const cardExpDateMaskProps: Partial<IMaskInputProps> = {
   mask: 'MM/YY',
@@ -67,7 +71,7 @@ export const percentMaskProps: Partial<IMaskInputProps> = {
   scale: 2,
   mask: Number,
   radix: '.',
-  signed: false,
+  // signed: false,
   normalizeZeros: true,
   overwrite: true,
   max: 100,

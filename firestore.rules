@@ -91,12 +91,31 @@ service cloud.firestore {
         allow update: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
         allow delete: if false;
       }
+
+      match /secure/rating {
+        allow read: if isSignedIn() && (isPolicyOrgUser(policyId) || isIDemandAdmin())
+        allow write: if isSignedIn() && isIDemandAdmin()
+        allow delete: if false;
+      }
     }
 
+    // TODO: use isUserOrAgentOrAdminOfDocData instead ??
     function isPolicyUser(policyId) {
-      let policyData = getPolicyData(policyId);
+      let policy = getPolicy(policyId);
+      let policyData = policy.data;
 
-      return isUser(policyData.userId) || isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null));
+      return (
+      	isUser(policyData.get('userId', null)) 
+        || isUser(policyData.get(['agency', 'userId'], null)) 
+        || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId'], null)))
+      )
+    }
+
+    function isPolicyOrgUser(policyId) {
+      let policy = getPolicy(policyId);
+      let policyData = policy.data;
+
+      return policyId != null && (isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null)))
     }
 
     // TODO: temp - might want diff rules for policy/location vs submission
@@ -106,12 +125,13 @@ service cloud.firestore {
       allow create, delete: if false;
     }
 
-    // TODO: LOCATION RULES (different rules for submission, quote, policy ??)
+    // TODO: LOCATION RULES
     match /locations/{locationId} {
-      allow read: if true;
-      allow create: if false;
+      allow read: if locationTypeRule(isUserOrAgentOrAdminOfDocData(getSubmissionData()), isUserOrAgentOrAdminOfDocData(getQuoteData()), isPolicyUser(existingData().get('policyId', null))) || isIDemandAdmin()
+      allow create: if false; // enable with field restrictions ?? or only create in backend ??
       allow update: if isIDemandAdmin();
-      allow delete: if isIDemandAdmin() && !existingData().policyId
+      allow delete: if isIDemandAdmin() && !locationParentDocExists(existingData())
+      // don't allow delete ?? 
 
       match /versions/{versionId} {
         allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
@@ -120,7 +140,26 @@ service cloud.firestore {
       }
     }
 
+    function locationTypeRule(subRule, quoteRule, policyRule) {
+      let parentType = existingData().parentType;
+      return (
+        (parentType == 'submission' && subRule) 
+        || (parentType == 'quote' && quoteRule) 
+        || (parentType == 'policy' && policyRule)
+        || !parentType
+      )
+    }
+
+    function locationParentDocExists(lcnData) {
+      let parentType = lcnData.parentType;
+      return (parentType == 'submission' && exists(getSubmission(lcnData.submissionId)))
+        || (parentType == 'quote' && exists(getSubmission(lcnData.quoteId)))
+        || (parentType == 'policy' && exists(getSubmission(lcnData.policyId)))
+    }
+
+    // TODO: force email verification for change requests ??
     // required for collection group queries (https://firebase.google.com/docs/firestore/security/rules-query#collection_group_queries_and_security_rules)
+    // TODO: redo rules to allow change request base on policy permissions
     match /{path=**}/changeRequests/{requestId} {
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
     }
@@ -128,8 +167,23 @@ service cloud.firestore {
     function getPolicy(policyId) {
       return get(/databases/$(database)/documents/policies/$(policyId))
     }
+
     function getPolicyData(policyId) {
       return getPolicy(policyId).data
+    }
+
+    function getQuote(quoteId) {
+      return get(/databases/$(database)/documents/quotes/$(quoteId))
+    }
+    function getQuoteData(quoteId) {
+      return getQuote(quoteId).data
+    }
+
+    function getSubmission(subId) {
+      return get(/databases/$(database)/documents/submissions/$(subId))
+    }
+    function getSubmissionData(subId) {
+      return getSubmission(subId).data
     }
 
     // PRE_DEPLOY: create change request rule
@@ -150,6 +204,10 @@ service cloud.firestore {
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
     }
 
+    match /receivables/{receivableId} {
+      allow read, write: if isSignedIn() // TODO: permissions using existingData().policyId
+    }
+
     // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)
     match /transactions/{trxId} {
       allow read: if isDocUser() || isIDemandAdmin() 
@@ -158,18 +216,38 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // TODO: update allow read of user profile (tenant/agent/insured etc.)
     match /users/{userId} {
-      allow read: if isUser(userId) || isTenantUser(existingData().orgId) || (isIDemandAdmin() && emailVerified()) 
+      allow read: if isUser(userId) || isTenantUser(existingData().orgId) || (isIDemandAdmin() && emailVerified()) || userIdInArray(getUserAccessDoc(userId).data.get(['agentIds'], [])) || tenantIdInArray(getUserAccessDoc(userId).data.get(['agentIds'], []))
       // TODO: allow agent / agency users to read if x association (where user.tenantId = policy.agency.orgId, etc.) ?? need to run query ??
       allow create: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow update: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow delete: if isIDemandAdmin() && emailVerified()
+
+      match /permissions/{docId} {
+        allow read: if isSignedIn() && (isUser(userId) || request.auth.uid in existingData().agentIds || request.auth.token.firebase.tenant in existingData().orgIds) // || isIDemandAdmin()
+      }
     }
+
+    // for collection group queries
+    match /{path=**}/permissions/{docId} {
+      allow list: if isSignedIn() && (isUser(existingData().get(userId, null)) || request.auth.uid in existingData().get(agentIds, [])|| request.auth.token.firebase.tenant in existingData().get(orgIds, [])) || isIDemandAdmin()
+    }
+
+    function getUserAccessDoc(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)/permissions/private)
+    }
+    function userIdInArray(arr) {
+      return isSignedIn() && request.auth.uid in arr
+    }
+    function tenantIdInArray(arr) {
+      return isSignedIn() && request.auth.token.firebase.tenant in arr
+    }
+    
 
     match /users/{userId}/paymentMethods/{pmtMethodId} {
       allow create, update, read, delete: if isUser(userId) || (isIDemandAdmin() && emailVerified())
     }
+
 
     match /financialTransactions/{transactionId} {
       allow read: if isDocUser() || isIDemandAdmin()
@@ -179,7 +257,7 @@ service cloud.firestore {
     match /organizations/{orgId} {
       allow read: if true // TODO: ALLOW ANYONE TO READ ?? ONLY AUTHENTICATED USERS ?? // isUser(existingData().userId)
       allow create: if isIDemandAdmin() && emailVerified()
-      allow update: if ((isIDemandAdmin() && emailVerified())|| (isOrgAdmin() && isTenantUser(orgId)))
+      allow update: if (isIDemandAdmin() && emailVerified())|| (isOrgAdmin() && isTenantUser(orgId))
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
@@ -209,12 +287,6 @@ service cloud.firestore {
       allow create: if false
       allow update, delete: if false
     }
-
-    match /spatialKey/{skDocId} {
-      allow read: if isIDemandAdmin()
-      allow create: if false
-      allow update, delete: if false
-    }
     
     match /attom/{docId} {
       allow read: if isIDemandAdmin()
@@ -233,7 +305,14 @@ service cloud.firestore {
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
+    // TODO: delete after switching to "taxes"
     match /surplusLinesTaxes/{taxId} {
+      allow read: if isIDemandAdmin()
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if false
+    }
+    match /taxes/{taxId} {
       allow read: if isIDemandAdmin()
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
@@ -333,20 +412,40 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.get('agent', null) == true
     }
 
+    function isDocUserOfData(docData) {
+      return isUser(docData.get('userId', null))
+    }
+
+    function isDocAgentOfData(docData) {
+      return isAgent() && isUser(docData.get(['agent', 'userId'], null))
+    }
+
+    function isDocOrgAdminOfData(docData) {
+      return isOrgAdmin() && isTenantUser(docData.get(['agency','orgId'], null))
+    }
+
     function isDocUser() {
-      return isUser(existingData().get('userId', null))
+      return isDocUserOfData(existingData())
+      // return isUser(existingData().get('userId', null))
     }
 
     function isDocAgent() {
-      return isAgent() && isUser(existingData().get(['agent', 'userId'], null))
+      return isDocAgentOfData(existingData())
+      // return isAgent() && isUser(existingData().get(['agent', 'userId'], null))
     }
 
     function isDocOrgAdmin() {
-      return isOrgAdmin() && isTenantUser(existingData().get(['agency','orgId'], null))
+      return isDocOrgAdminOfData(existingData())
+      // return isOrgAdmin() && isTenantUser(existingData().get(['agency','orgId'], null))
     }
 
+    // TODO: separate out iDemand admin ??
     function isDocUserOrAgentOrOrgAdminOrIDemandAdmin() {
       return isSignedIn() && (isDocUser() || isDocAgent() || isDocOrgAdmin() || isIDemandAdmin())
+    }
+
+    function isUserOrAgentOrAdminOfDocData(docData) {
+      return isSignedIn() && (isDocUserOfData(docData) || isDocAgentOfData(docData) || isDocOrgAdminOfData(docData))
     }
 
     // // Fetch a user from Firestore

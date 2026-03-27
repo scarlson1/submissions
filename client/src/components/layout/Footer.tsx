@@ -1,10 +1,10 @@
-import { useCallback } from 'react';
-import { Container, Box, Typography, Link } from '@mui/material';
+import { Box, Container, Divider, Link, Typography } from '@mui/material';
 import { generateHTML } from '@tiptap/react';
 import { where } from 'firebase/firestore';
+import { useCallback } from 'react';
 
-import { EDITOR_EXTENSION_DEFAULTS, useCollectionData, useDialog } from 'hooks';
 import { Disclosure } from 'common';
+import { EDITOR_EXTENSION_DEFAULTS, useCollectionData, useDialog } from 'hooks';
 
 const Copyright = () => {
   return (
@@ -20,7 +20,7 @@ const Copyright = () => {
 };
 
 export const Footer = () => {
-  const { data } = useCollectionData<Disclosure>('DISCLOSURES', [
+  const { data } = useCollectionData<Disclosure>('disclosures', [
     where('type', '==', 'general disclosure'),
   ]);
   const dialog = useDialog();
@@ -37,8 +37,11 @@ export const Footer = () => {
       title: 'Disclosure',
       content: (
         <div>
-          {content.map((c, i) => (
-            <div dangerouslySetInnerHTML={{ __html: c }} key={`disclosure-content-${i}`} />
+          {content.map((c, i, arr) => (
+            <Box key={`disclosure-content-${i}`}>
+              <div dangerouslySetInnerHTML={{ __html: c }} />
+              {arr.length > 1 && i !== arr.length - 1 ? <Divider sx={{ my: 3 }} /> : null}
+            </Box>
           ))}
         </div>
       ),

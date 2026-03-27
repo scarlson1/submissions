@@ -1,9 +1,9 @@
-import { useCallback } from 'react';
-import { addDoc, FirestoreError, getFirestore, Timestamp } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
+import { addDoc, FirestoreError, getFirestore, Timestamp } from 'firebase/firestore';
+import { useCallback } from 'react';
 
 import { moratoriumsCollection } from 'common';
-import { MoratoriumValues } from 'views/admin/MoratoriumNew';
+import { MoratoriumValues } from 'elements/forms';
 import { readableFirebaseCode } from 'modules/utils/helpers';
 
 export interface UseCreateMoratoriumProps {

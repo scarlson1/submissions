@@ -118,8 +118,10 @@ function useCreateSubmission(
             name: org?.orgName || null, // TODO: org name - save on user doc ?? or rxjs obs ??
             orgId: orgId || null,
             address: org?.address || null, // TODO: agency address
+            stripeAccountId: org?.stripeAccountId || '',
           },
           submittedById: user?.uid ?? null,
+          commSource: 'agent',
           ratingPropertyData: {
             ...propertyDetails,
             ...values.ratingPropertyData,
@@ -165,7 +167,7 @@ export interface FloodValues {
   userAcceptance: boolean;
 }
 
-export const initialValues: FloodValues = {
+const initialValues: FloodValues = {
   address: {
     addressLine1: '',
     addressLine2: '',
@@ -206,7 +208,7 @@ export const SubmissionNew = () => {
   const { user } = useAuth();
   const toast = useAsyncToast({ position: 'top-right' });
   const formikRef = useRef<FormikProps<FloodValues>>(null);
-  const { data: activeStates } = useDocData('ACTIVE_STATES', 'flood');
+  const { data: activeStates } = useDocData('states', 'flood');
   const {
     propertyDetails,
     elevationData,
@@ -220,7 +222,7 @@ export const SubmissionNew = () => {
 
   const { createSubmission } = useCreateSubmission(
     (docId: string) => {
-      toast.success('saved!', { duration: 1000 });
+      // toast.success('saved!', { duration: 1000 });
       navigate(createPath({ path: ROUTES.SUBMISSION_SUBMITTED, params: { submissionId: docId } }));
     },
     (msg: string) => toast.error(msg)
@@ -460,7 +462,8 @@ export const SubmissionNew = () => {
               </Box>
             </Step>
             <Step
-              label='How many losses has the property had in the past 10 years that were caused by flooding?'
+              label='Flood loss history'
+              // label='How many losses has the property had in the past 10 years that were caused by flooding?'
               validationSchema={priorLossValidation}
               stepperNavLabel='History'
             >
@@ -469,10 +472,17 @@ export const SubmissionNew = () => {
                   pb: { xs: 4, sm: 6, md: 8 },
                   pt: { xs: 2, sm: 4 },
                   display: 'flex',
+                  flexDirection: 'column',
                   justifyContent: 'center',
                 }}
               >
-                <PriorFloodLossStep />
+                <Typography variant='body1' color='text.secondary' gutterBottom>
+                  How many losses has the property had in the past 10 years that were caused by
+                  flooding?
+                </Typography>
+                <Box sx={{ mx: 'auto', pt: 3 }}>
+                  <PriorFloodLossStep />
+                </Box>
               </Box>
             </Step>
             <Step

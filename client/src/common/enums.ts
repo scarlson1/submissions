@@ -1,44 +1,6 @@
 import { z } from 'zod';
 
-export enum COLLECTIONS {
-  SUBMISSIONS = 'submissions',
-  PORTFOLIO_SUBMISSIONS = 'portfolioSubmissions',
-  QUOTES = 'quotes',
-  LOCATIONS = 'locations',
-  RATING_DATA = 'ratingData',
-  USERS = 'users',
-  BILLING_ENTITIES = 'billingEntities',
-  POLICIES = 'policies',
-  CHANGE_REQUESTS = 'changeRequests',
-  CLAIMS = 'claims',
-  ORGANIZATIONS = 'organizations',
-  USER_CLAIMS = 'userClaims',
-  INVITES = 'invitations',
-  QUOTE_HISTORY = 'quoteHistory',
-  RATING_DATA_HISTORY = 'ratingDataHistory',
-  PROPERTY_DATA_RES = 'propertyDataRes',
-  SK_RES = 'spatialKey',
-  SR_RES = 'swissRe',
-  PAYMENT_METHODS = 'paymentMethods',
-  TRANSACTIONS = 'transactions',
-  FIN_TRANSACTIONS = 'financialTransactions',
-  AGENCY_APPLICATIONS = 'agencySubmissions',
-  LICENSES = 'licenses',
-  NOTIFICATIONS = 'notifications',
-  NOTIFY_REGISTRATION = 'notifyRegistration',
-  TAXES = 'surplusLinesTaxes',
-  ACTIVE_STATES = 'states',
-  MORATORIUMS = 'moratoriums',
-  PUBLIC = 'public',
-  DISCLOSURES = 'disclosures',
-  EMAIL_ACTIVITY = 'emailActivity',
-  DATA_IMPORTS = 'dataImports',
-  STAGED_RECORDS = 'stagedDocs',
-  TASKS = 'tasks', // TODO: DELETE
-  VERSIONS = 'versions',
-}
-
-const COLLECTIONS_Z = [
+export const Collection = z.enum([
   'submissions',
   'portfolioSubmissions',
   'quotes',
@@ -55,16 +17,17 @@ const COLLECTIONS_Z = [
   'quoteHistory',
   'ratingDataHistory',
   'propertyDataRes',
-  'spatialKey',
   'swissRe',
   'paymentMethods',
   'transactions',
   'financialTransactions',
+  'taxTransactions',
   'agencySubmissions',
   'licenses',
   'notifications',
   'notifyRegistration',
-  'surplusLinesTaxes',
+  // 'surplusLinesTaxes',
+  'taxes',
   'states',
   'moratoriums',
   'public',
@@ -74,17 +37,11 @@ const COLLECTIONS_Z = [
   'stagedDocs',
   'tasks', // TODO: DELETE
   'versions',
-] as const;
-
-// TODO: switch Collections enum to zod enum (instead of native enum)
-// better for typing props (can use "Collection" for type, then pass CollectionsEnum.Enum.locations)
-// Option 1: zod enum
-export const CollectionsEnum = z.enum(COLLECTIONS_Z);
-export type Collection = z.infer<typeof CollectionsEnum>;
-
-// Option 2: native enum --> zod
-export const CollectionsEnum2 = z.nativeEnum(COLLECTIONS);
-export type Collection2 = z.infer<typeof CollectionsEnum2>;
+  'permissions', // TODO: rename to privliged or secure etc.
+  // 'secure',
+  'receivables',
+]);
+export type TCollection = z.infer<typeof Collection>;
 
 export const StorageFolder = z.enum([
   'importPolicies',
@@ -95,6 +52,8 @@ export const StorageFolder = z.enum([
   'claims',
   'users',
   'profileImages',
+  'locationMapImages',
+  'organizations',
 ]);
 export type TStorageFolder = z.infer<typeof StorageFolder>;
 
@@ -197,6 +156,15 @@ export enum FIN_TRANSACTION_TYPE {
 export const Product = z.enum(['flood', 'wind']);
 export type TProduct = z.infer<typeof Product>;
 
+export const DefaultCommission = z.object({
+  flood: z.number().nonnegative(),
+  wind: z.number().nonnegative(),
+});
+export type TDefaultCommission = z.infer<typeof DefaultCommission>;
+
+export const CommSource = z.enum(['agent', 'org', 'default']);
+export type TCommSource = z.infer<typeof CommSource>;
+
 export enum UW_NOTE_CODE {
   REQUIRES_REVIEW = 'requires-review',
   NOT_RATABLE = 'not-ratable',
@@ -287,6 +255,9 @@ export enum CLAIMS {
   IDEMAND_ADMIN = 'iDemandAdmin',
   AGENT = 'agent',
 }
+
+export const Claim = z.enum(['iDemandAdmin', 'iDemandUser', 'orgAdmin', 'agent']);
+export type TClaim = z.infer<typeof Claim>;
 
 export enum LOCAL_STORAGE {
   USER_SEARCH_KEY = 'userSearchKey',

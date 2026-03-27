@@ -1,23 +1,24 @@
 import { useTheme } from '@mui/material';
-import {
-  FlyToInterpolator,
-  IconLayer,
-  IconLayerProps,
-  MapViewState,
-  PickingInfo,
-  WebMercatorViewport,
-} from 'deck.gl/typed';
-import { useEffect, useState } from 'react';
+import { IconLayer, IconLayerProps, MapViewState, PickingInfo } from 'deck.gl';
+import { useEffect, useRef, useState } from 'react';
 
-import { CoordObj, getBoundingBox, getPlaceMarker, svgToDataURL } from 'modules/utils';
+import { useFlyToBounds } from 'hooks';
+import { CoordObj, getPlaceMarker, svgToDataURL } from 'modules/utils';
 import { DeckMap, DeckMapProps } from './DeckMap';
 
-export interface LocationsMapProps extends Omit<DeckMapProps, 'layers' | 'hoverInfo'> {
+export interface LocationsMapProps extends Omit<
+  DeckMapProps,
+  'layers' | 'hoverInfo'
+> {
   data: CoordObj[];
   layerProps?: Omit<IconLayerProps, 'data' | 'id' | 'getSize' | 'onHover'>;
 }
 
-export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) => {
+export const LocationsMap = ({
+  data,
+  layerProps,
+  ...props
+}: LocationsMapProps) => {
   const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
   const [mapViewState, setMapViewState] = useState<MapViewState>({
@@ -27,52 +28,19 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
     maxZoom: 16,
     minZoom: 3,
   });
+  const mapLoaded = useRef(false);
+  const flyToBounds = useFlyToBounds(data, setMapViewState, 2000);
 
   useEffect(() => {
-    if (!data.length) return;
-    // alternatively: use bbox from turf and useRef.current.fitBounds with duration: 1000 in config
-    // https://github.com/visgl/react-map-gl/blob/7.1-release/examples/zoom-to-bounds/src/app.tsx
-    // TODO: check if prev equal to current --> ignore
-
-    const coordsArr = data
-      .filter((d) => d.coordinates)
-      .map((d) => [d.coordinates?.longitude, d.coordinates?.latitude]);
-    if (!coordsArr.length) return;
-
-    const [minLng, minLat, maxLng, maxLat] = getBoundingBox(coordsArr);
-
-    if (
-      typeof minLng === 'number' &&
-      typeof minLat === 'number' &&
-      typeof maxLng === 'number' &&
-      typeof maxLat === 'number'
-    ) {
-      // https://stackoverflow.com/a/63577542
-      const viewport = new WebMercatorViewport({ height: 500, width: window.innerWidth });
-      const { longitude, latitude, zoom } = viewport.fitBounds(
-        [
-          [minLat, minLng],
-          [maxLat, maxLng],
-        ],
-        {
-          padding: 80,
-        }
-      );
-
-      setMapViewState((prev) => ({
-        ...prev,
-        latitude,
-        longitude,
-        zoom,
-        transitionDuration: 2000,
-        transitionInterpolator: new FlyToInterpolator(),
-      }));
-    }
-  }, [data]);
+    mapLoaded.current && flyToBounds();
+  }, [flyToBounds]);
 
   return (
     <DeckMap
-      mapViewState={mapViewState}
+      // mapViewState={mapViewState}
+      initialViewState={mapViewState}
+      // viewState={}
+      // onViewStateChange={(e: ViewStateChangeParameters) => setMapViewState(e.viewState)}
       hoverInfo={hoverInfo}
       layers={[
         new IconLayer({
@@ -81,8 +49,10 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
           getIcon: (d: CoordObj) => ({
             url: svgToDataURL(
               `${getPlaceMarker(
-                d.cancelEffDate ? theme.palette.primaryDark.main : theme.palette.primary.main
-              )}`
+                d.cancelEffDate
+                  ? theme.palette.primaryDark.main
+                  : theme.palette.primary.main,
+              )}`,
             ),
             width: 36,
             height: 36,
@@ -102,6 +72,10 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
           ...(layerProps || {}),
         }),
       ]}
+      onLoad={() => {
+        flyToBounds();
+        mapLoaded.current = true;
+      }}
       {...props}
     />
   );

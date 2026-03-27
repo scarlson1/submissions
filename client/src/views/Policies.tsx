@@ -1,122 +1,153 @@
-import { Alert, AlertTitle, Box, Collapse, Link, MenuItem, Stack, useTheme } from '@mui/material';
-import { UploadResult } from 'firebase/storage';
-import { useCallback, useState } from 'react';
-
-// USER POLICIES COMPONENT IMPORTS
-import { InfoRounded, OpenInNewRounded } from '@mui/icons-material';
 import {
-  Avatar,
-  AvatarGroup,
-  Button,
-  CardActionArea,
-  CardMedia,
+  GridViewRounded,
+  InfoRounded,
+  MapRounded,
+  OpenInNewRounded,
+  TableRowsRounded,
+} from '@mui/icons-material';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Collapse,
   Container,
-  Divider,
-  Unstable_Grid2 as Grid,
-  Tooltip,
+  Link,
+  MenuItem,
   Typography,
 } from '@mui/material';
-import { where } from 'firebase/firestore';
-import { camelCase, isEmpty } from 'lodash';
+import { User } from 'firebase/auth';
+import { QueryFieldFilterConstraint, where } from 'firebase/firestore';
+import { UploadResult } from 'firebase/storage';
+import { camelCase } from 'lodash';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import invariant from 'tiny-invariant';
 
-import {
-  AdditionalInsured,
-  ILocation,
-  POLICY_IMPORT_REQUIRED_HEADERS,
-  StorageFolder,
-  fallbackImages,
-} from 'common';
-import { DownloadStorageFileButton, FlexCard, FlexCardContent } from 'components';
+import { Collection, POLICY_IMPORT_REQUIRED_HEADERS, StorageFolder, VIEW_QUERY_KEY } from 'common';
+import { DownloadStorageFileButton } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
+import { ToggleViewLayout, ToggleViewLayoutProps } from 'components/toggleView';
+import { ToggleViewPanel } from 'components/toggleView/ToggleViewPanel';
 import { CSVUploadDialog } from 'elements';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
+import { PolicyCards } from 'elements/cards';
 import { PoliciesGrid } from 'elements/grids';
-import { useAsyncToast, useClaims, useCollectionData } from 'hooks';
-import { formatFirestoreTimestamp, getDuplicates } from 'modules/utils';
+import { PoliciesMap } from 'elements/maps';
+import { DataViewType, TDataViewType, useAsyncToast, useClaims } from 'hooks';
+import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { ROUTES, createPath } from 'router';
-import { Item } from './UserSubmissions';
 
-// TODO: change policies view to allow switching between card and grid view (and map ??)
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
 // TODO: make sure component is wrapped in must be authed wrapper in router
 
 // TODO: add a tab to view change requests
 
+function getLayoutProps(claims: { iDemandAdmin: boolean; orgAdmin: boolean; agent: boolean }) {
+  let props: Pick<ToggleViewLayoutProps<TDataViewType>, 'defaultOption' | 'actions'> = {
+    defaultOption: 'cards',
+  };
+  if (claims?.iDemandAdmin) {
+    props = {
+      defaultOption: 'grid',
+      actions: (
+        <>
+          <ControlledChangeRequestDialog />
+          <AdminPoliciesActionMenu />
+        </>
+      ),
+    };
+  } else if (claims?.orgAdmin || claims?.agent) {
+    props = {
+      defaultOption: 'grid',
+      actions: (
+        <>
+          <ControlledChangeRequestDialog />
+        </>
+      ),
+    };
+  } else {
+    props = {
+      defaultOption: 'cards',
+      actions: (
+        <>
+          <ControlledChangeRequestDialog />
+        </>
+      ),
+    };
+  }
+  return props;
+}
+
+function getQueryProps(
+  user: User,
+  claims: {
+    iDemandAdmin: boolean;
+    orgAdmin: boolean;
+    agent: boolean;
+  }
+): { constraints: QueryFieldFilterConstraint[] } {
+  let props: { constraints: QueryFieldFilterConstraint[] } = { constraints: [] };
+  if (claims?.iDemandAdmin) {
+    props = {
+      constraints: [],
+    };
+  } else if (claims?.orgAdmin && user.tenantId) {
+    props = {
+      constraints: [where('agency.orgId', '==', `${user.tenantId}`)],
+    };
+  } else if (claims?.agent) {
+    props = {
+      constraints: [where('agent.userId', '==', user.uid)],
+    };
+  } else {
+    props = {
+      constraints: [where('namedInsured.userId', '==', user.uid)],
+    };
+  }
+  return props;
+}
+
 export const Policies = () => {
   const navigate = useNavigate();
   const { claims, user } = useClaims();
+  invariant(user);
 
-  // TODO: admin upload new policy documents
+  const layoutProps = useMemo(() => getLayoutProps(claims), [claims]);
+  const queryProps = useMemo(() => getQueryProps(user, claims), [user, claims]);
 
-  const header = (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 1 } }}>
-      <Typography
-        variant='h5'
-        gutterBottom
-        sx={{ ml: { xs: 2, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
-        onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
-      >
-        Policies
-      </Typography>
-      <Stack direction='row' spacing={2}>
-        <ControlledChangeRequestDialog />
-        {claims?.iDemandAdmin ? <AdminPoliciesActionMenu /> : null}
-      </Stack>
-    </Box>
+  const handleViewPolicy = useCallback(
+    (policyId: string) => {
+      navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }));
+    },
+    [navigate]
   );
-
-  if (claims?.iDemandAdmin)
-    return (
-      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-        <Box>
-          {header}
-          <PoliciesGrid checkboxSelection />
-        </Box>
-        {/* <Box>
-          <Search filters='collectionName:users' onSelect={console.log} />
-        </Box> */}
-      </Container>
-    );
-
-  if (claims?.orgAdmin && user?.tenantId)
-    return (
-      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-        <Box>
-          {header}
-          <PoliciesGrid constraints={[where('agency.orgId', '==', `${user.tenantId}`)]} />
-        </Box>
-      </Container>
-    );
-
-  if (claims?.agent && user?.uid)
-    return (
-      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-        <Box>
-          {header}
-          <PoliciesGrid constraints={[where('agent.userId', '==', user.uid)]} />
-        </Box>
-      </Container>
-    );
-
-  // BUG: flashes before observable updates ??
-  console.log('returning must be signed in', claims);
-  if (!user?.uid) return <Typography align='center'>Must be signed in</Typography>;
 
   return (
     <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-      <Box>
-        <Typography
-          variant='h5'
-          gutterBottom
-          sx={{ ml: { xs: 2, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
-          onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
-        >
-          Policies
-        </Typography>
-      </Box>
-      <UserPolicies userId={user.uid} />
+      <ToggleViewLayout<TDataViewType>
+        title='Policies'
+        queryKey={VIEW_QUERY_KEY}
+        options={DataViewType.options}
+        icons={{
+          cards: <GridViewRounded />,
+          grid: <TableRowsRounded />,
+          map: <MapRounded />,
+        }}
+        isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.policies}`] }}
+        headerContainerSx={{ pb: { xs: 2, sm: 3, lg: 4 } }}
+        {...layoutProps}
+      >
+        <ToggleViewPanel value={DataViewType.Enum.cards}>
+          <PolicyCards {...queryProps} onClick={handleViewPolicy} />
+        </ToggleViewPanel>
+        <ToggleViewPanel value={DataViewType.Enum.grid}>
+          <PoliciesGrid {...queryProps} checkboxSelection={claims?.iDemandAdmin} />
+        </ToggleViewPanel>
+        <ToggleViewPanel value={DataViewType.Enum.map}>
+          <PoliciesMap {...queryProps} />
+        </ToggleViewPanel>
+      </ToggleViewLayout>
     </Container>
   );
 };
@@ -197,138 +228,3 @@ function AdminPoliciesActionMenu() {
     </Box>
   );
 }
-
-// TODO: use rxjs to get user profile for avatars
-// const additionalInsureds = [
-//   { img: 'http://i.pravatar.cc/300?img=3', name: 'John Doe', email: 'test1@user.com' },
-//   { img: 'http://i.pravatar.cc/300?img=1', name: 'Jane Smith', email: 'test2@user.com' },
-//   { img: 'http://i.pravatar.cc/300?img=4', name: 'Tim Jones', email: 'test3@user.com' },
-// ];
-
-// TODO: fix converting component to new schema
-
-const getLocationImg = (location: ILocation, theme: 'light' | 'dark', i: number) =>
-  location?.imageURLs ? location?.imageURLs[theme] : fallbackImages[i] || fallbackImages[0];
-
-export const UserPolicies = ({ userId }: { userId: string }) => {
-  const navigate = useNavigate();
-  const theme = useTheme();
-  const { data: policies } = useCollectionData('POLICIES', [where('userId', '==', userId)]);
-
-  const handleClick = useCallback(
-    (policyId: string) => {
-      navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }));
-    },
-    [navigate]
-  );
-
-  return (
-    <>
-      <Grid container spacing={8} sx={{ my: 4 }}>
-        {policies?.map((p, i) => {
-          // TODO: only use new Policy schema ??
-          const location =
-            p.locations && typeof p.locations === 'object' && !isEmpty(p.locations)
-              ? Object.values(p.locations)[0]
-              : p;
-
-          return (
-            <Grid xs={12} sm={6} md={4} lg={3} key={p.id}>
-              <FlexCard
-                sx={{
-                  maxWidth: 340,
-                  boxShadow: '0 8px 40px -12px rgba(0,0,0,0.3)',
-                  '&:hover': {
-                    boxShadow: '0 16px 70px -12.125px rgba(0,0,0,0.3)',
-                  },
-                  mx: { xs: 'auto' },
-                }}
-                variant='elevation'
-                raised
-              >
-                <CardActionArea onClick={() => handleClick(p.id)}>
-                  <CardMedia
-                    sx={{ height: 140 }}
-                    image={getLocationImg(location as ILocation, theme.palette.mode, i)}
-                    // @ts-ignore
-                    title={`${location?.address?.addressLine1} map`}
-                  />
-                  <FlexCardContent sx={{ p: 5 }}>
-                    <Typography fontWeight={900} fontSize={24}>
-                      {/* @ts-ignore */}
-                      {location?.address?.addressLine1}
-                    </Typography>
-                    <Item
-                      label='Named Insured'
-                      value={`${p.namedInsured?.displayName}`}
-                      // value={`${p.namedInsured?.firstName || 'John'} ${
-                      //   p.namedInsured?.lastName || 'Doe'
-                      // }`}
-                    />
-                    <Item label='Agent' value={p.agent.name ?? 'iDemand'} />
-                    <Item
-                      label='Agency'
-                      value={p.agency.name ?? 'iDemand Insurance Agency, Inc.'}
-                    />
-                    <Item
-                      label='Effective'
-                      value={`${formatFirestoreTimestamp(
-                        p.effectiveDate,
-                        'date'
-                      )} - ${formatFirestoreTimestamp(p.expirationDate, 'date')}`}
-                    />
-                    <Divider light sx={{ my: { xs: 3, md: 4 } }} />
-                    <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
-                      {p.namedInsured ? (
-                        <Tooltip
-                          // title={`${p.namedInsured.firstName} ${p.namedInsured.lastName}`}
-                          title={`${p.namedInsured.displayName}`}
-                          key={p.namedInsured.email}
-                        >
-                          {/* <Avatar src={f.img} alt={p.namedInsured.firstName} /> */}
-                          <Avatar alt={`${p.namedInsured.displayName}`} />
-                        </Tooltip>
-                      ) : null}
-                      {/* @ts-ignore */}
-                      {location?.additionalInsureds?.length // @ts-ignore
-                        ? location.additionalInsureds.map((f: AdditionalInsured, i) => (
-                            <Tooltip
-                              // title={`${f?.firstName} ${f.lastName}`}
-                              title={`${f?.name}`}
-                              key={`${f.email}-${i}`}
-                            >
-                              {/* <Avatar src={f.img} alt={f.name} /> */}
-                              <Avatar alt={`${f.email}-${i}`} />
-                            </Tooltip>
-                          ))
-                        : null}
-                    </AvatarGroup>
-                  </FlexCardContent>
-                </CardActionArea>
-              </FlexCard>
-            </Grid>
-          );
-        })}
-      </Grid>
-      {(!policies || policies.length < 1) && (
-        <Box>
-          <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ py: 4 }}>
-            No policies found
-          </Typography>
-          <Box>
-            <Button
-              onClick={() =>
-                navigate(
-                  createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })
-                )
-              }
-              sx={{ mx: 'auto', display: 'block' }}
-            >
-              Get a quote
-            </Button>
-          </Box>
-        </Box>
-      )}
-    </>
-  );
-};

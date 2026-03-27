@@ -3,7 +3,8 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { ILocationPolicy, locationsCollection, transactionsCollection } from '../common/index.js';
+import { ILocationPolicy } from '@idemand/common';
+import { locationsCollection, transactionsCollection } from '../common/index.js';
 import { docExists } from '../modules/db/index.js';
 import {
   constructTrxId,
@@ -13,6 +14,7 @@ import {
 } from '../modules/transactions/index.js';
 import { reportErrorSentry } from '../services/sentry/index.js';
 import { verify } from '../utils/index.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // Trx. eff date (policy amendment): determined by insured (form submission --> pubsub payload)
 // Trx. eff date (location amendment): no clue? insured ?? can mortgagee be backdated by insured ??
@@ -28,20 +30,26 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
   info('AMENDMENT EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
 
   const eventId = event.id;
-  let policyId = null;
-  let locationId = null;
-  // let amendmentScope = null;
-  let effDateTS = null;
+  // let policyId = null;
+  // let locationId = null;
+  // // let amendmentScope = null;
+  // let effDateTS = null;
 
-  try {
-    policyId = event.data?.message?.json?.policyId;
-    locationId = event.data?.message?.json?.locationId;
-    // amendmentScope = event.data?.message?.json?.amendmentScope;
-    const effDateMS = event.data?.message?.json?.effDateMS;
-    effDateTS = effDateMS ? Timestamp.fromMillis(effDateMS) : Timestamp.fromDate(new Date());
-  } catch (err: any) {
-    reportErr('PubSub message was not JSON', {}, err);
-  }
+  // try {
+  //   policyId = event.data?.message?.json?.policyId;
+  //   locationId = event.data?.message?.json?.locationId;
+  //   // amendmentScope = event.data?.message?.json?.amendmentScope;
+  //   const effDateMS = event.data?.message?.json?.effDateMS;
+  //   effDateTS = effDateMS ? Timestamp.fromMillis(effDateMS) : Timestamp.fromDate(new Date());
+  // } catch (err: any) {
+  //   reportErr('PubSub message was not JSON', {}, err);
+  // }
+  const { policyId, locationId, effDateMS } = extractPubSubPayload(event, [
+    'policyId',
+    'locationId',
+    'effDateMS',
+  ]);
+  let effDateTS = effDateMS ? Timestamp.fromMillis(effDateMS) : Timestamp.fromDate(new Date());
 
   const locationRequired = Boolean(locationId); // amendmentScope === 'location';
   try {

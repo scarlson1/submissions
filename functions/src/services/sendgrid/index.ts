@@ -1,26 +1,19 @@
 import { EmailData } from '@sendgrid/helpers/classes/email-address';
 import { MailData } from '@sendgrid/helpers/classes/mail';
-import sgMail, { MailDataRequired } from '@sendgrid/mail';
+// import { MailDataRequired } from '@sendgrid/mail';
 import { projectID } from 'firebase-functions/params';
+import { Resend, type Tag } from 'resend';
 
-// TODO: https://docs.sendgrid.com/for-developers/sending-email/personalizations
-// TODO: switch to dynamic templates
+// TODO: switch to dynamic templates ??
 // dynamic templates ref: https://docs.sendgrid.com/for-developers/sending-email/using-handlebars#password-reset
 // categorize (action: password reset, confirm email, etc.; receipt: new policy, policy renewal, etc.; )
+// use React Email (associated with Resend) - use build output to generate templates instead of adding dependencies and rendering within serverless
 
 // dynamic templates nodejs lib implementation: https://stackoverflow.com/a/68423849
 
-// TODO: error handling: https://docs.sendgrid.com/api-reference/mail-send/errors
-
-// API DOCS: https://docs.sendgrid.com/api-reference/mail-send/mail-send
-
-// TODO: add firebase event ID to customArgs for all requests
-// Use webhook to listen to events save to DB
-
-// TODO: add msgType to customArgs (ex: msgType: 'deliver policy')
-
-import { EmailTemplates, env } from '../../common/index.js';
-import { onlyUniqueObj } from '../../utils/arrays.js';
+import z from 'zod';
+import { env, hostingBaseURL } from '../../common/index.js';
+import { uniqueStrings } from '../../utils/arrays.js';
 import {
   adminChangeRequest,
   adminImportNotification,
@@ -56,50 +49,66 @@ export interface CreateMsgContentProps extends Omit<MailData, 'from'> {
   attachments?: AttachmentJSON[];
 }
 
-// TODO: move to ./utils ??
-function uniqueEmails(to: EmailData | EmailData[]) {
-  let uniqueTo = to;
-  if (Array.isArray(to)) {
-    const objs: EmailJSON[] = [];
+const EmailType = z.enum([
+  'submission_received',
+  'submission_received_admin',
+  'email_confirmation',
+  'user_invite',
+  'agency_submission',
+  'quote_delivery',
+  'policy_delivery',
+  'payment_complete_policy_delivery',
+  'agency_setup',
+  'admin_change_request',
+  'policy_import_staged',
+  'quote_expiring',
+  'custom',
+  'move_tenant_verification',
+]);
 
-    for (let e of to) {
-      if (typeof e === 'string') {
-        objs.push({ email: e });
-      } else {
-        objs.push(e as EmailJSON);
-      }
-    }
+// function uniqueEmails(to: EmailData | EmailData[]) {
+//   let uniqueTo = to;
+//   if (Array.isArray(to)) {
+//     const objs: EmailJSON[] = [];
 
-    uniqueTo = objs.filter(onlyUniqueObj<EmailJSON>('email'));
-  }
-  return uniqueTo;
-}
+//     for (const e of to) {
+//       if (typeof e === 'string') {
+//         objs.push({ email: e });
+//       } else {
+//         objs.push(e as EmailJSON);
+//       }
+//     }
 
-const createMsgContent = ({
-  to,
-  from = { name: 'iDemand Insurance', email: 'Hello@idemandinsurance.com' },
-  subject,
-  html,
-  attachments,
-  ...rest
-}: CreateMsgContentProps): MailDataRequired => {
-  const uniqueTo = uniqueEmails(to);
+//     uniqueTo = objs.filter(onlyUniqueObj<EmailJSON>('email'));
+//   }
+//   return uniqueTo;
+// }
 
-  return {
-    to: uniqueTo,
-    from,
-    subject,
-    html,
-    attachments,
-    ...rest,
-  };
-};
+// const createMsgContent = ({
+//   to,
+//   from = { name: 'iDemand Insurance', email: 'Hello@idemandinsurance.com' },
+//   subject,
+//   html,
+//   // attachments,
+//   ...rest
+// }: CreateMsgContentProps): MailDataRequired => {
+//   const uniqueTo = uniqueEmails(to);
 
-type CustomArgs = { emailType: EmailTemplates } & Record<string, any>;
-export interface ExtraSendGridArgs
-  extends Omit<CreateMsgContentProps, 'to' | 'from' | 'subject' | 'html' | 'attachments'> {
-  customArgs: CustomArgs;
-}
+//   return {
+//     to: uniqueTo,
+//     from,
+//     subject,
+//     html,
+//     // attachments,
+//     ...rest,
+//   };
+// };
+
+// type CustomArgs = { emailType: EmailTemplates } & Record<string, any>;
+export type ExtraSendGridArgs = Omit<
+  CreateMsgContentProps,
+  'to' | 'from' | 'subject' | 'html' | 'attachments'
+>;
 
 function getCustomArgs(args?: Record<string, any> | undefined) {
   return {
@@ -109,25 +118,55 @@ function getCustomArgs(args?: Record<string, any> | undefined) {
   };
 }
 
+function customArgsToResendTags(args: Record<string, unknown>): Tag[] {
+  return Object.entries(args).map(([k, v]) => ({
+    name: String(k),
+    value: typeof v === 'string' ? v : String(v),
+  }));
+}
+
 export const sendSubmissionReceivedConfirmation = async (
   key: string,
   createAccountLink: string,
   to: string | string[],
   toName: string | undefined | null,
   addressLine1: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
-  const html = submissionReceived({ toName: toName, addressLine1, createAccountLink });
-  sgMail.setApiKey(key);
+  const html = submissionReceived({
+    toName: toName,
+    addressLine1,
+    createAccountLink,
+  });
+  // sgMail.setApiKey(key);
+  const resend = new Resend(key);
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  await sgMail.send(
-    createMsgContent({
-      html,
-      subject: `We've received your submission!`,
-      to,
-      ...getCustomArgs(sgArgs),
-    })
-  );
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: "We've received your submission!",
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.submission_received,
+        ...sgArgs,
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+
+  // await sgMail.send(
+  //   createMsgContent({
+  //     html,
+  //     subject: "We've received your submission!",
+  //     to,
+  //     ...getCustomArgs(sgArgs),
+  //   }),
+  // );
 };
 
 export const sendNewSubmissionAdminNotification = async (
@@ -137,14 +176,31 @@ export const sendNewSubmissionAdminNotification = async (
   city: string,
   state: string,
   to: string | string[],
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminNewSubmission({ link, addressLine1, city, state });
-  sgMail.setApiKey(key);
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  await sgMail.send(
-    createMsgContent({ html, subject: `New submission!`, to, ...getCustomArgs(sgArgs) })
+  const resend = new Resend(key);
+
+  const tags = customArgsToResendTags(
+    getCustomArgs({
+      emailType: EmailType.enum.submission_received_admin,
+      ...(sgArgs || {}),
+    }),
   );
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: 'New submission!',
+    html,
+    tags,
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendEmailConfirmation = async (
@@ -152,14 +208,41 @@ export const sendEmailConfirmation = async (
   link: string,
   to: string | string[],
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
+  const resend = new Resend(key);
   const html = emailConfirmation({ toName, link });
-  sgMail.setApiKey(key);
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  await sgMail.send(
-    createMsgContent({ html, subject: 'Please confirm your email', to, ...getCustomArgs(sgArgs) })
-  );
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: 'Please confirm your email',
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.email_confirmation,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  // TODO: use templates:
+  // await resend.emails.send({
+  //   from: 'Acme <onboarding@resend.dev>',
+  //   to: 'delivered@resend.dev',
+  //   template: {
+  //     id: 'order-confirmation',
+  //     variables: {
+  //       PRODUCT: 'Vintage Macintosh',
+  //       PRICE: 499,
+  //     },
+  //   },
+  // });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendUserInvite = async (
@@ -169,22 +252,29 @@ export const sendUserInvite = async (
   toName: string | null | undefined = undefined,
   fromName: string | null | undefined = undefined,
   config?: Partial<CreateMsgContentProps>, // TODO: replace with sgArgs ??
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = userInvite({ toName, fromName, link });
-  sgMail.setApiKey(key);
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  await sgMail
-    // .sendMultiple(msg)
-    .send(
-      createMsgContent({
-        ...config,
-        html,
-        subject: 'Create an account',
-        to,
-        ...getCustomArgs(sgArgs),
-      })
-    );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: 'Create an account',
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.user_invite,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendNewAgencySubmissionAdminNotification = async (
@@ -192,14 +282,29 @@ export const sendNewAgencySubmissionAdminNotification = async (
   link: string,
   orgName: string,
   to: string | string[],
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminNewAgencySubmission({ link, orgName });
-  sgMail.setApiKey(key);
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  await sgMail.send(
-    createMsgContent({ html, subject: `New submission!`, to, ...getCustomArgs(sgArgs) })
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: 'New submission!',
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.agency_submission,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendNewQuoteEmail = async (
@@ -208,58 +313,100 @@ export const sendNewQuoteEmail = async (
   to: string | string[],
   addressLine1?: string,
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = newQuote({ link, toName, addressLine1 });
-  sgMail.setApiKey(key);
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  await sgMail.send(
-    createMsgContent({ html, subject: `Here's your quote!`, to, ...getCustomArgs(sgArgs) })
+  const resend = new Resend(key);
+
+  const tags = customArgsToResendTags(
+    getCustomArgs({
+      emailType: EmailType.enum.submission_received_admin,
+      ...(sgArgs || {}),
+    }),
   );
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: "Here's your quote!",
+    html,
+    tags,
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendPolicyDocDelivery = async (
-  sgKey: string,
+  key: string,
   to: string | string[],
   attachments: AttachmentJSON[],
   toName?: string,
   addressName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = policyDelivery({ toName, addressName });
-  sgMail.setApiKey(sgKey);
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  await sgMail.send(
-    createMsgContent({
-      html,
-      subject: `Congrats! Here's your new policy`,
-      to,
-      attachments,
-      ...getCustomArgs(sgArgs),
-    })
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: "Congrats! Here's your new policy",
+    html,
+    attachments,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.policy_delivery,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendAdminPaidNotification = async (
-  sgKey: string,
+  key: string,
   to: string | string[],
   policyLink: string,
   policyId: string,
   transactionLink: string,
   transactionId: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
-  const html = adminPaymentReceived({ policyLink, policyId, transactionLink, transactionId });
-  sgMail.setApiKey(sgKey);
+  const html = adminPaymentReceived({
+    policyLink,
+    policyId,
+    transactionLink,
+    transactionId,
+  });
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  await sgMail.send(
-    createMsgContent({
-      html,
-      subject: `Payment received (${transactionId})`,
-      to,
-      ...getCustomArgs(sgArgs),
-    })
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: "Congrats! Here's your new policy",
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.payment_complete_policy_delivery,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendAgencyAppApprovedNotification = async (
@@ -271,26 +418,33 @@ export const sendAgencyAppApprovedNotification = async (
   firstName?: string | null,
   lastName?: string | null,
   message?: string | null,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
-  const link = `${process.env.HOSTING_BASE_URL}/auth/create-account/${encodeURIComponent(
-    tenantId
+  const link = `${hostingBaseURL.value()}/auth/create-account/${encodeURIComponent(
+    tenantId,
   )}?email=${encodeURIComponent(email)}&firstName=${encodeURIComponent(
-    firstName || ''
+    firstName || '',
   )}&lastName=${encodeURIComponent(lastName || '')}`;
 
   const html = agencyAppApproved({ firstName, orgName, link, message });
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  sgMail.setApiKey(key);
+  const resend = new Resend(key);
 
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Finish setting up your account',
-      ...getCustomArgs(sgArgs),
-    })
-  );
+  const { error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: 'Finish setting up your account',
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.agency_setup,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
 
   return { link };
 };
@@ -302,7 +456,7 @@ export const sendAdminChangeRequestNotification = async (
   requestType: string,
   entityId: string,
   changes: Record<string, any>,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminChangeRequest({
     link,
@@ -310,16 +464,26 @@ export const sendAdminChangeRequestNotification = async (
     entityId,
     changes,
   });
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Change request received',
-      ...getCustomArgs(sgArgs),
-    })
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: 'Change request received',
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.admin_change_request,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendAdminPolicyImportNotification = async (
@@ -331,7 +495,7 @@ export const sendAdminPolicyImportNotification = async (
   fileName: string,
   link?: string | null | undefined,
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = adminImportNotification({
     successCount,
@@ -341,16 +505,26 @@ export const sendAdminPolicyImportNotification = async (
     link,
     toName,
   });
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Policy import staged',
-      ...getCustomArgs(sgArgs),
-    })
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: 'Policy import staged',
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.policy_import_staged,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendQuoteExpiringSoonNotification = async (
@@ -359,23 +533,33 @@ export const sendQuoteExpiringSoonNotification = async (
   link: string,
   addressLine1: string,
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = quoteExpiringSoon({
     link,
     addressLine1,
     toName,
   });
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Quote expires tomorrow',
-      ...getCustomArgs(sgArgs),
-    })
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: 'Quote expires tomorrow',
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.quote_expiring,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const sendMessage = async (
@@ -384,18 +568,26 @@ export const sendMessage = async (
   msgBody: string,
   subject: string,
   toName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = blankHTML({ toName, content: msgBody });
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject,
-      ...getCustomArgs(sgArgs),
-    })
-  );
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
+
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject,
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({ emailType: EmailType.enum.custom, ...(sgArgs || {}) }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };
 
 export const moveTenantVerification = async (
@@ -404,21 +596,31 @@ export const moveTenantVerification = async (
   link: string,
   toName?: string,
   toOrgName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) => {
   const html = moveToTenantConfirmation({
     toName,
     toOrgName,
     link,
   });
+  const uniqueTo = Array.isArray(to) ? uniqueStrings(to) : to;
 
-  sgMail.setApiKey(key);
-  await sgMail.send(
-    createMsgContent({
-      to,
-      html,
-      subject: 'Confirm org migration',
-      ...getCustomArgs(sgArgs),
-    })
-  );
+  const resend = new Resend(key);
+
+  const { data, error } = await resend.emails.send({
+    from: 'iDemand Insurance <noreply@s-carlson.com>',
+    to: uniqueTo,
+    subject: 'Confirm org migration',
+    html,
+    tags: customArgsToResendTags(
+      getCustomArgs({
+        emailType: EmailType.enum.move_tenant_verification,
+        ...(sgArgs || {}),
+      }),
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
 };

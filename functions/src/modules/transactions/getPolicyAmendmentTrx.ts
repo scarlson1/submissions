@@ -1,6 +1,6 @@
+import { Policy } from '@idemand/common';
 import { Timestamp } from 'firebase-admin/firestore';
-
-import { AmendmentTransaction, Policy, WithId } from '../../common/index.js';
+import { AmendmentTransaction, WithId } from '../../common/index.js';
 import { getBookingDate, getTermDays } from './utils.js';
 
 export const getPolicyAmendmentTrx = (
@@ -24,6 +24,8 @@ export const getPolicyAmendmentTrx = (
     issuingCarrier: policy.issuingCarrier,
     namedInsured: policy.namedInsured.displayName,
     mailingAddress: policy.mailingAddress,
+    agent: policy.agent,
+    agency: policy.agency,
     homeState: policy.homeState,
     policyEffDate: policy.effectiveDate,
     policyExpDate: policy.expirationDate,

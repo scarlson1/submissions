@@ -1,12 +1,11 @@
 import { Suspense, useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import { ErrorFallback } from 'components';
+import { ErrorFallback, PageMeta } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { useSafeParams } from 'hooks';
 import { usePrevious } from 'hooks/utils';
 import { createChangeRequest } from 'modules/db';
-import { PageMeta } from 'router';
 import { LocationChangeWizard } from './LocationChangeWizard';
 
 // TODO: delete (was used when change location had dedicated route)

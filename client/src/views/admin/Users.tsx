@@ -1,20 +1,22 @@
 import { CorporateFareRounded, DataObjectRounded } from '@mui/icons-material';
 import { Box, Tooltip, Typography } from '@mui/material';
 import { GridActionsCellItem, GridRowId, GridRowParams } from '@mui/x-data-grid';
-import { where } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, COLLECTIONS, User } from 'common';
+import { CLAIMS, User } from 'common';
 import InputDialog from 'components/InputDialog';
 import { useConfirmation } from 'context';
 import { UsersGrid } from 'elements/grids';
 import { useAsyncToast, useMoveUserToTenant, useShowJson } from 'hooks';
+import { logDev } from 'modules/utils';
+
+// TODO: make tenant a select field / autocomplete
+// TODO: prompt for customClaims
 
 export const Users = () => {
   const { status, data: signInCheckResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
-    suspense: false,
   });
   const confirm = useConfirmation();
   const toast = useAsyncToast();
@@ -22,13 +24,11 @@ export const Users = () => {
     (msg: string) => toast.success(msg),
     (msg: string) => toast.error(msg)
   );
-  const showJson = useShowJson(COLLECTIONS.USERS);
+  const showJson = useShowJson('users');
 
-  // TODO: prompt for tenantId (select from autocomplete)
-  // TODO: prompt for customClaims
   const handleAssignTenant = useCallback(
     (params: GridRowParams<User>) => async () => {
-      console.log('Assign tenant called ', params);
+      logDev('Assign tenant called ', params);
       let toTenantId: string;
       try {
         toTenantId = await confirm({
@@ -48,7 +48,7 @@ export const Users = () => {
           ),
         });
       } catch (err) {
-        console.log('SET TENANT ID CANCELLED');
+        console.log('set tenant ID cancelled');
         return;
       }
 
@@ -76,8 +76,13 @@ export const Users = () => {
       </Typography>
       {/* <Box sx={{ height: { xs: 400, md: 460, lg: 500 }, width: '100%' }}> */}
       <UsersGrid
-        constraints={[where('email', '!=', null)]}
+        // constraints={[where('email', '!=', null)]}
         autoHeight
+        initialState={{
+          filter: {
+            filterModel: { items: [{ field: 'email', value: null, operator: '!=' }] },
+          },
+        }}
         renderActions={(params: GridRowParams) => [
           <GridActionsCellItem
             icon={
@@ -101,7 +106,6 @@ export const Users = () => {
           />,
         ]}
       />
-      {/* </Box> */}
     </Box>
   );
 };

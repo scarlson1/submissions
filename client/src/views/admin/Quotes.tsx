@@ -3,122 +3,51 @@ import {
   Alert,
   AlertTitle,
   Box,
-  Button,
   Collapse,
   Link,
   MenuItem,
-  Stack,
   Tooltip,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
-import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { UploadResult } from 'firebase/storage';
-import { camelCase, snakeCase } from 'lodash';
+import { camelCase } from 'lodash';
 import { useCallback, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { useFirestore } from 'reactfire';
 
 import {
   CLAIMS,
-  COLLECTIONS,
   PORTFOLIO_RATING_REQUIRED_HEADERS,
   QUOTE_IMPORT_REQUIRED_HEADERS,
   QUOTE_STATUS,
   Quote,
   StorageFolder,
   TStorageFolder,
-  WithId,
-  quotesCollection,
 } from 'common';
-import { quoteConverter } from 'common/firestoreConverters';
 import { IconMenu } from 'components/IconButtonMenu';
-import { useConfirmation } from 'context';
 import { CSVUploadDialog } from 'elements';
 import { QuotesGrid } from 'elements/grids';
-import { useAsyncToast, useGridShowJson, useWidth } from 'hooks';
+import { useAsyncToast, useConfirmAndUpdate, useGridShowJson, useWidth } from 'hooks';
 import { submissionIdCol, subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
-const useUpdateQuoteStatus = () => {
-  const firestore = useFirestore();
-
-  const update = useCallback(
-    async (id: string, updateValues: Partial<Quote>) => {
-      const ref = doc(quotesCollection(firestore), id).withConverter(quoteConverter);
-      await updateDoc(ref, { status: updateValues.status });
-
-      const snap = await getDoc(ref);
-      console.log('updated data: ', snap.data());
-
-      return { ...snap.data(), id: snap.id };
-    },
-    [firestore]
-  );
-
-  return update;
+const getChangeMsg = (newRow: Quote, oldRow: Quote) => {
+  return newRow.status !== oldRow.status
+    ? [`"status" from ${oldRow.status} to ${newRow.status}`]
+    : null;
 };
-
-export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) => Promise<any>) => {
-  const modal = useConfirmation();
-  const toast = useAsyncToast();
-  const theme = useTheme();
-  let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const confirm = useCallback(
-    async (newRow: GridRowModel<WithId<Quote>>, oldRow: GridRowModel<WithId<Quote>>) => {
-      let changeMsg =
-        newRow.status !== oldRow.status
-          ? `"status" from ${oldRow.status} to ${newRow.status}`
-          : null;
-
-      try {
-        await modal({
-          variant: 'danger',
-          catchOnCancel: true,
-          title: 'Are you sure?',
-          description: (
-            <>
-              <Typography variant='body2' color='text.secondary'>
-                You are about to make the following changes:
-              </Typography>
-              <Typography>{changeMsg}</Typography>
-            </>
-          ),
-          confirmButtonText: 'Confirm',
-          dialogContentProps: { dividers: true },
-          dialogProps: { fullScreen },
-        });
-
-        toast.loading('saving...');
-        const res = await updateFn(newRow.id, {
-          status: newRow.status,
-        });
-
-        toast.success(`Saved!`);
-        return res;
-      } catch (err) {
-        toast.error('update failed');
-        return oldRow;
-      }
-    },
-    [modal, toast, updateFn, fullScreen]
-  );
-
-  return confirm;
+const getUpdateValues = (newRow: Quote) => {
+  return { status: newRow.status };
 };
 
 export const Quotes = () => {
   const navigate = useNavigate();
-  const updateQuote = useUpdateQuoteStatus();
-  const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
+  const confirmAndUpdate = useConfirmAndUpdate<Quote>('quotes', getUpdateValues, getChangeMsg);
   const renderShowJson = useGridShowJson(
-    COLLECTIONS.QUOTES,
+    'quotes',
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );
@@ -187,38 +116,19 @@ export const Quotes = () => {
   );
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
-        <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
-          Quotes
-        </Typography>
-        <Stack direction='row' spacing={2}>
-          <Button
-            onClick={() =>
-              navigate(
-                createPath({ path: ADMIN_ROUTES.QUOTE_NEW_BLANK, params: { productId: 'flood' } })
-              )
-            }
-            sx={{ maxHeight: 36 }}
-          >
-            New Quote
-          </Button>
-          <QuotesActionMenu />
-        </Stack>
-      </Box>
-      <QuotesGrid
-        renderActions={renderActions}
-        additionalColumns={[submissionIdCol, subproducerCommissionCol]}
-        density='compact'
-        processRowUpdate={confirmAndUpdate}
-        onProcessRowUpdateError={handleProcessRowUpdateError}
-      />
-    </Box>
+    <QuotesGrid
+      renderActions={renderActions}
+      additionalColumns={[submissionIdCol, subproducerCommissionCol]}
+      density='compact'
+      processRowUpdate={confirmAndUpdate}
+      onProcessRowUpdateError={handleProcessRowUpdateError}
+    />
   );
 };
 
 // Required to get around dialog unmounting when icon menu closes
-function QuotesActionMenu() {
+export function AdminQuotesActionMenu() {
+  const navigate = useNavigate();
   const toast = useAsyncToast({ position: 'top-right', duration: 2400 });
   const [open, setOpen] = useState<TStorageFolder | null>(null);
   const [dupHeaders, setDupHeaders] = useState<string[]>([]);
@@ -257,6 +167,15 @@ function QuotesActionMenu() {
   return (
     <Box>
       <IconMenu>
+        <MenuItem
+          onClick={() =>
+            navigate(
+              createPath({ path: ADMIN_ROUTES.QUOTE_NEW_BLANK, params: { productId: 'flood' } })
+            )
+          }
+        >
+          New Quote
+        </MenuItem>
         <MenuItem onClick={handleOpen('ratePortfolio')}>Rate Portfolio</MenuItem>
         <MenuItem onClick={handleOpen('importQuotes')}>Import Quotes</MenuItem>
       </IconMenu>
@@ -264,14 +183,14 @@ function QuotesActionMenu() {
         open={open === 'ratePortfolio'}
         onClose={handleClose}
         destinationFolder={StorageFolder.enum.ratePortfolio}
-        getCsvHeaderStatus={handleHeaderStatus(PORTFOLIO_RATING_REQUIRED_HEADERS, snakeCase)}
+        getCsvHeaderStatus={handleHeaderStatus(PORTFOLIO_RATING_REQUIRED_HEADERS, camelCase)}
         onSuccess={onSuccess}
         title='Rate Portfolio'
       >
         <Typography variant='body2' color='text.secondary' component='div'>
           Headers will be transformed to{' '}
-          <Link href='https://lodash.com/docs/4.17.15#snakeCase' target='_blank' rel='noopener'>
-            snake case <OpenInNewRounded sx={{ fontSize: 16 }} />
+          <Link href='https://lodash.com/docs/4.17.15#camelCase' target='_blank' rel='noopener'>
+            camel case <OpenInNewRounded sx={{ fontSize: 16 }} />
           </Link>
           {`. (ex: "CovA limit" → "cov_a_limit")`}
         </Typography>

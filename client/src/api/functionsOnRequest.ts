@@ -2,9 +2,9 @@ import axios from 'axios';
 import { EmailAuthProvider, getAuth, reauthenticateWithCredential } from 'firebase/auth';
 
 export const functionsInstance = axios.create({
-  baseURL: process.env.REACT_APP_FUNCTIONS_BASE_URL,
+  baseURL: import.meta.env.VITE_FUNCTIONS_BASE_URL,
 });
-functionsInstance.defaults.baseURL = process.env.REACT_APP_FUNCTIONS_BASE_URL;
+functionsInstance.defaults.baseURL = import.meta.env.VITE_FUNCTIONS_BASE_URL;
 
 functionsInstance.interceptors.request.use(
   async (config: any) => {
@@ -35,15 +35,18 @@ functionsInstance.interceptors.response.use(
 
     // TODO: match with quote instance error handling
     console.log('ERROR: ', err);
+    // const data = err.response?.data;
+
+    // BUG: parsing error --> causes failure before 403 token refresh can run
+    // const isJsonBlob = (data: any) => data instanceof Blob && data.type === 'application/json';
+
+    // const responseData = isJsonBlob(data) ? await data?.text() : data || {};
+
+    // const responseJson = typeof responseData === 'string' ? JSON.parse(responseData) : responseData;
+
+    // let errors = responseJson?.errors;
     const data = err.response?.data;
-
-    const isJsonBlob = (data: any) => data instanceof Blob && data.type === 'application/json';
-
-    const responseData = isJsonBlob(data) ? await data?.text() : data || {};
-
-    const responseJson = typeof responseData === 'string' ? JSON.parse(responseData) : responseData;
-
-    let errors = responseJson?.errors;
+    let errors = data?.errors;
 
     const originalRequest = err.config;
     // const tokenRevoked = isRevokedError(errors);
@@ -53,6 +56,7 @@ functionsInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
+        console.log('attempting token refresh...');
         const userCred = await onIdTokenRevocation();
         const token = await userCred.user.getIdToken();
 

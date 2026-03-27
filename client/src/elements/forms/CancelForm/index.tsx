@@ -7,6 +7,7 @@ import { LoadingComponent } from 'components/layout';
 import { usePrevious } from 'hooks/utils';
 import { createChangeRequest } from 'modules/db';
 import { CancelWizard } from './CancelWizard';
+export type { CancelValues } from './CancelValuesStep';
 
 interface CancelFormProps {
   policyId: string;

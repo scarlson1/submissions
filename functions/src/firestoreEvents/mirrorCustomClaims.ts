@@ -1,10 +1,15 @@
-import { Auth, TenantAwareAuth, getAuth } from 'firebase-admin/auth';
-import { DocumentData, DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { Auth, getAuth, TenantAwareAuth } from 'firebase-admin/auth';
+import {
+  DocumentData,
+  DocumentSnapshot,
+  getFirestore,
+  Timestamp,
+} from 'firebase-admin/firestore';
 import type { Change } from 'firebase-functions';
 import { error, info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { CLAIMS, orgsCollection } from '../common/index.js';
+import { CLAIMS, iDemandOrgId, orgsCollection } from '../common/index.js';
 import { isJSON } from '../utils/validation.js';
 
 export interface ClaimsDocData extends DocumentData {
@@ -18,7 +23,7 @@ export default async (
       orgId: string;
       userId: string;
     }
-  >
+  >,
 ) => {
   const beforeData: ClaimsDocData = event?.data?.before.data() || {};
   const afterData: ClaimsDocData = event?.data?.after.data() || {};
@@ -44,7 +49,10 @@ export default async (
     const { _lastCommitted, ...newClaims } = afterData;
     const stringifiedClaims = JSON.stringify(newClaims);
     if (stringifiedClaims.length > 1000) {
-      console.error('new custom claims object string > 1000 characters', stringifiedClaims);
+      console.error(
+        'new custom claims object string > 1000 characters',
+        stringifiedClaims,
+      );
       return;
     }
 
@@ -60,9 +68,11 @@ export default async (
     if (
       (Object.keys(newClaims).includes(CLAIMS.IDEMAND_ADMIN) ||
         Object.keys(newClaims).includes(CLAIMS.IDEMAND_USER)) &&
-      orgId !== 'idemand'
+      orgId !== iDemandOrgId.value()
     ) {
-      info('New custom claims contained reserved custom claim (iDemandAdmin). Removing claim.');
+      info(
+        'New custom claims contained reserved custom claim (iDemandAdmin). Removing claim.',
+      );
       delete newClaims[CLAIMS.IDEMAND_ADMIN];
       delete newClaims[CLAIMS.IDEMAND_USER];
 

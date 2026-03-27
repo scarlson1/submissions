@@ -1,10 +1,11 @@
 // BUG: load form when eff exception req = true, then turn it off and select valid date ==> validation fails
 
 import { Box, Collapse, Typography } from '@mui/material';
-import { FormikCheckbox, FormikDatePicker, FormikNativeSelect } from 'components/forms';
 import { useFormikContext } from 'formik';
 import { useEffect } from 'react';
 import { boolean, date, object, string } from 'yup';
+
+import { FormikCheckbox, FormikDatePicker, FormikNativeSelect } from 'components/forms';
 import { policyEffShortcuts } from '../QuoteForm/constants';
 import { BindQuoteValues } from './BindQuoteForm';
 import { LogAnalyticsProps } from './NamedInsuredStep';
@@ -14,15 +15,16 @@ export const getEffectiveDateValidation = (minEffDate: Date, maxEffDate: Date) =
     effectiveExceptionRequested: boolean(),
     effectiveDate: date().when('effectiveExceptionRequested', {
       is: true,
-      then: date().min(new Date(), 'Effective cannot be in the past'),
-      otherwise: date() // addToDate({ days: 15 })
-        .min(minEffDate, 'Effective date must be at least 15 days from binding coverage')
-        .max(maxEffDate, 'Effective date must be within 60 days of binding coverage'),
+      then: () => date().min(new Date(), 'Effective cannot be in the past'),
+      otherwise: () =>
+        date() // addToDate({ days: 15 })
+          .min(minEffDate, 'Effective date must be at least 15 days from binding coverage')
+          .max(maxEffDate, 'Effective date must be within 60 days of binding coverage'),
     }),
     effectiveExceptionReason: string().when('effectiveExceptionRequested', {
-      is: true,
-      then: string().required('Please select an option'),
-      otherwise: string().notRequired(),
+      is: (val: boolean) => val == true, /// (r: boolean) => !!r, // true,
+      then: () => string().required('Please select an option'),
+      otherwise: () => string().notRequired(),
     }),
   });
 
@@ -98,7 +100,7 @@ export const EffectiveDateStep = ({
                   value: 'new_home_lender_required',
                 },
                 {
-                  label: 'UW waived',
+                  label: 'Underwriting waived',
                   value: 'uw_waived',
                 },
                 {

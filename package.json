@@ -4,23 +4,31 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "client:dev": "pnpm --filter client start:emulators",
-    "client:live": "pnpm --filter client start",
-    "functions:build": "pnpm --filter functions build:watch",
-    "client:dev:old": "pnpm start:emulators --prefix ./client",
-    "client:live:old": "pnpm start --prefix ./client",
-    "functions:build:old": "pnpm build:watch --prefix ./functions",
-    "emulators:dev": "firebase emulators:start --only functions,auth,firestore,storage,pubsub --import ./emulator-data",
+    "client:dev": "cd client && pnpm start:emulators",
+    "client:live": "cd client && pnpm start",
+    "functions:build": "cd functions && pnpm build:watch",
+    "emulators:dev": "firebase emulators:start --only functions,auth,firestore,storage,pubsub,eventarc --import ./emulator-data",
     "emulators:save": "firebase emulators:export ./emulator-data",
     "use:dev": "firebase use dev",
     "use:prod": "firebase use prod",
-    "dev": "pnpm use:dev && pnpm setSAPath:dev && concurrently \"pnpm client:dev\" \"pnpm functions:build\" \"pnpm emulators:dev\"",
-    "setSAPath:dev": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/code/idemand-submissions-dev-firebase-admin.json\"",
-    "setSAPath:prod": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/code/idemand-submissions-firebase-admin.json\"",
+    "dev": "npm run use:dev && npm run setSAPath:dev && concurrently \"npm run client:dev\" \"npm run functions:build\" \"npm run emulators:dev\"",
+    "setSAPath:dev": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/dev/service_accounts/idemand-submissions-dev-firebase-admin.json\"",
+    "setSAPath:prod": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/dev/service_accounts/idemand-submissions-firebase-admin.json\"",
     "deploy:rules:firestore": "firebase deploy --only firestore:rules",
     "deploy:rules:storage": "firebase deploy --only storage",
     "list:java": "ps -ax | grep java",
-    "ngrok": "ngrok http --hostname=5d548ca8c480-3444825649922910484.ngrok-free.app 5001"
+    "ngrok": "ngrok http --url=wondrous-opossum-sensible.ngrok-free.app 5001",
+    "tailscale": "tailscale funnel 5001",
+    "typesense:dev": "docker run -p 8108:8108 -v\"$(pwd)\"/typesense-data:/data typesense/typesense:29.0 --data-dir /data --api-key=xyz --enable-cors",
+    "stripe:forward": "stripe listen --forward-to localhost:5001/idemand-submissions-dev/us-central1/stripe/webhook"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/node": "22",
+      "firebase-admin": "12.7.0",
+      "@google-cloud/firestore": "7.7.0",
+      "firebase-functions": "^4.5.0"
+    }
   },
   "repository": {
     "type": "git",
@@ -34,5 +42,8 @@
   "homepage": "https://github.com/scarlson1/submissions#readme",
   "dependencies": {
     "concurrently": "^7.6.0"
+  },
+  "devDependencies": {
+    "firebase-tools-with-isolate": "^14.16.0"
   }
 }

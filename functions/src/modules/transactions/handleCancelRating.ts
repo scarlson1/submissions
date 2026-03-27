@@ -2,20 +2,18 @@ import { isValid } from 'date-fns';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 
+import { ILocation, Policy, PolicyLocation } from '@idemand/common';
 import {
   ChangeRequest,
-  ILocation,
   LocationCancellationRequest,
-  Policy,
   PolicyCancellationRequest,
-  PolicyLocation,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
   policiesCollection,
 } from '../../common/index.js';
-import { getDoc } from '../../routes/utils/index.js';
 import { verify } from '../../utils/index.js';
+import { getDocData } from '../db/utils.js';
 import { calcPolicyPremiumAndTaxes } from '../rating/index.js';
 import { setChangeRequestErr } from './handleEndorsementRating.js';
 import { calcTerm, getTermDays } from './utils.js';
@@ -41,7 +39,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
     changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
     const policyRef = policiesCollection(db).doc(policyId);
 
-    const policy = await getDoc(policyRef, 'policy not found');
+    const policy = await getDocData<Policy>(policyRef, 'policy not found');
 
     let lcnIds = scope === 'location' ? [data.locationId] : Object.keys(policy.locations);
 

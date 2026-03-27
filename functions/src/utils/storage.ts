@@ -7,6 +7,10 @@ export async function unlinkFile(filePath: string) {
     info(`Unlinking file: ${filePath}`, { filePath });
     if (filePath) unlinkSync(filePath);
   } catch (err: any) {
+    if (err?.code === 'ENOENT') {
+      info(`Skipping missing temp file: ${filePath}`, { filePath });
+      return;
+    }
     error(`Error unlinking file ${filePath}`, { errMsg: err?.message, err, filePath });
   }
 }

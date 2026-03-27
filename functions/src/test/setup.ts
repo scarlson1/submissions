@@ -32,8 +32,8 @@ export {};
 
 // let mongo: any;
 // beforeAll(async () => {
-//   process.env.JWT_KEY = 'asdf';
-//   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+//   r_process.env.JWT_KEY = 'asdf';
+//   r_process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 //   mongo = new MongoMemoryServer();
 //   const mongoUri = await mongo.getUri();
@@ -66,7 +66,7 @@ export {};
 //   };
 
 //   // Create the JWT
-//   const token = jwt.sign(payload, process.env.JWT_KEY!);
+//   const token = jwt.sign(payload, r_process.env.JWT_KEY!);
 //   // Build session object {jwt: MY_JWT }
 //   const session = { jwt: token };
 //   // Turn session into JSON

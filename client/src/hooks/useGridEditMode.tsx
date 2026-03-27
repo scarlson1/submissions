@@ -12,7 +12,8 @@ import {
 } from '@mui/x-data-grid';
 import { useCallback, useReducer } from 'react';
 
-import { Path } from 'common';
+import { DocumentData, UpdateData } from 'firebase/firestore';
+import { isFunction } from 'lodash';
 
 // interface EditAction {
 //   type: GridRowModes.Edit | GridRowModes.View;
@@ -60,12 +61,16 @@ const reducer = (state: GridRowModesModel, { type, payload }: EditModeAction) =>
   }
 };
 
+type FlatKeys<T> = keyof UpdateData<T>;
+
 interface useGridEditModeProps<T> {
   initialState?: GridRowModesModel;
-  editableCells?: Path<T>[] | DataGridProps['isCellEditable']; // ((params: GridRowParams) => boolean);
+  editableCells?: FlatKeys<T>[] | DataGridProps['isCellEditable']; // Path<T>[] |
 }
 
-export const useGridEditMode = <T = any,>(props?: useGridEditModeProps<T> | undefined) => {
+export const useGridEditMode = <T extends DocumentData = DocumentData>(
+  props?: useGridEditModeProps<T> | undefined
+) => {
   const [rowModesModel, dispatch] = useReducer(reducer, props?.initialState || {});
 
   const handleEditClick = useCallback(
@@ -133,7 +138,7 @@ export const useGridEditMode = <T = any,>(props?: useGridEditModeProps<T> | unde
   );
 
   const getEditModeProps = useCallback(() => {
-    const editProps: Partial<DataGridProps> = {
+    const editProps: Partial<DataGridProps<T>> = {
       editMode: GridEditModes.Row,
       rowModesModel: rowModesModel,
       onRowModesModelChange: handleRowModesModelChange,
@@ -143,11 +148,14 @@ export const useGridEditMode = <T = any,>(props?: useGridEditModeProps<T> | unde
       if (Array.isArray(props.editableCells)) {
         const arr = props.editableCells as string[];
         editProps['isCellEditable'] = (params: GridCellParams) => arr.includes(params.field);
-      } else {
+      } else if (isFunction(props.editableCells)) {
         editProps['isCellEditable'] = props.editableCells;
       }
     }
-    return editProps;
+    return editProps as Pick<
+      DataGridProps<T>,
+      'editMode' | 'rowModesModel' | 'onRowModesModelChange' | 'onRowEditStop' | 'isCellEditable'
+    >;
   }, [rowModesModel, handleRowModesModelChange, handleRowEditStop, props]);
 
   return { getEditRowModeActions, getEditModeProps };

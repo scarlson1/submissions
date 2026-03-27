@@ -1,13 +1,12 @@
-import { useCallback, useRef } from 'react';
-import { Box, Stack } from '@mui/material';
-import LoadingButton from '@mui/lab/LoadingButton';
 import { SendRounded } from '@mui/icons-material';
-import { useUser } from 'reactfire';
+import LoadingButton from '@mui/lab/LoadingButton';
+import { Box, Stack } from '@mui/material';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
-import * as yup from 'yup';
+import { useCallback, useRef } from 'react';
+import { useUser } from 'reactfire';
 
+import { contactUsValidation } from 'common/validation';
 import { FormikTextField } from 'components/forms';
-import { emailVal } from 'common/validation';
 import { useAsyncToast, useSendEmail } from 'hooks';
 
 export interface ContactUsValues {
@@ -15,12 +14,6 @@ export interface ContactUsValues {
   subject: string;
   body: string;
 }
-
-export const contactUsValidation = yup.object().shape({
-  email: emailVal.required(),
-  subject: yup.string().required(),
-  body: yup.string().min(20, 'Please provide more details').required('Required'),
-});
 
 export interface ContactFormProps {}
 

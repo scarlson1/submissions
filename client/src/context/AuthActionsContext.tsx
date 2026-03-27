@@ -13,6 +13,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from 'reactfire';
 
+import { AUTH_ROUTES, createPath } from 'router';
 import { useAuth as useAuthI } from './AuthContext';
 
 interface AuthActionsContextValue {
@@ -66,7 +67,9 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
 
       await auth.signOut();
 
-      cb !== undefined ? cb() : navigate(`/auth/login`, { replace: true });
+      cb !== undefined
+        ? cb()
+        : navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { replace: true });
       setLoading(false);
     },
     [auth, navigate]
@@ -94,7 +97,7 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
       var actionCodeSettings = {
         url:
           continueUrl ||
-          `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
+          `${import.meta.env.VITE_HOSTING_URL}/auth/login/${
             auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
           }`,
         handleCodeInApp: false,
@@ -142,6 +145,25 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
     [reauthIfRequired, user]
   );
 
+  // TODO: requires recaptcha and verification code
+  // const updateUserPhone = useCallback(async () => {
+  //   if (!user) throw new Error('no user authenticated')
+
+  //   await reauthIfRequired();
+
+  //   // const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
+  //   // const provider = new PhoneAuthProvider(auth);
+  //   // const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
+  //   // // Obtain the verificationCode from the user.
+  //   // const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+
+  //   // await updatePhoneNumber(user)
+  //   // const enrolledFactors = multiFactor(user).enrolledFactors;
+  //   // if (enrolledFactors.length) {
+  //   //   await verifyBeforeUpdateEmail(user, )
+  //   // }
+  // }, [])
+
   /**
    * Change password dialog for already authenticated users.
    * @param {string} newPassword - new password for current user.
@@ -163,6 +185,7 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
       sendVerification,
       sendPasswordReset,
       updateUserEmail,
+      // updateUserPhone,
       updateUserPassword,
       loading,
     }),
@@ -172,6 +195,7 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
       sendVerification,
       sendPasswordReset,
       updateUserEmail,
+      // updateUserPhone,
       updateUserPassword,
       loading,
     ]

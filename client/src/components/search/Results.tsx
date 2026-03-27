@@ -1,10 +1,10 @@
-import { Chip, Typography } from '@mui/material';
 import type { AutocompleteApi, AutocompleteState, BaseItem } from '@algolia/autocomplete-core';
-
-import { Snippet } from './Snippet';
-import type { SearchProps } from './Search';
-import { COLLECTIONS, InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import { Chip, Typography } from '@mui/material';
 import { useRef, useState } from 'react';
+
+import { Collection, InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import type { SearchProps } from './Search';
+import { Snippet } from './Snippet';
 
 interface ResultsProps<TItem extends BaseItem>
   extends AutocompleteApi<TItem, React.FormEvent, React.MouseEvent, React.KeyboardEvent> {
@@ -182,17 +182,17 @@ function Result<TItem extends StoredDocSearchHit>({
 
 function getShortenedChipLabel(collectionName: string) {
   switch (collectionName) {
-    case COLLECTIONS.ORGANIZATIONS:
+    case Collection.Enum.organizations:
       return 'Org';
-    case COLLECTIONS.FIN_TRANSACTIONS:
+    case Collection.Enum.financialTransactions:
       return 'Trx';
-    case COLLECTIONS.POLICIES:
+    case Collection.Enum.policies:
       return 'Policy';
-    case COLLECTIONS.QUOTES:
+    case Collection.Enum.quotes:
       return 'Quote';
-    case COLLECTIONS.SUBMISSIONS:
+    case Collection.Enum.submissions:
       return 'Sub';
-    case COLLECTIONS.USERS:
+    case Collection.Enum.users:
       return 'User';
     default:
       return 'Doc';

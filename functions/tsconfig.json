@@ -1,19 +1,27 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "module": "ES2022",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "dist",
     "sourceMap": true,
     "strict": true,
-    "target": "es2022",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "checkJs": false
+    "checkJs": false,
+    "types": ["node"], // Only include the types you need
+    "typeRoots": ["./node_modules/@types"]
   },
   "compileOnSave": true,
   "include": ["./src/**/*.ts", "./src/**/*.tsx"],
-  "exclude": ["src/**/*.js", "src/**/*.jsx"]
+  "exclude": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "**/node_modules/*",
+    "../client/node_modules",
+    "../client"
+  ]
+  // "references": [
+  //   // Reference a local library, using the workspace protocol
+  //   { "path": "../../libs/common-ui" }
+  // ]
 }

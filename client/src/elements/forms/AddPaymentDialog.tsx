@@ -1,5 +1,3 @@
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
-
 import { AccountBalanceRounded, CloseRounded, CreditCardRounded } from '@mui/icons-material';
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
 import {
@@ -21,8 +19,9 @@ import {
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
+import { object, string } from 'yup';
 
 import { VerifyEPayTokenResponse } from 'api';
 import { FormikTextField } from 'components/forms';
@@ -38,67 +37,69 @@ const GRID_PROPS = {
   columnSpacing: { xs: 3, md: 4, lg: 5 },
 };
 
-const addPaymentMethodValidation = yup.object().shape({
-  payerName: yup.string().required('Name is required'),
-  payerEmail: yup.string().email().required('Email is required'),
-  accountHolder: yup.string().required('Must enter the name on the card/account'),
-  cardNumber: yup.string().when(['cardPaymentMethod'], {
+const addPaymentMethodValidation = object().shape({
+  payerName: string().required('Name is required'),
+  payerEmail: string().email().required('Email is required'),
+  accountHolder: string().required('Must enter the name on the card/account'),
+  cardNumber: string().when(['cardPaymentMethod'], {
     is: true,
-    then: yup
-      .string()
-      .required()
-      .matches(/^[0-9]{16}$/, 'Card number must be 16 digits'),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      string()
+        .required()
+        .matches(/^[0-9]{16}$/, 'Card number must be 16 digits'),
+    otherwise: () => string().notRequired(),
   }),
-  cardExpDate: yup.string().when(['cardPaymentMethod'], {
+  cardExpDate: string().when(['cardPaymentMethod'], {
     is: true,
-    then: yup
-      .string()
-      .required('Exp date in format: mm/yy')
-      .matches(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/, 'Exp date in format: mm/yy'),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      string()
+        .required('Exp date in format: mm/yy')
+        .matches(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/, 'Exp date in format: mm/yy'),
+    otherwise: () => string().notRequired(),
   }),
-  cvc: yup.string().when(['cardPaymentMethod'], {
+  cvc: string().when(['cardPaymentMethod'], {
     is: true,
-    then: yup
-      .string()
-      .min(3)
-      .max(4)
-      .required()
-      .matches(/^([0-9]{3,4})$/, 'CVC must be 3 or 4 digits'),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      string()
+        .min(3)
+        .max(4)
+        .required()
+        .matches(/^([0-9]{3,4})$/, 'CVC must be 3 or 4 digits'),
+    otherwise: () => string().notRequired(),
   }),
-  postalCode: yup.string().when(['cardPaymentMethod'], {
+  postalCode: string().when(['cardPaymentMethod'], {
     is: true,
-    then: yup
-      .string()
-      .required('Postal code is required')
-      .matches(/^[0-9]{5}$/, '5 digit postal required'),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      string()
+        .required('Postal code is required')
+        .matches(/^[0-9]{5}$/, '5 digit postal required'),
+    otherwise: () => string().notRequired(),
   }),
-  accountType: yup.string().when(['cardPaymentMethod'], {
+  accountType: string().when(['cardPaymentMethod'], {
     is: false,
-    then: yup
-      .string()
-      .oneOf(['PersonalChecking', 'PersonalSavings', 'CorporateChecking', 'CorporateSavings']),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      string().oneOf([
+        'PersonalChecking',
+        'PersonalSavings',
+        'CorporateChecking',
+        'CorporateSavings',
+      ]),
+    otherwise: () => string().notRequired(),
   }),
-  routingNumber: yup.string().when(['cardPaymentMethod'], {
+  routingNumber: string().when(['cardPaymentMethod'], {
     is: false,
-    then: yup
-      .string()
-      .required()
-      .test('routing-number', 'Invalid routing number', validateRoutingNumber),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      string().required().test('routing-number', 'Invalid routing number', validateRoutingNumber),
+    otherwise: () => string().notRequired(),
   }),
-  accountNumber: yup.string().when(['cardPaymentMethod'], {
+  accountNumber: string().when(['cardPaymentMethod'], {
     is: false,
-    then: yup
-      .string()
-      .min(8, 'Account number must be at least 8 digits')
-      .max(14, 'Account number must be less than 14 digits')
-      .required(),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      string()
+        .min(8, 'Account number must be at least 8 digits')
+        .max(14, 'Account number must be less than 14 digits')
+        .required(),
+    otherwise: () => string().notRequired(),
   }),
 });
 
@@ -161,7 +162,7 @@ const DEV_INITIAL_VALUES: AddPaymentMethodValues = {
   cardPaymentMethod: false,
 };
 const DEFAULT_INITIAL_VALUES =
-  process.env.REACT_APP_DEV === 'true' ? DEV_INITIAL_VALUES : PROD_INITIAL_VALUES;
+  import.meta.env.VITE_DEV === 'true' ? DEV_INITIAL_VALUES : PROD_INITIAL_VALUES;
 
 export const AddPaymentDialog = ({
   cb,

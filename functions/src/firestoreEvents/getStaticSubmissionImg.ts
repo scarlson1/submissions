@@ -2,7 +2,8 @@ import { type QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { COLLECTIONS, getReportErrorFn } from '../common/index.js';
+import { Collection } from '@idemand/common';
+import { getReportErrorFn } from '../common/index.js';
 import { publishGetLocationImages } from '../services/pubsub/index.js';
 
 // TODO: rename
@@ -14,17 +15,17 @@ export default async (
     {
       submissionId: string;
     }
-  >
+  >,
 ) => {
   try {
-    info(`new submission detected`);
+    info('new submission detected');
     await publishGetLocationImages({
-      collection: COLLECTIONS.SUBMISSIONS,
+      collection: Collection.enum.submissions,
       docPath: event.params.submissionId,
       locationPath: [],
     });
-  } catch (err: any) {
-    reportErr(`Error emitted getLocationImage publisher`, { ...event }, err);
+  } catch (err: unknown) {
+    reportErr('Error emitted getLocationImage publisher', { ...event }, err);
   }
 };
 

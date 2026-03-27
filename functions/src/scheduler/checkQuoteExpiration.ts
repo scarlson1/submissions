@@ -1,16 +1,15 @@
 import { addDays, startOfToday, subDays } from 'date-fns';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
 
+import { Quote, WithId } from '@idemand/common';
 import {
-  QUOTE_STATUS,
-  Quote,
-  WithId,
   audience,
   hostingBaseURL,
+  QUOTE_STATUS,
   quotesCollection,
-  sendgridApiKey,
+  resendKey,
 } from '../common/index.js';
 import { sendQuoteExpiringSoonNotification } from '../services/sendgrid/index.js';
 
@@ -24,7 +23,7 @@ import { sendQuoteExpiringSoonNotification } from '../services/sendgrid/index.js
 // Send notification ??
 //    - include -1 day and send email notification of 1-day expiry ??
 
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+// const resendKey = defineSecret('SENDGRID_API_KEY');
 
 /**
  * Scheduled to run at 12:01 AM every day
@@ -40,7 +39,7 @@ export default async (event: ScheduledEvent) => {
   // let currentDate = new Date();
   // currentDate.setHours(0, 0, 0, 0);
   // TODO: FIX START OF DAY IS IN LOCAL TIME ZONE
-  let currentDate = startOfToday();
+  const currentDate = startOfToday();
 
   const startDate = subDays(currentDate, 1);
   const endDate = addDays(currentDate, 1);
@@ -70,39 +69,49 @@ export default async (event: ScheduledEvent) => {
     error('ERROR FETCHING QUOTES EXPIRING WITH 24 HOURS', { err });
   }
 
-  let expired = [];
-  let expireIn24Hours = [];
+  const expired = [];
+  const expireIn24Hours = [];
 
   try {
-    let currDateSeconds = currentDate.getTime();
+    const currDateSeconds = currentDate.getTime();
     for (const quote of quoteDocs) {
-      let expTS = quote.quoteExpirationDate as Timestamp;
-      if (expTS.toMillis() < currDateSeconds || expTS.isEqual(Timestamp.fromDate(currentDate))) {
-        info(`QUOTE ${quote.id} expires ${expTS.toDate()} --> SETTING STATUS: EXPIRED`);
+      const expTS = quote.quoteExpirationDate as Timestamp;
+      if (
+        expTS.toMillis() < currDateSeconds ||
+        expTS.isEqual(Timestamp.fromDate(currentDate))
+      ) {
+        info(
+          `QUOTE ${quote.id} expires ${expTS.toDate()} --> SETTING STATUS: EXPIRED`,
+        );
 
         expired.push(quote);
       } else {
         info(
-          `QUOTE ${quote.id} expires within 24 hours --> SENDING REMINDER EMAIL TO INSURED AND AGENT`
+          `QUOTE ${quote.id} expires within 24 hours --> SENDING REMINDER EMAIL TO INSURED AND AGENT`,
         );
 
         expireIn24Hours.push(quote);
       }
     }
   } catch (err) {
-    error('ERROR SEPARATING EXPIRED QUOTES FROM QUOTES EXPIRING WITHIN 24 HOURS', { err });
+    error(
+      'ERROR SEPARATING EXPIRED QUOTES FROM QUOTES EXPIRING WITHIN 24 HOURS',
+      { err },
+    );
   }
 
   try {
     if (expired.length) {
       // TODO: update status for each doc
       for (const quote of expired) {
-        let quoteRef = quotesCollRef.doc(quote.id);
+        const quoteRef = quotesCollRef.doc(quote.id);
         await quoteRef.update({
           status: QUOTE_STATUS.EXPIRED,
           'metadata.updated': Timestamp.now(),
         });
-        console.log(`QUOTE ${quote.id} STATUS UPDATED TO "${QUOTE_STATUS.EXPIRED}"`);
+        console.log(
+          `QUOTE ${quote.id} STATUS UPDATED TO "${QUOTE_STATUS.EXPIRED}"`,
+        );
       }
     }
   } catch (err) {
@@ -114,31 +123,36 @@ export default async (event: ScheduledEvent) => {
     if (expireIn24Hours.length) {
       // TODO: send notifications
       for (const quote of expireIn24Hours) {
-        let to = [];
+        const to = [];
         if (quote.namedInsured?.email) to.push(quote.namedInsured?.email);
         if (quote.agent?.email) to.push(quote.agent?.email);
-        if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
-          to.push('spencer.carlson@idemandinsurance.com');
+        if (
+          audience.value() === 'DEV HUMANS' ||
+          audience.value() === 'LOCAL HUMANS'
+        ) {
+          to.push('spencer@s-carlson.com');
         }
 
         if (to.length) {
-          info(`Expires soon notification ${quote.id}. Notifying: ${JSON.stringify(to)}`);
+          info(
+            `Expires soon notification ${quote.id}. Notifying: ${JSON.stringify(to)}`,
+          );
 
           const link = `${hostingBaseURL.value()}/quotes/${quote.id}`;
 
           const addressLine1 = quote.address?.addressLine1;
 
           await sendQuoteExpiringSoonNotification(
-            sendgridApiKey.value(),
+            resendKey.value(),
             to,
             link,
             addressLine1,
             undefined,
-            {
-              customArgs: {
-                emailType: 'quote_expiring',
-              },
-            }
+            // {
+            //   customArgs: {
+            //     emailType: 'quote_expiring',
+            //   },
+            // },
           );
         }
       }

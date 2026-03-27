@@ -3,19 +3,12 @@ import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, COLLECTIONS, SUBMISSION_STATUS, Submission } from 'common';
-import { ServerDataGrid, ServerDataGridProps } from 'components';
+import { CLAIMS, SUBMISSION_STATUS, ServerDataGridCollectionProps, Submission } from 'common';
+import { ServerDataGrid } from 'components';
 import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
 import { SUBMISSION_COLUMN_VISIBILITY, statusCol, submissionCols } from 'modules/muiGrid';
 
-export interface SubmissionsGridProps
-  extends Omit<
-    ServerDataGridProps,
-    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
-  > {
-  renderActions?: (params: GridRowParams) => JSX.Element[];
-  additionalColumns?: GridColDef<any, any, any>[];
-}
+export type SubmissionsGridProps = ServerDataGridCollectionProps<Submission, Submission>;
 
 export const SubmissionsGrid = ({
   renderActions = () => [],
@@ -24,10 +17,10 @@ export const SubmissionsGrid = ({
 }: SubmissionsGridProps) => {
   const toast = useAsyncToast({ position: 'top-right' });
   const { isSmall } = useWidth();
-  // const showJson = useShowJson<Submission>(COLLECTIONS.SUBMISSIONS);
+  // const showJson = useShowJson<Submission>(Collection.Enum.submissions);
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
   const renderShowJson = useGridShowJson(
-    COLLECTIONS.SUBMISSIONS,
+    'submissions',
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );
@@ -35,33 +28,6 @@ export const SubmissionsGrid = ({
   const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
-
-  // const handleShowJson = useCallback(
-  //   (params: GridRowParams) => () => showJson(params.id.toString()),
-  //   [showJson]
-  // );
-
-  // const renderAdminActions = useCallback(
-  //   (params: GridRowParams<Submission>, options?: ActionOptions) => {
-  //     if (!iDAdminResult.hasRequiredClaims) return [];
-  //     return [
-  //       // @ts-ignore
-  //       <GridActionsCellItem
-  //         icon={
-  //           <Tooltip title='show JSON' placement='top'>
-  //             <DataObjectRounded />
-  //           </Tooltip>
-  //         }
-  //         onClick={handleShowJson(params)}
-  //         label='Show JSON'
-  //         disabled={!iDAdminResult.hasRequiredClaims}
-  //         showInMenu
-  //         {...(options || {})}
-  //       />,
-  //     ];
-  //   },
-  //   [iDAdminResult, handleShowJson]
-  // );
 
   const submissionColumns: GridColDef[] = useMemo(
     () => [
@@ -75,17 +41,6 @@ export const SubmissionsGrid = ({
           ...renderShowJson(params),
           googleMapsAction(params, { showInMenu: isSmall }),
           floodFactorAction(params, { showInMenu: isSmall }),
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip title='show JSON' placement='top'>
-          //       <DataObjectRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={handleShowJson(params)}
-          //   label='Show JSON'
-          //   disabled={!iDAdminResult.hasRequiredClaims}
-          //   showInMenu // showInMenu={isSmall}
-          // />,
         ],
       },
       {
@@ -119,7 +74,7 @@ export const SubmissionsGrid = ({
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
       <ServerDataGrid
-        colName='SUBMISSIONS'
+        colName='submissions'
         columns={submissionColumns}
         density='compact'
         autoHeight

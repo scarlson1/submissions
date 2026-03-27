@@ -4,21 +4,14 @@ import { capitalize } from 'lodash';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { CLAIMS, COLLECTIONS, ImportSummary, WithId } from 'common';
-import { ServerDataGrid, ServerDataGridProps } from 'components';
+import { CLAIMS, ImportSummary, ServerDataGridCollectionProps, WithId } from 'common';
+import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
 import { importSummaryCols } from 'modules/muiGrid';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
 
-export interface ImportSummaryGridProps
-  extends Omit<
-    ServerDataGridProps,
-    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
-  > {
-  renderActions?: (params: GridRowParams) => JSX.Element[];
-  // additionalColumns?: GridColDef<any, any, any>[];
-}
+export type ImportSummaryGridProps = ServerDataGridCollectionProps<ImportSummary>;
 
 export const ImportsSummaryGrid = ({
   renderActions = () => [],
@@ -26,7 +19,7 @@ export const ImportsSummaryGrid = ({
 }: ImportSummaryGridProps) => {
   const navigate = useNavigate();
   const renderShowJson = useGridShowJson(
-    COLLECTIONS.DATA_IMPORTS,
+    'dataImports',
     { showInMenu: false },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
     getImportSummaryTitle
@@ -52,7 +45,7 @@ export const ImportsSummaryGrid = ({
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
       <ServerDataGrid
-        colName='DATA_IMPORTS'
+        colName='dataImports'
         columns={importColumns}
         density='compact'
         autoHeight

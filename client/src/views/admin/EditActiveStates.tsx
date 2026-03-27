@@ -8,7 +8,7 @@ import {
   Unstable_Grid2 as Grid,
   Typography,
 } from '@mui/material';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 import { Timestamp, doc, setDoc, where } from 'firebase/firestore';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { capitalize } from 'lodash';
@@ -23,6 +23,7 @@ import { ErrorFallback } from 'components';
 import { FormikSwitch } from 'components/forms';
 import { ActiveStateMap } from 'elements/maps/ActiveStateMap';
 import { useDocData, useFetchLicenses, useSafeParams } from 'hooks';
+import { logDev } from 'modules/utils';
 
 // TODO: box around map and switches. max height around switches. remove map from grid
 
@@ -33,11 +34,13 @@ export interface EditActiveStatesValues {
 export const EditActiveStates = () => {
   const firestore = useFirestore();
   let { productId } = useSafeParams(['productId']);
-  const { data } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId);
-  const fetchLicenses = useFetchLicenses([where('surplusLinesProducerOfRecord', '==', true)]);
+  const { data } = useDocData<{ [key: string]: boolean }>('states', productId);
+  const fetchLicenses = useFetchLicenses([
+    where('surplusLinesProducerOfRecord', '==', true),
+  ]);
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
 
-  const { id, ...states } = data;
+  const { id, ...states } = data; // reactFire adds doc id
 
   const handleSave = useCallback(() => {
     formikRef.current?.submitForm();
@@ -50,15 +53,16 @@ export const EditActiveStates = () => {
         delete values.NO_ID_FIELD;
 
         const enabledStates = Object.entries(values)
-          .filter(([state, val]) => !!val) // state !== 'productId' &&
+          .filter(([state, val]) => !!val)
           .map(([state]) => state);
-        console.log('Enabled states: ', enabledStates);
+        logDev('Enabled states: ', enabledStates);
 
         const licenses = await fetchLicenses(enabledStates, Timestamp.now());
 
         for (let state of enabledStates) {
           const licenseMatch = licenses.find((l) => l.state === state);
-          if (!licenseMatch) throw new Error(`No Surplus Lines license found for ${state}`);
+          if (!licenseMatch)
+            throw new Error(`No Surplus Lines license found for ${state}`);
         }
 
         const docRef = doc(statesCollection(firestore), productId);
@@ -73,7 +77,7 @@ export const EditActiveStates = () => {
 
       setSubmitting(false);
     },
-    [firestore, productId, fetchLicenses]
+    [firestore, productId, fetchLicenses],
   );
 
   const handleStateClicked = useCallback((info: PickingInfo, e: any) => {
@@ -83,7 +87,6 @@ export const EditActiveStates = () => {
     formikRef.current?.setFieldValue(key, !currVal);
   }, []);
 
-  console.log('DATA: ', data);
   return (
     <Box>
       <Box
@@ -194,15 +197,24 @@ export const EditActiveStates = () => {
                       name={s.abbreviation}
                       label={s.name}
                       formControlLabelProps={{
-                        componentsProps: { typography: { variant: 'body2', px: 2 } },
+                        componentsProps: {
+                          typography: { variant: 'body2', px: 2 },
+                        },
                       }}
                     />
                   </Grid>
                 ))}
               </Grid>
-              {/* <Grid xs={12} sx={{ px: { xs: 0 } }}> */}
+
               <Divider sx={{ my: 3 }} />
-              <Box sx={{ py: { xs: 4, md: 6 }, height: 500, width: '100%', mb: 20 }}>
+              <Box
+                sx={{
+                  py: { xs: 4, md: 6 },
+                  height: 500,
+                  width: '100%',
+                  mb: 20,
+                }}
+              >
                 <ErrorBoundary
                   FallbackComponent={ErrorFallback}
                   onReset={() => (productId = 'flood')}
@@ -210,12 +222,14 @@ export const EditActiveStates = () => {
                 >
                   <Suspense fallback={<CircularProgress color='secondary' />}>
                     <Card sx={{ height: 'inherit', width: 'inherit' }}>
-                      <ActiveStateMap handleClick={handleStateClicked} statesValues={values} />
+                      <ActiveStateMap
+                        handleClick={handleStateClicked}
+                        statesValues={values}
+                      />
                     </Card>
                   </Suspense>
                 </ErrorBoundary>
               </Box>
-              {/* </Grid> */}
             </Box>
           )}
         </Formik>

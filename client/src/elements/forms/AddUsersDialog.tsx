@@ -1,21 +1,24 @@
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  DialogTitle,
   alpha,
+  Button,
   ButtonProps,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from '@mui/material';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
-import * as yup from 'yup';
+import { array, object, string } from 'yup';
 
-import { FormikFieldArray } from 'components/forms';
-import { useInviteUsers } from 'hooks';
 import { InviteUsersResponse, NewUser } from 'api';
 import { CLAIMS } from 'common';
+import { FormikFieldArray } from 'components/forms';
+import { useInviteUsers } from 'hooks';
+
+// TODO: duplicate code with <AddAgents /> ??
+// use other wizard component and reuse form
 
 export interface AddUserValues {
   users: NewUser[];
@@ -30,20 +33,20 @@ const initialValues: AddUserValues = {
     },
   ],
 };
-const validation = yup.object().shape({
-  users: yup.array().of(
-    yup.object().shape({
-      email: yup.string().email('Must be a valid email').required('Email is required'),
-      name: yup
-        .string()
+const validation = object().shape({
+  users: array().of(
+    object().shape({
+      email: string()
+        .email('Must be a valid email')
+        .required('Email is required'),
+      name: string()
         .min(3, 'Please enter full name')
         .max(40, 'Must be less than 40 characters')
         .required('Full name is required'),
-      access: yup
-        .string()
+      access: string()
         .oneOf(['agent', 'orgAdmin'], 'Please select an option')
         .required('Access level required'),
-    })
+    }),
   ),
 });
 
@@ -84,12 +87,13 @@ export const AddUsersDialog = ({
   const handleSubmit = useCallback(
     async (values: AddUserValues, helpers: FormikHelpers<AddUserValues>) => {
       console.log('values => ', values);
-      let tenantId = orgId === 'idemand' ? null : orgId;
+      let tenantId =
+        orgId === import.meta.env.VITE_IDEMAND_ORG_ID ? null : orgId;
 
       await inviteUsers(values.users, tenantId, orgId);
       helpers.setSubmitting(false);
     },
-    [inviteUsers, orgId]
+    [inviteUsers, orgId],
   );
 
   return (

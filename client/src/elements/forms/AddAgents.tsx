@@ -1,31 +1,6 @@
 import { useFormikContext } from 'formik';
-import * as yup from 'yup';
 
 import { FormikFieldArray, IMask, phoneMaskProps } from 'components/forms';
-import { emailVal, phoneVal } from 'common';
-
-export const agentsValidation = yup.object().shape({
-  agents: yup.array().of(
-    yup.object().shape({
-      email: emailVal.required(),
-      firstName: yup
-        .string()
-        .min(2, 'Please enter first name. Min 2 letters.')
-        .max(40, 'Must be less than 40 characters')
-        .required('Full name is required'),
-      lastName: yup
-        .string()
-        .min(2, 'Please enter first name. Min 2 letters.')
-        .max(40, 'Must be less than 40 characters')
-        .required('Full name is required'),
-      phone: phoneVal.required(),
-      // access: yup
-      //   .string()
-      //   .oneOf(['admin', 'agent'], 'Please select an option')
-      //   .required('Access level required'),
-    })
-  ),
-});
 
 export interface AddAgentsProps {}
 

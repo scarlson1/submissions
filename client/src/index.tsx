@@ -58,7 +58,7 @@ root.render(
 
 function LoadingSpinner() {
   // const emulatorsMsg =
-  //   process.env.REACT_APP_EMULATORS === 'true' ? <div>top level suspense fallback</div> : null;
+  //   import.meta.env.VITE_EMULATORS === 'true' ? <div>top level suspense fallback</div> : null;
   return (
     <Box
       sx={{

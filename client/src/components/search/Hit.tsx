@@ -1,7 +1,7 @@
 import { Box, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
-import { COLLECTIONS, InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import { Collection, InternalDocSearchHit, StoredDocSearchHit } from 'common';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
 interface HitProps {
@@ -26,28 +26,33 @@ export function Hit({ hit, children }: HitProps) {
 
 // TODO: get url func (different routes for agents vs idemand admin vs user ?? orgs, for example)
 export function getURLByType(item: any) {
-  // const base = process.env.REACT_APP_HOSTING_URL;
+  // const base = import.meta.env.VITE_HOSTING_URL;
   let url = '';
   // TODO: user route, financial trx,
   // if (item.type === 'user') {
   //   // url = `${base}/user/${item.objectID}`;
   //   url = `/user/${item.objectID}`;
   // }
-  if (item.type === COLLECTIONS.QUOTES) {
+  if (item.collectionName === Collection.Enum.quotes) {
     url = createPath({ path: ROUTES.QUOTE_VIEW, params: { quoteId: item.objectID } });
   }
-  if (item.collectionName === COLLECTIONS.ORGANIZATIONS) {
+  if (item.collectionName === Collection.Enum.organizations) {
     url = createPath({ path: ADMIN_ROUTES.ORGANIZATION, params: { orgId: item.objectID } });
   }
-  if (item.collectionName === COLLECTIONS.SUBMISSIONS) {
+  // TODO: need to create user submission view
+  if (item.collectionName === Collection.Enum.submissions) {
     url = createPath({
       path: ADMIN_ROUTES.SUBMISSION_VIEW,
       params: { submissionId: item.objectID },
     });
   }
   // TODO: standardize routes
-  if (item.collectionName === COLLECTIONS.POLICIES) {
+  if (item.collectionName === Collection.Enum.policies) {
     url = createPath({ path: ROUTES.POLICY, params: { policyId: item.objectID } });
+  }
+  if (item.collectionName === Collection.Enum.users) {
+    // TODO: create user route
+    url = createPath({ path: ROUTES.USER, params: { userId: item.objectID } });
   }
   // TODO: finish getUrl func
   return url;

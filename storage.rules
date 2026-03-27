@@ -74,8 +74,11 @@ service firebase.storage {
 
     // TODO: don't allow delete ?? unless admin ??
     match /policies/{policyId}/claims/{claimId}/{fileName} {
-        allow read, write: if (isAuthenticated() && isUserOrAgent(firestore.get(/databases/(default)/documents/policies/$(policyId)))) || isIDemandAdmin()
+      allow read,write: if isAuthenticated()
+      // TODO: fix rules
+        // allow read, write: if (isAuthenticated() && isUserOrAgent(firestore.get(/databases/(default)/documents/policies/$(policyId)))) || isIDemandAdmin()
       }
+      // policies/IDP0GLKKks/claims/04zzFQj1Nao7ocFpdSzW/1702503242538_stock_flood_damage_1.jpeg
 
     
 
@@ -92,7 +95,7 @@ service firebase.storage {
       allow write: if isIDemandAdmin()
     }
 
-    match /org/{orgId}/{file=**} {
+    match /organizations/{orgId}/{file=**} {
       allow read: if isTenantUser(orgId) || isIDemandAdmin()
       allow create, update: if isTenantUser(orgId) || isIDemandAdmin()
       allow delete: if isIDemandAdmin()
@@ -177,7 +180,7 @@ service firebase.storage {
     }
 
   function isUserOrAgent(doc) {
-    return doc.userId == request.auth.uid || doc.agentId == request.auth.uid || (doc.agent && (doc.agent.userId == request.auth.uid));
+    return doc.userId == request.auth.uid || doc.agentId == request.auth.uid || doc.get(["agent","userId"], null) == request.auth.uid // || (doc.agent && (doc.agent.userId == request.auth.uid));
   }
 
   function getDoc(path) {

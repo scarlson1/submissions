@@ -6,8 +6,8 @@
   /* --docsearch-primary-color:  rgb(84, 104, 255); */
   /* --docsearch-text-color: rgb(28, 30, 33); */
   /* --docsearch-muted-color: rgb(150, 159, 175); */
-  --docsearch-primary-color: #007fff;
-  --docsearch-text-color: #1a2027;
+  --docsearch-primary-color: var(--idemand-palette-primary-main); /* #007fff; */
+  --docsearch-text-color: var(--idemand-palette-text-primary) /* #1a2027; */
   --docsearch-muted-color: #6f7e8c;
   --docsearch-spacing: 12px;
   --docsearch-icon-stroke-width: 1.4;
@@ -18,7 +18,7 @@
 
   --docsearch-container-background: rgba(101, 108, 133, 0.8);
   /* --docsearch-logo-color: rgba(84, 104, 255); */
-  --docsearch-logo-color: #6f7e8c;
+  --docsearch-logo-color: var(--idemand-palette-grey-light) /* #6f7e8c; */
 
   /* modal */
   --docsearch-modal-width: 500px;
@@ -62,12 +62,13 @@
   /* --docsearch-footer-shadow: 0 -1px 0 0 rgb(224, 227, 232), 0 -3px 6px 0 rgba(69, 98, 155, 0.12); */
 }
 
-/* Darkmode */
+/* Dark mode */
 
 /* html[data-theme='dark'] { */
 body[data-theme='dark'] {
   /* --docsearch-text-color: rgb(245, 246, 247); */
-  --docsearch-text-color: #b2bac2;
+  /* --docsearch-text-color: #b2bac2; */
+  --docsearch-text-color: var(--idemand-palette-text-primary)
   /* --docsearch-container-background: rgba(9, 10, 17, 0.8); */
   --docsearch-container-background: #0a1929;
   --docsearch-highlight-color: #173a5e;

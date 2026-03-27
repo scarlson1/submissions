@@ -1,26 +1,19 @@
 import { Box, Unstable_Grid2 as Grid } from '@mui/material';
 import algoliasearch from 'algoliasearch/lite';
-import {
-  InstantSearch,
-  Hits,
-  Index,
-  Pagination,
-  SearchBox,
-  // Configure,
-} from 'react-instantsearch-hooks-web';
+import { Hits, Index, InstantSearch, Pagination, SearchBox } from 'react-instantsearch';
 // import { SearchModal } from './SearchModal';
 
 // import { Autocomplete } from './AlgoliaAutocompleteExample';
 // DOC SEARCH modal component: https://github.com/algolia/docsearch/blob/main/packages/docsearch-react/src/DocSearchModal.tsx
 
 const searchClient = algoliasearch(
-  process.env.REACT_APP_ALGOLIA_APP_ID as string,
-  process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string
+  import.meta.env.VITE_ALGOLIA_APP_ID as string,
+  import.meta.env.VITE_ALGOLIA_SEARCH_KEY as string
 );
 
 export const SearchOld = () => {
-  // const appId = process.env.REACT_APP_ALGOLIA_APP_ID as string;
-  // const searchKey = process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string;
+  // const appId = import.meta.env.VITE_ALGOLIA_APP_ID as string;
+  // const searchKey = import.meta.env.VITE_ALGOLIA_SEARCH_KEY as string;
 
   return (
     <Box>

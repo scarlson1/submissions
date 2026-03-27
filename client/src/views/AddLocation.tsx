@@ -1,6 +1,6 @@
+import { PageMeta } from 'components';
 import AddLocationComponent from 'elements/forms/AddLocation';
 import { useSafeParams } from 'hooks';
-import { PageMeta } from 'router';
 
 export function AddLocation() {
   const { policyId } = useSafeParams(['policyId']);

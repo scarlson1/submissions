@@ -51,6 +51,12 @@ module.exports = {
     'no-var': 'warn',
     'operator-linebreak': 'off',
     'new-cap': 'warn',
+    semi: 'warn',
+    'comma-dangle': 'off',
+    'arrow-parens': 'off',
+    'no-trailing-spaces': 'warn',
+    'no-multiple-empty-lines': 'warn',
+    'no-multi-spaces': ['warn', { ignoreEOLComments: true }],
     'require-jsdoc': [
       'warn',
       {
@@ -81,7 +87,15 @@ module.exports = {
     'import/order': [
       'warn', // 'off', //
       {
-        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object'],
+        groups: [
+          'builtin',
+          'external',
+          'internal',
+          'parent',
+          'sibling',
+          'index',
+          'object',
+        ],
       },
     ],
     'import/no-named-as-default': 'off',

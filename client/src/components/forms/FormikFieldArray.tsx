@@ -1,4 +1,4 @@
-import { ForwardRefExoticComponent, useMemo } from 'react';
+import { RemoveCircleOutlineRounded } from '@mui/icons-material';
 import {
   Box,
   BoxProps,
@@ -6,19 +6,20 @@ import {
   ButtonProps,
   Divider,
   DividerProps,
-  IconButton,
   // InputBaseComponentProps,
   Unstable_Grid2 as Grid,
   Grid2Props,
+  IconButton,
 } from '@mui/material';
-import { RemoveCircleOutlineRounded } from '@mui/icons-material';
 import { FieldArray } from 'formik'; // getIn
+import { ForwardRefExoticComponent, useMemo } from 'react';
 
-import { FormikTextField, FormikTextFieldProps } from './FormikTextField';
-import { FormikMaskField, FormikMaskFieldProps } from './FormikMaskField';
-import FormikDollarMaskField, { FormikDollarMaskFieldProps } from './FormikDollarMaskField';
-import { FormikNativeSelect, FormikNativeSelectProps } from './FormikNativeSelect';
 import { FormikAddressLite, FormikAddressLiteProps } from 'elements/forms';
+import FormikCheckbox from './FormikCheckbox';
+import FormikDollarMaskField, { FormikDollarMaskFieldProps } from './FormikDollarMaskField';
+import { FormikMaskField, FormikMaskFieldProps } from './FormikMaskField';
+import { FormikNativeSelect, FormikNativeSelectProps } from './FormikNativeSelect';
+import { FormikTextField, FormikTextFieldProps } from './FormikTextField';
 
 // https://stackoverflow.com/questions/53958028/how-to-use-generics-in-props-in-react-in-a-functional-component
 
@@ -30,14 +31,14 @@ export interface SelectOption {
 }
 
 export interface CommonFieldProps {
-  name: string;
+  name: string | null;
   label: string;
   required: boolean;
   // inputType: 'text' | 'select' | 'phone' | 'dollar' | 'address' | 'mask';
   variant?: 'standard' | 'outlined' | 'filled';
   size?: 'small' | 'medium';
   gridProps?: Grid2Props;
-  propsGetterFunc?: (index: number, parentField: string, name: string) => any;
+  propsGetterFunc?: (index: number, parentField: string, name?: string | null) => any;
   // inputProps?: InputBaseComponentProps;
   helperText?: string;
 }
@@ -72,6 +73,10 @@ export interface MaskTypeProps extends Omit<CommonFieldProps, 'inputProps'> {
   inputProps?: FormikMaskFieldProps['inputProps'];
   componentProps?: Omit<FormikMaskFieldProps, 'id' | 'name' | 'label' | 'maskComponent'>; // Partial<FormikMaskFieldProps>
 }
+export interface CheckboxTypeProps extends CommonFieldProps {
+  inputType: 'checkbox';
+  componentProps?: Partial<FormikNativeSelectProps>;
+}
 
 export type InputSchemas =
   | TextTypeProps
@@ -79,7 +84,8 @@ export type InputSchemas =
   | PhoneTypeProps
   | DollarTypeProps
   | AddressTypeProps
-  | MaskTypeProps;
+  | MaskTypeProps
+  | CheckboxTypeProps;
 
 export interface FormikFieldArrayProps {
   parentField: string;
@@ -105,6 +111,10 @@ export interface FormikFieldArrayProps {
   // customFields?: React.ReactNode[];
 }
 
+function getFieldName(parentField: string, index: number, name?: string | null) {
+  return name ? `${parentField}[${index}][${name}]` : `${parentField}[${index}]`;
+}
+
 // TODO: recursively add fields to row in getNewRow
 // function isObject(object) {
 //   return object != null && typeof object === 'object';
@@ -127,15 +137,17 @@ export const FormikFieldArray = ({
   disabled,
 }: FormikFieldArrayProps) => {
   const getNewRow = () => {
+    if (inputFields.length === 1 && !inputFields[0].name) return '';
+
     let row: { [key: string]: string | { [key: string]: string } } = {};
 
     for (let field of inputFields) {
-      if (field.name.includes('.')) {
+      if (field.name?.includes('.')) {
         const split = field.name.split('.');
         const nestedVal: any = {};
         nestedVal[split[1]] = '';
         row[split[0]] = nestedVal;
-      } else {
+      } else if (field.name) {
         row[field.name] = '';
       }
     }
@@ -157,9 +169,7 @@ export const FormikFieldArray = ({
           <Box {...listContainerProps}>
             {values[parentField].length > 0 ? (
               values[parentField].map((item: any, index: number) => (
-                <Box key={index}>
-                  {/* <Grid container spacing={2} sx={{ py: 2 }} {...gridProps}> */}
-                  {/* <Grid container spacing={3} xs={10} sm={11}> */}
+                <Box key={`${parentField}-${index}`}>
                   <Box sx={{ display: 'flex' }}>
                     <Grid
                       container
@@ -190,12 +200,13 @@ export const FormikFieldArray = ({
                                 {/* @ts-ignore */}
                                 <FormikTextField
                                   fullWidth
-                                  id={name}
+                                  id={name || `${parentField}-${index}-${index}`}
                                   label={label}
                                   required={required}
                                   variant={variant}
                                   size={size}
-                                  name={`${parentField}[${index}][${name}]`}
+                                  name={getFieldName(parentField, index, name)}
+                                  // name={`${parentField}[${index}][${name}]`}
                                   // inputProps={...{rest.inputProps}}
                                   disabled={disabled}
                                   {...props}
@@ -211,11 +222,13 @@ export const FormikFieldArray = ({
                               <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
                                 <FormikNativeSelect
                                   fullWidth
-                                  id={name}
+                                  // id={name}
+                                  id={name || `${parentField}-${index}-${index}`}
                                   label={label}
                                   required={required}
                                   variant={variant}
-                                  name={`${parentField}[${index}][${name}]`}
+                                  name={getFieldName(parentField, index, name)}
+                                  // name={`${parentField}[${index}][${name}]`}
                                   // @ts-ignore
                                   selectOptions={props.selectOptions}
                                   disabled={disabled}
@@ -225,35 +238,17 @@ export const FormikFieldArray = ({
                               </Grid>
                             );
                           }
-                          // if (inputType === 'phone') {
-                          //   return (
-                          //     <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
-                          //       <FormikMaskField
-                          //         fullWidth
-                          //         id={name}
-                          //         label={label}
-                          //         required={required}
-                          //         name={`${parentField}[${index}][${name}]`}
-                          //         maskComponent={PhoneMask}
-                          //         // @ts-ignore
-                          //         inputProps={{ ...props.inputProps }}
-                          //         disabled={disabled}
-                          //         {...(componentProps as MaskTypeProps['componentProps'])}
-                          //         {...propsGetterFunc(index, parentField, name)}
-                          //         // {...rest}
-                          //       />
-                          //     </Grid>
-                          //   );
-                          // }
                           if (inputType === 'mask') {
                             return (
                               <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
                                 <FormikMaskField
                                   fullWidth
-                                  id={name}
+                                  // id={name}
+                                  id={name || `${parentField}-${index}-${index}`}
                                   label={label}
                                   required={required}
-                                  name={`${parentField}[${index}][${name}]`}
+                                  name={getFieldName(parentField, index, name)}
+                                  // name={`${parentField}[${index}][${name}]`}
                                   //@ts-ignore
                                   maskComponent={props.maskComponent || PhoneMask}
                                   // inputProps={{ ...props.inputProps }}
@@ -273,10 +268,12 @@ export const FormikFieldArray = ({
                               <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
                                 <FormikDollarMaskField
                                   fullWidth
-                                  id={name}
+                                  // id={name}
+                                  id={name || `${parentField}-${index}-${index}`}
                                   label={label}
                                   required={required}
-                                  name={`${parentField}[${index}][${name}]`}
+                                  name={getFieldName(parentField, index, name)}
+                                  // name={`${parentField}[${index}][${name}]`}
                                   decimalScale={2}
                                   // inputProps={{...rest.inputProps} as FormikMaskFieldProps}
                                   disabled={disabled}
@@ -308,6 +305,21 @@ export const FormikFieldArray = ({
                               </Grid>
                             );
                           }
+                          if (inputType === 'checkbox') {
+                            return (
+                              <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
+                                <FormikCheckbox
+                                  name={getFieldName(parentField, index, name)}
+                                  checkboxProps={{
+                                    id: name || `${parentField}-${index}-${index}`,
+                                  }}
+                                  label={label}
+                                  disabled={disabled}
+                                  labelPlacement='end'
+                                />
+                              </Grid>
+                            );
+                          }
                           return null;
                         }
                       )}
@@ -321,35 +333,17 @@ export const FormikFieldArray = ({
                     >
                       <IconButton
                         aria-label='remove'
-                        color='secondary'
+                        // color='secondary'
+                        color='error'
                         onClick={() => remove(index)}
                         // disabled={values[parentField].length === 1 || isValidating || isSubmitting}
                         disabled={isValidating || isSubmitting || disabled}
-                        sx={{ maxHeight: 40 }}
+                        sx={{ maxHeight: 40, ml: 2 }}
                       >
                         <RemoveCircleOutlineRounded fontSize='inherit' />
                       </IconButton>
                     </Box>
                   </Box>
-                  {/* <Grid
-                    xs
-                    display='flex'
-                    alignContent='center'
-                    justifyContent='center'
-                    alignItems='center'
-                  >
-                    <IconButton
-                      aria-label='remove'
-                      color='secondary'
-                      onClick={() => remove(index)}
-                      // disabled={values[parentField].length === 1 || isValidating || isSubmitting}
-                      disabled={isValidating || isSubmitting}
-                      sx={{ maxHeight: 40 }}
-                    >
-                      <RemoveCircleOutlineRounded fontSize='inherit' />
-                    </IconButton>
-                  </Grid> */}
-                  {/* </Grid> */}
                   {dividers && <Divider {...dividerProps} />}
                   {index + 1 === values[parentField].length && (
                     <Button
@@ -369,7 +363,7 @@ export const FormikFieldArray = ({
               <Button
                 aria-label='add'
                 onClick={() => push(getNewRow())}
-                disabled={!arrayValid || isValidating || isSubmitting || disabled}
+                disabled={isValidating || isSubmitting || disabled}
                 variant='contained'
                 {...addButtonProps}
               >

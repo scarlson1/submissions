@@ -23,8 +23,7 @@ import { isEqual } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import { CLAIMS, COLLECTIONS, ChangeRequest, WithId } from 'common';
-import { ChangeRequestStatus } from 'common/enums';
+import { CLAIMS, ChangeRequest, ChangeRequestStatus, Collection, WithId } from 'common';
 import { ErrorFallback } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';
@@ -64,9 +63,9 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
     return constraints;
   }, [claims, user, orgId, policyId]);
 
-  // const colBase = policyId ? COLLECTIONS.POLICIES : COLLECTIONS.CHANGE_REQUESTS;
+  // const colBase = policyId ? Collection.Enum.policies : Collection.Enum.changeRequests;
   // const isCollectionGroupQuery = !policyId;
-  // const pathSegments = policyId ? [policyId, COLLECTIONS.CHANGE_REQUESTS] : [];
+  // const pathSegments = policyId ? [policyId, Collection.Enum.changeRequests] : [];
   // const { data: count } = useDocCount(
   //   colBase,
   //   countConstraints,
@@ -74,7 +73,7 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   //   pathSegments
   // );
 
-  const { data: count } = useDocCount(COLLECTIONS.CHANGE_REQUESTS, countConstraints, true);
+  const { data: count } = useDocCount(Collection.Enum.changeRequests, countConstraints, true);
 
   const [open, setOpen] = useState(false);
 
@@ -93,18 +92,20 @@ interface ChangeRequestsDialogProps {
   policyId?: string; // optionally narrow to single policy
 }
 
+// TODO: use useConfirmAndUpdate hook ??
+
 export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequestsDialogProps) {
   const { claims } = useAuth();
   const { isSmall } = useWidth();
   const toast = useAsyncToast({ position: 'top-right' });
 
   const renderShowJson = useGridShowJson<ChangeRequest>(
-    COLLECTIONS.POLICIES,
+    Collection.Enum.policies,
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
     (data) => `Change Request ${data.id}`,
     undefined,
-    (params) => `${params.row?.policyId}/${COLLECTIONS.CHANGE_REQUESTS}/${params.id.toString()}`
+    (params) => `${params.row?.policyId}/${Collection.Enum.changeRequests}/${params.id.toString()}`
   );
 
   const { approveRequest, denyRequest, cancelRequest, updateChangeRequest, refreshPolicyChanges } =
@@ -113,6 +114,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
   const { previewChange: previewChangeFn } = usePreviewChangeRequest((msg) => toast.error(msg));
 
   const { getEditRowModeActions, getEditModeProps } = useGridEditMode<ChangeRequest>({
+    // @ts-ignore
     editableCells: ['status', 'requestEffDate', 'underwriterNotes'],
   });
 
@@ -276,7 +278,6 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     getEditRowModeActions,
   ]);
 
-  // TODO: need to add error boundary around suspense
   return (
     <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>
       <DialogTitle>Policy Change Requests</DialogTitle>

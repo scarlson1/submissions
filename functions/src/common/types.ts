@@ -1,44 +1,46 @@
+import {
+  AgencyDetails,
+  AgentDetails,
+  Basement,
+  BillingEntity,
+  CBRSDesignation,
+  ChangeRequestTrxType,
+  FeeItem,
+  FloodZone,
+  ILocation,
+  ILocationPolicy,
+  NamedInsuredDetails,
+  OrgType,
+  Policy,
+  PolicyLocation,
+  PriorLossCount,
+  Product,
+  Quote,
+  TaxItem,
+  Totals,
+  TransactionType,
+} from '@idemand/common';
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import {
   GeoPoint as FirestoreGeoPoint,
   Timestamp as FirestoreTimestamp,
 } from 'firebase-admin/firestore';
-import { Geohash } from 'geofire-common';
-
 import { z } from 'zod';
-import { CalcPolicyChangesResult, SecondaryFactorMults } from '../modules/rating/index.js';
+
+import {
+  CalcPolicyChangesResult,
+  SecondaryFactorMults,
+} from '../modules/rating/index.js';
 import { ElevationResult } from '../services/elevationApi.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import {
   AGENCY_STATUS,
   AgencySubmissionStatus,
-  Basement,
-  CBRSDesignation,
-  COLLECTIONS,
-  CancelReason,
   ChangeRequestStatus,
-  ChangeRequestTrxType,
   FIN_TRANSACTION_STATUS,
-  FeeItemName,
-  FloodZone,
-  LicenseOwner,
-  LicenseType,
-  LineOfBusiness,
-  PaymentStatus,
-  PriorLossCount,
-  Product,
-  QUOTE_STATUS,
-  RoundingType,
-  SUBMISSION_STATUS,
-  State,
-  SubjectBaseItem,
   SubmittedChangeRequestStatus,
-  TaxItemName,
-  TaxRateType,
-  TransactionType,
 } from './enums.js';
-import { iDemandOrgId } from './environmentVars.js';
 
 export type WithId<T> = T & { id: string };
 
@@ -53,11 +55,14 @@ export type DeepPartial<T> = {
 };
 
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
-export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> &
+  Omit<T, K>;
 
 export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
-export type PartialRequired<T, K extends keyof T> = Partial<T> & { [P in K]-?: NonNullable<T[P]> };
+export type PartialRequired<T, K extends keyof T> = Partial<T> & {
+  [P in K]-?: NonNullable<T[P]>;
+};
 
 export type Maybe<T> = T | null | undefined;
 
@@ -67,10 +72,15 @@ export type Concrete<Type> = {
 
 // meant to override DeepPartial, but not working (Timestamp issue)
 export type DeepConcrete<T> = {
-  [K in keyof T]-?: T[K] extends object ? DeepConcrete<T[K]> : NonNullable<T[K]>;
+  [K in keyof T]-?: T[K] extends object
+    ? DeepConcrete<T[K]>
+    : NonNullable<T[K]>;
 };
 
-export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Key extends string
+export type FlattenObjectKeys<
+  T extends Record<string, any>,
+  Key = keyof T,
+> = Key extends string
   ? T[Key] extends Record<string, any>
     ? `${Key}.${FlattenObjectKeys<T[Key]>}`
     : `${Key}`
@@ -86,15 +96,18 @@ type PathImpl<T, K extends keyof T> = K extends string
 
 export type Path<T> = PathImpl<T, keyof T> | keyof T;
 
-export type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest}`
+export type PathValue<
+  T,
+  P extends Path<T>,
+> = P extends `${infer K}.${infer Rest}`
   ? K extends keyof T
     ? Rest extends Path<T[K]>
       ? PathValue<T[K], Rest>
       : never
     : never
   : P extends keyof T
-  ? T[P]
-  : never;
+    ? T[P]
+    : never;
 
 // USAGE:
 // declare function get<T, P extends Path<T>>(obj: T, path: P): PathValue<T, P>;
@@ -102,7 +115,14 @@ export type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest
 
 export type StrictExclude<T, U> = T extends U ? (U extends T ? never : T) : T;
 
-export type Primitive = string | number | bigint | boolean | symbol | null | undefined;
+export type Primitive =
+  | string
+  | number
+  | bigint
+  | boolean
+  | symbol
+  | null
+  | undefined;
 
 export const Timestamp = z.instanceof(FirestoreTimestamp);
 export type Timestamp = z.infer<typeof Timestamp>;
@@ -219,6 +239,96 @@ export const NamedInsured = z.object({
 });
 export type NamedInsured = z.infer<typeof NamedInsured>;
 
+export const StripeAddress = z.object({
+  line1: z.string().nullable(),
+  line2: z.string().nullable(),
+  city: z.string().nullable(),
+  state: z.string().nullable(),
+  postal_code: z.string().nullable(),
+  country: z.string().nullable(),
+});
+export type StripeAddress = z.infer<typeof StripeAddress>;
+
+export const LineItem = z.object({
+  displayName: z.string(),
+  amount: z.number(),
+  descriptor: z.string().optional(),
+});
+
+export const TransferSummary = z.object({
+  amount: z.number().int(), // IN CENTS
+  destination: z.string(), // accountId: z.string(),
+  percentOfTermPremium: z.number().nonnegative().max(1),
+  // source_transaction - use the charge ID from event handler (will autopopulate transfer_group)
+  // percentOfCharge ?? should be percent of total or percent, net taxes/fees
+  // or percentageOfRefundableAmount ??
+  // transferIds: z.array(z.string()),
+});
+
+export const ReceivableStatus = z.enum([
+  'outstanding',
+  'paid',
+  'cancelled',
+  'expired',
+]);
+export type ReceivableStatus = z.infer<typeof ReceivableStatus>;
+// keep expired ?? receivable should persist when invoice expires ??
+// TODO: handle invoice / payment intent expired
+
+// TODO: need discriminating union ?? able to change payment option, etc. after selected ??
+// TODO: need to lock down once paid
+// TODO: pass through zod before saving at all times ??
+
+// TODO: add more invoice state like paid/paidOutOfBand, etc ?? or fetch receipt for extra details ??
+// TODO: amount due, amount remaining etc. - see how those affect calculations & if we need to take them into account (& impact of account credits)
+export const Receivable = z.object({
+  policyId: z.string(),
+  stripeCustomerId: z.string(),
+  billingEntityDetails: z.object({
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    phone: z.string().nullable(),
+    address: StripeAddress.nullable(),
+  }),
+  lineItems: z.array(LineItem),
+  transfers: z.array(TransferSummary), // create before ?? need to update if reversed ??
+  transferGroup: z.string().optional().nullable(), // passed to payment intent - not available on invoice ??
+  taxes: z.array(TaxItem), // just store referance to tax calc object ??
+  // taxes separate from line items ??
+  fees: z.array(FeeItem),
+  status: ReceivableStatus,
+  paid: z.boolean(),
+  paidOutOfBand: z.boolean(),
+  // mirror stripe invoice fields ?? https://stripe.com/docs/api/invoices/object
+  // amountDue: z.number(),
+  // amountPaid: z.number(),
+  // amountRemaining: z.number(),
+  // paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
+  invoiceId: z.string().optional().nullable(),
+  paymentIntentId: z.string().optional().nullable(), // generated when invoice is finalized
+  invoiceNumber: z.string().optional().nullable(), // different from invoiceId ??
+  receiptNumber: z.string().optional().nullable(),
+  hostedReceiptUrl: z.string().optional().nullable(), // set from finalized event
+  hostedInvoiceUrl: z.string().optional().nullable(), // set from finalized event
+  invoicePdfUrl: z.string().optional().nullable(),
+  refundableTaxesAmount: z.number().int(),
+  totalTaxesAmount: z.number().int().nonnegative(),
+  refundableFeesAmount: z.number().int(), // inspection fees not refundable, unless flat_cancel
+  totalFeesAmount: z.number().int(),
+  totalRefundableAmount: z.number().int().nonnegative(), // rename subtotalRefundableAmount or termPremiumRefundableAmount // total - nonRefundableFees - nonRefundableTaxes
+  // totalWithoutTaxesAndFees: z.number().int().nonnegative(), // or name subtotalAmount ?? or totalTermPremium ??
+  termPremiumAmount: z.number().int().nonnegative(),
+  totalAmount: z.number().int().nonnegative(),
+  locations: z.record(PolicyLocation),
+  dueDate: Timestamp,
+  totalTransferred: z.number().int().nonnegative().default(0), // cents
+  totalAmountPaid: z.number().int().nonnegative().default(0), // cents, mirrors Stripe
+  transfersByCharge: z.record(z.number().int()), // { [chargeId]: amountTransferred }
+  // set charges ?? array ?? save to receivable on charge.complete or charge.created ??
+  metadata: BaseMetadata,
+});
+export type Receivable = z.infer<typeof Receivable>;
+
 export interface EPayVerifiedResponse {
   id: string;
   attributeValues: any[];
@@ -296,7 +406,11 @@ export interface EPayGetTransactionRes {
   comments: string | null;
   originalTransactionId: string | null;
   events: EPayEvent[];
-  attributeValues: { name: string | null; parameterName: string | null; value: string | null }[];
+  attributeValues: {
+    name: string | null;
+    parameterName: string | null;
+    value: string | null;
+  }[];
   attachments: { name: string | null; downloadUri: string | null }[];
   paidInvoices: {
     id: string;
@@ -337,7 +451,7 @@ export type Address = z.infer<typeof Address>;
 export const MailingAddress = Address.and(
   z.object({
     name: z.string(),
-  })
+  }),
 );
 export type MailingAddress = z.infer<typeof MailingAddress>;
 
@@ -352,7 +466,10 @@ export type CompressedAddress = z.infer<typeof CompressedAddress>;
 
 export const Coords = z.object({
   latitude: z.number().min(-90, 'invalid latitude').max(90, 'invalid latitude'),
-  longitude: z.number().min(-180, 'invalid longitude').max(180, 'invalid longitude'),
+  longitude: z
+    .number()
+    .min(-180, 'invalid longitude')
+    .max(180, 'invalid longitude'),
 });
 export type Coords = z.infer<typeof Coords>;
 
@@ -360,6 +477,7 @@ export const GeoPoint = z.instanceof(FirestoreGeoPoint);
 export type GeoPoint = z.infer<typeof GeoPoint>;
 
 export interface AgencyApplication extends BaseDoc {
+  type: OrgType;
   orgName: string;
   address: Address;
   contact: {
@@ -368,7 +486,12 @@ export interface AgencyApplication extends BaseDoc {
     email: string;
     phone: string;
   };
-  agents: { firstName: string; lastName: string; email: string; phone: string }[];
+  agents: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  }[];
   // bankDetails: {
   //   accountNumber: string;
   //   routingNumber: string;
@@ -424,6 +547,7 @@ export interface Organization {
   metadata: BaseMetadata;
   defaultCommission: DefaultCommission;
   authProviders: AuthProviders[];
+  photoURL?: string | null;
 }
 
 // export type Product = 'flood' | 'wind';
@@ -486,8 +610,15 @@ export const RatingPropertyData = z.object({
   floodZone: FloodZone,
   numStories: z.number().int().nonnegative().optional().nullable(),
   propertyCode: z.string().optional().nullable(),
-  replacementCost: z.number().nonnegative().min(50000, 'replacement cost est. must be > $50k'), // TODO: min ??
-  sqFootage: z.coerce.number().int('sq. footage must be an integer').optional().nullable(),
+  replacementCost: z
+    .number()
+    .nonnegative()
+    .min(50000, 'replacement cost est. must be > $50k'), // TODO: min ??
+  sqFootage: z.coerce
+    .number()
+    .int('sq. footage must be an integer')
+    .optional()
+    .nullable(),
 
   yearBuilt: z.coerce
     .number()
@@ -576,75 +707,11 @@ export interface InitRatingValues extends Limits {
   maxDeductible: number;
 }
 
-export interface Submission extends FloodFormValues, BaseDoc {
-  product: Product;
-  coordinates: GeoPoint;
-  geoHash?: Geohash | null;
-  userId?: string | null;
-  submittedById?: string | null;
-  agent?: Nullable<AgentDetails>;
-  agency?: Nullable<AgencyDetails>;
-  status: SUBMISSION_STATUS;
-  // rcvSourceUser?: boolean;
-  rcvSourceUser?: number | null;
-  ratingPropertyData: Nullable<RatingPropertyData>;
-  propertyDataDocId: string | null;
-  ratingDocId?: string | null;
-  initValues: InitRatingValues;
-  imageURLs?: LocationImages | null;
-  imagePaths?: LocationImages | null;
-  blurHash?: LocationImages | null;
-  AALs?: Nullable<ValueByRiskType>;
-  annualPremium?: number;
-  subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
-  // metadata: BaseMetadata;
-}
-
 // is this being used ?? use address and coords separate objects for consistency ??
 export interface AddressWithCoords extends Address {
   latitude: number;
   longitude: number;
 }
-
-// used in form - should extend NamedInsured ?? (make userId optional, etc.)
-export interface NamedInsuredDetails {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  userId?: string | null;
-}
-
-export const AgentDetails = z.object({
-  name: z.string().trim(),
-  email: z.string().email().trim().toLowerCase(),
-  phone: Phone.nullable(),
-  userId: z.string(), // TODO: userId --> use z.uuid() ??
-});
-export type AgentDetails = z.infer<typeof AgentDetails>;
-
-export const AgencyDetails = z.object({
-  name: z.string().trim(),
-  orgId: z.string(),
-  address: Address,
-});
-export type AgencyDetails = z.infer<typeof AgencyDetails>;
-
-export const AdditionalInsured = z.object({
-  name: z.string().trim(),
-  email: z.string().email().trim().toLowerCase(),
-  address: z.nullable(Address).optional().nullable(),
-});
-export type AdditionalInsured = z.infer<typeof AdditionalInsured>;
-
-export const Mortgagee = z.object({
-  name: z.string().trim(),
-  contactName: z.string(),
-  email: z.string().email().trim().toLowerCase(),
-  loanNumber: z.string(),
-  address: z.nullable(Address).optional().nullable(),
-});
-export type Mortgagee = z.infer<typeof Mortgagee>;
 
 // decide whether to use discriminating union type
 // could use on front end for input component
@@ -670,340 +737,14 @@ export const MGACommissionPct = z
   .max(0.2, 'Commission must be <= 20%');
 export type MGACommissionPct = z.infer<typeof MGACommissionPct>;
 
-export const TaxItem = z.object({
-  displayName: TaxItemName,
-  rate: z.number(),
-  value: z.number(),
-  subjectBase: z.array(SubjectBaseItem),
-  baseDigits: z.number().int().optional(),
-  resultDigits: z.number().int().optional(),
-  baseRoundType: RoundingType.optional(),
-  resultRoundType: RoundingType.default('nearest'),
-});
-export type TaxItem = z.infer<typeof TaxItem>;
-
-export const Tax = TaxItem.omit({ value: true }).and(
-  z.object({
-    state: State,
-    effectiveDate: Timestamp,
-    expirationDate: Timestamp.optional().nullable(),
-    LOB: z.array(LineOfBusiness),
-    products: z.array(Product),
-    transactionTypes: z.array(TransactionType),
-    rateType: TaxRateType,
-    refundable: z.boolean(),
-    metadata: BaseMetadata,
-  })
-);
-export type Tax = z.infer<typeof Tax>;
-
-export const FeeItem = z.object({
-  displayName: FeeItemName,
-  value: z.number(),
-});
-export type FeeItem = z.infer<typeof FeeItem>;
-
-// export type BillingEntity = Pick<
-//   EPayPaymentMethodDetails,
-//   | 'emailAddress'
-//   // | 'id'
-//   | 'payer'
-//   | 'type'
-//   | 'transactionType'
-//   | 'accountHolder'
-//   | 'maskedAccountNumber'
-// > & { paymentMethodId: string; default?: boolean };
-
-const PaymentMethod = z.object({
-  id: z.string(),
-  emailAddress: z.string(),
-  payer: z.string(),
-  accountHolder: z.string().optional().nullable(),
-  transactionType: z.string(),
-  type: z.string().optional().nullable(),
-  maskedAccountNumber: z.string(),
-});
-
-export const BillingType = z.enum(['checkout', 'invoice', 'mortgagee']);
-export type TillingType = z.infer<typeof BillingType>;
-
-export const BillingEntity = z.object({
-  displayName: z.string(),
-  email: z.string().email(),
-  phone: Phone,
-  billingType: BillingType,
-  selectedPaymentMethodId: z.string().optional().nullable(),
-  paymentMethods: z.array(PaymentMethod),
-});
-export type BillingEntity = z.infer<typeof BillingEntity>;
-
-export interface Quote extends BaseDoc {
-  policyId: string;
-  product: Product;
-  deductible: number;
-  limits: Limits;
-  address: Address;
-  homeState: string;
-  coordinates: GeoPoint | null;
-  fees: FeeItem[];
-  taxes: TaxItem[]; // { taxName: string; value: string }[];
-  annualPremium: number;
-  subproducerCommission: number;
-  cardFee: number;
-  quoteTotal?: number;
-  effectiveDate?: Timestamp;
-  effectiveExceptionRequested?: boolean;
-  effectiveExceptionReason?: string | null;
-  quotePublishedDate: Timestamp;
-  quoteExpirationDate: Timestamp;
-  quoteBoundDate?: Timestamp | null;
-  exclusions?: string[];
-  additionalInterests?: AdditionalInterest[];
-  userId: string | null;
-  namedInsured: Nullable<NamedInsuredDetails>;
-  mailingAddress: MailingAddress;
-  agent: Nullable<AgentDetails>;
-  agency: Nullable<AgencyDetails>;
-  billingEntities: Record<string, BillingEntity>;
-  defaultBillingEntityId: string;
-  status: QUOTE_STATUS;
-  submissionId?: string | null;
-  imageURLs?: LocationImages | null;
-  imagePaths?: LocationImages | null;
-  ratingPropertyData: RatingPropertyData;
-  ratingDocId: string;
-  geoHash?: Geohash | null;
-  notes?: Note[];
-  externalId?: string | null;
-  statusTransitions: {
-    published: Timestamp; // TODO: remove ?? duplicate of quotePublishedDate
-    accepted: Timestamp | null;
-    cancelled: Timestamp | null;
-    finalized: Timestamp | null;
-  };
-}
-
-// export interface SLProdOfRecordDetails {
-//   name: string;
-//   licenseNum: string;
-//   licenseState: string;
-//   phone: string;
-// }
-
-export const SLProdOfRecordDetails = z.object({
-  name: z.string(),
-  licenseNum: z.string(),
-  licenseState: State,
-  phone: Phone.optional().nullable(),
-});
-export type SLProdOfRecordDetails = z.infer<typeof SLProdOfRecordDetails>;
-
-// export type LocationImages = Record<LocationImageTypes, string>;
-
-export const LocationImages = z.object({
-  light: z.string(),
-  dark: z.string(),
-  satellite: z.string(),
-  satelliteStreets: z.string(),
-});
-export type LocationImages = z.infer<typeof LocationImages>;
-
-const LocationImageTypes = LocationImages.keyof();
-export type LocationImageTypes = z.infer<typeof LocationImageTypes>;
-
-// export interface ILocation extends BaseDoc {
-//   parentType?: LocationParent | null; // TODO: make required ?? add security rules
-//   address: Address;
-//   coordinates: GeoPoint;
-//   geoHash: Geohash;
-//   annualPremium: number;
-//   termPremium: number;
-//   termDays: number;
-//   limits: Limits;
-//   TIV: number;
-//   RCVs: RCVs;
-//   deductible: number;
-//   // exists: true; // https://stackoverflow.com/a/62626994/10887890
-//   additionalInsureds: AdditionalInsured[];
-//   mortgageeInterest: Mortgagee[];
-//   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
-//   ratingPropertyData: RatingPropertyData;
-//   effectiveDate: Timestamp;
-//   expirationDate: Timestamp;
-//   cancelEffDate?: Timestamp | null;
-//   cancelReason?: CancellationReason | null;
-//   imageURLs?: LocationImages | null;
-//   imagePaths?: LocationImages | null;
-//   blurHash?: LocationImages | null;
-//   locationId: string;
-//   policyId?: string;
-//   quoteId?: string;
-//   submissionId?: string;
-//   externalId?: string | null;
-// }
-
-// export type LocationParent = 'submission' | 'quote' | 'policy';
-export const LocationParent = z.enum(['submission', 'quote', 'policy']);
-export type LocationParent = z.infer<typeof LocationParent>;
-
-// TODO: discriminating union (SubmissionLocation, QuoteLocation, ILocation, etc.)
-// require policy id, parentType: 'policy', etc. in discriminating union
-// export const ILocation = z.object({
-//   parentType: LocationParent.nullable(),
-//   address: Address,
-//   coordinates: GeoPoint,
-//   geoHash: z.string(),
-//   annualPremium: z.number().nonnegative(),
-//   termPremium: z.number().nonnegative(),
-//   termDays: z.number().nonnegative().int(),
-//   limits: Limits,
-//   TIV: z.number().nonnegative(),
-//   RCVs: RCVs,
-//   deductible: Deductible,
-//   additionalInsureds: z.array(AdditionalInsured),
-//   mortgageeInterest: z.array(Mortgagee),
-//   ratingDocId: z.string(),
-//   ratingPropertyData: RatingPropertyData,
-//   effectiveDate: Timestamp,
-//   expirationDate: Timestamp,
-//   cancelEffDate: Timestamp.optional().nullable(),
-//   cancelReason: CancelReason.optional().nullable(),
-//   imageURLs: LocationImages.optional().nullable(),
-//   imagePaths: LocationImages.optional().nullable(),
-//   blurHash: LocationImages.optional().nullable(),
-//   locationId: z.string().min(5, 'location ID must be at least 5 characters'),
-//   policyId: z.string().min(5, 'policy ID must be at least 5 characters'),
-//   quoteId: z.string().optional().nullable(),
-//   submissionId: z.string().optional().nullable(),
-//   externalId: z.string().optional().nullable(),
-//   metadata: BaseMetadata,
-// });
-// export type ILocation = z.infer<typeof ILocation>;
-
-export const BaseLocation = z.object({
-  parentType: LocationParent.nullable(),
-  address: Address,
-  coordinates: GeoPoint,
-  geoHash: z.string(),
-  annualPremium: z.number().nonnegative(),
-  termPremium: z.number().nonnegative(),
-  termDays: z.number().nonnegative().int(),
-  limits: Limits,
-  TIV: z.number().nonnegative(),
-  RCVs: RCVs,
-  deductible: Deductible,
-  additionalInsureds: z.array(AdditionalInsured),
-  mortgageeInterest: z.array(Mortgagee),
-  ratingDocId: z.string(),
-  ratingPropertyData: RatingPropertyData,
-  effectiveDate: Timestamp,
-  expirationDate: Timestamp,
-  cancelEffDate: Timestamp.optional().nullable(),
-  cancelReason: CancelReason.optional().nullable(),
-  imageURLs: LocationImages.optional().nullable(),
-  imagePaths: LocationImages.optional().nullable(),
-  blurHash: LocationImages.optional().nullable(),
-  locationId: z.string().min(5, 'location ID must be at least 5 characters'),
-  policyId: z.string().min(5, 'policy ID must be at least 5 characters').optional().nullable(),
-  quoteId: z.string().nullable().optional(),
-  submissionId: z.string().optional().nullable(),
-  externalId: z.string().optional().nullable(),
-  metadata: BaseMetadata,
-});
-export type BaseLocation = z.infer<typeof BaseLocation>;
-
-export const ILocationSubmission = BaseLocation.and(
-  z.object({
-    parentType: z.literal(LocationParent.enum.submission),
-    submissionId: z.string(),
-    quoteId: z.null().optional(),
-    policyId: z.null().optional(),
-  })
-);
-export type ILocationSubmission = z.infer<typeof ILocationSubmission>;
-
-export const ILocationQuote = BaseLocation.and(
-  z.object({
-    parentType: z.literal(LocationParent.enum.quote),
-    submissionId: z.string().optional().nullable(),
-    quoteId: z.string(),
-    policyId: z.null().optional(),
-  })
-);
-export type ILocationQuote = z.infer<typeof ILocationQuote>;
-
-export const ILocationPolicy = BaseLocation.and(
-  z.object({
-    parentType: z.literal(LocationParent.enum.policy),
-    policyId: z.string().min(5, 'policy ID must be at least 5 characters'),
-    quoteId: z.string().nullable().optional(),
-    submissionId: z.string().nullable().optional(),
-  })
-);
-export type ILocationPolicy = z.infer<typeof ILocationPolicy>;
-
-export const ILocation = z.union([
-  BaseLocation,
-  ILocationSubmission,
-  ILocationQuote,
-  ILocationPolicy,
-]);
-export type ILocation = z.infer<typeof ILocation>;
-
-// export interface Policy extends BaseDoc {
-//   product: Product;
-//   status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
-//   term: number;
-//   mailingAddress: MailingAddress;
-//   namedInsured: NamedInsured;
-//   locations: Record<string, ILocation>;
-//   homeState: string;
-//   termPremium: number; // sum of active location(s) term premium
-//   inStatePremium?: number;
-//   outStatePremium?: number;
-//   termDays: number;
-//   fees: FeeItem[];
-//   taxes: TaxItem[];
-//   price: number; // sum of term premium, taxes, fees
-//   effectiveDate: Timestamp;
-//   expirationDate: Timestamp;
-//   cancelEffDate?: Timestamp | null;
-//   cancelReason?: CancellationReason;
-//   userId: string | null;
-//   agent: AgentDetails;
-//   agency: AgencyDetails;
-//   surplusLinesProducerOfRecord: SLProdOfRecordDetails;
-//   // TODO: add address to carrier CarrierDetails: name, address
-//   issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID ??
-//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-//   quoteId?: string | null;
-// }
-
-export const Totals = z.object({
-  termPremium: z.number(),
-  taxes: z.array(TaxItem),
-  fees: z.array(FeeItem),
-  price: z.number(),
-});
-export type Totals = z.infer<typeof Totals>;
-
-// TODO: share object with other premium, taxes, fees, price interface
-export const TotalsByBillingEntity = z.record(Totals);
-export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntity>;
-
-export const PolicyLocation = z.object({
-  termPremium: z.number(), // .min(100, 'term premium must be > 100'), // TODO: check validation with ron - termPremium could be < 100 if shorter than policy term
-  annualPremium: z.number().min(100, 'annualPremium must be > 100'),
-  address: CompressedAddress,
-  coords: GeoPoint,
-  billingEntityId: z.string(),
-  cancelEffDate: Timestamp.optional().nullable(),
-  version: z.number().optional(),
-});
-export type PolicyLocation = z.infer<typeof PolicyLocation>;
-
-export type LcnWithTermPrem = PartialRequired<ILocation, 'termPremium' | 'annualPremium'>;
-export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium' | 'annualPremium'>;
+export type LcnWithTermPrem = PartialRequired<
+  ILocation,
+  'termPremium' | 'annualPremium'
+>;
+export type PolicyLcnWithPrem = PartialRequired<
+  PolicyLocation,
+  'termPremium' | 'annualPremium'
+>;
 
 // TODO: create discriminating unions (status: "cancelled" -- require cancelEffDate & cancelReason, etc.)
 
@@ -1011,52 +752,52 @@ export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium' | 
 // TODO: separate out payment status
 // TODO: separate out payment/charge/invoice info from policy ?? (only save reference to payment object)
 
-export const Policy = z.object({
-  product: Product,
-  paymentStatus: PaymentStatus,
-  term: z.number(),
-  namedInsured: NamedInsured,
-  mailingAddress: MailingAddress,
-  locations: z.record(PolicyLocation),
-  homeState: State,
-  termPremium: z.number().min(100, 'term premium must be > 100'),
-  termPremiumWithCancels: z.number(),
-  // TODO: annualPremiumActiveLocations ??
-  inStatePremium: z.number(),
-  outStatePremium: z.number(),
-  termDays: z.number().nonnegative(),
-  totalsByBillingEntity: TotalsByBillingEntity,
-  fees: z.array(FeeItem),
-  taxes: z.array(TaxItem),
-  price: z.number(),
-  effectiveDate: Timestamp,
-  expirationDate: Timestamp,
-  cancelEffDate: Timestamp.optional().nullable(),
-  cancelReason: CancelReason.optional().nullable(),
-  userId: z.string().nullable(),
-  agent: AgentDetails,
-  agency: AgencyDetails,
-  billingEntities: z.record(BillingEntity),
-  defaultBillingEntityId: z.string(),
-  surplusLinesProducerOfRecord: SLProdOfRecordDetails,
-  // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
-  issuingCarrier: z.string(),
-  quoteId: z.string().optional().nullable(),
-  // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
-  documents: z
-    .array(
-      z.object({
-        displayName: z.string(),
-        downloadUrl: z.string(),
-        storagePath: z.string(),
-      })
-    )
-    .optional()
-    .nullable()
-    .default([]),
-  metadata: BaseMetadata,
-});
-export type Policy = z.infer<typeof Policy>;
+// export const Policy = z.object({
+//   product: Product,
+//   paymentStatus: PaymentStatus,
+//   term: z.number(),
+//   namedInsured: NamedInsured,
+//   mailingAddress: MailingAddress,
+//   locations: z.record(PolicyLocation),
+//   homeState: State,
+//   termPremium: z.number().min(100, 'term premium must be > 100'),
+//   termPremiumWithCancels: z.number(),
+//   // TODO: annualPremiumActiveLocations ??
+//   inStatePremium: z.number(),
+//   outStatePremium: z.number(),
+//   termDays: z.number().nonnegative(),
+//   totalsByBillingEntity: TotalsByBillingEntity,
+//   fees: z.array(FeeItem),
+//   taxes: z.array(TaxItem),
+//   price: z.number(),
+//   effectiveDate: Timestamp,
+//   expirationDate: Timestamp,
+//   cancelEffDate: Timestamp.optional().nullable(),
+//   cancelReason: CancelReason.optional().nullable(),
+//   userId: z.string().nullable(),
+//   agent: AgentDetails,
+//   agency: AgencyDetails,
+//   billingEntities: z.record(BillingEntity),
+//   defaultBillingEntityId: z.string(),
+//   surplusLinesProducerOfRecord: SLProdOfRecordDetails,
+//   // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
+//   issuingCarrier: z.string(),
+//   quoteId: z.string().optional().nullable(),
+//   // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
+//   documents: z
+//     .array(
+//       z.object({
+//         displayName: z.string(),
+//         downloadUrl: z.string(),
+//         storagePath: z.string(),
+//       })
+//     )
+//     .optional()
+//     .nullable()
+//     .default([]),
+//   metadata: BaseMetadata,
+// });
+// export type Policy = z.infer<typeof Policy>;
 
 export const PolicyClaim = z.record(z.any());
 export type PolicyClaim = z.infer<typeof PolicyClaim>;
@@ -1379,6 +1120,9 @@ export interface LocationChangeValues {
 // ex: { endorsementChanges: { [lcnId]: { ...endorsementChanges}, amendmentChanges: { [lcnId]: { ...amendmentChanges}  }
 // then have approval function split into different transactions ??
 
+// TODO: change security rules to fetch policy instead of storing agentId and agencyId
+// OR are they there for querying purposes ?? (would require rxjs if not ??)
+
 interface BaseChangeRequest extends BaseDoc {
   trxType: ChangeRequestTrxType; // TODO: delete - handle trx by looping through endorsement and amendment changes
   requestEffDate: Timestamp;
@@ -1404,7 +1148,7 @@ interface BaseChangeRequest extends BaseDoc {
     email: string | null;
   };
   underwriterNotes?: string | null;
-  error?: string;
+  error?: string; // string or array of strings/objects ??
   _lastCommitted?: Timestamp;
 }
 
@@ -1455,10 +1199,16 @@ export interface CancellationRequest extends BaseChangeRequest {
   //   string,
   //   Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
   // >;
-  locationChanges: Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>;
+  locationChanges: Pick<
+    ILocation,
+    'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+  >;
   cancellationChanges: Record<
     string,
-    Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
+    Pick<
+      ILocation,
+      'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+    >
   >; // Record<string, Partial<ILocation>>;
   policyChanges?: CalcPolicyChangesResult;
   // policyChanges?: Pick<
@@ -1496,8 +1246,10 @@ export interface LocationChangeRequest extends BaseChangeRequest {
 }
 
 // TODO: separate out flat cancel ??
-export interface LocationCancellationRequest
-  extends Omit<LocationChangeRequest, 'formValues' | 'locationChanges'> {
+export interface LocationCancellationRequest extends Omit<
+  LocationChangeRequest,
+  'formValues' | 'locationChanges'
+> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
   formValues: CancelValues;
@@ -1521,7 +1273,10 @@ export interface CancelValues {
   reason: CancellationReason;
 }
 
-export interface PolicyCancellationRequest extends Omit<PolicyChangeRequestOld, 'formValues'> {
+export interface PolicyCancellationRequest extends Omit<
+  PolicyChangeRequestOld,
+  'formValues'
+> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
   formValues: CancelValues;
@@ -1566,8 +1321,10 @@ export interface AddLocationRequest extends Omit<BaseChangeRequest, 'status'> {
   locationId: string;
 }
 
-export interface DraftAddLocationRequest
-  extends Omit<AddLocationRequest, 'formValues' | 'status' | 'locationId'> {
+export interface DraftAddLocationRequest extends Omit<
+  AddLocationRequest,
+  'formValues' | 'status' | 'locationId'
+> {
   status: 'draft';
   formValues: Partial<AddLocationValues>;
   locationId?: string;
@@ -1579,7 +1336,8 @@ export type ChangeRequest =
   | PolicyChangeRequestOld
   | PolicyCancellationRequest
   | AddLocationRequest
-  | DraftAddLocationRequest;
+  | DraftAddLocationRequest
+  | PolicyChangeRequest;
 
 export interface PremiumCalcData {
   techPremium: ValueByRiskType & { total: number };
@@ -1602,35 +1360,6 @@ export interface TrxRatingData extends RatingPropertyData {
   // priorLossCount: string | null;
 }
 
-// export type ChangeRequestTrxType =
-//   | 'endorsement'
-//   | 'amendment'
-//   | 'cancellation'
-//   | 'flat_cancel'
-//   | 'reinstatement';
-
-// export type TransactionType = ChangeRequestTrxType | 'new' | 'renewal';
-
-// export type LineOfBusiness = 'commercial' | 'residential';
-
-// export interface Tax extends BaseDoc {
-//   state: string;
-//   displayName: string;
-//   effectiveDate: Timestamp;
-//   expirationDate?: Timestamp | null;
-//   LOB: LineOfBusiness[];
-//   products: Product[];
-//   transactionTypes: TransactionType[];
-//   subjectBase: SubjectBaseItem[];
-//   baseRoundType?: RoundingType;
-//   baseDigits?: number;
-//   resultRoundType: RoundingType;
-//   resultDigits?: number;
-//   rate: number;
-//   rateType: 'fixed' | 'percent';
-//   refundable?: boolean;
-// }
-
 // TODO: create transaction class ?? like mongoose constructor ??
 
 export interface BaseTransaction extends BaseDoc {
@@ -1645,6 +1374,8 @@ export interface BaseTransaction extends BaseDoc {
   issuingCarrier: string;
   namedInsured: string;
   mailingAddress: Address;
+  agent: AgentDetails;
+  agency: AgencyDetails;
   homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
@@ -1661,11 +1392,6 @@ export const CancellationReason = z.enum([
   'insured_choice',
 ]);
 export type CancellationReason = z.infer<typeof CancellationReason>;
-// export type CancellationReason =
-//   | 'sold'
-//   | 'premium_pmt_failure'
-//   | 'exposure_change'
-//   | 'insured_choice';
 
 export type OffsetTrxType = 'endorsement' | 'cancellation' | 'flat_cancel';
 
@@ -1732,7 +1458,10 @@ export interface AmendmentTransaction extends BaseTransaction {
   billingEntity?: { displayName: string; id: string };
 }
 
-export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTransaction;
+export type Transaction =
+  | PremiumTransaction
+  | OffsetTransaction
+  | AmendmentTransaction;
 
 // export interface Transaction extends BaseDoc {
 //   trxType: TransactionType;
@@ -1800,82 +1529,6 @@ export interface Disclosure extends BaseDoc {
   content: JSONContent;
 }
 
-export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
-
-export interface Invite {
-  email: string;
-  displayName?: string;
-  firstName?: string;
-  lastName?: string;
-  link?: string; // eslint-disable-next-line
-  customClaims?: { [key: string]: any };
-  orgId: string | null;
-  orgName?: string;
-  status: InviteStatus;
-  sent?: boolean;
-  isCreateOrgInvite?: boolean;
-  id: string;
-  invitedBy?: {
-    userId?: string;
-    name?: string;
-    email: string;
-  } | null;
-  metadata: BaseMetadata;
-}
-
-export interface InviteClassInterface extends Invite {
-  getLink: () => string;
-}
-
-export class InviteClass implements InviteClassInterface {
-  public email: string;
-  public displayName?: string;
-  public firstName?: string;
-  public lastName?: string;
-  public link?: string; // eslint-disable-next-line
-  public customClaims?: { [key: string]: any };
-  public orgId: string | null;
-  public orgName?: string;
-  public status: InviteStatus;
-  public sent: boolean;
-  public isCreateOrgInvite?: boolean;
-  public id: string;
-  public invitedBy?: {
-    userId?: string;
-    name?: string;
-    email: string;
-  } | null;
-  public metadata: BaseMetadata;
-
-  constructor(inviteInfo: Invite) {
-    this.email = inviteInfo.email;
-    this.displayName = inviteInfo.displayName;
-    this.firstName = inviteInfo.firstName;
-    this.lastName = inviteInfo.lastName;
-    this.link = inviteInfo.link;
-    this.customClaims = inviteInfo.customClaims;
-    this.orgId = inviteInfo.orgId;
-    this.orgName = inviteInfo.orgName;
-    this.status = inviteInfo.status;
-    this.sent = inviteInfo.sent || false;
-    this.isCreateOrgInvite = !!inviteInfo.isCreateOrgInvite;
-    this.id = inviteInfo.id;
-    this.invitedBy = inviteInfo.invitedBy;
-    this.metadata = inviteInfo.metadata;
-  }
-
-  getLink() {
-    let tenantURL = this.orgId === iDemandOrgId.value() ? '' : `/${this.orgId}`;
-    return `${
-      process.env.HOSTING_BASE_URL
-    }/auth/create-account${tenantURL}?email=${encodeURIComponent(
-      this.email
-    )}&firstName=${encodeURIComponent(this.firstName ?? '')}&lastName=${encodeURIComponent(
-      this.lastName ?? ''
-    )}`;
-  }
-}
-
 export interface EPayPaymentMethodDetails {
   attributeValues: any[];
   country: string;
@@ -1896,15 +1549,16 @@ export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
   };
 }
 
-export interface Moratorium extends BaseDoc {
-  locationDetails: FIPSDetails[];
-  locations: string[];
-  product: { [key: string]: boolean };
-  effectiveDate: Timestamp;
-  expirationDate?: Timestamp | null;
-  reason?: string;
-}
+// export interface Moratorium extends BaseDoc {
+//   locationDetails: FIPSDetails[];
+//   locations: string[];
+//   product: { [key: string]: boolean };
+//   effectiveDate: Timestamp;
+//   expirationDate?: Timestamp | null;
+//   reason?: string;
+// }
 
+// DELETE ?? USE Coords instead ??
 export interface Coordinates {
   latitude: number;
   longitude: number;
@@ -1918,95 +1572,69 @@ export interface Coordinates {
 //   numStories: number;
 // }
 
-export const GetAALRequest = z.object({
-  replacementCost: z.number(),
-  limits: Limits,
-  coordinates: Coords,
-  deductible: z.number(),
-  numStories: z.number(),
-});
-export type GetAALRequest = z.infer<typeof GetAALRequest>;
+// export const GetAALRequest = z.object({
+//   replacementCost: z.number(),
+//   limits: Limits,
+//   coordinates: Coords,
+//   deductible: z.number(),
+//   numStories: z.number(),
+// });
+// export type GetAALRequest = z.infer<typeof GetAALRequest>;
 
-// export interface SRPerilAAL {
-//   tiv: number;
-//   fguLoss: number;
-//   preCatLoss: number;
-//   perilCode: string;
-// }
+// export const SRPerilAAL = z.object({
+//   tiv: z.number(),
+//   fguLoss: z.number(),
+//   preCatLoss: z.number(),
+//   perilCode: z.string(),
+// });
+// export type SRPerilAAL = z.infer<typeof SRPerilAAL>;
 
-// export interface SRRes {
-//   correlationId: string;
-//   bound: boolean;
-//   messages?: {
-//     text: string;
-//     type: string;
-//     severity: string;
-//   }[];
-//   expectedLosses: SRPerilAAL[];
-// }
-
-export const SRPerilAAL = z.object({
-  tiv: z.number(),
-  fguLoss: z.number(),
-  preCatLoss: z.number(),
-  perilCode: z.string(),
-});
-export type SRPerilAAL = z.infer<typeof SRPerilAAL>;
-
-export const SRRes = z.object({
-  correlationId: z.string(),
-  bound: z.boolean(),
-  message: z
-    .array(
-      z.object({
-        text: z.string(),
-        type: z.string(),
-        severity: z.string(),
-      })
-    )
-    .optional(),
-  expectedLosses: z.array(SRPerilAAL),
-});
-export type SRRes = z.infer<typeof SRRes>;
+// export const SRRes = z.object({
+//   correlationId: z.string(),
+//   bound: z.boolean(),
+//   message: z
+//     .array(
+//       z.object({
+//         text: z.string(),
+//         type: z.string(),
+//         severity: z.string(),
+//       })
+//     )
+//     .optional(),
+//   expectedLosses: z.array(SRPerilAAL),
+// });
+// export type SRRes = z.infer<typeof SRRes>;
 
 // TODO: use AALs interface
-export interface SRResWithAAL extends SRRes {
-  inlandAAL?: number | null; // TODO: refactor to value by risk type
-  surgeAAL?: number | null;
-  tsunamiAAL?: number | null;
-  submissionId: string;
-  address?: {
-    addressLine1: string;
-    addressLine2?: string;
-    city: string;
-    state: string;
-    postal: string;
-  };
-  coordinates?: GeoPoint;
-  requestValues?: Nullable<GetAALRequest>;
-}
+// export interface SRResWithAAL extends SRRes {
+//   inlandAAL?: number | null; // TODO: refactor to value by risk type
+//   surgeAAL?: number | null;
+//   tsunamiAAL?: number | null;
+//   submissionId: string;
+//   address?: {
+//     addressLine1: string;
+//     addressLine2?: string;
+//     city: string;
+//     state: string;
+//     postal: string;
+//   };
+//   coordinates?: GeoPoint;
+//   requestValues?: Nullable<GetAALRequest>;
+// }
 
-export interface FIPSDetails {
-  state: string;
-  stateFP: string;
-  countyName: string;
-  countyFP: string;
-  classFP?: string;
-}
-
-export interface License extends BaseDoc {
-  state: State;
-  ownerType: LicenseOwner;
-  licensee: string;
-  licenseType: LicenseType;
-  surplusLinesProducerOfRecord: boolean;
-  licenseNumber: string;
-  effectiveDate: Timestamp;
-  expirationDate?: Timestamp | null;
-  SLAssociationMembershipRequired?: boolean;
-  address?: Address | null;
-  phone?: string | null;
-}
+// export interface License extends BaseDoc {
+//   state: State;
+//   ownerType: LicenseOwner;
+//   licensee: string;
+//   licenseType: LicenseType;
+//   surplusLinesProducerOfRecord: boolean;
+//   licenseNumber: string;
+//   effectiveDate: Timestamp;
+//   expirationDate?: Timestamp | null;
+//   SLAssociationMembershipRequired?: boolean;
+//   address?: Address | null;
+//   phone?: string | null;
+// }
 
 // TODO: swiss re property data res type
 export type PropertyDataRes = Record<string, any>;
@@ -2030,8 +1658,10 @@ export interface ImportMeta {
   eventId?: string;
 }
 
+// TODO: fix types
+
 export interface PolicyImportMeta extends ImportMeta {
-  targetCollection: COLLECTIONS.POLICIES;
+  targetCollection: 'policies'; // COLLECTIONS.POLICIES;
 }
 
 export type StagedPolicyImport = Policy & {
@@ -2040,7 +1670,7 @@ export type StagedPolicyImport = Policy & {
 };
 
 export interface TransactionsImportMeta extends ImportMeta {
-  targetCollection: COLLECTIONS.TRANSACTIONS;
+  targetCollection: 'transactions'; // Collection.enum.transaction; // COLLECTIONS.TRANSACTIONS;
 }
 
 export type StagedTransactionImport = Transaction & {
@@ -2048,294 +1678,20 @@ export type StagedTransactionImport = Transaction & {
 };
 
 export interface QuoteImportMeta extends ImportMeta {
-  targetCollection: COLLECTIONS.QUOTES;
+  targetCollection: 'quotes'; // COLLECTIONS.QUOTES;
 }
 
 export type StagedQuoteImport = Quote & {
   importMeta: QuoteImportMeta;
 };
 
-export type StageImportRecord = StagedPolicyImport | StagedTransactionImport | StagedQuoteImport;
+export type StageImportRecord =
+  | StagedPolicyImport
+  | StagedTransactionImport
+  | StagedQuoteImport;
 
 export interface EmailRecord extends CreateMsgContentProps {
   metadata: {
     created: Timestamp;
   };
-}
-
-export interface SpatialKeyResponse {
-  us_hh_mls_rm_room11_features: string; // '',
-  us_hh_fema_firm_date_cur_eff_date_map: string; // '5/16/2012',
-  us_hh_fema_claims_2005: string; // '7',
-  us_hh_mls_ex_pool_yes_no: string; // 'YES',
-  us_hh_mls_if_security_features: string; // 'Security System, Alarm -Smoke/Fire',
-  us_hh_wind_enhanced_params_near_inc_speed: string; // '56',
-  us_hh_primary_exterior: string; // 'stucco over masonry',
-  us_hh_assessment_improvement_value: number; // 189636,
-  us_hh_assessment_num_bedrooms: number; // 4,
-  us_hh_fema_all_params_source_citation: string; // '12021C_STUDY6',
-  us_hh_assess_tax_market_value: string; // '2863349',
-  us_hh_mortgage_loan_type: string; // '',
-  us_hh_mls_ex_parking_features: string; // 'Circular Driveway, Paved Driveway',
-  us_hh_flood_params_lines_distance: string; // '',
-  us_hh_mls_rm_room13_features: string; // '',
-  us_hh_mls_rm_family_yes_no: string; // '',
-  us_hh_profit: string; // '',
-  us_hh_mls_ex_fence_features: string; // 'Fenced (any type)',
-  us_hh_fema_all_params_subzone: string; // '',
-  us_hh_mls_if_number_fireplaces: null;
-  us_hh_fema_claims_2000: string; // '1',
-  us_hh_replacement_cost_included: number; // 1,
-  us_hh_assessment_roof_cover: string; // '',
-  us_hh_fema_firm_date_haz_map_id_date: string; // '5/5/1970',
-  us_hh_idemand_included: number; // 1,
-  us_hh_assessment_pool: string; // 'Pool (yes)',
-  us_hh_wind_enhanced_params_pct_risk: string; // '2.635%',
-  us_hh_fema_claims_2011: string; // '0',
-  us_hh_wind_region_add_desc: string; // '',
-  us_hh_assessment_fireplace: string; // '',
-  us_hh_assessment_year: string; // '2021',
-  us_hh_assessment_basement: string; // '',
-  us_hh_roof_configuration: string; // '',
-  us_hh_mls_in_subtype: string; // '',
-  us_hh_mls_ex_style_features: string; // 'Ranch, Contemporary, Florida Style, Traditional, Single',
-  us_hh_assessment_land_value: number; // 2673713,
-  us_hh_flood_params_distance_nearest_flood: string; // '2378',
-  us_hh_assessment_num_stories: string; // '1',
-  us_hh_assessment_curr_owner_name: string; // 'MICHAEL PRANKE & DEBORAH; PRANKE REVOCABLE TRUST',
-  us_hh_mls_in_property_type: string; // 'Residential',
-  us_hh_property_owner: string; // 'PRANKE, MICHAEL O & DEBORAH A',
-  us_hh_assessment_lot_size_depth_ft: string; // '0',
-  us_hh_assessment_num_buildings: number; // 0,
-  us_hh_fema_firm_date_entered_program: string; // '7/2/1971',
-  us_hh_fema_claims_2016: string; // '0',
-  us_hh_assessment_tax_amount: number; // 29381.97,
-  us_hh_assessment_tax_delinquent_yr: string; // '',
-  us_hh_final_rcv_inclusive_debris_removal: string; // '',
-  us_hh_replacement_cost_without_debris_removal: string; // '',
-  us_hh_assess_school_tax_dist_3: string; // '',
-  us_hh_wind_enhanced_params_description: string; // 'Moderate',
-  us_hh_mls_if_security_system_yes_no: string; // 'YES',
-  us_hh_fema_firm_date_initial_firm_id_date: string; // '7/2/1971',
-  us_hh_assessment_amenities: string; // 'Boat Dock / Ramp / Slip',
-  us_hh_assessment_owner_occupied: string; // '',
-  us_hh_mls_rm_baths_half: number; // 1,
-  us_hh_flood_params_polygon_name: string; // '',
-  us_hh_mortgage_title_company: string; // '',
-  us_hh_fema_firm_date_non_sfha_pct_disc: string; // '10',
-  us_hh_mls_ex_location_features: string; // 'Cul-De-Sac, Dead End Street',
-  us_hh_assessment_roof_type: string; // '',
-  us_hh_square_footage: string; // '3775',
-  us_hh_mls_ad_geo_altitude: string; // '',
-  us_hh_assessment_building_condition: string; // '',
-  us_hh_mls_lr_list_price: number; // 3850000,
-  us_hh_property_address: string; // '2595 TARPON RD, NAPLES, FL 34102',
-  us_hh_assess_school_tax_dist_2_ind: string; // '',
-  us_hh_assessment_lsale_doc_number: string; // '5709064',
-  us_hh_mls_lr_list_date: string; // '11/19/2018',
-  us_hh_assessment_site_influence: string; // '',
-  us_hh_property_street_address: string; // '2595 TARPON RD',
-  us_hh_fema_claims_2009: string; // '0',
-  us_hh_assessment_tax_rate_code_area: string; // '0004',
-  us_hh_mls_ex_water_front_features: string; // 'Bay',
-  us_hh_mls_rm_room11_type: string; // '',
-  us_hh_property_price_range_max: number; // 7061822,
-  us_hh_assessment_owner1_last_name: string; // 'PRANKE',
-  sk_latitude: number; // 26.116867,
-  us_hh_assessment_garage_cars: number; // 1,
-  us_hh_flood_params_elevation_of_point: string; // '8',
-  us_hh_wind_enhanced_params_near_inc_dist: string; // '0.5',
-  us_hh_mls_ex_construction_features: string; // 'Concrete Block, Piling, Stucco',
-  us_hh_assessment_garage_type: string; // 'Carport',
-  us_hh_mls_in_public_remarks: string; // 'Breathtaking views south across Naples Bay...without a doubt, this "King-sized" lot is one of the prime locations in all of Royal Harbor! Few locations in Naples compare! New construction homes surround you in this Estate section of #RoyalHarbor ~Do you like to entertain? Do you have a big family? This traditional ranch has spacious rooms and beautiful light. 4 bedrooms plus a HUGE study, a formal living room with a fireplace, and the dining room is big enough to accommodate a very large table for family gatherings...The pool, the dock, the view, the kitchen!! And did I mention the VIEW? Chalk this up to the best bay front buy in town! Modernize the existing home to make it your own, or build your dream home...Priced at Lot Value! *Please see confidential remarks.',
-  us_hh_fema_firm_date_type: string; // 'CITY OF',
-  us_hh_flood_params_lines_diff: string; // '',
-  us_hh_overhead: string; // '',
-  us_hh_fema_claims_2010: string; // '0',
-  us_hh_flood_params_lines_description: string; // '',
-  us_hh_mls_ad_zone_features: string; // '',
-  us_hh_assessment_year_built: string; // '1985',
-  us_hh_fema_claims_2004: string; // '1',
-  us_hh_fema_base_elevation: string; // '',
-  us_hh_fema_firm_date_cid: string; // '125130',
-  us_hh_architectural_style: string; // 'COLONIAL, SOUTHERN',
-  us_hh_assessment_lot_size_acres: number; // 0.4,
-  us_hh_mls_ex_view_features: string; // 'Bay View, Water View',
-  us_hh_fema_base_elevation_distance: string; // '',
-  us_hh_assess_school_tax_dist_3_ind: string; // '',
-  us_hh_assessment_amenities_2: string; // '',
-  us_hh_fema_claims_2015: string; // '1',
-  us_hh_assessment_num_units: number; // 0,
-  us_hh_fema_all_params_flood_ar: string; // '12021C_37873',
-  us_hh_mortgage_est_balance: string; // '',
-  us_hh_wind_pool_desc: string; // 'In State Designated Wind Pool Zone',
-  us_hh_assessment_building_quality: string; // 'C',
-  us_hh_mls_ex_lot_size_acres: number; // 0.4,
-  us_hh_mls_rm_rooms_total: number; // 0,
-  us_hh_wind_enhanced_params_25_miles_last_decade: string; // '79',
-  us_hh_fema_firm_date_status: string; // 'C',
-  us_hh_assess_school_tax_dist_2: string; // '',
-  us_hh_wind_enhanced_params_score: string; // 'C',
-  us_hh_fema_claims_2003: string; // '1',
-  us_hh_assessment_legal_subdivision: string; // 'ROYAL HARBOR UNIT 3',
-  us_hh_debris_removal: string; // '',
-  us_hh_mls_if_fireplace_features: string; // 'Fireplace',
-  us_hh_wind_enhanced_params_scale: string; // '32',
-  us_hh_assessment_legal_brief_description: string; // 'SEC/TWN/RNG/MER:SEC 15 TWN 50 RNG 25 ROYAL HARBOR UNIT 3 BLK 12 LOT 50 MAP REF:MAP 5A15',
-  us_hh_assessment_psale_price: string; // '2700000',
-  sk_id: number; // 1,
-  us_hh_mls_if_levels_features: string; // '01 Story',
-  us_hh_mls_rm_general_features: string; // 'Family Room, Den',
-  us_hh_construction_type: string; // 'stucco on masonry',
-  us_hh_mls_rm_baths_full: number; // 3,
-  us_hh_assessment_lsale_price: string; // '3600000',
-  us_hh_mls_ex_pool_features: string; // 'Above ground, Concrete, Heated, Screen Enclosed',
-  us_hh_physical_shape: string; // 'rectangular',
-  hazarduw_rank: string | number | null; // null,
-  us_hh_mls_sc_school_district: string; // '',
-  us_hh_flood_params_polygon_type: string; // 'Large River',
-  us_hh_assessment_air_conditioning_type: string; // '',
-  us_hh_fema_firm_date_comm_entry_date: string; // '10/1/1992',
-  us_hh_mls_ex_road_features: string; // 'CI,DE,PV,PB',
-  us_hh_flood_params_polygons_distance: string; // '2378',
-  us_hh_assessment_building_area_1: number; // 0,
-  us_hh_mls_ex_garage_features: string; // 'Automatic Garage Door, Attached',
-  us_hh_fema_cbrs_params_designation: string; // 'OUT',
-  us_hh_mls_if_cooling_features: string; // 'Ceiling Fans, Central - Electric',
-  us_hh_mls_ex_water_access_features: string; // 'GA',
-  us_hh_flood_params_polygons_diff: string; // '7',
-  us_hh_flood_params_polygons_score: string; // 'F',
-  us_hh_fema_firm_date_name: string; // 'NAPLES',
-  us_hh_assessment_num_baths: number; // 4,
-  us_hh_fema_claims_2014: string; // '0',
-  us_hh_wind_enhanced_params_near_inc_type: string; // 'Thunderstorm Wind',
-  us_hh_mls_if_cooling_yes_no: string; // 'YES',
-  us_hh_mls_rm_dining_features: string; // 'Breakfast Bar, Formal',
-  us_hh_property_use_code: string; // 'Single Family Residence',
-  us_hh_assessment_total_assessed_value: number; // 2863349,
-  us_hh_construction_quality: string; // 'above average / upgraded',
-  us_hh_mortgage_loan_amount: string; // '',
-  us_hh_fema_all_score: string; // 'F',
-  us_hh_fema_claims_2008: string; // '1',
-  us_hh_mls_if_water_features: string; // 'Central Water',
-  us_hh_mls_rm_baths_total: number; // 4,
-  us_hh_wind_enhanced_params_near_inc_prop_dam: string; // '0.50K',
-  us_hh_assess_school_tax_dist_1: string; // '',
-  us_hh_fema_claims_total: string; // '44',
-  us_hh_number_of_stories: string; // '',
-  us_hh_mortgage_lender_name_ben: string; // '',
-  us_hh_fema_firm_date_comm_name: string; // 'Naples, City of',
-  us_hh_mls_rm_room13_type: string; // '',
-  us_hh_flood_params_elevation_nearest_flood: string; // '1',
-  us_hh_archtect_fees_permits: string; // '',
-  us_hh_mls_ex_general_features: string; // 'Boating, Gas Grill',
-  us_hh_assessment_main_buil_area_indicator: string; // '',
-  us_hh_mls_ex_lot_size_features: string; // 'Regular',
-  us_hh_mls_in_year_built: number; // 1985,
-  us_hh_mls_if_window_features: string; // 'Awning, Bay Window(s), Picture Window, Single Hung, Skylights, Sliding',
-  us_hh_fema_claims_2007: string; // '0',
-  us_hh_wind_region_score: string; // 'F',
-  us_hh_assessment_total_market_value: 2863349;
-  us_hh_mls_if_utilities_features: string; // '',
-  us_hh_assessment_neighborhood_code: string; // '24 RHU3',
-  us_hh_assessment_owner1_first_name: string; // 'MICHAEL O',
-  us_hh_assessment_owner2_last_name: string; // 'PRANKE',
-  us_hh_fema_all_params_dfirm: string; // '12021C',
-  us_hh_wind_enhanced_params_add_risk: string; // '0.03',
-  us_hh_assessment_heating: string; // '',
-  sk_country_code: string; // 'US',
-  us_hh_assessment_total_num_rooms: string; // '0',
-  us_hh_mls_if_basement_features: string; // '',
-  us_hh_dtc_coastal_distance: string; // '77 feet',
-  us_hh_replacement_cost: string; // '1643000',
-  us_hh_mls_in_living_sq_feet: string; // '3775',
-  sk_longitude: number; // -81.787231,
-  us_hh_flood_description: string; // 'Very High risk of flood damage',
-  us_hh_assessment_owner2_first_name: string; // 'DEBORAH A',
-  us_hh_mls_ex_patio_yes_no: string; // '',
-  us_hh_assessment_lvalid_price: string; // '3600000',
-  us_hh_property_price_range_min: number; // 4907367,
-  us_hh_mls_lr_status: string; // 'Sold',
-  us_hh_mls_if_appliance_features: string; // 'Cook Top Range, Dishwasher, Disposal, Dryer, Microwave, Range, Self-Cleaning Oven, Washer, Grill Built-in',
-  us_hh_fema_firm_date_sfha_pct_disc: string; // '25',
-  us_hh_mls_rm_kitchen_features: string; // 'Outdoor Kitchen, Built-In Desk, Island',
-  country_code_hazard: string; // 'US',
-  us_hh_fema_claims_2002: string; // '0',
-  us_hh_mls_ex_patio_features: string; // '',
-  us_hh_mls_if_fireplace_yes_no: string; // 'YES',
-  us_hh_slope_of_site: string; // '',
-  us_hh_mls_rm_bedrooms_total: 4;
-  us_hh_mortgage_est_ltv_combined: string; // '0.0000',
-  us_hh_wind_enhanced_params_near_inc_injuries: string; // '0',
-  us_hh_flood_params_lines_name: string; // '',
-  us_hh_wind_enhanced_params_hist_events_radius: string; // '95% chance of damaging wind occurrence in 10 years in a 2.81 mile radius',
-  us_hh_mls_if_floor_features: string; // 'Carpet, Tile, Wood',
-  us_hh_fema_claims_2013: string; // '0',
-  us_hh_flood_params_diff: string; // '7',
-  us_hh_fema_all_params_version: string; // '1.1.1.0',
-  us_hh_wind_enhanced_params_near_inc_year: string; // '2007',
-  us_hh_foundation_type: string; // '',
-  us_hh_property_zip: string; // '34102',
-  us_hh_mls_if_basement_yes_no: string; // '',
-  us_hh_fema_firm_date_current_effective_date: string; // '10/1/2015',
-  us_hh_fema_claims_2001: string; // '3',
-  us_hh_fema_base_elevation_description: string; // 'NO REPORT',
-  us_hh_fema_claims_2018: string; // '0',
-  us_hh_mortgage_open_lien_balance: string; // '',
-  us_hh_fema_all_params_special_hazard_area: string; // 'T',
-  us_hh_mls_ex_parking_spaces: string | number | null; //  null,
-  us_hh_assessment_parcel_number: string; // '18411080009',
-  us_hh_mls_if_heating_features: string; // 'Central Electric, Heat Pump, Zoned, Electric',
-  sk_location_granularity: number; // -1,
-  us_hh_assessment_air_conditioning: string; //  '',
-  us_hh_mls_ex_sewer_features: string; //  'Central Sewer',
-  us_hh_fema_all_params_zone: string; //  'AE',
-  us_hh_wind_pool_name: string; //  'Territory 62',
-  us_hh_wind_pool_score: string; //  'D',
-  us_hh_mls_in_association_dues1: string; //  '',
-  us_hh_wind_enhanced_params_dam_inc_25_miles: string; //  '124',
-  us_hh_mls_ex_lot_size_sq_feet: string | number | null; //  null,
-  us_hh_assessment_lsale_price_code: string; // 'Sales Price or Transfer Tax rounded by county prior to computation. Varies by county.',
-  us_hh_flood_params_lines_score: string; // 'A',
-  us_hh_assessment_construction_type: string; // '',
-  us_hh_mls_ex_exterior_wall_features: string; // '',
-  us_hh_assessment_topography: string; // '',
-  us_hh_wind_region_desc: string; // 'HazardHub Hurricane Prone Wind Region: Risk varies with location',
-  us_hh_dtc_high_res_distance: string; // '77 feet',
-  us_hh_assess_school_tax_dist_1_ind: string; // '',
-  us_hh_primary_roof_covering: string; // 'CONCRETE TILE',
-  us_hh_assessment_plumbing_fixtures: number; // 0,
-  us_hh_assessment_lot_size_frontage_ft: string; // '1000',
-  us_hh_assessment_lot_size_square_ft: number; // 17424,
-  us_hh_assessment_num_part_baths: number; // 0,
-  us_hh_mls_ex_garage_spaces: number; // 2,
-  us_hh_mls_ex_roof_features: string; // 'Tile',
-  us_hh_mls_in_sold_price: string; // '',
-  us_hh_fema_all_description: string; // 'Covered by FEMA digital maps. In 100 Year Floodplain',
-  us_hh_fema_all_params_study_type: string; // 'NP',
-  us_hh_flood_params_polygon_description: string; // 'River',
-  us_hh_flood_score: string; // 'F',
-  us_hh_assessment_building_area: number; // 3775,
-  us_hh_assessment_land_use_code: string; // 'Residential (General) (Single)',
-  us_hh_wind_enhanced_params_near_inc_crop_dam: string; // '0.00K',
-  us_hh_assessment_lsale_recording_date: string; // '20190507',
-  us_hh_fema_claims_2012: string; // '0',
-  us_hh_fema_firm_date_current_class: string; // '5',
-  us_hh_dtc_low_res_distance: string; // '79 feet',
-  us_hh_fema_claims_2006: string; //  '1',
-  us_hh_mls_ex_spa_yes_no: string; // '',
-  us_hh_wind_enhanced_params_near_inc_deaths: string; // '0',
-  us_hh_mls_if_general_features: string;
-  // 'Cable Available, Smoke Alarm, Unfurnished, Bar, Built-In Cabinets, Cable Prewire, Closet Cab, Custom Mirror, Exclusions, Foyer, French Doors, Walk-In Closets, Window Coverings',
-  hazarduw_flood_rank: string | number | null; // null,
-  us_hh_mls_rm_laundry_features: string; // '',
-  us_hh_year_built: string; // '1985',
-  us_hh_property_apn: string; // '18411080009',
-  us_hh_mls_in_sold_date: string; // '',
-  us_hh_house_materials_labor: string; // '',
-  us_hh_dtc_beach_distance: string; // '1.08 miles',
-  us_hh_fema_claims_2017: string; // '26',
-  us_hh_locale: string; // 'suburban',
-  us_hh_fema_base_elevation_meter: string; // '',
-  us_hh_mls_ex_foundation_features: string; // '',
 }

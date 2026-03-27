@@ -1,10 +1,28 @@
-import { Alert, AlertTitle, Box, Button, Container, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  Container,
+  Stack,
+  Typography,
+} from '@mui/material';
 import * as Sentry from '@sentry/react';
 import { FirestoreError } from 'firebase/firestore';
-import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-dom';
+import {
+  isRouteErrorResponse,
+  useNavigate,
+  useRouteError,
+} from 'react-router-dom';
 import { useUser } from 'reactfire';
 
-import { PageNotFoundSVG, SearchingSVG, SecureLoginSVG, ServerDownSVG } from 'assets/images';
+import {
+  PageNotFoundSVG,
+  SearchingSVG,
+  SecureLoginSVG,
+  ServerDownSVG,
+} from 'assets/images';
+import { createPath, ROUTES } from 'router';
 
 // FOR HANDLING ERRORS THROWN IN REACT ROUTER LOADERS
 
@@ -14,7 +32,8 @@ import { PageNotFoundSVG, SearchingSVG, SecureLoginSVG, ServerDownSVG } from 'as
 // TODO: wrap in layout ?? includes nav? What about if caught at lower levels of router ??
 
 // @ts-ignore
-export const firestoreRulesErrorRegex = /([A-Za-z0-9]+( [A-Za-z0-9]+)+)\. for '[A-Za-z]+' @ L\d*/i;
+export const firestoreRulesErrorRegex =
+  /([A-Za-z0-9]+( [A-Za-z0-9]+)+)\. for '[A-Za-z]+' @ L\d*/i;
 
 export function checkRulesRegex(str: string) {
   return firestoreRulesErrorRegex.test(str);
@@ -42,7 +61,9 @@ export const NotFound = ({
           m: 8,
         }}
       >
-        <PageNotFoundSVG style={{ width: 'inherit', height: 'inherit', margin: 'auto' }} />
+        <PageNotFoundSVG
+          style={{ width: 'inherit', height: 'inherit', margin: 'auto' }}
+        />
       </Box>
       <Box>
         <Typography variant='h5' gutterBottom sx={{ py: 2 }}>
@@ -74,7 +95,7 @@ export interface RouterErrorBoundaryProps {
   actionButtons?: { label: string; path: string }[];
 }
 
-export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps) => {
+const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps) => {
   const { data: user } = useUser();
   let error = useRouteError();
   const navigate = useNavigate();
@@ -96,24 +117,34 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
   if (isRouteErrorResponse(error)) {
     let msg = typeof error.data === 'string' ? error.data : undefined;
 
-    if (error.status === 404) return <NotFound msg={msg} actionButtons={actionButtons} />;
+    if (error.status === 404)
+      return <NotFound msg={msg} actionButtons={actionButtons} />;
 
     if (error.status === 401) {
       return (
         <Container maxWidth='xs' sx={{ py: 8 }}>
           <Box
-            sx={{ textAlign: 'center', height: { xs: '100px', sm: '140px', md: '160px' }, m: 8 }}
+            sx={{
+              textAlign: 'center',
+              height: { xs: '100px', sm: '140px', md: '160px' },
+              m: 8,
+            }}
           >
             <SecureLoginSVG style={{ width: 'inherit', height: 'inherit' }} />
           </Box>
           <Box>
             <Typography variant='h5'>Permissions Error</Typography>
-            <Typography variant='body2' color='text.secondary' gutterBottom sx={{ py: 2 }}>
-              Your account does not have the permissions required to access the requested resource.
-              If you this is a bug, please{' '}
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              gutterBottom
+              sx={{ py: 2 }}
+            >
+              Your account does not have the permissions required to access the
+              requested resource. If you this is a bug, please{' '}
               <Typography
                 component='span'
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate(createPath({ path: ROUTES.CONTACT }))}
                 sx={{ '&:hover': { textDecoration: 'underline' } }}
               >
                 drop us a note
@@ -152,18 +183,27 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
       return (
         <Container maxWidth='xs' sx={{ py: 8 }}>
           <Box
-            sx={{ textAlign: 'center', height: { xs: '100px', sm: '140px', md: '160px' }, m: 8 }}
+            sx={{
+              textAlign: 'center',
+              height: { xs: '100px', sm: '140px', md: '160px' },
+              m: 8,
+            }}
           >
             <ServerDownSVG style={{ width: 'inherit', height: 'inherit' }} />
           </Box>
           <Box>
             <Typography variant='h5'>Permissions Error</Typography>
-            <Typography variant='body2' color='text.secondary' gutterBottom sx={{ py: 4 }}>
-              Your account does not have the permissions required to access the requested resource.
-              If you this is a bug, please{' '}
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              gutterBottom
+              sx={{ py: 4 }}
+            >
+              Your account does not have the permissions required to access the
+              requested resource. If you this is a bug, please{' '}
               <Typography
                 component='span'
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate(createPath({ path: ROUTES.CONTACT }))}
                 sx={{ '&:hover': { textDecoration: 'underline' } }}
               >
                 drop us a note
@@ -180,7 +220,10 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
                 <Button onClick={() => navigate('/')}>Home</Button>
                 <Button onClick={() => navigate(-1)}>Back</Button>
                 {actionButtons?.map((button) => (
-                  <Button onClick={() => navigate(button.path)} key={button.path}>
+                  <Button
+                    onClick={() => navigate(button.path)}
+                    key={button.path}
+                  >
                     {button.label}
                   </Button>
                 ))}
@@ -195,13 +238,24 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
       return (
         <Container maxWidth='xs' sx={{ py: 8 }}>
           <Box
-            sx={{ textAlign: 'center', height: { xs: '100px', sm: '140px', md: '160px' }, m: 8 }}
+            sx={{
+              textAlign: 'center',
+              height: { xs: '100px', sm: '140px', md: '160px' },
+              m: 8,
+            }}
           >
             <SearchingSVG style={{ width: 'inherit', height: 'inherit' }} />
           </Box>
           <Box>
-            <Typography variant='h5'>The requested resource could not be accessed.</Typography>
-            <Typography variant='body2' color='text.secondary' gutterBottom sx={{ py: 4 }}>
+            <Typography variant='h5'>
+              The requested resource could not be accessed.
+            </Typography>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              gutterBottom
+              sx={{ py: 4 }}
+            >
               {msg ? msg : 'Something went wrong. See console for details.'}
             </Typography>
             {/* {actionButtons && ( */}
@@ -232,9 +286,9 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
   if (err?.message && err.message.indexOf('query requires an index') !== -1) {
     msg = (
       <p>
-        Indexing error. Our team has been notified and the issue should be resolved within the hour.
-        Apologies for the inconvenience. Please also try a hard refresh of the page (ctrl/cmd +
-        shift + R).
+        Indexing error. Our team has been notified and the issue should be
+        resolved within the hour. Apologies for the inconvenience. Please also
+        try a hard refresh of the page (ctrl/cmd + shift + R).
       </p>
     );
   }

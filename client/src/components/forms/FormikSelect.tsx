@@ -1,9 +1,9 @@
 import {
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   FormHelperText,
+  InputLabel,
+  MenuItem,
+  Select,
   SelectProps,
 } from '@mui/material';
 import { FieldHookConfig, useField } from 'formik';
@@ -14,14 +14,21 @@ export interface SelectOption {
   disabled?: boolean;
   [key: string]: any;
 }
-export interface FormikSelectProps extends SelectProps {
+// export interface FormikSelectProps<T> extends SelectProps<T> {
+//   name: string;
+//   label: string;
+//   selectOptions: SelectOption[] | string[];
+//   formikConfig?: Partial<FieldHookConfig<any>>;
+// }
+
+type FormikSelectProps<T> = SelectProps<T> & {
   name: string;
   label: string;
   selectOptions: SelectOption[] | string[];
   formikConfig?: Partial<FieldHookConfig<any>>;
-}
+};
 
-export const FormikSelect = ({
+export const FormikSelect = <T,>({
   name,
   label,
   selectOptions,
@@ -32,7 +39,7 @@ export const FormikSelect = ({
   sx = { minWidth: 160 },
   formikConfig,
   ...props
-}: FormikSelectProps) => {
+}: FormikSelectProps<T>) => {
   const [field, meta] = useField({ name, ...formikConfig });
 
   return (
@@ -90,7 +97,10 @@ export const FormikSelect = ({
         })}
       </Select>
       {meta.touched && Boolean(meta.error) && (
-        <FormHelperText variant={variant} error={meta.touched && Boolean(meta.error)}>
+        <FormHelperText
+          variant={variant}
+          error={meta.touched && Boolean(meta.error)}
+        >
           {meta.error}
         </FormHelperText>
       )}

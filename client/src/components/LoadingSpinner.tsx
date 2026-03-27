@@ -1,32 +1,27 @@
-import { CircularProgress, CircularProgressProps, Fade, FadeProps, SxProps } from '@mui/material';
+import { CircularProgress, CircularProgressProps, Fade, FadeProps } from '@mui/material';
 
-export interface LoadingSpinnerProps {
+export interface LoadingSpinnerProps extends CircularProgressProps {
   loading: boolean;
   fadeProps?: FadeProps;
-  spinnerSx?: SxProps;
-  circularProgressProps?: CircularProgressProps;
 }
 
-export const LoadingSpinner = ({
-  loading,
-  fadeProps,
-  spinnerSx,
-  circularProgressProps,
-}: LoadingSpinnerProps) => {
+// TODO: extend circular process props
+
+export const LoadingSpinner = ({ loading, fadeProps, ...props }: LoadingSpinnerProps) => {
   // style={{ transitionDelay: '50ms' }}
   return (
     <Fade in={loading} unmountOnExit {...fadeProps}>
       <CircularProgress
         color='primary'
         size={26}
+        {...props}
         sx={{
           opacity: loading ? 1 : 0,
           transition: 'opacity 150ms ease-out 100ms',
           pointerEvents: 'none',
           zIndex: 2000,
-          ...spinnerSx,
+          ...(props?.sx || {}),
         }}
-        {...circularProgressProps}
       />
     </Fade>
   );

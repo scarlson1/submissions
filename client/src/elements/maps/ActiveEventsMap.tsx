@@ -20,13 +20,19 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import axios, { AxiosRequestConfig } from 'axios';
-import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
+import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl';
 import { Timestamp, where } from 'firebase/firestore';
 import { useCallback, useState } from 'react';
 
 import { State } from 'common';
 import { useCollectionData } from 'hooks';
-import { CoordObj, getPlaceMarker, getRGBAArray, stringToColor, svgToDataURL } from 'modules/utils';
+import {
+  CoordObj,
+  getPlaceMarker,
+  getRGBAArray,
+  stringToColor,
+  svgToDataURL,
+} from 'modules/utils';
 import { DeckMap } from './DeckMap';
 import { renderEventTooltip, renderLocationTooltip } from './renderTooltips';
 
@@ -166,8 +172,20 @@ const FEMA_EVENT_TYPE_OPTIONS = [
 ];
 
 const EVENT_STATUS_OPTIONS = ['actual', 'exercise', 'system', 'test', 'draft'];
-const FEMA_SEVERITY_OPTIONS = ['Extreme', 'Severe', 'Moderate', 'Minor', 'Unknown'];
-const FEMA_URGENCY_OPTIONS = ['Immediate', 'Expected', 'Future', 'Past', 'Unknown'];
+const FEMA_SEVERITY_OPTIONS = [
+  'Extreme',
+  'Severe',
+  'Moderate',
+  'Minor',
+  'Unknown',
+];
+const FEMA_URGENCY_OPTIONS = [
+  'Immediate',
+  'Expected',
+  'Future',
+  'Past',
+  'Unknown',
+];
 
 const LAYER_IDS = {
   events: 'events-layer',
@@ -189,13 +207,16 @@ interface ActiveEventsParams {
   urgency?: string[];
 }
 
-async function fetchActiveEvents(params: AxiosRequestConfig<ActiveEventsParams>['params']) {
+async function fetchActiveEvents(
+  params: AxiosRequestConfig<ActiveEventsParams>['params'],
+) {
   const { data } = await axios.get(`https://api.weather.gov/alerts/active`, {
     params,
   });
   return data;
 }
 
+// TODO: move to it's own file
 export const useActiveEvents = (filters: ActiveEventsParams) =>
   useQuery({
     queryKey: ['activeEvents', { ...filters }],
@@ -216,16 +237,24 @@ export const ActiveEventsMap = () => {
     severity: [],
     urgency: [],
   });
-  const { data: eventData, isLoading, isError, error } = useActiveEvents(params);
+  const {
+    data: eventData,
+    isLoading,
+    isError,
+    error,
+  } = useActiveEvents(params);
 
   const { data: locationData } = useCollectionData(
-    'LOCATIONS',
-    [where('expirationDate', '>=', currentTS), where('parentType', '==', 'policy')],
+    'locations',
+    [
+      where('expirationDate', '>=', currentTS),
+      where('parentType', '==', 'policy'),
+    ],
     {
       idField: 'id',
       suspense: false,
       initialData: [],
-    }
+    },
   );
 
   const getEventColor = useCallback(
@@ -233,30 +262,33 @@ export const ActiveEventsMap = () => {
       const eventType = e?.properties?.event || 'primary';
       let colorArr = colorCache[eventType];
       if (!colorArr) {
-        let colorStr = stringToColor(e?.properties?.event || theme.palette.primary.main);
+        let colorStr = stringToColor(
+          e?.properties?.event || theme.palette.primary.main,
+        );
         colorArr = getRGBAArray(colorStr, 180);
         colorCache[eventType] = colorArr;
       }
 
       return colorArr; // getRGBAArray(color, 180);
     },
-    [theme]
+    [theme],
   );
 
   const handleFilterChange = useCallback(
-    (key: keyof ActiveEventsParams) => (event: SelectChangeEvent<string[] | string>) => {
-      const {
-        target: { value },
-      } = event;
+    (key: keyof ActiveEventsParams) =>
+      (event: SelectChangeEvent<string[] | string>) => {
+        const {
+          target: { value },
+        } = event;
 
-      const valArr = typeof value === 'string' ? value.split(',') : value;
+        const valArr = typeof value === 'string' ? value.split(',') : value;
 
-      setParams((prev) => ({
-        ...prev,
-        [key]: valArr,
-      }));
-    },
-    []
+        setParams((prev) => ({
+          ...prev,
+          [key]: valArr,
+        }));
+      },
+    [],
   );
 
   const handleClear = useCallback(
@@ -265,7 +297,7 @@ export const ActiveEventsMap = () => {
         ...prev,
         [key]: [],
       })),
-    []
+    [],
   );
 
   if (isError)
@@ -284,9 +316,19 @@ export const ActiveEventsMap = () => {
   return (
     <Box>
       <Box sx={{ py: 2 }}>
-        <ActiveEventsFilters filters={params} onChange={handleFilterChange} onClear={handleClear} />
+        <ActiveEventsFilters
+          filters={params}
+          onChange={handleFilterChange}
+          onClear={handleClear}
+        />
       </Box>
-      <Card sx={{ height: { xs: 360, sm: 400, lg: 500 }, width: '100%', position: 'relative' }}>
+      <Card
+        sx={{
+          height: { xs: 360, sm: 400, lg: 500 },
+          width: '100%',
+          position: 'relative',
+        }}
+      >
         {isLoading && (
           <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 100 }}>
             <CircularProgress size={20} />
@@ -320,8 +362,10 @@ export const ActiveEventsMap = () => {
               getIcon: (d: CoordObj) => ({
                 url: svgToDataURL(
                   `${getPlaceMarker(
-                    d.cancelEffDate ? theme.palette.primaryDark.main : theme.palette.primary.main
-                  )}`
+                    d.cancelEffDate
+                      ? theme.palette.primaryDark.main
+                      : theme.palette.primary.main,
+                  )}`,
                 ),
                 width: 36,
                 height: 36,
@@ -408,7 +452,11 @@ export const ActiveEventsMap = () => {
           /> */}
         </DeckMap>
       </Card>
-      <Typography variant='subtitle2' color='text.secondary' sx={{ py: 1.5, px: 2 }}>
+      <Typography
+        variant='subtitle2'
+        color='text.secondary'
+        sx={{ py: 1.5, px: 2 }}
+      >
         Live events from{' '}
         <Link
           href='https://www.weather.gov/documentation/services-web-api#/'
@@ -490,12 +538,16 @@ export function MultipleSelect({
 interface ActiveEventsFiltersProps {
   filters: ActiveEventsParams;
   onChange: (
-    key: keyof ActiveEventsParams
+    key: keyof ActiveEventsParams,
   ) => (event: SelectChangeEvent<string[] | string>) => void;
   onClear: (key: keyof ActiveEventsParams) => () => void;
 }
 
-function ActiveEventsFilters({ filters, onChange, onClear }: ActiveEventsFiltersProps) {
+function ActiveEventsFilters({
+  filters,
+  onChange,
+  onClear,
+}: ActiveEventsFiltersProps) {
   return (
     <Stack spacing={3} direction={{ sm: 'column', md: 'row' }}>
       <MultipleSelect

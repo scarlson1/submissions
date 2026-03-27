@@ -1,24 +1,27 @@
-import algoliasearch, { SearchIndex } from 'algoliasearch';
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { capitalize } from 'lodash-es';
 
+import { Collection, Policy } from '@idemand/common';
+import { typesenseCollectionPrefix } from '../../common/environmentVars.js';
 import {
-  COLLECTIONS,
-  Policy,
-  algoliaAdminKey,
-  algoliaAppId,
-  algoliaIndex,
-} from '../../common/index.js';
+  ensureCollections,
+  getTypesenseClient,
+} from '../../services/typesense/index.js';
 import { getVisibleBy } from '../../utils/index.js';
 
-export async function removeAlgoliaRecord(index: SearchIndex, id: string) {
+export async function removeTypesenseRecord(index: string, id: string) {
   try {
-    const res = await index.deleteObject(id);
-    info(`ALGOLIA - SUCCESSFULLY DELETED RECORD (taskId: ${res.taskID})`, { id });
-  } catch (err: any) {
-    error(`ERROR DELETING RECORD FROM ALGOLIA INDEX (ID: ${id})`, {
+    // const res = await index.deleteObject(id);
+    const client = getTypesenseClient();
+    await client.collections(index).documents(id).delete();
+    info('TYPESENSE - SUCCESSFULLY DELETED RECORD', {
+      index,
+      id,
+    });
+  } catch (err: unknown) {
+    error(`ERROR DELETING RECORD FROM TYPESENSE INDEX (ID: ${id})`, {
       id,
       err,
     });
@@ -31,23 +34,27 @@ export default async (
     {
       policyId: string;
     }
-  >
+  >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) {
-    // TODO: report to sentry
-    error('Missing Algolia credentials returning early');
-    return;
-  }
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
+  // if (!(appId && adminKey)) {
+  //   // TODO: report to sentry
+  //   error('Missing Algolia credentials returning early');
+  //   return;
+  // }
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
+
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.policyId;
 
   // If the document does not exist, it was deleted
   const newData = event?.data?.after.data() as Policy | undefined;
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.policies}`;
 
   // Remove locations from index if location Id not in new locations
   // const prevData = event?.data?.before.data();
@@ -57,12 +64,12 @@ export default async (
   // const removedLocationIds = prevLocationIds.filter((lcnId) => newLocationIds.includes(lcnId));
 
   // for (let lcnId of removedLocationIds) {
-  //   await removeAlgoliaRecord(index, lcnId);
+  //   await removeTypesenseRecord(index, lcnId);
   // }
 
   if (!newData) {
     // Delete policy record
-    await removeAlgoliaRecord(index, docId);
+    await removeTypesenseRecord(Collection.enum.policies, docId);
   } else {
     try {
       // Visible to agent, user, and orgAdmins
@@ -77,20 +84,23 @@ export default async (
 
       let searchTitle = `${capitalize(newData.product)} policy - ID ${docId}`;
 
-      const _geoloc = [];
+      // const _geoloc = [];
+      const _geopoints = [];
       if (locations && locations.length) {
         const firstAddress = locations[0].address;
 
         searchTitle += ` - ${firstAddress.s1} ${firstAddress.c}, ${firstAddress.st}`;
 
-        if (locations.length > 1) searchTitle += ` and ${locations.length - 1} other locations`;
+        if (locations.length > 1)
+          searchTitle += ` and ${locations.length - 1} other locations`;
 
-        for (let loc of locations) {
+        for (const loc of locations) {
           if (loc.coords)
-            _geoloc.push({
-              lat: loc.coords?.latitude,
-              lng: loc.coords?.longitude,
-            });
+            _geopoints.push([loc.coords.latitude, loc.coords.longitude]);
+          // _geoloc.push({
+          //   lat: loc.coords?.latitude,
+          //   lng: loc.coords?.longitude,
+          // });
         }
       }
 
@@ -108,35 +118,40 @@ export default async (
       const records: Record<string, any>[] = [
         {
           ...newData,
-          objectID: docId,
+          id: docId,
           docType: 'policy',
-          collectionName: COLLECTIONS.POLICIES,
+          collectionName: Collection.enum.policies,
           searchTitle,
           searchSubtitle,
-          _geoloc,
+          _geopoints,
+          // _geoloc,
           visibleBy,
+          effectiveDate: newData.effectiveDate?.toMillis() || null,
+          expirationDate: newData.expirationDate?.toMillis() || null,
+          cancelEffDate: newData.cancelEffDate?.toMillis() || null,
           metadata: {
             ...(newData.metadata || {}),
-            created: newData.metadata?.created?.toDate() || null,
-            updated: newData.metadata?.updated?.toDate() || null,
-            createdTimestamp: newData.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newData.metadata?.updated?.toMillis() || null,
+            created: newData.metadata?.created?.toMillis() || null,
+            updated: newData.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newData.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newData.metadata?.updated?.toMillis() || null,
           },
         },
       ];
 
-      info(`SAVING POLICY CHANGE TO ALGOLIA INDEX ${docId}`, {
+      info(`SAVING POLICY CHANGE TO TYPESENSE INDEX ${docId}`, {
         locationCount: locations.length,
         ...records,
       });
 
-      const { objectIDs } = await index.saveObjects(records, {
-        autoGenerateObjectIDIfNotExist: false,
-      });
+      // const { objectIDs } = await index.saveObjects(records, {
+      //   autoGenerateObjectIDIfNotExist: false,
+      // });
+      await client.collections(typesenseColName).documents().upsert(records[0]);
 
-      info(`ALGOLIA DOC UPDATED: ${JSON.stringify(objectIDs)}`);
+      info('TYPESENSE DOC UPDATED [policies]');
     } catch (err: any) {
-      error(`ERROR UPDATING ALGOLIA POLICY ${docId}`, { ...err });
+      error(`ERROR UPDATING TYPESENSE POLICY ${docId}`, { ...err });
       // TODO: report to sentry ??
       // TODO: check error code --> rethrow if 50X error ?? handle idempotency
     }

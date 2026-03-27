@@ -1,13 +1,19 @@
 import { Card, useTheme } from '@mui/material';
-import { IconLayer } from 'deck.gl/typed';
+import { IconLayer, MapViewState } from 'deck.gl';
 import { QueryFieldFilterConstraint } from 'firebase/firestore';
 import { flatten } from 'lodash';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Policy, WithId } from 'common';
-import { useCollectionData } from 'hooks';
-import { CoordObj, TypedPickingInfo, getPlaceMarker, svgToDataURL } from 'modules/utils';
+import { useCollectionData, useFlyToBounds } from 'hooks';
+import {
+  CoordObj,
+  TypedPickingInfo,
+  getPlaceMarker,
+  svgToDataURL,
+} from 'modules/utils';
 import { DeckMap } from './DeckMap';
+import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
 import { renderPolicyLocationTooltip } from './renderTooltips';
 
 // which scenarios filter via query vs deck.gl filter ??
@@ -29,16 +35,39 @@ export interface PoliciesMapProps {
 
 export const PoliciesMap = ({ constraints }: PoliciesMapProps) => {
   const theme = useTheme();
-  const [hoverInfo, setHoverInfo] = useState<TypedPickingInfo<WithId<Policy>>>();
+  const [hoverInfo, setHoverInfo] =
+    useState<TypedPickingInfo<WithId<Policy>>>();
+  const [mapViewState, setMapViewState] = useState<MapViewState>(
+    DEFAULT_INITIAL_VIEW_STATE,
+  );
+  const mapLoaded = useRef(false);
 
-  const { data: policies } = useCollectionData<Policy>('POLICIES', constraints, { idField: 'id' });
+  const { data: policies } = useCollectionData<Policy>(
+    'policies',
+    constraints,
+    {
+      idField: 'id',
+    },
+  );
 
   const policyData = useMemo(() => {
     const policyLcns = policies.map(({ id, locations, ...p }) =>
-      Object.entries(locations).map(([lcnId, lcn]) => ({ ...lcn, lcnId, policyId: id, policy: p }))
+      Object.entries(locations).map(([lcnId, lcn]) => ({
+        ...lcn,
+        coordinates: lcn.coords,
+        lcnId,
+        policyId: id,
+        policy: p,
+      })),
     );
     return flatten(policyLcns);
   }, [policies]);
+
+  const flyToBounds = useFlyToBounds(policyData, setMapViewState, 2000);
+
+  useEffect(() => {
+    mapLoaded.current && flyToBounds();
+  }, [flyToBounds]);
 
   const layers = [
     new IconLayer({
@@ -48,15 +77,20 @@ export const PoliciesMap = ({ constraints }: PoliciesMapProps) => {
       getIcon: (d: CoordObj) => ({
         url: svgToDataURL(
           `${getPlaceMarker(
-            d.cancelEffDate ? theme.palette.primaryDark.main : theme.palette.primary.main
-          )}`
+            d.cancelEffDate
+              ? theme.palette.primaryDark.main
+              : theme.palette.primary.main,
+          )}`,
         ),
         width: 36,
         height: 36,
         anchorX: 18,
         anchorY: 36,
       }),
-      getPosition: (d: any) => [d?.coords?.longitude || 0, d?.coords?.latitude || 0],
+      getPosition: (d: any) => [
+        d?.coordinates?.longitude || 0,
+        d?.coordinates?.latitude || 0,
+      ],
       sizeScale: 5,
       getSize: (d) => 5,
       onHover: (info) => setHoverInfo(info),
@@ -67,12 +101,23 @@ export const PoliciesMap = ({ constraints }: PoliciesMapProps) => {
   ];
 
   return (
-    <Card sx={{ height: { xs: 360, sm: 400, lg: 500 }, width: '100%', position: 'relative' }}>
+    <Card
+      sx={{
+        height: { xs: 360, sm: 400, lg: 500 },
+        width: '100%',
+        position: 'relative',
+      }}
+    >
       <DeckMap
         layers={layers}
         hoverInfo={hoverInfo}
         renderTooltipContent={renderPolicyLocationTooltip}
-      ></DeckMap>
+        initialViewState={mapViewState}
+        onLoad={() => {
+          flyToBounds();
+          mapLoaded.current = true;
+        }}
+      />
     </Card>
   );
 };

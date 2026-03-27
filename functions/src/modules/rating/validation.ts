@@ -1,19 +1,16 @@
-import { GeoPoint } from 'firebase-admin/firestore';
 import {
   Address,
   AgentDetails,
   Basement,
-  DeepNullable,
   FloodZone,
   Limits,
   Nullable,
   PriorLossCount,
   RCVs,
   ValueByRiskType,
-  maxA,
-  maxBCD,
-  minA,
-} from '../../common/index.js';
+} from '@idemand/common';
+import { GeoPoint } from 'firebase-admin/firestore';
+import { DeepNullable, maxA, maxBCD, minA } from '../../common/index.js';
 import { isValidCoords, isValidEmail, verify } from '../../utils/index.js';
 
 export function validateLimits(limits?: Partial<Limits>): asserts limits is Limits {
@@ -45,8 +42,8 @@ export function validateLimits(limits?: Partial<Limits>): asserts limits is Limi
 
 export function validateDeductible(deductible?: number): asserts deductible is number {
   verify(
-    deductible && typeof deductible === 'number' && deductible > 1000,
-    'invalid deductible. must be number > 1000'
+    deductible && typeof deductible === 'number' && deductible >= 1000,
+    'invalid deductible. must be number >= 1000'
   );
 }
 

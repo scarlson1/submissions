@@ -9,7 +9,8 @@ export function useLocalStorage<T>(key: string, initialValue?: T) {
     try {
       const item = localStorage.getItem(key);
 
-      return item ? JSON.parse(item) : initialValue;
+      // return item ? JSON.parse(item) : initialValue;
+      return item ? (item as T) : initialValue;
     } catch (error) {
       console.log(error);
       return initialValue;
@@ -23,7 +24,8 @@ export function useLocalStorage<T>(key: string, initialValue?: T) {
       setStoredValue(valueToStore);
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem(key, JSON.stringify(valueToStore));
+        // localStorage.setItem(key, JSON.stringify(valueToStore));
+        if (typeof valueToStore === 'string') localStorage.setItem(key, valueToStore);
       }
     } catch (error) {
       console.log(error);
@@ -32,19 +34,3 @@ export function useLocalStorage<T>(key: string, initialValue?: T) {
 
   return [storedValue, setValue] as const;
 }
-
-// // Usage
-// function App() {
-//   // Similar to useState but first arg is key to the value in local storage.
-//   const [name, setName] = useLocalStorage<string>("name", "Bob");
-//   return (
-//     <div>
-//       <input
-//         type="text"
-//         placeholder="Enter your name"
-//         value={name}
-//         onChange={(e) => setName(e.target.value)}
-//       />
-//     </div>
-//   );
-// }

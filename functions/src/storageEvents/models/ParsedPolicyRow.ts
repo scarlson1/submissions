@@ -1,16 +1,14 @@
-import { z } from 'zod';
 import {
   AdditionalInsured,
   Address,
   AgencyDetails,
   AgentDetails,
   CancelReason,
-  Coords,
+  CarrierDetails,
+  CommSource,
   Deductible,
-  DeepNullable,
   FeeItem,
   Limits,
-  MGACommissionPct,
   MailingAddress,
   Mortgagee,
   NamedInsured,
@@ -20,7 +18,12 @@ import {
   State,
   TaxItem,
   ValueByRiskType,
-} from '../../common/index.js';
+} from '@idemand/common';
+import { z } from 'zod';
+import { Coords, DeepNullable, MGACommissionPct } from '../../common/index.js';
+
+// TODO: extend Policy ??
+// delete userId ?? always match named insured ??
 
 export const ParsedPolicyRow = z.object({
   policyId: z.string(),
@@ -37,9 +40,10 @@ export const ParsedPolicyRow = z.object({
   price: z.number().nonnegative(), // .min(100, 'price must be > $100'),
   namedInsured: NamedInsured,
   mailingAddress: MailingAddress,
-  userId: z.string(),
+  userId: z.string().nullable(),
   agent: AgentDetails,
   agency: AgencyDetails,
+  carrier: CarrierDetails,
   // surplusLinesProducerOfRecord: SLProdOfRecordDetails,
   issuingCarrier: z.string().optional(),
   quoteId: z.string().optional(),
@@ -57,10 +61,11 @@ export const ParsedPolicyRow = z.object({
   ratingDocId: z.string().optional().nullable().default(null),
   product: Product,
   mgaCommissionPct: MGACommissionPct,
-  AALs: ValueByRiskType, // AALs,
+  AALs: ValueByRiskType,
   techPremium: ValueByRiskType,
   billingEntityId: z.string(),
   billingEntityName: z.string(),
+  commSource: CommSource,
 });
 export type ParsedPolicyRow = z.infer<typeof ParsedPolicyRow>;
 

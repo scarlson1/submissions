@@ -1,18 +1,18 @@
+import { Box, Typography } from '@mui/material';
+import { Timestamp, addDoc } from 'firebase/firestore';
+import { getDownloadURL } from 'firebase/storage';
+import { FormikProps } from 'formik';
+import Lottie from 'lottie-react';
 import { useCallback, useRef } from 'react';
 import { useFirestore, useUser } from 'reactfire';
-import { Timestamp, addDoc } from 'firebase/firestore';
-import { Box, Typography } from '@mui/material';
-import { getDownloadURL } from 'firebase/storage';
-import Lottie from 'lottie-react';
-import { FormikProps } from 'formik';
 
-import { portfolioSubmissionsCollection } from 'common';
-import { useAsyncToast, useUploadStorageFiles, useDialog } from 'hooks';
-import { verify } from 'modules/utils';
-import { PortfolioSubmissionForm, PortfolioSubmissionValues } from 'elements/forms';
-import { RouterLink } from 'components/layout';
-import { ROUTES, createPath } from 'router';
 import { CheckmarkLottie } from 'assets';
+import { portfolioSubmissionsCollection } from 'common';
+import { RouterLink } from 'components/layout';
+import { PortfolioSubmissionForm, PortfolioSubmissionValues } from 'elements/forms';
+import { useAsyncToast, useDialog, useUploadStorageFiles } from 'hooks';
+import { verify } from 'modules/utils';
+import { ROUTES, createPath } from 'router';
 
 // create form to collect name, email, company, ack (separate component)
 // upload file to storage --> save data to collection
@@ -45,7 +45,7 @@ const useCreatePortfolioSubmission = (
           },
           `${orgName}_`
         );
-        if (process.env.REACT_APP_DEV) console.log('uploadResult: ', uploadResult);
+        if (import.meta.env.VITE_DEV) console.log('uploadResult: ', uploadResult);
 
         const downloadUrl = await getDownloadURL(uploadResult[0].ref);
 

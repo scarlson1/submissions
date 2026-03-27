@@ -1,16 +1,15 @@
-import algoliasearch from 'algoliasearch';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
+import { Collection, Submission } from '@idemand/common';
+import { typesenseCollectionPrefix } from '../../common/environmentVars.js';
 import {
-  COLLECTIONS,
-  Submission,
-  algoliaAdminKey,
-  algoliaAppId,
-  algoliaIndex,
-} from '../../common/index.js';
-import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
+  ensureCollections,
+  getTypesenseClient,
+} from '../../services/typesense/index.js';
+import { getVisibleBy, VisibleByTypes } from '../../utils/index.js';
+import { removeTypesenseRecord } from './syncPolicies.js';
 
 export default async (
   event: FirestoreEvent<
@@ -18,31 +17,38 @@ export default async (
     {
       submissionId: string;
     }
-  >
+  >,
 ) => {
-  const appId = algoliaAppId.value();
-  const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) {
-    // TODO: report to sentry
-    error('Missing Algolia credentials returning early');
-    return;
-  }
+  // const appId = algoliaAppId.value();
+  // const adminKey = algoliaAdminKey.value();
+  // if (!(appId && adminKey)) {
+  //   // TODO: report to sentry
+  //   error('Missing Algolia credentials returning early');
+  //   return;
+  // }
 
-  const client = algoliasearch(appId, adminKey);
-  const index = client.initIndex(algoliaIndex.value());
+  await ensureCollections(); // no-op after first call in this instance
+  const client = getTypesenseClient();
+
+  // const client = algoliasearch(appId, adminKey);
+  // const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.submissionId;
 
   // If the document does not exist, it was deleted
   const newValue = event?.data?.after.data() as Submission | undefined;
+  const typesenseColName = `${typesenseCollectionPrefix.value()}_${Collection.enum.submissions}`;
   if (!newValue) {
     try {
-      info(`DELETING DOC ${docId} FROM ALGOLIA SUBMISSIONS INDEX...`);
-      const res = await index.deleteObject(docId);
-      info(`SUCCESSFULLY DELETED ${docId} FROM SUBMISSIONS INDEX (taskId: ${res.taskID})`);
+      info(`DELETING DOC ${docId} FROM TYPESENSE SUBMISSIONS INDEX...`);
+      // const res = await index.deleteObject(docId);
+      await removeTypesenseRecord(typesenseColName, docId);
+      info(`SUCCESSFULLY DELETED ${docId} FROM SUBMISSIONS INDEX`);
       return;
     } catch (err: any) {
-      error('ERROR DELETING USER FROM ALGOLIA SUBMISSIONS INDEX: ', { ...err });
+      error('ERROR DELETING USER FROM TYPESENSE SUBMISSIONS INDEX: ', {
+        ...err,
+      });
     }
   } else {
     try {
@@ -62,37 +68,41 @@ export default async (
       const records: Record<string, any>[] = [
         {
           ...newValue,
-          objectID: docId,
+          id: docId,
           visibleBy,
           userId: newValue.userId || null,
           docType: 'submission',
-          collectionName: COLLECTIONS.SUBMISSIONS,
+          collectionName: Collection.Enum.submissions,
           searchTitle: `${newValue.address?.addressLine1} ${newValue.address?.city}, ${newValue.address?.state}`,
           searchSubtitle,
+          _geopoint: newValue.coordinates
+            ? [newValue.coordinates.latitude, newValue.coordinates.longitude]
+            : null,
           metadata: {
             ...(newValue.metadata || {}),
-            created: newValue.metadata?.created?.toDate() || null,
-            updated: newValue.metadata?.updated?.toDate() || null,
-            createdTimestamp: newValue.metadata?.created?.toMillis() || null,
-            updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
+            created: newValue.metadata?.created?.toMillis() || null,
+            updated: newValue.metadata?.updated?.toMillis() || null,
+            // createdTimestamp: newValue.metadata?.created?.toMillis() || null,
+            // updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
           },
         },
       ];
-      if (newValue.coordinates && newValue.coordinates.latitude) {
-        records[0]['_geoloc'] = {
-          lat: newValue.coordinates.latitude,
-          lng: newValue.coordinates.longitude,
-        };
-      }
-      info(`SAVING SUBMISSION CHANGE TO ALGOLIA INDEX ${docId}...`);
+      // if (newValue.coordinates && newValue.coordinates.latitude) {
+      //   records[0]['_geoloc'] = {
+      //     lat: newValue.coordinates.latitude,
+      //     lng: newValue.coordinates.longitude,
+      //   };
+      // }
+      info(`SAVING SUBMISSION CHANGE TO TYPESENSE INDEX ${docId}...`);
 
-      const { objectIDs } = await index.saveObjects(records, {
-        autoGenerateObjectIDIfNotExist: false,
-      });
+      // const { objectIDs } = await index.saveObjects(records, {
+      //   autoGenerateObjectIDIfNotExist: false,
+      // });
+      await client.collections(typesenseColName).documents().upsert(records[0]);
 
-      info(`ALGOLIA DOC UPDATED: ${JSON.stringify(objectIDs)}`);
-    } catch (err: any) {
-      error(`ERROR SAVING SUBMISSION UPDATES TO ALGOLIA INDEX`, { ...err });
+      info('TYPESENSE DOC UPDATED');
+    } catch (err: unknown) {
+      error('ERROR SAVING SUBMISSION UPDATES TO TYPESENSE INDEX', err);
       // TODO: report to sentry ??
     }
   }

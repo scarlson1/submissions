@@ -3,7 +3,7 @@ import { GeoPoint, Timestamp, addDoc } from 'firebase/firestore';
 import { useCallback, useState } from 'react';
 import { useFirestore, useUser } from 'reactfire';
 
-import { AgencyApplication, AgencySubmissionStatus, agencyAppCollection } from 'common';
+import { AgencyApplication, AgencySubmissionStatus, TOrgType, agencyAppCollection } from 'common';
 import { useUploadStorageFiles } from 'hooks';
 import { AgencyAppValues } from 'views/AgencyNew';
 
@@ -17,7 +17,7 @@ export const useCreateAgencySubmission = (
   const { uploadFiles } = useUploadStorageFiles('newAgencySubmissions');
 
   const handleSubmission = useCallback(
-    async (values: AgencyAppValues, sendNotifications: boolean = true) => {
+    async (values: AgencyAppValues & { type?: TOrgType }, sendNotifications: boolean = true) => {
       setError(null);
       try {
         if (!values.EandO || typeof values.EandO === 'string')
@@ -26,6 +26,7 @@ export const useCreateAgencySubmission = (
         console.log('uploadResult: ', uploadResult);
 
         let agencyAppData: AgencyApplication = {
+          type: values.type || 'agency',
           orgName: values.orgName,
           address: {
             addressLine1: values.address?.addressLine1.trim(),

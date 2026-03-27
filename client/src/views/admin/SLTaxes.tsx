@@ -49,7 +49,7 @@ export const SLTaxes = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant='h5' gutterBottom sx={{ ml: 4 }}>
-          Surplus Lines Taxes
+          Taxes
         </Typography>
         <Button onClick={() => navigate(createPath({ path: ADMIN_ROUTES.SL_TAXES_NEW }))}>
           New
@@ -57,7 +57,7 @@ export const SLTaxes = () => {
       </Box>
       <Box sx={{ height: 500, width: '100%' }}>
         <ServerDataGrid
-          colName='TAXES'
+          colName='taxes'
           columns={taxColumns}
           density='compact'
           autoHeight

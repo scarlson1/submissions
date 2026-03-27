@@ -1,34 +1,25 @@
 import { LoadingButton } from '@mui/lab';
-import { Button, Container, Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import { Button, Container, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from 'reactfire';
-import * as yup from 'yup';
+import { object, string } from 'yup';
 
 import { FormikTextField } from 'components/forms';
 // import { auth } from 'firebaseConfig';
 // import { GoogleAuth, MicrosoftAuth } from 'components';
+import { passwordValidation } from 'common';
 import { FormikPassword } from 'elements/forms';
 import { useCreateAccount } from 'hooks';
 import { useKeyPress } from 'hooks/utils';
-import { getRedirectPath } from 'modules/utils/helpers';
+import { getRedirectPath, logDev } from 'modules/utils/helpers';
 
-export const passwordValidation = yup
-  .string()
-  .min(8, 'Password must be 8 characters long')
-  .matches(/[0-9]/, 'Password requires a number')
-  .matches(/[a-z]/, 'Password requires a lowercase letter')
-  .matches(/[A-Z]/, 'Password requires an uppercase letter')
-  .matches(/[^\w]/, 'Password requires a symbol')
-  .required();
-
-const validation = yup.object({
-  firstName: yup.string().required('First name is required'),
-  lastName: yup.string().required('Last name is required'),
-  email: yup.string().email().required('Valid email is required'),
+const validation = object({
+  firstName: string().required('First name is required'),
+  lastName: string().required('Last name is required'),
+  email: string().email().required('Valid email is required'),
   password: passwordValidation,
 });
 
@@ -58,7 +49,7 @@ export const CreateAccount = () => {
 
   useEffect(() => {
     if (params.tenantId) {
-      console.log('SETTING TENANT ID: ', params.tenantId);
+      logDev('SETTING TENANT ID: ', params.tenantId);
       auth.tenantId = params.tenantId;
     } else {
       auth.tenantId = null;

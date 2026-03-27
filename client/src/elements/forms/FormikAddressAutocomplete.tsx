@@ -1,8 +1,10 @@
-import { AddressAutocomplete, AddressAutocompleteProps, NewAddress } from 'components/forms';
-import { useCallback } from 'react';
 import { setNestedObjectValues, useFormikContext } from 'formik';
-import { AddressFieldNames, DEFAULT_FIELD_NAMES } from './FormikAddress';
+import { useCallback } from 'react';
+
+import { DEFAULT_ADDRESS_FIELD_NAMES } from 'common';
+import { AddressAutocomplete, AddressAutocompleteProps, NewAddress } from 'components/forms';
 import { extractAddressFromGeoCode } from 'modules/utils';
+import { AddressFieldNames } from './FormikAddress';
 
 export interface FormikAddressAutocompleteProps
   extends Omit<AddressAutocompleteProps, 'resetFields' | 'handleSelection'> {
@@ -12,7 +14,7 @@ export interface FormikAddressAutocompleteProps
 
 export const FormikAddressAutocomplete = ({
   cb,
-  names = DEFAULT_FIELD_NAMES,
+  names = DEFAULT_ADDRESS_FIELD_NAMES,
   ...autocompleteProps
 }: // autocompleteProps,
 FormikAddressAutocompleteProps) => {

@@ -1,4 +1,5 @@
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { Collection, Quote } from '@idemand/common';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { StorageEvent } from 'firebase-functions/v2/storage';
@@ -6,22 +7,20 @@ import { createReadStream } from 'fs';
 import { tmpdir } from 'os';
 import { basename, join } from 'path';
 import {
-  COLLECTIONS,
-  Quote,
-  StagedQuoteImport,
   audience,
   getCardFee,
   hostingBaseURL,
   importSummaryCollection,
-  sendgridApiKey,
+  resendKey,
   stagedImportsCollection,
+  StagedQuoteImport,
 } from '../common/index.js';
 import { createRatingDoc, fetchTaxes } from '../modules/db/index.js';
 import { getRCVs, sumFeesTaxesPremium } from '../modules/rating/index.js';
 import { eventOlderThan, shouldReturnEarly } from '../modules/storage/index.js';
 import {
-  ParseStreamToArrayRes,
   parseStreamToArray,
+  ParseStreamToArrayRes,
   transformHeadersCamelCase,
 } from '../modules/storage/parseStreamToArray.js';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js';
@@ -37,7 +36,8 @@ export default async (event: StorageEvent) => {
   const filePath = event.data.name; // File path in the bucket.
   const fileName = basename(filePath || '');
 
-  if (shouldReturnEarly(event, QUOTE_IMPORT_FOLDER, 'text/csv', 'processed')) return;
+  if (shouldReturnEarly(event, QUOTE_IMPORT_FOLDER, 'text/csv', 'processed'))
+    return;
   if (eventOlderThan(event)) return; // return if event older than 1 min
 
   const db = getFirestore();
@@ -53,7 +53,8 @@ export default async (event: StorageEvent) => {
   info(`File downloaded locally to ${tempFilePath}`);
 
   let dataArr: ParseStreamToArrayRes<CSVTransformedQuote>['dataArr'] = [];
-  let invalidRows: ParseStreamToArrayRes<CSVTransformedQuote>['invalidRows'] = [];
+  let invalidRows: ParseStreamToArrayRes<CSVTransformedQuote>['invalidRows'] =
+    [];
 
   const stream = createReadStream(tempFilePath);
 
@@ -62,21 +63,24 @@ export default async (event: StorageEvent) => {
       stream,
       { headers: transformHeadersCamelCase },
       transformQuoteRow,
-      validateQuoteRow
+      validateQuoteRow,
     );
 
     dataArr = [...parsed.dataArr];
     invalidRows = [...parsed.invalidRows];
 
-    info(`${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`, {
-      invalidRows,
-      dataArr,
-    });
+    info(
+      `${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`,
+      {
+        invalidRows,
+        dataArr,
+      },
+    );
     if (!dataArr.length) throw new Error('No valid rows');
 
     await unlinkFile(tempFilePath);
   } catch (err: any) {
-    error(`ERROR PARSING CSV. RETURNING EARLY`, { err });
+    error('ERROR PARSING CSV. RETURNING EARLY', { err });
 
     await unlinkFile(tempFilePath);
     // TODO: report error to sentry or send email to admin
@@ -96,7 +100,10 @@ export default async (event: StorageEvent) => {
         limits: q.limits,
         TIV: Object.values(q.limits).reduce((acc, curr) => acc + curr, 0), // TODO: move to quote interface & validate
         deductible: q.deductible,
-        RCVs: getRCVs(q.ratingPropertyData?.replacementCost as number, q.limits),
+        RCVs: getRCVs(
+          q.ratingPropertyData?.replacementCost as number,
+          q.limits,
+        ),
         ratingPropertyData: q.ratingPropertyData,
         premiumCalcData: premCalcData,
         AALs,
@@ -121,7 +128,7 @@ export default async (event: StorageEvent) => {
         quoteTotal,
         cardFee,
       };
-      info(`Saving new quote`, quote);
+      info('Saving new quote', quote);
 
       // const quoteRef = await quoteColRef.add(quote);
 
@@ -130,7 +137,7 @@ export default async (event: StorageEvent) => {
         importMeta: {
           status: 'new',
           eventId: event.id,
-          targetCollection: COLLECTIONS.QUOTES,
+          targetCollection: Collection.enum.quotes,
         },
       };
       const quoteRef = await importStagingCol.add(data);
@@ -141,14 +148,17 @@ export default async (event: StorageEvent) => {
       importErrors.push(q);
     }
   }
-  info(`Imported ${quoteIds.length} quotes with ${importErrors.length} failures`, {
-    quoteIds,
-    importErrors,
-  });
+  info(
+    `Imported ${quoteIds.length} quotes with ${importErrors.length} failures`,
+    {
+      quoteIds,
+      importErrors,
+    },
+  );
 
   try {
     await importSummaryRef.set({
-      targetCollection: COLLECTIONS.POLICIES,
+      targetCollection: Collection.enum.quotes,
       importDocIds: quoteIds,
       docCreationErrors: importErrors,
       invalidRows,
@@ -158,16 +168,16 @@ export default async (event: StorageEvent) => {
     });
     info(`SAVED IMPORT SUMMARY TO DOC ${importSummaryRef.id}`);
 
-    const to = ['spencer.carlson@idemandinsurance.com'];
+    const to = ['spencer@s-carlson.com'];
     let link;
 
     if (audience.value() !== 'LOCAL HUMANS') {
-      to.push('ron.carlson@idemandinsurance.com');
+      to.push('noreply@s-carlson.com');
       link = `${hostingBaseURL.value}/admin/config/imports`;
     }
 
     await sendAdminPolicyImportNotification(
-      sendgridApiKey.value(),
+      resendKey.value(),
       to,
       quoteIds.length,
       importErrors.length,
@@ -180,10 +190,12 @@ export default async (event: StorageEvent) => {
           firebaseEventId: event.id,
           emailType: 'quote_import',
         },
-      }
+      },
     );
   } catch (err: any) {
-    error('Error saving import summary doc or delivering email notification', { err });
+    error('Error saving import summary doc or delivering email notification', {
+      err,
+    });
   }
 
   return;

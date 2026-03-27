@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { COLLECTIONS, Disclosure, TProduct } from 'common';
+import { Collection, Disclosure, TProduct } from 'common';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements/forms';
 import { useAsyncToast } from 'hooks';
@@ -26,7 +26,7 @@ export const DisclosureNew = () => {
 
         const disclosuresColl = collection(
           firestore,
-          COLLECTIONS.DISCLOSURES
+          Collection.Enum.disclosures
         ) as CollectionReference<Disclosure>;
         toast.loading('Saving...');
 

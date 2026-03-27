@@ -8,6 +8,7 @@ import { useFirestore } from 'reactfire';
 import { TTax, taxesCollection } from 'common';
 import { TaxForm, TaxValues } from 'elements/forms/TaxForm';
 import { useAsyncToast, useDocData } from 'hooks';
+import { round } from 'lodash';
 import { getNumber } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
 
@@ -17,13 +18,15 @@ export const SLTaxEdit = () => {
   const toast = useAsyncToast({ position: 'top-right' });
   const { taxId } = useParams();
   if (!taxId) throw new Error('taxId required to edit.');
-  const { data } = useDocData<TTax>('TAXES', taxId);
+  const { data } = useDocData<TTax>('taxes', taxId);
 
   const handleSubmit = useCallback(
     async (values: TaxValues, { setSubmitting, setFieldError }: FormikHelpers<TaxValues>) => {
       try {
         const isFixedRate = values.subjectBase[0] === 'fixedFee';
-        const rate = isFixedRate ? values.fixedRate : parseFloat(getNumber(values.rate)) / 100;
+        const rate = isFixedRate
+          ? values.fixedRate
+          : round(parseFloat(getNumber(values.rate)) / 100, 5);
 
         if (!rate || isNaN(rate)) {
           setFieldError('fixedRate', 'Missing rate');
@@ -36,17 +39,17 @@ export const SLTaxEdit = () => {
           : null;
         const { fixedRate: _, ...rest } = values;
 
-        toast.loading('saving updates...');
+        toast.loading('saving changes...');
         const taxRef = doc(taxesCollection(firestore), taxId);
         await setDoc(
           taxRef,
           {
             ...rest,
             rate,
-            rateType: isFixedRate ? 'fixed' : 'percent',
+            rateType: isFixedRate ? 'fixed' : 'percent', // TODO: use zod enum
             effectiveDate: effTimestamp,
-            expirationDate: expTimestamp, // @ts-ignore
-            'metadata.updated': Timestamp.now(),
+            expirationDate: expTimestamp,
+            metadata: { updated: Timestamp.now() },
           },
           { merge: true }
         );
@@ -62,7 +65,6 @@ export const SLTaxEdit = () => {
     [navigate, firestore, toast, taxId]
   );
 
-  // values.subjectBase[0] === 'fixedFee';
   return (
     <Box>
       <Typography variant='h5' gutterBottom sx={{ ml: 3 }}>
@@ -80,8 +82,14 @@ export const SLTaxEdit = () => {
           transactionTypes: data?.transactionTypes || [],
           subjectBase: data?.subjectBase || [], // TODO: uncomment after prod data updated
           // rate: data?.rateType === 'percent' ? `${data?.rate * 100}` : '',
-          rate: data?.subjectBase[0] === 'fixedFee' ? `${data?.rate * 100}` : '',
-          fixedRate: data.rateType === 'fixed' ? data?.rate : null,
+          rate:
+            data?.subjectBase[0] !== 'fixedFee' && typeof data?.rate === 'number'
+              ? `${data?.rate * 100}`
+              : '',
+          fixedRate:
+            data?.subjectBase[0] === 'fixedFee' && typeof data?.rate === 'number'
+              ? data?.rate || null
+              : null,
           baseRoundType: data?.baseRoundType || 'nearest',
           baseDigits: data?.baseDigits ?? 2,
           resultRoundType: data?.resultRoundType || 'nearest',

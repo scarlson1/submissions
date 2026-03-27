@@ -12,7 +12,9 @@ import {
   MapStyleControl,
 } from 'components/MapStyleControl';
 import { AddressStepValues } from 'elements/forms/AddressStep';
+import { MAPBOX_TOKEN } from 'elements/maps';
 import { useWidth } from 'hooks';
+
 // popup example https://github.com/visgl/react-map-gl/blob/7.1-release/examples/controls/src/app.tsx
 
 interface FormikCoordsMarkerProps {
@@ -103,14 +105,16 @@ export const FormikCoordsMap = ({
     // @ts-ignore
     <Map
       {...viewState}
+      mapboxAccessToken={MAPBOX_TOKEN}
       onMove={(evt) => setViewState(evt.viewState)}
       mapStyle={mapStyle}
       styleDiffing
-      minZoom={2}
+      minZoom={3}
       maxZoom={20}
       maxPitch={85}
       scrollZoom={true}
       doubleClickZoom={true}
+      projection={{ name: 'mercator' }}
       {...props}
     >
       <FormikCoordsMarker />
@@ -121,6 +125,7 @@ export const FormikCoordsMap = ({
         color='standard'
         sx={{ m: 2 }}
       />
+      {children}
     </Map>
   );
 };

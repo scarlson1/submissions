@@ -19,10 +19,6 @@ import { object, string } from 'yup';
 import { PaymentMethod } from 'common';
 import { AddPaymentDialog } from '../AddPaymentDialog';
 
-// Refactor:
-//    - add named insured - tied to payment method
-//    - store payment token with billing entity ?? or subcollection ??
-
 export const billingValidation = object().shape({
   paymentMethodId: string().required('Payment method required'),
 });

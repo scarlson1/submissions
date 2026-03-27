@@ -1,5 +1,5 @@
 import { get, isEqual, remove } from 'lodash-es';
-import { Path, extractNumberNeg } from '../common/index.js';
+import { extractNumberNeg, Path } from '../common/index.js';
 import { getNumber } from './helpers.js';
 
 /**
@@ -9,9 +9,10 @@ import { getNumber } from './helpers.js';
  * @returns {Array} return array of arrays of "size" length
  */
 export function splitChunks<T = any>(data: T[], size: number) {
-  let chunks = [];
+  const chunks = [];
   // for (let i = 0; i < data.length; i += size) chunks.push(data.slice(i, i + size));
-  if (size < 1) throw new Error('splitChunks array size must be a positive number');
+  if (size < 1)
+    throw new Error('splitChunks array size must be a positive number');
   for (let i = 0; i < data.length; i += size) {
     chunks.push(data.slice(i, i + size));
   }
@@ -59,12 +60,18 @@ export function sumByTypes<T>(
   arr: T[],
   searchKey: Path<T>,
   searchValues: any | any[],
-  valKey: Path<T>
+  valKey: Path<T>,
 ) {
-  searchValues = Array.isArray(searchValues) ? searchValues : ([searchValues] as any[]);
+  searchValues = Array.isArray(searchValues)
+    ? searchValues
+    : ([searchValues] as any[]);
   return arr.reduce((acc, f) => {
-    if (searchValues.some((searchVal: any) => isEqual(get(f, searchKey), searchVal))) {
-      let num =
+    if (
+      searchValues.some((searchVal: any) =>
+        isEqual(get(f, searchKey), searchVal),
+      )
+    ) {
+      const num =
         typeof get(f, valKey) === 'string'
           ? extractNumberNeg(get(f, valKey) as string)
           : get(f, valKey);
@@ -76,12 +83,20 @@ export function sumByTypes<T>(
   }, 0);
 }
 
-export function onlyUnique(value: string | number, index: number, array: (string | number)[]) {
+export function onlyUnique(
+  value: string | number,
+  index: number,
+  array: (string | number)[],
+) {
   return array.indexOf(value) === index;
 }
 
 export const onlyUniqueObj =
   <T extends Record<string, any>>(key: keyof T) =>
   (value: T, index: number, array: T[]) => {
-    return array.findIndex((val, idx, arr) => val[key] === value[key]) === index;
+    return (
+      array.findIndex((val, idx, arr) => val[key] === value[key]) === index
+    );
   };
+
+export const uniqueStrings = (arr: string[]) => [...new Set(arr)];

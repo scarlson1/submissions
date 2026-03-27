@@ -2,13 +2,11 @@ import {
   AdditionalInsured,
   AdditionalInterest,
   Address,
-  AddressWithCoords,
   ILocation,
-  LcnWithTermPrem,
   Mortgagee,
-  PolicyLcnWithPrem,
   PolicyLocation,
-} from '../common/index.js';
+} from '@idemand/common';
+import { AddressWithCoords, LcnWithTermPrem, PolicyLcnWithPrem } from '../common/index.js';
 import { compressAddress } from './helpers.js';
 
 // Location <--> Policy Location
@@ -21,7 +19,7 @@ export const locationToPolicyLocation = (
     coords: location.coordinates,
     address: compressAddress(location.address),
     termPremium: location.termPremium,
-    annualPremium: location.annualPremium,
+    annualPremium: location.annualPremium || location.termPremium,
     billingEntityId,
   };
 
@@ -35,7 +33,7 @@ export const locationToPolicyLocation = (
 export const partialLcnToPolicyLcn = (lcn: LcnWithTermPrem): PolicyLcnWithPrem => {
   let policyLcn: PolicyLcnWithPrem = {
     termPremium: lcn.termPremium,
-    annualPremium: lcn.annualPremium,
+    annualPremium: lcn.annualPremium || lcn.termPremium, // TEMP FALLBACK TO TERM PREM TO AVOID FIRESTORE undefined ERROR
   };
   if (lcn.address) policyLcn['address'] = compressAddress(lcn.address as Address);
   if (lcn.coordinates) policyLcn['coords'] = lcn.coordinates;
@@ -70,7 +68,7 @@ export function convertMortgageesToAdditionalInterests(
   return mortgagees.map((m) => ({
     type: 'mortgagee',
     name: m.name,
-    accountNumber: m.loanNumber,
+    accountNumber: m.loanNumber || '',
     address: {
       addressLine1: m.address?.addressLine1 || '',
       addressLine2: m.address?.addressLine2 || '',
@@ -99,7 +97,7 @@ export function additionalInterestToMortgagee(
         name: m.name,
         contactName: '',
         email: m.email || '',
-        loanNumber: m.accountNumber,
+        loanNumber: m.accountNumber || '',
         address: m.address
           ? {
               addressLine1: m.address?.addressLine1 ?? '',

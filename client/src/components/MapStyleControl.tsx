@@ -1,14 +1,13 @@
-import { ToggleButton, ToggleButtonGroup, ToggleButtonGroupProps, Tooltip } from '@mui/material';
-import { ReactElement, useCallback, useMemo } from 'react';
-import { useMap } from 'react-map-gl';
-
 import {
   AddRoadRounded,
   DarkModeRounded,
   LightModeRounded,
   SatelliteAltRounded,
 } from '@mui/icons-material';
+import { ToggleButton, ToggleButtonGroup, ToggleButtonGroupProps, Tooltip } from '@mui/material';
 import { useLocalStorage } from 'hooks';
+import { ReactElement, useCallback, useMemo } from 'react';
+import { useMap } from 'react-map-gl';
 
 export const MAPBOX_LIGHT = 'mapbox://styles/mapbox/light-v11';
 export const MAPBOX_DARK = 'mapbox://styles/spencer-carlson/clkrsmyib01wz01qwdbujb4da';

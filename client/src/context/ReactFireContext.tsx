@@ -1,4 +1,5 @@
 import { getAnalytics } from 'firebase/analytics';
+import { ReCaptchaEnterpriseProvider, initializeAppCheck } from 'firebase/app-check';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
@@ -6,6 +7,7 @@ import { connectStorageEmulator, getStorage } from 'firebase/storage';
 import { ReactNode, useEffect } from 'react';
 import {
   AnalyticsProvider,
+  AppCheckProvider,
   AuthProvider,
   FirebaseAppProvider,
   FirestoreProvider,
@@ -16,6 +18,8 @@ import {
 } from 'reactfire';
 
 import { firebaseConfig } from 'firebaseConfig';
+
+const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY;
 
 // look at: https://stackoverflow.com/a/67257713
 // experimentalAutoDetectLongPolling: true,
@@ -47,6 +51,11 @@ export function ReactFireServicesContext({ children }: { children: ReactNode }) 
   //   return remoteConfig;
   // });
 
+  const appCheck = initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(appCheckKey),
+    isTokenAutoRefreshEnabled: true,
+  });
+
   useInitPerformance(
     async (app) => {
       const { getPerformance } = await import('firebase/performance');
@@ -56,7 +65,7 @@ export function ReactFireServicesContext({ children }: { children: ReactNode }) 
   ); // don't wait to load
 
   useEffect(() => {
-    if (process.env.REACT_APP_EMULATORS === 'true') {
+    if (import.meta.env.VITE_EMULATORS === 'true') {
       console.log('USING FIREBASE AUTH, FIRESTORE, FUNCTIONS, STORAGE EMULATORS');
       connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
       connectFirestoreEmulator(firestore, 'localhost', 8082);
@@ -66,17 +75,19 @@ export function ReactFireServicesContext({ children }: { children: ReactNode }) 
   }, [auth, firestore, functions, storage]);
 
   return (
-    <AuthProvider sdk={auth}>
-      <FirestoreProvider sdk={firestore}>
-        <FunctionsProvider sdk={functions}>
-          <StorageProvider sdk={storage}>
-            {/* <RemoteConfigProvider sdk={remoteConfigInstance}> */}
-            <AnalyticsProvider sdk={analytics}>{children}</AnalyticsProvider>
-            {/* </RemoteConfigProvider> */}
-          </StorageProvider>
-        </FunctionsProvider>
-      </FirestoreProvider>
-    </AuthProvider>
+    <AppCheckProvider sdk={appCheck}>
+      <AuthProvider sdk={auth}>
+        <FirestoreProvider sdk={firestore}>
+          <FunctionsProvider sdk={functions}>
+            <StorageProvider sdk={storage}>
+              {/* <RemoteConfigProvider sdk={remoteConfigInstance}> */}
+              <AnalyticsProvider sdk={analytics}>{children}</AnalyticsProvider>
+              {/* </RemoteConfigProvider> */}
+            </StorageProvider>
+          </FunctionsProvider>
+        </FirestoreProvider>
+      </AuthProvider>
+    </AppCheckProvider>
   );
 }
 

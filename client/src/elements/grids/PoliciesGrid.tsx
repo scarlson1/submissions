@@ -1,39 +1,78 @@
 import { DescriptionRounded } from '@mui/icons-material';
 import { Box, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridColDef,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
-import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, COLLECTIONS, PaymentStatus, Policy, ServerDataGridCollectionProps } from 'common';
+import {
+  CLAIMS,
+  PaymentStatus,
+  Policy,
+  PolicyWithStatus,
+  ServerDataGridCollectionProps,
+} from 'common';
 import { ServerDataGrid } from 'components';
-import { useGridShowJson } from 'hooks';
-import { POLICY_COLUMN_VISIBILITY, policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
-import { calcPolicyStatus } from 'modules/utils';
-import { ROUTES, createPath } from 'router';
+import { useGeneratePDF, useGridShowJson } from 'hooks';
+import {
+  POLICY_COLUMN_VISIBILITY,
+  policyCols,
+  statusCol,
+} from 'modules/muiGrid/gridColumnDefs';
+import { defaultPolicyIdCol } from 'modules/muiGrid/gridColumnDefs/policyCols';
+import { createPath, ROUTES } from 'router';
 
-export type PoliciesGridProps = ServerDataGridCollectionProps;
+export type PoliciesGridProps = ServerDataGridCollectionProps<
+  PolicyWithStatus,
+  Policy
+> & {
+  idCol?: GridColDef<Policy>;
+};
 
-export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGridProps) => {
+export const PoliciesGrid = ({
+  renderActions = () => [],
+  additionalColumns,
+  idCol = defaultPolicyIdCol,
+  ...props
+}: PoliciesGridProps) => {
   const navigate = useNavigate();
   const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
+
   const renderShowJson = useGridShowJson(
-    COLLECTIONS.POLICIES,
+    'policies',
     { showInMenu: true },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    null,
+    null,
+    // handle policy version collection
+    (params) =>
+      props?.pathSegments?.length
+        ? `/${props.pathSegments.join('/')}/${params.id.toString()}`
+        : params.id.toString(),
   );
 
+  // const viewPolicyDoc = useCallback(
+  //   (params: GridRowParams) => () => {
+  //     const docObj = params.row.documents?.[0];
+  //     if (!docObj || !docObj.downloadUrl) toast.error('no document found');
+
+  //     window.open(docObj.downloadUrl, '_blank');
+  //   },
+  //   [],
+  // );
+  const { downloadPDF: downloadPolicy, loading } =
+    useGeneratePDF('generateDecPDF');
   const viewPolicyDoc = useCallback(
     (params: GridRowParams) => () => {
-      const docObj = params.row.documents?.[0];
-      if (!docObj || !docObj.downloadUrl) toast.error('no document found');
-
-      window.open(docObj.downloadUrl, '_blank');
+      downloadPolicy(params.id.toString());
     },
-    []
+    [downloadPolicy],
   );
 
   const policyColumns: GridColDef<Policy>[] = useMemo(
@@ -53,25 +92,29 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
             }
             onClick={viewPolicyDoc(params)}
             label='View Policy'
-            disabled={!(params.row.documents && params.row.documents[0]?.downloadUrl)}
+            disabled={loading}
+            // disabled={
+            //   !(params.row.documents && params.row.documents[0]?.downloadUrl)
+            // }
           />,
           ...renderShowJson(params),
         ],
       },
-      {
-        ...statusCol,
-        valueOptions: ['active', 'inactive'], // TODO: other types ??
-        // valueOptions: [
-        //   POLICY_STATUS.PAID,
-        //   POLICY_STATUS.AWAITING_PAYMENT,
-        //   POLICY_STATUS.PAYMENT_PROCESSING,
-        //   POLICY_STATUS.CANCELLED,
-        // ],
-        editable: false, // iDAdminResult.hasRequiredClaims,
-        filterable: false,
-        sortable: false,
-        valueGetter: (params) => calcPolicyStatus(params.row),
-      },
+      idCol,
+      // {
+      //   ...statusCol, // TODO: calc status with converter ??
+      //   valueOptions: ['active', 'inactive'], // TODO: other types ??
+      //   // valueOptions: [
+      //   //   POLICY_STATUS.PAID,
+      //   //   POLICY_STATUS.AWAITING_PAYMENT,
+      //   //   POLICY_STATUS.PAYMENT_PROCESSING,
+      //   //   POLICY_STATUS.CANCELLED,
+      //   // ],
+      //   editable: false, // iDAdminResult.hasRequiredClaims,
+      //   filterable: false,
+      //   sortable: false,
+      //   valueGetter: (params) => calcPolicyStatus(params.row),
+      // },
       {
         ...statusCol,
         field: 'paymentStatus',
@@ -83,19 +126,32 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
         valueGetter: (params) => params.row.paymentStatus || null,
       },
       ...policyCols,
+      ...(additionalColumns || []),
     ],
-    [viewPolicyDoc, renderActions, renderShowJson, iDAdminResult]
+    [
+      viewPolicyDoc,
+      renderActions,
+      renderShowJson,
+      additionalColumns,
+      iDAdminResult,
+    ],
   );
 
   return (
     <Box>
       <ServerDataGrid
-        colName='POLICIES'
+        colName='policies'
         columns={policyColumns}
+        // converter={policyConverter}
         density='compact'
         autoHeight
         onRowDoubleClick={(params) =>
-          navigate(createPath({ path: ROUTES.POLICY, params: { policyId: params.id.toString() } }))
+          navigate(
+            createPath({
+              path: ROUTES.POLICY,
+              params: { policyId: params.id.toString() },
+            }),
+          )
         }
         slotProps={{
           toolbar: { csvOptions: { allColumns: false } },

@@ -1,22 +1,8 @@
-import { forwardRef } from 'react';
-import { Box, Typography, Tooltip, Unstable_Grid2 as Grid } from '@mui/material';
 import { InfoRounded } from '@mui/icons-material';
-import * as yup from 'yup';
+import { Box, Unstable_Grid2 as Grid, Tooltip, Typography } from '@mui/material';
+import { forwardRef } from 'react';
 
 import { FormikMaskField, FormikTextField, IMask, routingNumberMaskProps } from 'components/forms';
-import { validateRoutingNumber } from 'modules/utils/helpers';
-
-export const bankingValidation = yup.object().shape({
-  routingNumber: yup
-    .string()
-    .required()
-    .test('routing-number', 'Invalid routing number', validateRoutingNumber),
-  accountNumber: yup
-    .string()
-    .min(4, 'Account number must be at least 4 digits')
-    .max(17, 'Account number must be less than 17 digits')
-    .required(),
-});
 
 export const TooltipContent = forwardRef(({ text, ...props }: any, ref: any) => {
   return (

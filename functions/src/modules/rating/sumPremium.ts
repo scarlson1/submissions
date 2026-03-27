@@ -1,15 +1,8 @@
+import { FeeItem, PolicyLocation, TaxItem, TotalsByBillingEntity } from '@idemand/common';
 import { groupBy, maxBy, round, sumBy } from 'lodash-es';
-
-import {
-  FeeItem,
-  LcnWithTermPrem,
-  PolicyLcnWithPrem,
-  PolicyLocation,
-  TaxItem,
-  TotalsByBillingEntity,
-} from '../../common/index.js';
+import { LcnWithTermPrem, PolicyLcnWithPrem } from '../../common/index.js';
 import { sumArr, sumByTypes } from '../../utils/arrays.js';
-import { recalcTaxes } from '../transactions/taxes.js';
+import { recalcTaxes } from '../taxes/index.js';
 
 // export type PartialLcnWithTermPrem = WithRequired<
 //   Partial<ILocation> | Partial<PolicyLocation>,

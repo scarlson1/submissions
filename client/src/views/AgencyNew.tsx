@@ -13,17 +13,19 @@ import Lottie from 'lottie-react';
 import { useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
 
 import { CheckmarkLottie } from 'assets';
 import {
   Address,
   Coordinates,
+  EandOValidation,
   NamedInsuredDetails,
   Nullable,
   addressValidationNested,
-  emailVal,
-  phoneVal,
+  agencyContactValidation,
+  agentsValidation,
+  feinValidation,
+  orgNameValidation,
 } from 'common';
 import {
   FormikDragDrop,
@@ -35,58 +37,14 @@ import {
   feinMaskProps,
   phoneMaskProps,
 } from 'components/forms';
-import {
-  AddAgents,
-  AddressStep,
-  AgencyReviewStep,
-  ContactStep,
-  agentsValidation,
-} from 'elements/forms';
+import { AddAgents, AddressStep, AgencyReviewStep, ContactStep } from 'elements/forms';
 import { useCreateAgencySubmission } from 'hooks';
 import { ROUTES, createPath } from 'router';
 
-export const orgNameValidation = yup.object().shape({
-  orgName: yup.string().required(),
-});
-
-export const contactValidation = yup.object().shape({
-  contact: yup.object().shape({
-    firstName: yup.string().required('First name is required'),
-    lastName: yup.string().required('Last name is required'),
-    email: emailVal.required('Email is required'),
-    phone: phoneVal.required('Phone is required'),
-  }),
-});
-
-export const FEINVal = yup
-  .string()
-  .matches(/^[1-9]\d?-\d{7}$/, 'FEIN must be valid format')
-  .required();
-
-export const feinValidation = yup.object().shape({
-  FEIN: FEINVal,
-});
-
-export const EandOVal = yup
-  .mixed()
-  .test('required', 'E and O is required', (value) => {
-    if (!value || value.length < 1) return false;
-    return true;
-  })
-  .test('fileSize', 'The file must be less than 2mb', (value) => {
-    if (!value || value.length < 1) return false;
-    return value[0].size / 1024 < 2048;
-  })
-  .test('fileType', 'The file type must be .pdf', (value) => {
-    if (!value || !value.length) return false;
-    return value[0].type.includes('pdf');
-  });
-
-export const EandOValidation = yup.object().shape({
-  EandO: EandOVal,
-});
+// TODO: validation not being used in AgencyNew form (reuse AddUsersDialog validation ??)
 
 export interface AgencyAppValues {
+  // type: string;
   orgName: string;
   address: Address;
   coordinates: Nullable<Coordinates>;
@@ -96,7 +54,8 @@ export interface AgencyAppValues {
   EandO: File[] | string | null;
 }
 
-export const INITIAL_VALUES: AgencyAppValues = {
+const INITIAL_VALUES: AgencyAppValues = {
+  // type: '',
   orgName: '',
   address: {
     addressLine1: '',
@@ -208,7 +167,7 @@ export const AgencyNew = () => {
         </Step>
         <Step
           label='Primary Contact'
-          validationSchema={contactValidation}
+          validationSchema={agencyContactValidation}
           stepperNavLabel='Contact'
           mutateOnSubmit={onToAgents}
         >

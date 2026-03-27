@@ -1,8 +1,7 @@
 import './search.css';
 
-import { useEffect, useCallback, useState, useRef } from 'react';
-
 import {
+  alpha,
   Backdrop,
   Box,
   Button,
@@ -10,23 +9,18 @@ import {
   DialogActions,
   DialogProps,
   GlobalStyles,
-  alpha,
+  useColorScheme,
 } from '@mui/material';
-import type { AutocompleteState, AutocompleteOptions } from '@algolia/autocomplete-core';
-import type { SearchOptions } from '@algolia/client-search';
-import type { SearchClient } from 'algoliasearch/lite';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { DocumentSchema, SearchParams } from 'typesense';
 
-import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from 'common';
-import { ButtonTranslations, SearchButton } from './SearchButton';
-import { SearchModal } from './SearchModal';
-import { useChangeTheme } from 'context';
-import {
-  // useAlgoliaSearchKey,
-  useAlgoliaStore,
-  useDocSearchKeyboardEvents,
-} from 'hooks';
+import { Collection, typesenseIndexName } from 'common';
+import { useDocSearchKeyboardEvents } from 'hooks';
+import { useTypesenseStore } from 'hooks/useAlgoliaStore';
 import { GeoSearch } from './GeoSearch';
 import { OnSelectHit } from './Hit';
+import { ButtonTranslations, SearchButton } from './SearchButton';
+import { SearchModal } from './SearchModal';
 
 // doc search css ref: https://github.com/algolia/docsearch/blob/main/packages/docsearch-css/src/_variables.css
 
@@ -35,25 +29,29 @@ const FADE_DURATION = 100;
 interface Translations {
   button: ButtonTranslations;
 }
-export interface SearchProps {
-  appId: string;
-  apiKey: string;
+
+export interface SearchCollectionConfig {
   indexName: string;
   indexTitle: string;
+  searchParameters?: SearchParams<DocumentSchema, string>;
+}
+
+export interface SearchProps {
+  apiKey: string;
+  indexName?: string;
+  indexTitle?: string;
+  collections?: SearchCollectionConfig[];
   placeholder?: string;
-  searchParameters?: SearchOptions;
-  transformItems?: (items: DocSearchHit[]) => DocSearchHit[];
+  searchParameters?: SearchParams<DocumentSchema, string>;
+  transformItems?: (items: any[]) => any[];
   hitComponent?: (props: {
-    hit: InternalDocSearchHit | StoredDocSearchHit;
+    hit: any;
     children: React.ReactNode;
   }) => JSX.Element;
   resultsFooterComponent?: (props: {
-    state: AutocompleteState<InternalDocSearchHit>;
+    state: { query: string };
   }) => JSX.Element | null;
-  transformSearchClient?: (searchClient: SearchClient) => SearchClient;
   disableUserPersonalization?: boolean;
-  // initialQuery?: string;
-  navigator?: AutocompleteOptions<InternalDocSearchHit>['navigator'];
   translations?: Partial<Translations>; // DocSearchTranslations;
   getMissingResultsUrl?: ({ query }: { query: string }) => string;
   maxWidth?: DialogProps['maxWidth'];
@@ -71,15 +69,21 @@ export function Search({
 }: SearchProps) {
   const searchButtonRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { mode } = useChangeTheme();
+  // const { mode } = useChangeTheme();
+  const { mode } = useColorScheme();
 
+  // TODO: redo algolia css not that mui css vars are available
   useEffect(() => {
     // TODO: just move to ThemeContext ?? set attribute in toggleTheme() ??
     // https://www.algolia.com/doc/ui-libraries/autocomplete/api-reference/autocomplete-theme-classic/#dark-mode
     const bodyRef = window.document.getElementsByTagName('body');
-    if (bodyRef && bodyRef.length && bodyRef[0].getAttribute('data-theme') !== mode) {
-      console.log('SETTING "data-theme": ', mode);
-      bodyRef[0].setAttribute('data-theme', mode);
+    if (
+      bodyRef &&
+      bodyRef.length &&
+      bodyRef[0].getAttribute('data-theme') !== mode
+    ) {
+      // console.log('SETTING "data-theme": ', mode);
+      mode && bodyRef[0].setAttribute('data-theme', mode);
     }
   }, [mode]);
 
@@ -97,7 +101,7 @@ export function Search({
       setIsOpen(true);
       // setInitialQuery(event.key);
     },
-    [setIsOpen]
+    [setIsOpen],
   );
 
   useDocSearchKeyboardEvents({
@@ -155,18 +159,20 @@ export function Search({
         styles={(theme) => ({
           html: {
             ':root': {
-              '--docsearch-primary-color': theme.palette.primary[500],
-              '--docsearch-text-color': theme.palette.text.primary,
+              '--docsearch-primary-color': theme.vars.palette.primary.main, // theme.palette.primary[500],
+
+              '--docsearch-text-color': theme.vars.palette.text.primary,
               '--docsearch-muted-color': theme.palette.grey[600],
               '--docsearch-searchbox-shadow': 0,
               '--docsearch-hit-shadow': 0,
               '--docsearch-footer-shadow': 0,
               '--docsearch-spacing': theme.spacing(1.5),
-              '--docsearch-hit-active-color': theme.palette.primary[600],
-              '--docsearch-logo-color': theme.palette.grey[600],
+              '--docsearch-hit-active-color': theme.vars.palette.primary[600],
+              '--docsearch-logo-color': theme.vars.palette.grey[500],
               '--docsearch-searchbox-focus-background': 'unset',
               '--docsearch-footer-background': 'unset',
-              '--docsearch-modal-background': theme.palette.background.paper,
+              '--docsearch-modal-background':
+                theme.vars.palette.background.paper,
             },
           },
           body: {
@@ -195,7 +201,7 @@ export function Search({
               alignItems: 'center',
               padding: theme.spacing(1, 1),
               fontSize: theme.typography.pxToRem(14),
-              color: theme.palette.text.secondary,
+              color: theme.vars.palette.text.secondary,
             },
             '& .DocSearch-NewStartScreenTitleIcon': {
               color: theme.palette.primary[500],
@@ -208,7 +214,7 @@ export function Search({
               cursor: 'pointer',
               width: '100%',
               padding: theme.spacing(0.5, 4.6),
-              color: theme.palette.primary[500],
+              color: theme.vars.palette.primary[500],
               fontWeight: 500,
               fontSize: theme.typography.pxToRem(14),
               '&:hover, &:focus': {
@@ -254,22 +260,22 @@ export function Search({
               padding: theme.spacing(0.3, 0.8, 0.6, 0.8),
               fontSize: 0,
               borderRadius: 5,
-              backgroundColor: theme.palette.grey[50],
+              backgroundColor: theme.vars.palette.grey[50],
               border: '1px solid',
-              borderColor: theme.palette.grey[300],
+              borderColor: theme.vars.palette.grey[300],
               '&::before': {
                 content: '"esc"',
                 fontSize: theme.typography.pxToRem(12),
                 letterSpacing: '.08rem',
                 fontWeight: 700,
-                color: theme.palette.text.secondary,
+                color: theme.vars.palette.text.secondary,
               },
             },
             '& .DocSearch-Dropdown': {
               minHeight: 384, // = StartScreen height, to prevent layout shift when first char
               '&::-webkit-scrollbar-thumb': {
-                borderColor: theme.palette.background.paper,
-                backgroundColor: theme.palette.grey[500],
+                borderColor: theme.vars.palette.background.paper,
+                backgroundColor: theme.vars.palette.grey[500],
               },
               '&::-webkit-scrollbar-track': {
                 backgroundColor: alpha(theme.palette.background.paper, 0.3),
@@ -293,7 +299,7 @@ export function Search({
               // background: theme.palette.background.paper,
               fontSize: theme.typography.pxToRem(13),
               fontWeight: 500,
-              color: theme.palette.text.secondary,
+              color: theme.vars.palette.text.secondary,
             },
             '& .DocSearch-Hit': {
               paddingBottom: 0,
@@ -308,8 +314,8 @@ export function Search({
               border: '1px solid transparent',
               borderBottomColor:
                 theme.palette.mode === 'dark'
-                  ? theme.palette.primaryDark[900]
-                  : theme.palette.grey[100],
+                  ? theme.vars.palette.primaryDark[900]
+                  : theme.vars.palette.grey[100],
             },
             '& .DocSearch-Hit-content-wrapper': {
               paddingLeft: theme.spacing(2),
@@ -320,7 +326,7 @@ export function Search({
             },
             '& .DocSearch-Hit-path': {
               fontSize: theme.typography.pxToRem(12),
-              color: `${theme.palette.text.secondary}`,
+              color: `${theme.vars.palette.text.secondary}`,
             },
             '& .DocSearch-Hit-Select-Icon': {
               height: '15px',
@@ -330,9 +336,9 @@ export function Search({
               {
                 backgroundColor:
                   theme.palette.mode === 'dark'
-                    ? theme.palette.primaryDark[900]
-                    : theme.palette.primary[50],
-                borderColor: theme.palette.primary[500],
+                    ? theme.vars.palette.primaryDark[900]
+                    : theme.vars.palette.primary[50],
+                borderColor: theme.vars.palette.primary.main, // .primary[500],
                 borderRadius: theme.shape.borderRadius,
               },
             '& .DocSearch-Hit-action, & .DocSearch-Hits mark': {
@@ -340,7 +346,7 @@ export function Search({
             },
             '& .DocSearch-Footer': {
               borderTop: '1px solid',
-              borderColor: theme.palette.grey[200],
+              borderColor: theme.vars.palette.grey[200],
               '& .DocSearch-Commands': {
                 display: 'none',
               },
@@ -353,10 +359,8 @@ export function Search({
           {
             // [theme.vars ? '[data-mui-color-scheme="dark"]:root' : '.mode-dark']: {
             'body[data-theme="dark"]': {
-              '--docsearch-primary-color': theme.palette.primaryDark[300],
-              '--docsearch-hit-active-color': theme.palette.primary[300],
-              // '--docsearch-primary-color': theme.palette.primaryDark[300],
-              // '--docsearch-hit-active-color': theme.palette.primary[300],
+              '--docsearch-primary-color': theme.vars.palette.primaryDark[300],
+              '--docsearch-hit-active-color': theme.vars.palette.primary[300],
             },
           },
           {
@@ -365,45 +369,45 @@ export function Search({
               backgroundColor: alpha(theme.palette.grey[900], 0.7),
             },
             '& .DocSearch-NewStartScreenTitleIcon': {
-              color: theme.palette.primaryDark[300],
+              color: theme.vars.palette.primaryDark[300],
             },
             '& .DocSearch-NewStartScreenItem': {
-              color: theme.palette.primaryDark[300],
+              color: theme.vars.palette.primaryDark[300],
             },
             '& .DocSearch-Modal': {
               boxShadow: `0px 4px 20px ${alpha(theme.palette.background.paper, 0.7)}`,
               border: '1px solid',
-              borderColor: theme.palette.primaryDark[700],
+              borderColor: theme.vars.palette.primaryDark[700],
             },
             '& .DocSearch-SearchBar': {
-              borderColor: theme.palette.primaryDark[700],
+              borderColor: theme.vars.palette.primaryDark[700],
             },
             '& .DocSearch-Cancel': {
-              backgroundColor: theme.palette.primaryDark[800],
-              borderColor: theme.palette.primaryDark[600],
+              backgroundColor: theme.vars.palette.primaryDark[800],
+              borderColor: theme.vars.palette.primaryDark[600],
             },
             '& .DocSearch-Dropdown': {
               '&::-webkit-scrollbar-thumb': {
-                borderColor: theme.palette.primaryDark[900],
-                backgroundColor: theme.palette.primaryDark[700],
+                borderColor: theme.vars.palette.primaryDark[900],
+                backgroundColor: theme.vars.palette.primaryDark[700],
               },
               '&::-webkit-scrollbar-track': {
                 backgroundColor: alpha(theme.palette.background.paper, 0.3),
               },
             },
             '& .DocSearch-Hit a, .DocSearch-Hit .onSelect-Item': {
-              borderBottomColor: theme.palette.primaryDark[700],
+              borderBottomColor: theme.vars.palette.primaryDark[700],
             },
             '& .DocSearch-Hit[aria-selected="true"] a, .DocSearch-Hit[aria-selected="true"] .onSelect-Item':
               {
-                backgroundColor: theme.palette.primaryDark[900],
-                borderColor: theme.palette.primaryDark[400],
+                backgroundColor: theme.vars.palette.primaryDark[900],
+                borderColor: theme.vars.palette.primaryDark[400],
               },
             '& .DocSearch-Hit-action, & .DocSearch-Hits mark': {
-              color: theme.palette.primary[400],
+              color: theme.vars.palette.primary[400],
             },
             '& .DocSearch-Footer': {
-              borderColor: theme.palette.primaryDark[700],
+              borderColor: theme.vars.palette.primaryDark[700],
             },
             // },
           },
@@ -414,13 +418,7 @@ export function Search({
 }
 
 export function TempWrappedSearch() {
-  // TODO: return loading state
-  // const apiKey = useAlgoliaSearchKey();
-  const apiKey = useAlgoliaStore((state) => state.apiKey);
-
-  if (!process.env.REACT_APP_ALGOLIA_APP_ID) {
-    throw new Error('missing algolia appID in env variables');
-  }
+  const apiKey = useTypesenseStore((state) => state.apiKey);
 
   if (!apiKey) return null;
 
@@ -428,10 +426,29 @@ export function TempWrappedSearch() {
     <>
       <Box sx={{ pb: 3 }}>
         <Search
-          appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
           apiKey={apiKey}
-          indexName={process.env.REACT_APP_ALGOLIA_INDEX_NAME as string}
-          indexTitle='All Records'
+          collections={[
+            {
+              indexName: typesenseIndexName(Collection.enum.users),
+              indexTitle: 'Users',
+            },
+            {
+              indexName: typesenseIndexName(Collection.enum.organizations),
+              indexTitle: 'Organizations',
+            },
+            {
+              indexName: typesenseIndexName(Collection.enum.submissions),
+              indexTitle: 'Submissions',
+            },
+            {
+              indexName: typesenseIndexName(Collection.enum.quotes),
+              indexTitle: 'Quotes',
+            },
+            {
+              indexName: typesenseIndexName(Collection.enum.policies),
+              indexTitle: 'Policies',
+            },
+          ]}
           placeholder='Search...'
         />
       </Box>
@@ -442,35 +459,34 @@ export function TempWrappedSearch() {
   );
 }
 
-export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void }) {
-  // TODO: return loading state
-  const apiKey = useAlgoliaStore((state) => state.apiKey);
-  // const apiKey = useAlgoliaSearchKey();
+type UserSearchDialogProps = Omit<
+  SearchProps,
+  'apiKey' | 'indexName' | 'hitComponent'
+> & {
+  onSelect: (item: any) => void;
+};
 
-  if (!process.env.REACT_APP_ALGOLIA_APP_ID || !process.env.REACT_APP_ALGOLIA_INDEX_NAME)
-    throw new Error('missing algolia appID or index name in env variables');
+export function UserSearchDialog(props: UserSearchDialogProps) {
+  const apiKey = useTypesenseStore((state) => state.apiKey);
 
   if (!apiKey) return null;
 
   return (
     <Search
-      appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
       apiKey={apiKey}
-      indexName={process.env.REACT_APP_ALGOLIA_INDEX_NAME as string}
-      indexTitle='Agents'
-      placeholder='Search agents by name, email, or orgId...'
+      indexName={typesenseIndexName(Collection.enum.users)}
+      indexTitle={props.indexTitle ?? 'Users'}
+      placeholder={
+        props.placeholder ?? 'Search users by name, email, or orgId...'
+      }
       searchParameters={{
-        filters: 'collectionName:users',
+        query_by:
+          'displayName,firstName,lastName,email,phone,searchTitle,searchSubtitle',
+        filter_by: 'isOrgUser:=true',
+        per_page: 10,
       }}
       hitComponent={OnSelectHit}
-      onSelect={onSelect}
-      translations={{
-        button: {
-          buttonText: 'Find Agent',
-          buttonAriaLabel: 'find agent',
-        },
-      }}
-      shortcutKey='u'
+      {...props}
     />
   );
 }

@@ -1,17 +1,18 @@
+import { ILocation, Policy, WithId } from '@idemand/common';
 import { Timestamp } from 'firebase-admin/firestore';
-import { ILocation, Policy, PremiumTransaction, RatingData, WithId } from '../../common/index.js';
+import { PremiumTransaction, RatingData } from '../../common/index.js';
 import {
   getBillingEntityDetails,
   getBillingEntityId,
   getBillingEntityTotals,
 } from '../../utils/index.js';
+import { getTrxTaxesAndFees } from '../taxes/index.js';
 import {
   getBookingDate,
   getDailyPremium,
   getNetDWP,
   getTermDays,
   getTermProratedPct,
-  getTrxTaxesAndFees,
 } from './index.js';
 
 export function formatPremiumTrx(
@@ -49,6 +50,8 @@ export function formatPremiumTrx(
     issuingCarrier: policy?.issuingCarrier || '',
     namedInsured: policy?.namedInsured?.displayName || '',
     mailingAddress: policy.mailingAddress,
+    agent: policy?.agent,
+    agency: policy.agency,
     locationId: location.locationId,
     externalId: location.externalId || null,
     insuredLocation: location,

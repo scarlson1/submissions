@@ -43,7 +43,7 @@ export const CancelWizard = ({
   const { data: changeRequest } =
     useFirestoreDocData<Partial<CancellationRequest>>(changeRequestRef);
 
-  const { data: policy } = useDocDataOnce<Policy>('POLICIES', policyId);
+  const { data: policy } = useDocDataOnce<Policy>('policies', policyId);
 
   const formRef = useRef<FormikProps<CancelValues>>(null);
 
@@ -109,8 +109,8 @@ export const CancelWizard = ({
     ]
   );
 
-  const handleSubmit = useCallback(
-    async () =>
+  const handleSubmit = useCallback(async () => {
+    try {
       await saveChangeRequest({
         status: 'submitted',
         submittedBy: {
@@ -118,9 +118,11 @@ export const CancelWizard = ({
           displayName: user?.displayName || '',
           email: user?.email || '',
         },
-      }),
-    [saveChangeRequest, user]
-  );
+      });
+    } catch (err: any) {
+      toast.error('error submitting request');
+    }
+  }, [saveChangeRequest, user]);
 
   const handleError = useCallback((msg: string) => {
     toast.error(msg, { position: 'top-right' });

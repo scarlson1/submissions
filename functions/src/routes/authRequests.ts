@@ -1,7 +1,12 @@
 import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
-import { Auth, TenantAwareAuth, UserImportOptions, getAuth } from 'firebase-admin/auth';
+import {
+  Auth,
+  getAuth,
+  TenantAwareAuth,
+  UserImportOptions,
+} from 'firebase-admin/auth';
 import { Firestore, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import jwt from 'jsonwebtoken';
@@ -28,12 +33,15 @@ interface JwtPayload {
 
 // Custom email verification for emails generated in blocking function
 app.get('/verify-email/:token', async (req: Request, res: Response) => {
-  const { token } = req.params;
+  let { token } = req.params;
 
   try {
     const verificationKey = emailVerificationKey.value();
     if (!verificationKey) throw new Error('Missing environment variable');
 
+    token = Array.isArray(token) ? token[0] : token;
+
+    // cast to object we set in verification email
     const { data } = jwt.verify(token, verificationKey) as { data: JwtPayload };
     // TODO: use --> getDecodedToken
 
@@ -77,7 +85,10 @@ app.get('/confirm-move-tenant/:token', async (req: Request, res: Response) => {
   let decodedToken: MoveTenantJwtPayload;
 
   try {
-    decodedToken = await getDecodedToken<MoveTenantJwtPayload>(verificationKey, token);
+    decodedToken = await getDecodedToken<MoveTenantJwtPayload>(
+      verificationKey,
+      token,
+    );
   } catch (err: any) {
     let msg = 'Error verifying link';
     if (err?.message) msg += ` (${err.message})`;
@@ -96,11 +107,26 @@ app.get('/confirm-move-tenant/:token', async (req: Request, res: Response) => {
 
     const hashConfigStr = firebaseHashConfig.value();
     const parsedHashConfig = JSON.parse(hashConfigStr);
-    const { algorithm, base64_signer_key, base64_salt_separator, rounds, mem_cost } =
-      parsedHashConfig;
+    const {
+      algorithm,
+      base64_signer_key,
+      base64_salt_separator,
+      rounds,
+      mem_cost,
+    } = parsedHashConfig;
 
-    if (!(algorithm && base64_signer_key && base64_salt_separator && rounds && mem_cost)) {
-      throw new Error('Missing required environment variables (password hash config)');
+    if (
+      !(
+        algorithm &&
+        base64_signer_key &&
+        base64_salt_separator &&
+        rounds &&
+        mem_cost
+      )
+    ) {
+      throw new Error(
+        'Missing required environment variables (password hash config)',
+      );
     }
 
     let authFrom: Auth | TenantAwareAuth = getAuth();
@@ -140,7 +166,7 @@ app.get('/confirm-move-tenant/:token', async (req: Request, res: Response) => {
     }?email=${encodeURIComponent(email)}`;
 
     res.send(
-      `Account moved to tenant ${toTenantId}. Please use the following URL to sign in: ${tenantAuthLink}`
+      `Account moved to tenant ${toTenantId}. Please use the following URL to sign in: ${tenantAuthLink}`,
     );
   } catch (err: any) {
     let msg = 'Error migrating user';
@@ -162,14 +188,21 @@ async function getDecodedToken<T>(key: string, token: any) {
   }
 }
 
-async function verifyInviteValid(firestore: Firestore, email: string, toTenantId: string) {
-  const inviteSnap = await invitesCollection(firestore, toTenantId).doc(email).get();
+async function verifyInviteValid(
+  firestore: Firestore,
+  email: string,
+  toTenantId: string,
+) {
+  const inviteSnap = await invitesCollection(firestore, toTenantId)
+    .doc(email)
+    .get();
 
-  if (!inviteSnap.exists) throw new Error(`Invite not found for ${email} in orgId ${toTenantId}`);
+  if (!inviteSnap.exists)
+    throw new Error(`Invite not found for ${email} in orgId ${toTenantId}`);
 
   if (inviteSnap.data()?.status === 'revoked')
     throw new Error(
-      `Invite has been revoked. If you believe this was by mistake, please contact the org admin.`
+      `Invite has been revoked. If you believe this was by mistake, please contact the org admin.`,
     );
 }
 
@@ -211,7 +244,7 @@ export default app;
 //       await quoteRef.update({ userId: req.user?.uid });
 //       console.log(`UPDATED QUOTE USER ID TO ${req.user?.uid}`);
 
-//       // return res.redirect(`${process.env.HOSTING_BASE_URL}/quotes/${quoteId}/bind`);
+//       // return res.redirect(`${hostingBaseURL.value()}/quotes/${quoteId}/bind`);
 //       return res.redirect(`//localhost:3000/quotes/${quoteId}/bind`);
 //     } catch (err) {
 //       console.log('ERROR DECODING TOKEN: ', err);

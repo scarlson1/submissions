@@ -2,29 +2,50 @@ import { Functions } from 'firebase/functions';
 import { create } from 'zustand';
 
 import { generateSearchKey } from 'api';
+import { logDev } from 'modules/utils';
 
 // TODO: SAVE KEY IN USER CLAIMS ??
 
 // use useSyncExternalStore ??
 
-interface AlgoliaStore {
+interface SearchStore {
   apiKey: string | undefined;
   generateKey: (functions: Functions) => Promise<void>;
   resetKey: () => void;
 }
 
-export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
-  apiKey: process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY,
+export const useAlgoliaStore = create<SearchStore>((set) => ({
+  apiKey: import.meta.env.VITE_TYPESENSE_NOT_AUTHED_SEARCH_KEY,
   generateKey: async (functions: Functions) => {
     try {
       const { data } = await generateSearchKey(functions);
-      // console.log('API KEY RES: ', data);
+      logDev('API KEY RES: ', data);
       if (data?.key) set({ apiKey: data.key });
     } catch (err: any) {
       console.log('ERROR GENERATING SEARCH KEY: ', err);
     }
   },
-  resetKey: () => set(() => ({ apiKey: process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY })),
+  resetKey: () =>
+    set(() => ({
+      apiKey: import.meta.env.VITE_TYPESENSE_NOT_AUTHED_SEARCH_KEY,
+    })),
+}));
+
+export const useTypesenseStore = create<SearchStore>((set) => ({
+  apiKey: import.meta.env.VITE_TYPESENSE_NOT_AUTHED_SEARCH_KEY,
+  generateKey: async (functions: Functions) => {
+    try {
+      const { data } = await generateSearchKey(functions);
+      logDev('SEARCH API KEY RES: ', data);
+      if (data?.key) set({ apiKey: data.key });
+    } catch (err: any) {
+      console.log('ERROR GENERATING SEARCH KEY: ', err);
+    }
+  },
+  resetKey: () =>
+    set(() => ({
+      apiKey: import.meta.env.VITE_TYPESENSE_NOT_AUTHED_SEARCH_KEY,
+    })),
 }));
 
 // const apiKey = useAlgoliaStore((state) => state.apiKey);
@@ -61,14 +82,14 @@ export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
 
 //       // } else {
 //       //   // TODO: use general search key
-//       //   const fallbackKey = process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY;
+//       //   const fallbackKey = import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY;
 //       //   if (!fallbackKey) throw new Error('missing fallback search key')
 //       //   setApiKey(fallbackKey);
 //       //   return fallbackKey;
 //       // }
 //     } catch (err) {
 //       console.log('ERROR FETCHING SEARCH KEY: ', err);
-//       // setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
+//       // setApiKey(import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
 //       setLoading(false);
 //     }
 //   }, [functions]);
@@ -94,14 +115,14 @@ export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
 //       //       setApiKey(data.key);
 //       //     } else {
 //       //       // TODO: use general search key
-//       //       setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
+//       //       setApiKey(import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
 //       //     }
 //       //     setLoading(false);
 //       //     // loading = false;
 //       //   })
 //       //   .catch((err) => {
 //       //     console.log('ERROR FETCHING SEARCH KEY: ', err);
-//       //     setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
+//       //     setApiKey(import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
 //       //     setLoading(false);
 //       //     // loading = false;
 //       //   });

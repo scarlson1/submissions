@@ -1,8 +1,10 @@
 import { useCallback, useState } from 'react';
 
 import { functionsInstance } from 'api';
-import { useAsyncToast } from './useAsyncToast';
 import { saveDownload } from 'modules/utils';
+import { useAsyncToast } from './useAsyncToast';
+
+// TODO: use generalized useDownloadFile (used to download stripe invoice pdf)
 
 type PDFRoutes = 'generateDecPDF';
 
@@ -16,6 +18,7 @@ export const useGeneratePDF = (
 
   const downloadPDF = useCallback(
     async (policyId: string) => {
+      // TODO: pass param as {policyId} so hook can be reused
       try {
         setLoading(true);
         toast.loading('generating policy pdf...');

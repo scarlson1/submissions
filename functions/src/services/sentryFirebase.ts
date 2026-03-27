@@ -9,8 +9,9 @@
  * It currently supports wrapping https, pubsub and firestore handlers.
  * usage: https.onRequest(wrap((req, res) => {...}))
  */
-import type { Event } from '@sentry/types';
-import { addRequestDataToEvent } from '@sentry/utils';
+// import type { Event } from '@sentry/types';
+// import { addRequestDataToEvent } from '@sentry/utils';
+import { addRequestDataToEvent, Event } from '@sentry/node';
 import type { https } from 'firebase-functions';
 import { DocumentBuilder } from 'firebase-functions/v1/firestore';
 import { onCall, onRequest } from 'firebase-functions/v1/https';
@@ -19,14 +20,25 @@ import { ScheduleBuilder } from 'firebase-functions/v1/pubsub';
 type httpsOnRequestHandler = Parameters<typeof onRequest>[0];
 type httpsOnCallHandler = Parameters<typeof onCall>[0];
 type pubsubOnRunHandler = Parameters<ScheduleBuilder['onRun']>[0];
-type firestoreOnWriteHandler = Parameters<DocumentBuilder<string>['onWrite']>[0];
-type firestoreOnUpdateHandler = Parameters<DocumentBuilder<string>['onUpdate']>[0];
-type firestoreOnCreateHandler = Parameters<DocumentBuilder<string>['onCreate']>[0];
-type firestoreOnDeleteHandler = Parameters<DocumentBuilder<string>['onDelete']>[0];
+type firestoreOnWriteHandler = Parameters<
+  DocumentBuilder<string>['onWrite']
+>[0];
+type firestoreOnUpdateHandler = Parameters<
+  DocumentBuilder<string>['onUpdate']
+>[0];
+type firestoreOnCreateHandler = Parameters<
+  DocumentBuilder<string>['onCreate']
+>[0];
+type firestoreOnDeleteHandler = Parameters<
+  DocumentBuilder<string>['onDelete']
+>[0];
 
 type FunctionType = 'http' | 'callable' | 'document' | 'schedule';
 
-export function getLocationHeaders(req: https.Request): { country?: string; ip?: string } {
+export function getLocationHeaders(req: https.Request): {
+  country?: string;
+  ip?: string;
+} {
   /**
    * Checking order:
    * Cloudflare: in case user is proxying functions through it
@@ -42,25 +54,30 @@ export function getLocationHeaders(req: https.Request): { country?: string; ip?:
     req.socket.remoteAddress;
 
   const country =
-    req.header('Cf-Ipcountry') || req.header('X-Country-Code') || req.header('X-Appengine-Country');
+    req.header('Cf-Ipcountry') ||
+    req.header('X-Country-Code') ||
+    req.header('X-Appengine-Country');
   return { ip: ip?.toString(), country: country?.toString() };
 }
 
-function wrap<A, C>(type: FunctionType, name: string, fn: (a: A) => C | Promise<C>): typeof fn;
-function wrap<A, B, C>(
+function wrap<A, C>(
   type: FunctionType,
   name: string,
-  fn: (a: A, b: B) => C | Promise<C>
+  fn: (a: A) => C | Promise<C>,
 ): typeof fn;
 function wrap<A, B, C>(
   type: FunctionType,
   name: string,
-  fn: (a: A, b: B) => C | Promise<C>
+  fn: (a: A, b: B) => C | Promise<C>,
+): typeof fn;
+function wrap<A, B, C>(
+  type: FunctionType,
+  name: string,
+  fn: (a: A, b: B) => C | Promise<C>,
 ): typeof fn {
   return async (a: A, b: B): Promise<C> => {
-    const { startTransaction, configureScope, captureException, flush } = await import(
-      '@sentry/node'
-    ); // Handlers,
+    const { startTransaction, configureScope, captureException, flush } =
+      await import('@sentry/node'); // Handlers,
     const { extractTraceparentData } = await import('@sentry/tracing');
 
     let req: https.Request | undefined;
@@ -79,7 +96,9 @@ function wrap<A, B, C>(
       ctx = a as unknown as Record<string, unknown>;
     }
 
-    const traceparentData = extractTraceparentData(req?.header('sentry-trace') || '');
+    const traceparentData = extractTraceparentData(
+      req?.header('sentry-trace') || '',
+    );
     const transaction = startTransaction({
       name,
       op: 'transaction',
@@ -134,39 +153,51 @@ function wrap<A, B, C>(
   };
 }
 
-export function wrapHttpsOnRequestHandler(name: string, fn: httpsOnRequestHandler): typeof fn {
+export function wrapHttpsOnRequestHandler(
+  name: string,
+  fn: httpsOnRequestHandler,
+): typeof fn {
   return wrap('http', name, fn);
 }
 
-export function wrapHttpsOnCallHandler(name: string, fn: httpsOnCallHandler): typeof fn {
+export function wrapHttpsOnCallHandler(
+  name: string,
+  fn: httpsOnCallHandler,
+): typeof fn {
   return wrap('callable', name, fn);
 }
 
-export function wrapPubsubOnRunHandler(name: string, fn: pubsubOnRunHandler): typeof fn {
+export function wrapPubsubOnRunHandler(
+  name: string,
+  fn: pubsubOnRunHandler,
+): typeof fn {
   return wrap('schedule', name, fn);
 }
 
-export function wrapFirestoreOnWriteHandler(name: string, fn: firestoreOnWriteHandler): typeof fn {
+export function wrapFirestoreOnWriteHandler(
+  name: string,
+  fn: firestoreOnWriteHandler,
+): typeof fn {
   return wrap('document', name, fn);
 }
 
 export function wrapFirestoreOnUpdateHandler(
   name: string,
-  fn: firestoreOnUpdateHandler
+  fn: firestoreOnUpdateHandler,
 ): typeof fn {
   return wrap('document', name, fn);
 }
 
 export function wrapFirestoreOnCreateHandler(
   name: string,
-  fn: firestoreOnCreateHandler
+  fn: firestoreOnCreateHandler,
 ): typeof fn {
   return wrap('document', name, fn);
 }
 
 export function wrapFirestoreOnDeleteHandler(
   name: string,
-  fn: firestoreOnDeleteHandler
+  fn: firestoreOnDeleteHandler,
 ): typeof fn {
   return wrap('document', name, fn);
 }

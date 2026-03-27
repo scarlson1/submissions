@@ -1,7 +1,7 @@
 import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 
-import { CLAIMS, COLLECTIONS, ServerDataGridCollectionProps, Transaction } from 'common';
+import { CLAIMS, ServerDataGridCollectionProps, Transaction } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson, useWidth } from 'hooks';
 import { TRANSACTION_COLUMN_VISIBILITY, transactionCols } from 'modules/muiGrid';
@@ -16,7 +16,7 @@ export const TransactionsGrid = ({
 }: TransactionsGridProps) => {
   const { isSmall } = useWidth();
   const renderShowJson = useGridShowJson<Transaction>(
-    COLLECTIONS.TRANSACTIONS,
+    'transactions',
     { showInMenu: isSmall },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );
@@ -40,7 +40,7 @@ export const TransactionsGrid = ({
 
   return (
     <ServerDataGrid
-      colName='TRANSACTIONS'
+      colName='transactions'
       columns={columns}
       density='compact'
       autoHeight

@@ -3,13 +3,18 @@ import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import {
+  audience,
   ChangeRequest,
   ChangeRequestStatus,
   getReportErrorFn,
-  sendgridApiKey,
+  hostingBaseURL,
+  resendKey,
 } from '../common/index.js';
 import { publishChangeRequestTransactions } from '../modules/transactions/index.js';
-import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid/index.js';
+import {
+  sendAdminChangeRequestNotification,
+  sendMessage,
+} from '../services/sendgrid/index.js';
 import { isValidEmail } from '../utils/index.js';
 import { validate } from './utils/index.js';
 
@@ -24,12 +29,14 @@ export default async (
   event: FirestoreEvent<
     Change<DocumentSnapshot> | undefined,
     { policyId: string; requestId: string }
-  >
+  >,
 ) => {
   try {
     const { policyId, requestId } = event.params;
     const prevData = event?.data?.before?.data() as ChangeRequest | undefined;
-    const afterSnap = event.data?.after as DocumentSnapshot<ChangeRequest> | undefined;
+    const afterSnap = event.data?.after as
+      | DocumentSnapshot<ChangeRequest>
+      | undefined;
     const data = afterSnap?.data() as ChangeRequest | undefined;
 
     validate(data, 'document deleted. returning.', 'warn');
@@ -53,7 +60,9 @@ export default async (
 
     const { status } = data;
     validate(status, 'policy change request missing status', 'error');
-    info(`Change request doc change detected. (status: ${status})`, { ...data });
+    info(`Change request doc change detected. (status: ${status})`, {
+      ...data,
+    });
 
     switch (status) {
       case ChangeRequestStatus.enum.draft:
@@ -83,7 +92,8 @@ export default async (
           throw new Error('TODO: handle add location');
         }
 
-        if (afterSnap) await updateChangeRequestStatus(afterSnap.ref, 'under_review');
+        if (afterSnap)
+          await updateChangeRequestStatus(afterSnap.ref, 'under_review');
 
         return;
       case ChangeRequestStatus.enum.accepted:
@@ -103,9 +113,14 @@ export default async (
         return;
       case ChangeRequestStatus.enum.error:
         // TODO: notify admin
-        throw new Error(`Change request status updated to "error" (${data.error || 'unknown'})`);
+        throw new Error(
+          `Change request status updated to "error" (${data.error || 'unknown'})`,
+        );
       default:
-        error(`Change request status not recognized (status: ${status})`, data || {});
+        error(
+          `Change request status not recognized (status: ${status})`,
+          data || {},
+        );
         return;
     }
   } catch (err: any) {
@@ -119,7 +134,7 @@ export default async (
 
 async function updateChangeRequestStatus(
   docRef: DocumentReference,
-  status: ChangeRequestStatus // keyof typeof CHANGE_REQUEST_STATUS
+  status: ChangeRequestStatus, // keyof typeof CHANGE_REQUEST_STATUS
 ) {
   await docRef.update({ status });
 }
@@ -129,21 +144,25 @@ async function handleRequestNotifications(
   data: ChangeRequest,
   policyId: string,
   requestId: string,
-  eventId: string
+  eventId: string,
 ) {
   try {
-    let to = ['spencer.carlson@idemandinsurance.com'];
-    if (process.env.AUDIENCE !== 'DEV HUMANS' && process.env.AUDIENCE !== 'LOCAL HUMANS')
-      to.push('ron.carlson@idemandinsurance.com');
-    const sgKey = sendgridApiKey.value();
+    const to = ['spencer@s-carlson.com'];
+    if (
+      audience.value() !== 'DEV HUMANS' &&
+      audience.value() !== 'LOCAL HUMANS'
+    )
+      to.push('noreply@s-carlson.com');
+    const sgKey = resendKey.value();
 
-    const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`; // TODO: update url once client change request url is set (instead of dialog)
+    const link = `${hostingBaseURL.value()}/policies/${policyId}`; // TODO: update url once client change request url is set (instead of dialog)
 
     let changes = {};
     if (data.scope === 'location') {
       changes = { ...(data.locationChanges || {}) };
     }
-    if (data.policyChanges) changes = { ...changes, ...(data.policyChanges || {}) };
+    if (data.policyChanges)
+      changes = { ...changes, ...(data.policyChanges || {}) };
 
     await sendAdminChangeRequestNotification(
       sgKey,
@@ -152,13 +171,13 @@ async function handleRequestNotifications(
       `policy change (${data.trxType})`,
       requestId,
       changes,
-      {
-        customArgs: {
-          firebaseEventId: eventId,
-          emailType: 'policy_change_request',
-          trxType: data.trxType,
-        },
-      }
+      // {
+      //   customArgs: {
+      //     firebaseEventId: eventId,
+      //     emailType: 'policy_change_request',
+      //     trxType: data.trxType,
+      //   },
+      // },
     );
 
     // TODO: fetch policy & get emails from doc
@@ -172,22 +191,26 @@ async function handleRequestNotifications(
       const toName = displayName ? displayName.split(' ')[0] : undefined;
 
       await sendMessage(sgKey, insuredTo, msgBody, subject, toName, {
-        customArgs: {
-          firebaseEventId: eventId,
-          emailType: 'policy_change_request',
-          trxType: data.trxType,
-        },
+        // customArgs: {
+        //   firebaseEventId: eventId,
+        //   emailType: 'policy_change_request',
+        //   trxType: data.trxType,
+        // },
       });
     }
   } catch (err: any) {
-    error(`Error sending new change request email notifications`, { ...err });
+    error('Error sending new change request email notifications', { ...err });
   }
 
   return;
 }
 
 // Notify policy holder / agent
-async function handleDeniedRequest(data: ChangeRequest, policyId: string, requestId: string) {
+async function handleDeniedRequest(
+  data: ChangeRequest,
+  policyId: string,
+  requestId: string,
+) {
   try {
     // TODO: handle denied request
     throw new Error();

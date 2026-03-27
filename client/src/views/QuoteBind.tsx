@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material';
 
+import { PageMeta } from 'components';
 import BindQuoteForm from 'elements/forms/BindQuote';
-import { PageMeta } from 'router';
 
 export const QuoteBind = () => {
   return (

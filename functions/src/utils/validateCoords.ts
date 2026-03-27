@@ -1,5 +1,5 @@
 import { GeoPoint } from 'firebase-admin/firestore';
-import { isFinite } from 'lodash-es';
+import { isFinite, max, min, zip } from 'lodash-es';
 import { Coordinates, Nullable } from '../common/index.js';
 import { betweenRange } from './helpers.js';
 
@@ -30,3 +30,9 @@ export const isLatitude = (lat: unknown) =>
 // export const isLatLng = (lat: number, lng: number) => {
 //   return isLatitude(lat) && isLongitude(lng);
 // };
+
+export function getBoundingBox(points: number[][]) {
+  const [xCoords, yCoords] = zip(...points);
+  // format: [minLng, minLat, maxLng, maxLat]
+  return [min(yCoords) || -180, min(xCoords) || -90, max(yCoords) || 180, max(xCoords) || 90];
+}

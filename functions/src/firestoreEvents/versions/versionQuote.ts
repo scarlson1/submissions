@@ -1,9 +1,9 @@
+import { Collection, Quote } from '@idemand/common';
 import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
-
-import { Collection, Quote, getReportErrorFn, versionsCollection } from '../../common/index.js';
+import { getReportErrorFn, versionsCollection } from '../../common/index.js';
 import { getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_QUOTE_DIFF_KEYS = [
@@ -46,14 +46,14 @@ export default async (
       return;
     }
 
-    info(`Quote change detected (${quoteId})`, {
+    info(`Quote change detected (ID: ${quoteId})`, {
       quoteId,
       prevData: beforeData || null,
       newData: afterData || 'deleted',
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, Collection.enum.QUOTES, quoteId);
+    const versionsCol = versionsCollection(db, Collection.enum.quotes, quoteId);
 
     const batch = db.batch();
 
@@ -68,6 +68,7 @@ export default async (
     );
 
     if (shouldVersion && beforeData) {
+      info(`creating new version for quote ${quoteId}...`);
       const versionDocId = beforeData.metadata?.version || 0;
       const versionRef = versionsCol.doc(`${versionDocId}`);
 

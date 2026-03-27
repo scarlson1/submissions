@@ -1,36 +1,47 @@
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { info } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
+import { PaymentStatus } from '@idemand/common';
 import {
-  PaymentStatus,
   audience,
-  ePayBaseURL,
+  ePayBaseHostingURL,
   hostingBaseURL,
   policiesCollection,
-  sendgridApiKey,
+  resendKey,
 } from '../common/index.js';
 import { sendAdminPaidNotification } from '../services/sendgrid/index.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 export interface PaymentCompletePayload {
   transactionId: string;
   policyId: string;
 }
 
-export default async (event: CloudEvent<MessagePublishedData<PaymentCompletePayload>>) => {
+export default async (
+  event: CloudEvent<MessagePublishedData<PaymentCompletePayload>>,
+) => {
   info('MSG JSON: ', event.data.message.json);
 
-  let transactionId = null;
-  let policyId = null;
-  try {
-    transactionId = event.data.message.json?.transactionId;
-    policyId = event.data.message.json?.policyId;
-  } catch (e) {
-    console.error('PubSub message was not JSON', e);
-  }
-  console.log(`PAYMENT COMPLETE - TRX ID: ${transactionId} - POLICY ID: ${policyId}`);
-  if (!(transactionId && policyId)) return console.error('Missing transaction or policy id');
+  // let transactionId = null;
+  // let policyId = null;
+  // try {
+  //   transactionId = event.data.message.json?.transactionId;
+  //   policyId = event.data.message.json?.policyId;
+  // } catch (e) {
+  //   console.error('PubSub message was not JSON', e);
+  // }
+  const { policyId, transactionId } = extractPubSubPayload(event, [
+    'policyId',
+    'transactionId',
+  ]);
+
+  console.log(
+    `PAYMENT COMPLETE - TRX ID: ${transactionId} - POLICY ID: ${policyId}`,
+  );
+  if (!(transactionId && policyId))
+    return console.error('Missing transaction or policy id');
 
   const db = getFirestore();
   const policyRef = policiesCollection(db).doc(policyId);
@@ -48,28 +59,30 @@ export default async (event: CloudEvent<MessagePublishedData<PaymentCompletePayl
     paymentStatus: PaymentStatus.enum.paid,
     'metadata.updated': Timestamp.now(),
   });
-  console.log(`POLICY ${policyId} STATUS UPDATED TO PAID - TRX ID: ${transactionId}`);
+  console.log(
+    `POLICY ${policyId} STATUS UPDATED TO PAID - TRX ID: ${transactionId}`,
+  );
 
-  const to = ['spencer.carlson@idemandinsurance.com'];
-  if (audience.value() !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
+  const to = ['spencer@s-carlson.com'];
+  if (audience.value() !== 'LOCAL HUMANS') to.push('noreply@s-carlson.com');
 
   const policyLink = `${hostingBaseURL.value()}/admin/policies/${policyId}/delivery`;
 
-  const transactionLink = `${ePayBaseURL.value()}/Transactions/Index/${transactionId}`;
+  const transactionLink = `${ePayBaseHostingURL.value()}/Transactions/Index/${transactionId}`;
 
   await sendAdminPaidNotification(
-    sendgridApiKey.value(),
+    resendKey.value(),
     to,
     policyLink,
     policyId,
     transactionLink,
     transactionId,
-    {
-      customArgs: {
-        firebaseEventId: event.id,
-        emailType: 'payment_complete', // TODO: use zod from email type & args to sendAdminNotification
-      },
-    }
+    // {
+    //   customArgs: {
+    //     firebaseEventId: event.id,
+    //     emailType: 'payment_complete', // TODO: use zod from email type & args to sendAdminNotification
+    //   },
+    // },
   );
 
   return;

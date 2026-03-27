@@ -8,11 +8,11 @@ import {
   GridRowSelectionModel,
   useGridApiRef,
 } from '@mui/x-data-grid';
-import { DocumentSnapshot, QueryFieldFilterConstraint } from 'firebase/firestore';
+import { DocumentData, DocumentSnapshot, QueryFieldFilterConstraint } from 'firebase/firestore';
 import { lowerCase } from 'lodash';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { COLLECTIONS } from 'common';
+import { TCollection } from 'common';
 import {
   useFetchDocCount,
   useFetchDocsWithCursor,
@@ -34,28 +34,28 @@ declare module '@mui/x-data-grid' {
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
 // TODO: handle row selection for server-side pagination: https://mui.com/x/react-data-grid/row-selection/#usage-with-server-side-pagination
 
-// TODO: move pagination to a hook ?? https://github.com/mui/mui-x/issues/409#issuecomment-1312083757
-// mui useGridFilter hook: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/hooks/features/filter/useGridFilter.tsx
-
-// TODO: add firestore converter prop (default to withId ?? how would ID column be handled if converter didn't add id to doc data ??)
-
-// TODO: need to pass in "constraints" passed as prop to server grid (or create additional custom grid context component to store server-side filters & sort) ??
-
 // TODO: need to disable certain types of filters when query limits are met
 // https://firebase.google.com/docs/firestore/query-data/queries#query_limitations
 // ex: can't combine not-in with in, array-contains-any, or or
 
-export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>> {
-  colName: keyof typeof COLLECTIONS;
+// TODO: don't show sort if query requires orderBy as result of filter ??
+
+export interface ServerDataGridProps<
+  T extends DocumentData = DocumentData,
+  D extends DocumentData = T
+> extends Partial<Omit<DataGridProps, 'rows'>> {
+  colName: TCollection;
   pathSegments?: string[];
   constraints?: QueryFieldFilterConstraint[];
   isCollectionGroup?: boolean;
   columns: GridColDef[];
+  // converter?: FirestoreDataConverter<T, D>;
 }
 
-//  inequality filter property and first sort order must be the same
-
-export const ServerDataGrid = ({
+export const ServerDataGrid = <
+  AppModel extends DocumentData = DocumentData,
+  DBModel extends DocumentData = AppModel
+>({
   colName,
   pathSegments = [],
   constraints = [],
@@ -63,13 +63,13 @@ export const ServerDataGrid = ({
   columns,
   slots,
   slotProps,
+  // converter,
   ...props
-}: ServerDataGridProps) => {
+}: ServerDataGridProps<AppModel, DBModel>) => {
   // https://mui.com/blog/mui-x-v6/#apiref-moved-to-the-mit-community-version (pagination, scrolling, state)
   const apiRef = useGridApiRef();
   const { isMobile } = useWidth();
   const toolbar = useMemo(() => (isMobile ? GridMobileToolbar : GridToolbar), [isMobile]);
-  // console.log('grid state: ', apiRef.current.state);
 
   const [rowCount, setRowCount] = useState<number>(0);
   const [paginationModel, setPaginationModel] = useState({
@@ -92,13 +92,14 @@ export const ServerDataGrid = ({
 
   const queryOptions = useMemo(() => {
     const orderByConstraint = getOrderByIfNecessary(constraints);
+    // console.log('updating query options', orderByConstraint);
 
     return [...filters, ...constraints, ...orderByConstraint, ...sortOps.current];
   }, [filters, constraints, sortModel, sortOps]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchCount = useFetchDocCount(
     colName,
-    [...filters, ...constraints], // TODO: does aggregation query need order by if inequality operator ?? ... getOrderByIfNecessary(constraints)
+    [...filters, ...constraints],
     isCollectionGroup,
     pathSegments
   );
@@ -160,9 +161,11 @@ export const ServerDataGrid = ({
   // );
 
   return (
-    <Box sx={{ height: 500, width: '100%' }}>
+    // <Box sx={{ height: 500, width: '100%' }}>
+    <Box sx={{ width: '100%' }}>
       <DataGrid
         apiRef={apiRef}
+        // TODO: move to theme overrides ??
         sx={{
           transition: 'height 0.25s ease-in-out',
           '& .MuiDataGrid-toolbarContainer': {
@@ -210,7 +213,7 @@ export const ServerDataGrid = ({
             },
             printOptions: { disableToolbarButton: true },
             ...(slotProps?.toolbar || {}),
-            colname: COLLECTIONS[colName],
+            colname: colName,
             constraints,
           },
           baseIconButton: {

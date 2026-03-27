@@ -8,6 +8,7 @@ import {
   CreditScoreRounded,
   DisabledByDefaultRounded,
   DoneRounded,
+  DownloadRounded,
   EmailRounded,
   ErrorOutlineRounded,
   FaceRounded,
@@ -17,6 +18,7 @@ import {
   HourglassBottomRounded,
   HourglassEmptyRounded,
   HourglassTopRounded,
+  LaunchRounded,
   OpenInNewRounded,
   PendingRounded,
   QueryBuilderRounded,
@@ -42,13 +44,16 @@ import { isDate, round, sum, sumBy } from 'lodash';
 import { toast } from 'react-hot-toast';
 import { Link as RouterLink } from 'react-router-dom';
 
+import { LoadingButton, LoadingButtonProps } from '@mui/lab';
 import {
   AdditionalInsured,
   Address,
   Basement,
+  CancelReason,
   CBRSDesignation,
-  COLLECTIONS,
   ChangeRequestStatus,
+  Claim,
+  Collection,
   CompressedAddress,
   FloodZone,
   INVITE_STATUS,
@@ -60,16 +65,24 @@ import {
   PriorLossCount,
   Product,
   QUOTE_STATUS,
-  SUBMISSION_STATUS,
   State,
+  SUBMISSION_STATUS,
   TAgencySubmissionStatus,
   TChangeRequestStatus,
   TFeeItem,
+  TransactionType,
   TTaxItem,
 } from 'common';
 import { CONSTRUCTION_TYPE } from 'common/constants';
-import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
 import {
+  FileLink,
+  GridCellCopy,
+  LoadingSpinner,
+  renderGridEmail,
+  renderGridPhone,
+} from 'components';
+import {
+  GridCellExpand,
   renderCellExpand,
   renderChip,
   renderChips,
@@ -79,8 +92,7 @@ import {
   renderPercent,
   renderSplitSnakeCase,
 } from 'components/RenderGridCellHelpers';
-import { CANCEL_REASON_OPTIONS } from 'elements/forms/CancelFormOld';
-import { TRANSACTION_OPTIONS } from 'elements/forms/TaxForm';
+import { useDownloadStream } from 'hooks';
 import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
 import {
   getGridFirestoreBooleanOperators,
@@ -98,7 +110,9 @@ import {
   numberFormat,
   popUpWasBlocked,
 } from 'modules/utils';
-import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
+import { memo, Suspense } from 'react';
+import { useSigninCheck } from 'reactfire';
+import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 
 export const copyBaseProps: Partial<GridColDef> = {
   flex: 1.2,
@@ -125,12 +139,39 @@ export const percentColBaseProps: Partial<GridColDef> = {
   renderCell: renderPercent,
 };
 
-export const dateColBaseProps: Partial<GridColDef> = {
+export const dateColBaseProps: Pick<
+  GridColDef,
+  | 'type'
+  | 'minWidth'
+  | 'flex'
+  | 'valueFormatter'
+  | 'valueParser'
+  | 'filterOperators'
+  | 'renderCell'
+> = {
   type: 'date',
   minWidth: 180,
   flex: 1,
   valueFormatter: formatGridFirestoreTimestampAsDate,
+  valueParser: (
+    value: any,
+    params?: GridCellParams<any, any, any, GridTreeNode> | undefined,
+  ) => {
+    // console.log('VAL SETTER: ', value, params);
+    if (!value) return null;
+    console.log('is date: ', isDate(value));
+    if (isDate(value)) return Timestamp.fromDate(new Date(value));
+    return value;
+  },
   filterOperators: getGridFirestoreDateOperators(),
+  renderCell: (params: GridRenderCellParams<any, any, any>) => {
+    if (!(params.value && params.value.seconds)) return null;
+    return (
+      <Typography variant='body2' color='text.secondary'>
+        {formatFirestoreTimestamp(params.value)}
+      </Typography>
+    );
+  },
 };
 
 export const idCol: GridColDef = {
@@ -189,6 +230,7 @@ export const policyIdCol: GridColDef = {
           path: ROUTES.POLICY,
           params: { policyId: params.value },
         })}
+        underline='hover'
       >
         <GridCellCopy value={params.value} />
       </Link>
@@ -240,7 +282,8 @@ export const phoneCol: GridColDef = {
   editable: false,
   sortable: false,
   filterable: false,
-  renderCell: (params: GridRenderCellParams<any, any, any>) => renderGridPhone(params),
+  renderCell: (params: GridRenderCellParams<any, any, any>) =>
+    renderGridPhone(params),
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -289,9 +332,13 @@ export const createdCol: GridColDef = {
   flex: 0.6,
   editable: false,
   filterOperators: getGridFirestoreDateOperators(),
-  valueGetter: (params: GridValueGetterParams<any, any>) => params.row.metadata?.created || null,
-  valueParser: (value: any, params?: GridCellParams<any, any, any, GridTreeNode> | undefined) => {
-    console.log('VAL SETTER: ', value, params);
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.metadata?.created || null,
+  valueParser: (
+    value: any,
+    params?: GridCellParams<any, any, any, GridTreeNode> | undefined,
+  ) => {
+    // console.log('VAL SETTER: ', value, params);
     if (!value) return null;
     console.log('is date: ', isDate(value));
     if (isDate(value)) return Timestamp.fromDate(new Date(value));
@@ -329,7 +376,8 @@ export const updatedCol: GridColDef = {
   editable: false,
   // disableExport: true,
   filterOperators: getGridFirestoreDateOperators(),
-  valueGetter: (params: GridValueGetterParams<any, any>) => params.row.metadata?.updated || null,
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.metadata?.updated || null,
   // valueFormatter: formatGridFirestoreTimestamp,
   valueFormatter: formatGridFirestoreTimestampAsDate,
   renderCell: (params: GridRenderCellParams<any, any, any>) => {
@@ -358,6 +406,16 @@ export const orgNameCol: GridColDef = {
       </Typography>
     );
   },
+};
+
+export const typeCol: GridColDef = {
+  field: 'type',
+  headerName: 'Type',
+  minWidth: 120,
+  flex: 0.5,
+  sortable: true,
+  filterable: true,
+  editable: false,
 };
 
 export const agencyNameCol: GridColDef = {
@@ -405,6 +463,28 @@ export const fileLinkCol: GridColDef = {
   },
 };
 
+export const emailDomainsCol: GridColDef = {
+  field: 'emailDomains',
+  headerName: 'Email Domains',
+  minWidth: 180,
+  flex: 1,
+  editable: false,
+  sortable: false,
+  filterable: false,
+  valueGetter: (params) => params.row.emailDomains || [],
+  valueFormatter: (params) => params.value?.join(', '),
+  // renderCell: renderJoinArray,
+  // renderCell: renderCellExpand,
+  renderCell: ({ value, colDef }) => {
+    if (!value) return null;
+    const joinedDomains = value.join(', ');
+
+    return (
+      <GridCellExpand value={joinedDomains} width={colDef.computedWidth} />
+    );
+  },
+};
+
 const addressSummaryBase: GridColDef = {
   field: 'address',
   headerName: 'Address',
@@ -416,7 +496,10 @@ const addressSummaryBase: GridColDef = {
   renderCell: renderCellExpand,
 };
 
-const formatAddrSummary = (address?: Nullable<Address> | null | undefined, withLine2?: boolean) => {
+const formatAddrSummary = (
+  address?: Nullable<Address> | null | undefined,
+  withLine2?: boolean,
+) => {
   if (!address) return null;
 
   const { addressLine1, addressLine2, city, state } = address;
@@ -433,7 +516,8 @@ const formatAddrSummary = (address?: Nullable<Address> | null | undefined, withL
 
 export const addressSummaryCol: GridColDef = {
   ...addressSummaryBase,
-  valueGetter: (params: GridValueGetterParams<any, any>) => formatAddrSummary(params.row.address),
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    formatAddrSummary(params.row.address),
   // valueFormatter uses value returned from valueGetter
   // valueFormatter: ({ value }) => {
   //   if (value) return formatAddrSummary(value, true);
@@ -560,7 +644,8 @@ export const addrLine2Col: GridColDef = {
 export const addrCityCol: GridColDef = {
   ...cityCol,
   field: 'address.city',
-  valueGetter: (params: GridValueGetterParams<any, any>) => getGridAddressComponent(params, 'city'),
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    getGridAddressComponent(params, 'city'),
 };
 
 export const addrStateCol: GridColDef = {
@@ -649,9 +734,10 @@ export const coordinatesCol: GridColDef = {
           }}
           onClick={() => {
             const w = window.open(
-              `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`
+              `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`,
             );
-            if (popUpWasBlocked(w)) toast.error('Please allow the new window to view Google Maps');
+            if (popUpWasBlocked(w))
+              toast.error('Please allow the new window to view Google Maps');
           }}
         >
           {`[${latitude}, ${longitude}]`}
@@ -677,7 +763,12 @@ export const statusCol: GridSingleSelectColDef = {
   renderCell: (params: GridRenderCellParams<any, any, any>) => {
     if (!params.value) return null;
     return (
-      <Chip label={params.value} size='small' variant='outlined' {...getChipProps(params.value)} />
+      <Chip
+        label={params.value}
+        size='small'
+        variant='outlined'
+        {...getChipProps(params.value)}
+      />
     );
   },
 };
@@ -763,7 +854,8 @@ export const booleanCalcActiveCol: GridColDef = {
   field: 'active',
   headerName: 'Active',
   type: 'boolean',
-  description: 'Current date is after effective date (if exists) and before expiration (if exists)',
+  description:
+    'Current date is after effective date (if exists) and before expiration (if exists)',
   minWidth: 80,
   flex: 0.5,
   headerAlign: 'center',
@@ -773,7 +865,10 @@ export const booleanCalcActiveCol: GridColDef = {
   sortable: false,
   filterOperators: getGridFirestoreBooleanOperators(),
   valueGetter: (params: GridValueGetterParams<any, any>) =>
-    isCurrentDateBetween(params.row.effectiveDate?.toDate(), params.row.expirationDate?.toDate()),
+    isCurrentDateBetween(
+      params.row.effectiveDate?.toDate(),
+      params.row.expirationDate?.toDate(),
+    ),
   renderCell: (params: GridRenderCellParams<any, any, any>) => {
     const isActive = !!params.value;
 
@@ -835,6 +930,15 @@ export const currencyCol: Partial<GridColDef> = {
   renderCell: renderCurrency,
 };
 
+export const stripeAmountCol: Partial<GridColDef> = {
+  ...numericColBaseProps,
+  minWidth: 120,
+  flex: 0.8,
+  valueGetter: (params) =>
+    typeof params.value === 'number' ? params.value / 100 : null,
+  renderCell: renderCurrency,
+};
+
 export const limitACol: GridColDef = {
   ...currencyCol,
   field: 'limits.limitA',
@@ -846,7 +950,8 @@ export const limitACol: GridColDef = {
   sortable: true,
   filterable: true,
   valueGetter: (params) => params.row.limits?.limitA ?? null,
-  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
+  renderCell: (params) =>
+    renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const limitBCol: GridColDef = {
@@ -860,7 +965,8 @@ export const limitBCol: GridColDef = {
   sortable: true,
   filterable: true,
   valueGetter: (params) => params.row.limits?.limitB ?? null,
-  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
+  renderCell: (params) =>
+    renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const limitCCol: GridColDef = {
@@ -875,7 +981,8 @@ export const limitCCol: GridColDef = {
   sortable: true,
   filterable: true,
   valueGetter: (params) => params.row.limits?.limitC ?? null,
-  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
+  renderCell: (params) =>
+    renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const limitDCol: GridColDef = {
@@ -889,7 +996,8 @@ export const limitDCol: GridColDef = {
   sortable: true,
   filterable: true,
   valueGetter: (params) => params.row.limits?.limitD ?? null,
-  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
+  renderCell: (params) =>
+    renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const tivCol: GridColDef = {
@@ -916,7 +1024,8 @@ export const tivCol: GridColDef = {
       return null;
     }
   },
-  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
+  renderCell: (params) =>
+    renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const deductibleCol: GridColDef = {
@@ -929,7 +1038,8 @@ export const deductibleCol: GridColDef = {
   editable: false,
   sortable: true,
   filterable: true,
-  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
+  renderCell: (params) =>
+    renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const namedInsuredDisplayNameCol: GridColDef = {
@@ -941,7 +1051,8 @@ export const namedInsuredDisplayNameCol: GridColDef = {
   filterable: false, // TODO: enable ?? - present in both interfaces
   sortable: false,
   valueGetter: (params: GridValueGetterParams) => {
-    if (params.row.namedInsured?.displayName) return params.row.namedInsured?.displayName;
+    if (params.row.namedInsured?.displayName)
+      return params.row.namedInsured?.displayName;
 
     return (
       `${params.row.namedInsured?.firstName || ''} ${
@@ -954,7 +1065,8 @@ export const namedInsuredDisplayNameCol: GridColDef = {
 export const namedInsuredFirstNameCol: GridColDef = {
   ...firstNameCol,
   field: 'namedInsured.firstName',
-  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.firstName || null,
+  valueGetter: (params: GridValueGetterParams) =>
+    params.row.namedInsured?.firstName || null,
   filterOperators: getGridFirestoreStringOperators(),
   // filterOperators: getGridFirestoreStringOperators(),
 };
@@ -962,7 +1074,8 @@ export const namedInsuredFirstNameCol: GridColDef = {
 export const namedInsuredLastNameCol: GridColDef = {
   ...lastNameCol,
   field: 'namedInsured.lastName',
-  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.lastName || null,
+  valueGetter: (params: GridValueGetterParams) =>
+    params.row.namedInsured?.lastName || null,
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -970,7 +1083,8 @@ export const namedInsuredEmailCol: GridColDef = {
   ...emailCol,
   field: 'namedInsured.email',
   headerName: 'Insured Email',
-  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.email || null,
+  valueGetter: (params: GridValueGetterParams) =>
+    params.row.namedInsured?.email || null,
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -978,7 +1092,8 @@ export const namedInsuredPhoneCol: GridColDef = {
   ...phoneCol,
   field: 'namedInsured.phone',
   headerName: 'Insured Phone',
-  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.phone || null,
+  valueGetter: (params: GridValueGetterParams) =>
+    params.row.namedInsured?.phone || null,
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -999,7 +1114,8 @@ export const replacementCostCol: GridColDef = {
 export const ratingDataReplacementCostCol: GridColDef = {
   ...replacementCostCol,
   field: 'ratingPropertyData.replacementCost',
-  valueGetter: (params) => params.row.ratingPropertyData?.replacementCost ?? null,
+  valueGetter: (params) =>
+    params.row.ratingPropertyData?.replacementCost ?? null,
 };
 
 export const subproducerCommissionCol: GridColDef = {
@@ -1042,7 +1158,8 @@ export const yearBuiltCol: GridColDef = {
   sortable: false, // TODO: enable ?? create index
   filterable: false,
   filterOperators: getGridFirestoreNumericOperators(),
-  valueFormatter: (params: GridValueFormatterParams<number>) => params.value ?? null,
+  valueFormatter: (params: GridValueFormatterParams<number>) =>
+    params.value ?? null,
 };
 
 export const ratingDataYearBuiltCol: GridColDef = {
@@ -1133,13 +1250,15 @@ export const distToCoastFeetCol: GridColDef = {
 export const ratingDataDistToCoastFeetCol: GridColDef = {
   ...distToCoastFeetCol,
   field: 'ratingPropertyData.distToCoastFeet',
-  valueGetter: (params) => params.row.ratingPropertyData?.distToCoastFeet ?? null,
+  valueGetter: (params) =>
+    params.row.ratingPropertyData?.distToCoastFeet ?? null,
 };
 
 export const CBRSCol: GridSingleSelectColDef = {
   field: 'CBRSDesignation',
   headerName: 'CBRS Des.',
-  description: 'Coastal Barrier Reef System Designation provided by property api',
+  description:
+    'Coastal Barrier Reef System Designation provided by property api',
   type: 'singleSelect',
   valueOptions: CBRSDesignation.options,
   minWidth: 100,
@@ -1153,7 +1272,8 @@ export const CBRSCol: GridSingleSelectColDef = {
 export const ratingDataCBRSCol: GridColDef = {
   ...CBRSCol,
   field: 'ratingPropertyData.CBRSDesignation',
-  valueGetter: (params) => params.row.ratingPropertyData?.CBRSDesignation ?? null,
+  valueGetter: (params) =>
+    params.row.ratingPropertyData?.CBRSDesignation ?? null,
 };
 
 export const floodZoneCol: GridSingleSelectColDef = {
@@ -1195,7 +1315,8 @@ export const priorLossCountCol: GridSingleSelectColDef = {
 export const ratingDataPriorLossCountCol: GridColDef = {
   ...priorLossCountCol,
   field: 'ratingPropertyData.priorLossCount',
-  valueGetter: (params) => params.row.ratingPropertyData?.priorLossCount ?? null,
+  valueGetter: (params) =>
+    params.row.ratingPropertyData?.priorLossCount ?? null,
 };
 
 export const unitsCol: GridColDef = {
@@ -1260,6 +1381,306 @@ export const userIdCol: GridColDef = {
   ...copyBaseProps,
 };
 
+// TODO: stripe dashboard url env var / update to use sandbox
+const stripeDashUrl = `https://dashboard.stripe.com${
+  import.meta.env.VITE_EMULATORS === 'true' ? '/test' : ''
+}`;
+
+const GridStripeCustomer = ({ cusId }: { cusId: string }) => {
+  const { data } = useSigninCheck({
+    requiredClaims: { [Claim.Enum.iDemandAdmin]: true },
+  });
+
+  if (!data.hasRequiredClaims) return <GridCellCopy value={cusId} />;
+  return (
+    <Link
+      href={`${stripeDashUrl}/customers/${cusId}`}
+      variant='body2'
+      underline='hover'
+      target='_blank'
+      rel='noopener'
+    >
+      <GridCellCopy value={cusId} />
+    </Link>
+  );
+};
+
+export const stripeCustomerIdCol: GridColDef = {
+  ...copyBaseProps,
+  field: 'stripeCustomerId',
+  headerName: 'Stripe Customer ID',
+  filterable: false, // true, TODO: enable once index created
+  sortable: false,
+  minWidth: 220,
+  filterOperators: getGridFirestoreStringOperators(),
+  renderCell: ({ value }) => {
+    if (!value) return null;
+
+    return (
+      <Suspense fallback={<LoadingSpinner loading={true} size={16} />}>
+        <GridStripeCustomer cusId={value} />
+      </Suspense>
+    );
+  },
+};
+
+export const stripeAccountIdCol: GridColDef = {
+  ...copyBaseProps,
+  field: 'stripeAccountId',
+  headerName: 'Stripe Account ID',
+  filterable: false, // true, TODO: enable once index created
+  sortable: false,
+  minWidth: 220,
+  filterOperators: getGridFirestoreStringOperators(),
+  valueGetter: (params) => params.value || null,
+};
+
+export const paidCol: GridColDef = {
+  field: 'paid',
+  headerName: 'Paid',
+  type: 'boolean',
+  filterOperators: getGridFirestoreBooleanOperators(),
+  sortable: false,
+  filterable: true,
+};
+
+export const paidOutOfBandCol: GridColDef = {
+  ...paidCol,
+  field: 'paidOutOfBand',
+  headerName: 'Paid Out of Band',
+  filterable: false,
+};
+
+export const invoiceNumberCol: GridColDef = {
+  field: 'invoiceNumber',
+  headerName: 'Invoice #',
+  type: 'string',
+  sortable: false,
+  filterable: false,
+  minWidth: 140,
+  flex: 0.4,
+};
+
+const GridInvoiceId = ({ invoiceId }: { invoiceId: string }) => {
+  const { data } = useSigninCheck({
+    requiredClaims: { [Claim.Enum.iDemandAdmin]: true },
+  });
+
+  if (!data.hasRequiredClaims) return <GridCellCopy value={invoiceId} />;
+  return (
+    <Link
+      href={`${stripeDashUrl}/customers/${invoiceId}`}
+      variant='body2'
+      underline='hover'
+      target='_blank'
+      rel='noopener'
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <LaunchRounded fontSize='inherit' color='inherit' sx={{ mr: 2 }} />
+        <GridCellCopy value={invoiceId} />
+      </Box>
+    </Link>
+  );
+};
+
+export const invoiceIdCol: GridColDef = {
+  ...idCol,
+  field: 'invoiceId',
+  headerName: 'Invoice ID',
+  minWidth: 220,
+  renderCell: ({ value }) => {
+    if (!value) return null;
+
+    return <GridInvoiceId invoiceId={value} />;
+  },
+};
+
+export const receiptNumberCol: GridColDef = {
+  field: 'receiptNumber',
+  headerName: 'Receipt',
+  sortable: false,
+  filterable: false,
+  minWidth: 100,
+  flex: 1,
+  // TODO: make linkable if stripe provides receipt URL
+};
+
+export const totalTransferredCol: GridColDef = {
+  ...currencyCol,
+  field: 'totalTransferred',
+  headerName: 'Total Transferred',
+  description:
+    'Amount transferred within Stripe to connected accounts (agency/carrier)',
+  type: 'number',
+  minWidth: 140,
+  flex: 0.8,
+  editable: false,
+  sortable: false,
+  filterable: false,
+};
+
+export const totalAmountPaidCol: GridColDef = {
+  ...currencyCol,
+  field: 'totalAmountPaid',
+  headerName: 'Amount Paid',
+  description: 'Amount of receivable that has been paid',
+  type: 'number',
+  minWidth: 140,
+  flex: 0.8,
+  editable: false,
+  sortable: false,
+  filterable: false,
+};
+
+export const transfersByChargeCol: GridColDef = {
+  field: 'transfersByCharge',
+  headerName: 'TransfersByCharge',
+  description: 'Transfers initiated by charge ID',
+  type: 'string',
+  minWidth: 140,
+  flex: 0.8,
+  editable: false,
+  sortable: false,
+  filterable: false,
+  valueGetter: (params) =>
+    params.row.transfersByCharge
+      ? JSON.stringify(params.row.transfersByCharge)
+      : '',
+};
+
+export const billingEntityName: GridColDef = {
+  field: 'billingEntityDetails.name',
+  headerName: 'Billed To',
+  minWidth: 160,
+  flex: 0.8,
+  editable: false,
+  filterable: false,
+  sortable: false,
+  filterOperators: getGridFirestoreStringOperators(),
+  valueGetter: ({ row }) => row.billingEntityDetails?.name || null,
+};
+export const billingEntityEmail: GridColDef = {
+  ...emailCol,
+  field: 'billingEntityDetails.email',
+  headerName: 'Billing Email',
+  editable: false,
+  filterable: false,
+  sortable: false,
+  valueGetter: ({ row }) => row.billingEntityDetails?.email || null,
+};
+export const billingEntityPhone: GridColDef = {
+  ...phoneCol,
+  field: 'billingEntityDetails.phone',
+  headerName: 'Billing Phone',
+  editable: false,
+  filterable: false,
+  sortable: false,
+  valueGetter: ({ row }) => row.billingEntityDetails?.phone || null,
+};
+
+export const dueDateCol: GridColDef = {
+  ...dateColBaseProps,
+  field: 'dueDate',
+  headerName: 'Due Date',
+  sortable: true,
+  filterable: true,
+  minWidth: 120,
+};
+
+// TODO: move to component
+interface DownloadPDFButtonProps extends Omit<LoadingButtonProps, 'onClick'> {
+  filename: string;
+  endpoint: string;
+  buttonText?: string;
+  onSuccess?: () => void;
+  onDownloadError?: (msg: string, err: any) => void;
+}
+
+const DownloadPDFButton = memo(
+  ({
+    filename,
+    endpoint,
+    buttonText = 'download',
+    onSuccess,
+    onDownloadError,
+    ...props
+  }: DownloadPDFButtonProps) => {
+    const { downloadFile, loading } = useDownloadStream(
+      'get',
+      onSuccess,
+      onDownloadError,
+    );
+
+    return (
+      <LoadingButton
+        onClick={(e) => {
+          e.stopPropagation();
+          downloadFile(filename, endpoint);
+        }}
+        {...props}
+        loading={loading || props?.loading}
+      >
+        {buttonText}
+      </LoadingButton>
+    );
+  },
+);
+
+// move to top for reuse
+export const downloadInvoiceCol: GridColDef = {
+  field: 'invoicePdfUrl',
+  headerName: 'Invoice PDF',
+  align: 'center',
+  headerAlign: 'center',
+  sortable: false,
+  filterable: false,
+  editable: false,
+  minWidth: 200,
+  flex: 1,
+  renderCell: ({ row, value }) => {
+    if (!value || !row.invoiceId) return null;
+
+    return (
+      <DownloadPDFButton
+        filename={`iDemand Invoice ${row.invoiceId}.pdf`}
+        endpoint={`/stripe/invoice/${row.invoiceId}/download`}
+        buttonText='Download Invoice'
+        size='small'
+        sx={{ maxHeight: 30 }}
+        startIcon={<DownloadRounded />}
+      />
+    );
+  },
+};
+
+export const stripeHostedInvoiceUrlCol: GridColDef = {
+  field: 'hostedInvoiceUrl',
+  headerName: 'Stripe Hosted',
+  minWidth: 200,
+  flex: 1,
+  sortable: false,
+  filterable: false,
+  renderCell: ({ value }) => {
+    if (!value) return null;
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Link
+          href={value}
+          variant='body2'
+          underline='hover'
+          target='_blank'
+          rel='noopener'
+          sx={{ mr: 2 }}
+        >
+          Stripe Invoice
+        </Link>
+        <LaunchRounded fontSize='inherit' />
+      </Box>
+    );
+  },
+};
+
 export const agentNameCol: GridColDef = {
   field: 'agentName',
   headerName: 'Agent Name',
@@ -1275,7 +1696,8 @@ export const nestedAgentNameCol: GridColDef = {
   ...agentNameCol,
   field: 'agent.name',
   filterOperators: getGridFirestoreStringOperators(),
-  valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent?.name || null,
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.agent?.name || null,
 };
 
 export const agentEmailCol: GridColDef = {
@@ -1313,7 +1735,8 @@ export const agentIdCol: GridColDef = {
 export const nestedAgentUserIdCol: GridColDef = {
   ...agentIdCol,
   field: 'agent.userId',
-  valueGetter: (params: GridValueGetterParams) => params.row.agent?.userId || null,
+  valueGetter: (params: GridValueGetterParams) =>
+    params.row.agent?.userId || null,
 };
 
 export const agencyIdCol: GridColDef = {
@@ -1328,7 +1751,8 @@ export const agencyIdCol: GridColDef = {
 export const nestedAgencyOrgIdCol: GridColDef = {
   ...agencyIdCol,
   field: 'agency.orgId',
-  valueGetter: (params: GridValueGetterParams) => params.row.agency?.orgId || null,
+  valueGetter: (params: GridValueGetterParams) =>
+    params.row.agency?.orgId || null,
 };
 
 export const inlandAALCol: GridColDef = {
@@ -1417,7 +1841,8 @@ export const outStatePremiumCol: GridColDef = {
   ...currencyCol,
   field: 'outStatePremium',
   headerName: 'Out State Premium',
-  description: 'sum of term premium for locations outside of policy "home state"',
+  description:
+    'sum of term premium for locations outside of policy "home state"',
   valueGetter: ({ row }) => row.outStatePremium ?? null,
   sortable: false,
   filterable: false, // enable if decide to create indices
@@ -1467,7 +1892,7 @@ export const feesSumCol: GridColDef = {
   },
 };
 
-export const locationsCount: GridColDef = {
+export const locationsCountCol: GridColDef = {
   field: 'locationsCount',
   headerName: '# locations',
   description: 'active location count',
@@ -1488,7 +1913,7 @@ export const locationsCount: GridColDef = {
 };
 
 // TODO: delete (if not storing address in locations obj) or refactor
-export const locationAddresses: GridColDef = {
+export const locationAddressesCol: GridColDef = {
   field: 'addressesSummary',
   headerName: 'Locations',
   description: 'active location addresses',
@@ -1502,9 +1927,12 @@ export const locationAddresses: GridColDef = {
     if (Array.isArray(value)) {
       let first10 = value.length > 10 ? value.slice(0, 9) : value;
 
-      let result = first10.map((addr) => compressedToFormattedAddr(addr)).join('  |  ');
+      let result = first10
+        .map((addr) => compressedToFormattedAddr(addr))
+        .join('  |  ');
 
-      if (value.length > 10) result += ` | + ${value.length - 10} more locations`;
+      if (value.length > 10)
+        result += ` | + ${value.length - 10} more locations`;
 
       return result;
     }
@@ -1574,8 +2002,10 @@ export const productCol: GridSingleSelectColDef = {
   valueOptions: Product.options,
   filterOperators: getGridFirestoreSelectOperators(),
   renderCell: (params) =>
-    renderChip(params, { variant: 'outlined', size: 'small' }, ({ value }: any) =>
-      getProductChipProps(value)
+    renderChip(
+      params,
+      { variant: 'outlined', size: 'small' },
+      ({ value }: any) => getProductChipProps(value),
     ),
 };
 
@@ -1605,7 +2035,11 @@ export const productsCol: GridSingleSelectColDef = {
   // filterable: false, // TODO: implement array-contains search (multi-select operators)
   // filterOperators: getGridFirestoreMultiSelectOperators(),
   renderCell: (params) =>
-    renderChips(params, { variant: 'outlined', color: 'success' }, getProductChipProps),
+    renderChips(
+      params,
+      { variant: 'outlined', color: 'success' },
+      getProductChipProps,
+    ),
 };
 
 export const SLProducerOfRecordNameCol: GridColDef = {
@@ -1618,7 +2052,8 @@ export const SLProducerOfRecordNameCol: GridColDef = {
   sortable: false,
   description: 'Surplus Lines Producer of Record',
   filterOperators: getGridFirestoreStringOperators(),
-  valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.name || null,
+  valueGetter: (params) =>
+    params.row.surplusLinesProducerOfRecord?.name || null,
 };
 
 export const SLProducerOfRecordLicenseNum: GridColDef = {
@@ -1629,7 +2064,8 @@ export const SLProducerOfRecordLicenseNum: GridColDef = {
   filterable: false,
   sortable: false,
   filterOperators: getGridFirestoreStringOperators(),
-  valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.licenseNum || null,
+  valueGetter: (params) =>
+    params.row.surplusLinesProducerOfRecord?.licenseNum || null,
 };
 
 export const SLProducerOfRecordLicenseState: GridColDef = {
@@ -1640,7 +2076,8 @@ export const SLProducerOfRecordLicenseState: GridColDef = {
   filterable: false,
   sortable: false,
   filterOperators: getGridFirestoreSelectOperators(),
-  valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.licenseState || null,
+  valueGetter: (params) =>
+    params.row.surplusLinesProducerOfRecord?.licenseState || null,
 };
 
 export const SLProducerOfRecordLicensePhone: GridColDef = {
@@ -1651,7 +2088,8 @@ export const SLProducerOfRecordLicensePhone: GridColDef = {
   filterable: false,
   sortable: false,
   filterOperators: getGridFirestoreStringOperators(),
-  valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.phone || null,
+  valueGetter: (params) =>
+    params.row.surplusLinesProducerOfRecord?.phone || null,
 };
 
 export const SLProducerOfRecordLicenseAddress: GridColDef = {
@@ -1661,7 +2099,8 @@ export const SLProducerOfRecordLicenseAddress: GridColDef = {
   description: 'Surplus Lines Producer of Record license provided address',
   filterable: false,
   sortable: false,
-  valueGetter: (params) => formatAddrSummary(params.row.surplusLinesProducerOfRecord?.address),
+  valueGetter: (params) =>
+    formatAddrSummary(params.row.surplusLinesProducerOfRecord?.address),
 };
 
 export const issuingCarrierCol: GridColDef = {
@@ -1685,16 +2124,24 @@ export const additionalInsuredsCol: GridColDef = {
   sortable: false,
   disableExport: true,
   valueGetter: (params) =>
-    params.row.additionalInsureds?.map((ai: AdditionalInsured) => ai.name) || null,
+    params.row.additionalInsureds?.map((ai: AdditionalInsured) => ai.name) ||
+    null,
   valueFormatter: ({ value }) => {
     if (Array.isArray(value) && value.length)
       return value
-        .map((ai: AdditionalInsured) => `${ai.name}${ai.email ? ` (${ai.email})` : ''}`)
+        .map(
+          (ai: AdditionalInsured) =>
+            `${ai.name}${ai.email ? ` (${ai.email})` : ''}`,
+        )
         .join('  |  ');
     return value;
   },
   renderCell: (params) =>
-    renderChips(params, { variant: 'outlined', color: 'success', icon: <FaceRounded /> }),
+    renderChips(params, {
+      variant: 'outlined',
+      color: 'success',
+      icon: <FaceRounded />,
+    }),
 };
 
 export const mortgageeCol: GridColDef = {
@@ -1706,16 +2153,24 @@ export const mortgageeCol: GridColDef = {
   filterable: false,
   sortable: false,
   // disableExport: true,
-  valueGetter: (params) => params.row.mortgageeInterest?.map((m: Mortgagee) => m.name) || null,
+  valueGetter: (params) =>
+    params.row.mortgageeInterest?.map((m: Mortgagee) => m.name) || null,
   valueFormatter: ({ value }) => {
     if (Array.isArray(value) && value.length)
       return value
-        .map((m: Mortgagee) => `${m.name} (${m.contactName}${m.email ? ' - ' + m.email : ''})`)
+        .map(
+          (m: Mortgagee) =>
+            `${m.name} (${m.contactName}${m.email ? ' - ' + m.email : ''})`,
+        )
         .join('  |  ');
     return value;
   },
   renderCell: (params) =>
-    renderChips(params, { variant: 'outlined', color: 'info', icon: <AccountBalanceRounded /> }),
+    renderChips(params, {
+      variant: 'outlined',
+      color: 'info',
+      icon: <AccountBalanceRounded />,
+    }),
 };
 
 export const externalIdCol: GridColDef = {
@@ -1765,22 +2220,24 @@ export const policyTrxTypesCol: GridSingleSelectColDef = {
   field: 'transactionTypes',
   headerName: 'Transaction Types',
   type: 'singleSelect',
-  valueOptions: TRANSACTION_OPTIONS,
+  valueOptions: TransactionType.options,
   minWidth: 340,
   flex: 1,
   editable: false,
   // filterable: false,
   sortable: false,
-  renderCell: (params) => renderChips(params, { variant: 'outlined', color: 'success' }),
+  renderCell: (params) =>
+    renderChips(params, { variant: 'outlined', color: 'success' }),
   valueFormatter: (params) => `${params.value?.join(', ')}`,
 };
 
 export const trxTypeCol: GridSingleSelectColDef = {
   field: 'trxType',
   headerName: 'Type',
-  description: 'Type of transaction (endorsement, amendment, cancellation, etc.)',
+  description:
+    'Type of transaction (endorsement, amendment, cancellation, etc.)',
   type: 'singleSelect',
-  valueOptions: TRANSACTION_OPTIONS,
+  valueOptions: TransactionType.options,
   minWidth: 120,
   flex: 1,
   editable: false,
@@ -1874,7 +2331,11 @@ export const targetCollectionCol: GridSingleSelectColDef = {
   minWidth: 160,
   flex: 0.4,
   type: 'singleSelect',
-  valueOptions: [COLLECTIONS.POLICIES, COLLECTIONS.QUOTES, COLLECTIONS.TRANSACTIONS],
+  valueOptions: [
+    Collection.Enum.policies,
+    Collection.Enum.quotes,
+    Collection.Enum.transactions,
+  ],
   filterOperators: getGridFirestoreSelectOperators(),
 };
 
@@ -1888,7 +2349,8 @@ export const importDocIdsCol: GridColDef = {
   filterable: false,
   sortable: false,
   // TODO: set array filters
-  renderCell: (params) => renderChips(params, { variant: 'outlined', color: 'success' }),
+  renderCell: (params) =>
+    renderChips(params, { variant: 'outlined', color: 'success' }),
 };
 
 export const importDocIdsCountCol: GridColDef = {
@@ -1900,7 +2362,8 @@ export const importDocIdsCountCol: GridColDef = {
   flex: 0.2,
   filterable: false,
   sortable: false,
-  valueGetter: (params) => (params.row.importDocIds ? params.row.importDocIds.length : null),
+  valueGetter: (params) =>
+    params.row.importDocIds ? params.row.importDocIds.length : null,
 };
 
 // export const importCreationErrorsCol: GridColDef = {
@@ -1915,7 +2378,8 @@ export const importDocIdsCountCol: GridColDef = {
 export const importCreationErrorsCountCol: GridColDef = {
   field: 'docCreationErrorsCount',
   headerName: 'Doc Create Errors Count',
-  description: 'Errors which occurred when attempting to create the record in the database',
+  description:
+    'Errors which occurred when attempting to create the record in the database',
   type: 'number',
   headerAlign: 'center',
   align: 'right',
@@ -1923,7 +2387,8 @@ export const importCreationErrorsCountCol: GridColDef = {
   flex: 0.2,
   filterable: false,
   sortable: false,
-  valueGetter: (params) => (params.row.docCreateErrors ? params.row.docCreateErrors.length : null),
+  valueGetter: (params) =>
+    params.row.docCreateErrors ? params.row.docCreateErrors.length : null,
 };
 
 export const invalidRowsCol: GridColDef = {
@@ -1936,7 +2401,8 @@ export const invalidRowsCol: GridColDef = {
   editable: false,
   filterable: false,
   sortable: false,
-  valueGetter: (params) => (params.row.invalidRows ? params.row.invalidRows.length : null),
+  valueGetter: (params) =>
+    params.row.invalidRows ? params.row.invalidRows.length : null,
   // TODO: set array filters
 };
 
@@ -1976,11 +2442,19 @@ export const sendgridEventCol: GridColDef = {
     );
   },
 };
-export const sendgridMsgIdCol: GridColDef = {
+
+// export const sendgridMsgIdCol: GridColDef = {
+//   ...idCol,
+//   field: 'sg_message_id',
+//   headerName: 'SG Msg ID',
+//   description: 'sendgrid message ID',
+// };
+
+export const resendEmailIdCol: GridColDef = {
   ...idCol,
-  field: 'sg_message_id',
-  headerName: 'SG Msg ID',
-  description: 'sendgrid message ID',
+  field: 'email_id',
+  headerName: 'Email ID',
+  description: 'resend email ID',
 };
 
 export const ipCol: GridColDef = {
@@ -1993,10 +2467,11 @@ export const ipCol: GridColDef = {
 
 // TODO: make select ??
 export const emailTypeCol: GridColDef = {
-  field: 'eventType',
+  field: 'tags.emailType',
   headerName: 'Type',
   type: 'string',
   editable: false,
+  valueGetter: (params) => params.row.tags?.emailType || null,
   renderCell: (params) => renderSplitSnakeCase(params),
   filterOperators: getGridFirestoreStringOperators(),
 };
@@ -2220,13 +2695,14 @@ export const cancelReasonCol: GridSingleSelectColDef = {
   field: 'cancelReason',
   headerName: 'Cancel Reason',
   type: 'singleSelect',
-  description: 'user selected reason for cancellation request (applicable to cancellation trx)',
+  description:
+    'user selected reason for cancellation request (applicable to cancellation trx)',
   minWidth: 160,
   flex: 1,
   editable: false,
   filterable: false,
   sortable: false, // enable if create index ??
-  valueOptions: CANCEL_REASON_OPTIONS,
+  valueOptions: CancelReason.options,
   getOptionValue: (value: ValueOptions) => {
     const t = typeof value;
     if (t === 'string' || t === 'number') return t;
@@ -2356,7 +2832,8 @@ export const mailingCityCol: GridColDef = {
   headerName: 'Mailing City',
   filterable: false,
   sortable: false,
-  valueGetter: (params: GridValueGetterParams<any, any>) => params.row.mailingAddress?.city || null,
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.mailingAddress?.city || null,
 };
 
 export const mailingStateCol: GridColDef = {

@@ -1,3 +1,4 @@
+import { Policy, TransactionType, WithId } from '@idemand/common';
 import { add, differenceInCalendarDays } from 'date-fns';
 import { DocumentData, DocumentReference, Firestore, Timestamp } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
@@ -5,12 +6,9 @@ import { max, round } from 'lodash-es';
 import {
   AmendmentTransaction,
   OffsetTransaction,
-  Policy,
   PremiumTransaction,
   StrictExclude,
   Transaction,
-  TransactionType,
-  WithId,
   policiesCollection,
   ratingDataCollection,
   transactionsCollection,

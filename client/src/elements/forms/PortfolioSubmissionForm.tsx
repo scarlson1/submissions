@@ -56,7 +56,7 @@ const REQUIRED_HEADERS = [
 // TODO: csv validation factory function
 export const csvValidation = mixed()
   .test('required', 'file is required', (value) => {
-    if (!value || value.length < 1) return false;
+    if (!value || !Array.isArray(value) || !value.length) return false;
     return true;
   })
   // .test('fileSize', 'The file must be less than 2mb', (value) => {
@@ -64,7 +64,7 @@ export const csvValidation = mixed()
   //   return value[0].size / 1024 < 2048;
   // })
   .test('fileType', 'The file type must be .csv', (value) => {
-    if (!value || !value.length) return false;
+    if (!value || !Array.isArray(value) || !value.length) return false;
     return value[0].type.includes('csv');
   });
 

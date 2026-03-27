@@ -1,25 +1,24 @@
-import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import type { QueryDocumentSnapshot, UpdateData } from 'firebase-admin/firestore';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { error, info, warn } from 'firebase-functions/logger';
+import { info, warn } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import invariant from 'tiny-invariant';
 
+import { PriorLossCount, Submission, swissReResCollection } from '@idemand/common';
 import {
-  PriorLossCount,
-  Submission,
-  defaultCommissionAsInt,
   defaultFloodZone,
+  getReportErrorFn,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
-  swissReResCollection,
+  // swissReResCollection,
   swissReSubscriptionKey,
-  usersCollection,
 } from '../common/index.js';
 import {
   GetAALRes,
   GetAALsProps,
   getAALs,
+  getComm,
   getPremium,
   validateGetAALsProps,
 } from '../modules/rating/index.js';
@@ -27,7 +26,7 @@ import {
 // TODO: get commission if submitted by agent
 // TODO: HOW IS COMM HANDLED BETWEEN SUB AND QUOTE ?? how does quote form know what to pre-fill with if agent's commission is different than 15% ?? include commission in submission doc ??
 
-// const DEFAULT_COMMISSION = 0.15;
+const reportErr = getReportErrorFn('getSubmissionAAL');
 
 export default async (
   event: FirestoreEvent<
@@ -44,23 +43,9 @@ export default async (
   }
   const sub = snap.data() as Submission;
   const db = getFirestore();
-  let commissionPct = defaultCommissionAsInt.value() / 100;
 
-  if (sub.submittedById) {
-    // If submitted by userId present, fetch user and check to see if they have a default commission set
-    // TODO: refactor to use agent.userId
-    let userSnap = await usersCollection(db).doc(sub.submittedById).get();
-    const data = userSnap.data();
-    let agentFloodComm = data?.defaultCommission?.flood;
-    if (
-      agentFloodComm &&
-      typeof agentFloodComm === 'number' &&
-      agentFloodComm > 0 &&
-      agentFloodComm <= 0.2
-    ) {
-      commissionPct = agentFloodComm;
-    }
-  }
+  const commData = await getComm(sub.commSource, sub.agency?.orgId, sub.agent?.userId, sub.product);
+  const commissionPct = commData.subproducerCommissionPct;
 
   const srClientId = swissReClientId.value();
   const srClientSecret = swissReClientSecret.value();
@@ -91,6 +76,7 @@ export default async (
       ...srVals,
     });
 
+    // TODO: move saving SR res to getAALs ?? (pass along extra data & return ref)
     const swissReRef = await swissReResCollection(db).add({
       ...AALsRes.srRes,
       submissionId: snap.id,
@@ -117,13 +103,14 @@ export default async (
       }
     );
 
+    // TODO: need to store separately (use rxjs for quote form ??)
     // update submission doc with AALs
-    const updates: Partial<Submission> = {
+    const updates: UpdateData<Submission> = {
       AALs: {
         inland: AALsRes.AALs?.inland ?? null,
         surge: AALsRes.AALs?.surge ?? null,
         tsunami: AALsRes.AALs?.tsunami ?? null,
-      }, // @ts-ignore
+      },
       'metadata.updated': Timestamp.now(),
     };
     await snap.ref.update(updates);
@@ -159,9 +146,9 @@ export default async (
 
     // TODO: move saving rating data to it's own try/catch ?? see getAnnualPremium
     const ratingColRef = ratingDataCollection(db);
-    // await db.collection(COLLECTIONS.RATING_DATA).add({
+
     const ratingDocRef = await ratingColRef.add({
-      submissionId: snap.id,
+      submissionId: event.data?.id || null, //: snap.ref.id, // snap.id,
       deductible: sub.deductible,
       limits: {
         limitA: sub.limits?.limitA,
@@ -229,7 +216,9 @@ export default async (
       ...result,
     });
   } catch (err: any) {
-    error('ERROR CALCULATING QUOTE: ', { err });
+    let msg = 'Error calculating submission AALs / premium';
+    if (err?.message) msg += ` (${err.message})`;
+    reportErr(msg, { submissionId: event.data?.id || null }, err);
     return;
   }
 };

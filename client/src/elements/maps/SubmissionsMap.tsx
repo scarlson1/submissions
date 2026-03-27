@@ -10,18 +10,25 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { IconLayer, IconLayerProps, PickingInfo } from 'deck.gl/typed';
+import { IconLayer, IconLayerProps, MapViewState, PickingInfo } from 'deck.gl';
 import { QueryConstraint, where } from 'firebase/firestore';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // import { DataFilterExtension } from '@deck.gl/extensions';
 
 import { Submission, WithId } from 'common';
-import { useCollectionData } from 'hooks';
-import { ICON_MAPPING, MAP_ICON_URL, TypedPickingInfo, getRGBAArray } from 'modules/utils';
-import { DeckMap, HoverInfo } from './DeckMap';
+import { useCollectionData, useFlyToBounds } from 'hooks';
+import {
+  CoordObj,
+  TypedPickingInfo,
+  getPlaceMarker,
+  getRGBAArray,
+  svgToDataURL,
+} from 'modules/utils';
+import { DeckMap } from './DeckMap';
+import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
+import { renderSubmissionTooltip } from './renderTooltips';
 
 // TODO: study how MUI 'slots' works to create component that can add filters, etc.
-// TODO: use useReducer to create actions for map ?? (and context ??)
 
 const stateOptions = ['MN', 'FL', 'TN'];
 
@@ -29,64 +36,75 @@ const stateOptions = ['MN', 'FL', 'TN'];
 
 // TODO: draw layers using nebula: https://github.com/uber/nebula.gl/blob/master/modules/edit-modes/src/lib/draw-circle-from-center-mode.ts
 
-// TODO: SWITCH TO POLICIES
 // TODO: pull filters, etc. up to parent component and pass as prop ??
 
 interface SubmissionsMapProps {
   constraints?: QueryConstraint[];
   layerProps?: Omit<Partial<IconLayerProps>, 'getSize' | 'onHover'>;
-  // initState?: string[] | undefined;
-  // initOrgId?: string | null | undefined;
 }
 
-export const SubmissionsMap = ({ constraints = [], layerProps }: SubmissionsMapProps) => {
-  const { data: submissionData } = useCollectionData('SUBMISSIONS', constraints, { idField: 'id' });
-  useEffect(() => {
-    console.log('DATA: ', submissionData);
-  }, [submissionData]);
+export const SubmissionsMap = ({
+  constraints = [],
+  layerProps,
+}: SubmissionsMapProps) => {
+  const theme = useTheme();
+  const [mapViewState, setMapViewState] = useState<MapViewState>(
+    DEFAULT_INITIAL_VIEW_STATE,
+  );
+  const { data: submissionData } = useCollectionData<Submission>(
+    'submissions',
+    constraints,
+    {
+      idField: 'id',
+    },
+  );
+  const [hoverInfo, setHoverInfo] =
+    useState<TypedPickingInfo<WithId<Submission>>>();
+  const flyToBounds = useFlyToBounds(submissionData, setMapViewState, 2000);
+  const mapLoaded = useRef(false);
 
-  // MAP STATE
-  const [hoverInfo, setHoverInfo] = useState<TypedPickingInfo<WithId<Submission>>>();
+  useEffect(() => {
+    mapLoaded.current && flyToBounds();
+  }, [flyToBounds]);
 
   const layers = [
     new IconLayer({
-      // ...defaultGeoJsonLayerProps,
-      id: `submissions-locations-layer`,
+      id: `submissions-layer`,
       data: submissionData,
       pickable: true,
-      // getIcon: return a string alternative to iconAtlas/Mapping (different icons per data point)
-      iconAtlas: MAP_ICON_URL,
-      iconMapping: ICON_MAPPING,
-      getPosition: (d: any) => [d.coordinates.longitude, d.coordinates.latitude],
-      getIcon: (d) => 'marker',
+      getIcon: (d: CoordObj) => ({
+        url: svgToDataURL(`${getPlaceMarker(theme.palette.primary.main)}`),
+        width: 36,
+        height: 36,
+        anchorX: 18,
+        anchorY: 36,
+      }),
+      getPosition: (d: any) => [
+        d.coordinates?.longitude || 0,
+        d.coordinates?.latitude || 0,
+      ],
       sizeScale: 5,
       getSize: (d) => 5,
       onHover: (info) => setHoverInfo(info),
       visible: true,
+      updateTriggers: {
+        getIcon: [theme.palette.mode],
+      },
       ...(layerProps || {}),
     }),
   ];
 
   return (
-    <DeckMap layers={layers}>
-      <HoverInfo
-        pickingInfo={hoverInfo}
-        renderTooltipContent={(info: TypedPickingInfo<WithId<Submission>>) => {
-          console.log('pick: ', info);
-          return (
-            <Box sx={{ px: 2, borderRadius: 0.5 }}>
-              <Typography variant='body2' fontWeight='fontWeightMedium'>
-                {info.object?.address?.addressLine1 || ''}
-              </Typography>
-              <Typography
-                variant='body2'
-                color='text.secondary'
-              >{`ID: ${info.object?.id}`}</Typography>
-            </Box>
-          );
-        }}
-      />
-    </DeckMap>
+    <DeckMap
+      layers={layers}
+      initialViewState={mapViewState}
+      hoverInfo={hoverInfo}
+      renderTooltipContent={renderSubmissionTooltip}
+      onLoad={() => {
+        flyToBounds();
+        mapLoaded.current = true;
+      }}
+    />
   );
 };
 
@@ -101,7 +119,9 @@ export const TestSubmissionsMapWithFilters = ({
   initState = [],
 }: TestSubmissionsMapProps) => {
   const theme = useTheme();
-  const [state, setState] = useState<string[] | null | undefined>([...initState]);
+  const [state, setState] = useState<string[] | null | undefined>([
+    ...initState,
+  ]);
 
   const filters = useMemo(() => {
     let filters = [];
@@ -133,7 +153,7 @@ export const TestSubmissionsMapWithFilters = ({
         setSelected((s) => [...(s || []), info.object]);
       }
     },
-    [selected]
+    [selected],
   );
 
   const handleStateChange = (event: SelectChangeEvent<typeof state>) => {
@@ -142,23 +162,27 @@ export const TestSubmissionsMapWithFilters = ({
     } = event;
     setState(
       // On autofill we get a stringified value.
-      typeof value === 'string' ? value.split(',') : value
+      typeof value === 'string' ? value.split(',') : value,
     );
   };
 
   const pinColor = useMemo(
     () => getRGBAArray(theme.palette.primary.main, 150),
-    [theme.palette.primary.main]
+    [theme.palette.primary.main],
   );
 
   return (
     <Box>
-      <Card sx={{ height: { xs: 300, sm: 400, md: 460, lg: 500 }, width: '100%' }}>
+      <Card
+        sx={{ height: { xs: 300, sm: 400, md: 460, lg: 500 }, width: '100%' }}
+      >
         <SubmissionsMap
           constraints={filters}
           layerProps={{
             getColor: (f: any) =>
-              selected.length && !!selected.find((s) => s.id === f.id) ? [255, 125, 125] : pinColor,
+              selected.length && !!selected.find((s) => s.id === f.id)
+                ? [255, 125, 125]
+                : pinColor,
             onClick: (info) => handleClicked(info),
             updateTriggers: {
               getColor: [selected, pinColor],
@@ -201,9 +225,11 @@ export const TestSubmissionsMapWithFilters = ({
           <Typography
             variant='body2'
             key={s.id}
-            onClick={() => handleClicked({ object: { id: s.id } } as PickingInfo)}
+            onClick={() =>
+              handleClicked({ object: { id: s.id } } as PickingInfo)
+            }
             sx={{ '&:hover': { cursor: 'pointer' } }}
-          >{`${s.address.addressLine1} (ID: ${s.id})`}</Typography>
+          >{`${s.address?.addressLine1 || ''} (ID: ${s.id})`}</Typography>
         ))}
       </Box>
     </Box>

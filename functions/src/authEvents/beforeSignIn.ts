@@ -1,10 +1,16 @@
 import { error, info } from 'firebase-functions/logger';
-import { projectID } from 'firebase-functions/params';
 import { AuthBlockingEvent, HttpsError } from 'firebase-functions/v2/identity';
 import jwt from 'jsonwebtoken';
 
-import { emailVerificationKey, env, functionsBaseURL, sendgridApiKey } from '../common/index.js';
-import { ExtraSendGridArgs, sendEmailConfirmation } from '../services/sendgrid/index.js';
+import {
+  emailVerificationKey,
+  functionsBaseURL,
+  resendKey,
+} from '../common/index.js';
+import {
+  sendEmailConfirmation,
+  type ExtraSendGridArgs,
+} from '../services/sendgrid/index.js';
 
 // TODO: consider using auth event to update DB user email ??
 // https://stackoverflow.com/a/47933914/10887890
@@ -12,32 +18,36 @@ import { ExtraSendGridArgs, sendEmailConfirmation } from '../services/sendgrid/i
 export default async (event: AuthBlockingEvent) => {
   const user = event.data;
   // REQUIRE EMAIL VERIFICATION BEFORE CREATING ACCOUNT IF @idemandinsurance.com DOMAIN
-  if (user.email && user.email?.toLowerCase().endsWith('@idemandinsurance.com')) {
+  if (
+    user.email &&
+    user.email?.toLowerCase().endsWith('@idemandinsurance.com')
+  ) {
     if (!user.emailVerified) {
       try {
         const verificationKey = emailVerificationKey.value();
-        const sgKey = sendgridApiKey.value();
+        const key = resendKey.value();
 
         await sendAdminVerificationEmail(
           verificationKey,
-          sgKey,
+          key,
           user.uid,
           user.email,
           user.tenantId,
           user.displayName,
-          {
-            customArgs: {
-              firebaseEventId: event.eventId,
-              emailType: 'email_verification',
-              projectId: projectID.value(),
-              environment: env.value(),
-            },
-          }
+          // TODO: switch to resend templates ?? need to update admin email grid to use resend
+          // {
+          //   customArgs: {
+          //     firebaseEventId: event.eventId,
+          //     emailType: 'email_verification',
+          //     // projectId: projectID.value(),
+          //     // environment: env.value(),
+          //   },
+          // },
         );
 
         throw new HttpsError(
           'invalid-argument',
-          `Please verify your email before proceeding (${user.email})`
+          `Please verify your email before proceeding (${user.email})`,
         );
       } catch (err) {
         error('ERROR SENDING VERIFICATION EMAIL: ', err);
@@ -66,7 +76,7 @@ async function sendAdminVerificationEmail(
   email: string | undefined,
   tenantId: string | null | undefined,
   displayName?: string,
-  sgArgs?: ExtraSendGridArgs
+  sgArgs?: ExtraSendGridArgs,
 ) {
   if (!email) throw new HttpsError('failed-precondition', 'missing email');
 
@@ -75,7 +85,7 @@ async function sendAdminVerificationEmail(
       data: { uid, tenantId: tenantId || null, email },
     },
     verificationKey,
-    { expiresIn: '10m' }
+    { expiresIn: '10m' },
   );
 
   // TODO: use hosting rewrites so v2 functions can be used

@@ -1,26 +1,24 @@
-import { useCallback, useState, useMemo } from 'react';
+import { useAuth } from 'context/AuthContext';
 import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  sendEmailVerification,
   EmailAuthProvider,
+  User,
+  createUserWithEmailAndPassword,
+  getAuth,
   // fetchSignInMethodsForEmail,
   // signInWithPopup,
   linkWithCredential,
-  User,
-  getAuth,
+  sendEmailVerification,
+  updateProfile,
 } from 'firebase/auth';
-import { setDoc, doc, getFirestore, Timestamp } from 'firebase/firestore';
-import { useAuth } from 'context/AuthContext';
-import { toast } from 'react-hot-toast';
+import { Timestamp, doc, getFirestore, setDoc } from 'firebase/firestore';
+import { useCallback, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { User as DBUser } from 'common';
-import { usersCollection } from 'common/firestoreCollections';
-import { FirebaseError } from 'firebase/app';
-import { getErrorDetails } from 'modules/utils/helpers';
+import { User as DBUser, usersCollection } from 'common';
 import { useAuthActions } from 'context';
+import { getErrorDetails, logDev } from 'modules/utils';
 import { AUTH_ROUTES, createPath } from 'router';
+import { useAsyncToast } from './useAsyncToast';
 // import { getProviderForProviderId } from 'modules/utils/getProviderForProviderId';
 // import {
 //   getErrorCode,
@@ -29,6 +27,9 @@ import { AUTH_ROUTES, createPath } from 'router';
 // } from 'modules/utils/errorHandler';
 
 // list of auth error codes: https://firebase.google.com/docs/reference/js/auth#autherrorcodes
+
+// TODO: refactor login to hook/useAuthActions (context)
+// bread into smaller components/functions
 
 interface CreatePasswordProps {
   firstName: string;
@@ -41,18 +42,19 @@ export const useCreateAccount = () => {
   const auth = getAuth();
   const params = useParams();
   const location = useLocation();
-  const { user, isSignedIn, isAnonymous } = useAuth(); // logout
-  const { logout } = useAuthActions();
   const navigate = useNavigate();
+  const { user, isSignedIn, isAnonymous } = useAuth();
+  const { logout } = useAuthActions();
+  const toast = useAsyncToast();
 
-  const [errCode, setErrCode] = useState<string | null>(null);
-  const [errMsg, setErrMsg] = useState<string | null>(null);
+  // const [errCode, setErrCode] = useState<string | null>(null);
+  // const [errMsg, setErrMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // TODO: use useUpdateProfile hook
   const updateUserDocOnCreate = useCallback(
     async (user: User, { firstName, lastName }: { firstName: string; lastName: string }) => {
-      let displayName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      let displayName = `${firstName?.trim() || ''} ${lastName?.trim() || ''}`.trim();
       await updateProfile(user, { displayName });
 
       let userRef = doc(usersCollection(getFirestore()), user.uid);
@@ -61,7 +63,6 @@ export const useCreateAccount = () => {
         displayName,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        // orgId: auth.tenantId || null,
         tenantId: auth.tenantId || null,
         email: user.email || null,
         metadata: {
@@ -72,22 +73,24 @@ export const useCreateAccount = () => {
       if (auth.tenantId) initUserProperties.orgId = auth.tenantId;
 
       await setDoc(userRef, initUserProperties, { merge: true });
-
-      await sendEmailVerification(user);
     },
     [auth]
   );
 
   const createAccount = useCallback(
     async ({ firstName, lastName, email, password }: CreatePasswordProps) => {
-      setErrCode(null);
-      setErrMsg(null);
+      // setErrCode(null);
+      // setErrMsg(null);
       setLoading(true);
 
       try {
+        // TODO: implement password validation in google auth
+        // const validPassword = await validatePassword(auth, 'some-password').catch(console.log);
+        // console.log('password val: ', validPassword);
+
         // don't link if new user is tenant user ?? (for now - requires backend)
         if (isAnonymous && isSignedIn && user && !auth.tenantId) {
-          console.log('linking anonymous user');
+          logDev('linking anonymous user');
           const credential = EmailAuthProvider.credential(
             email.trim().toLowerCase(),
             password.trim()
@@ -97,18 +100,20 @@ export const useCreateAccount = () => {
           await userLinkRes.getIdToken(true);
 
           await updateUserDocOnCreate(userLinkRes, { firstName, lastName });
+          await sendEmailVerification(userLinkRes);
 
           setLoading(false);
           return userLinkRes;
         } else {
-          console.log('creating new user');
+          logDev('creating new user');
           const { user: userCreateRes } = await createUserWithEmailAndPassword(
             auth,
-            email.trim(),
+            email.trim().toLowerCase(),
             password.trim()
           );
 
           await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
+          await sendEmailVerification(userCreateRes);
 
           setLoading(false);
           return user;
@@ -116,15 +121,16 @@ export const useCreateAccount = () => {
       } catch (err) {
         console.log('ERROR: ', err);
 
-        if (err instanceof FirebaseError) {
-          setErrCode(err.code);
-          setErrMsg(err.message);
-        } else {
-          setErrCode('Unknown Error');
-          setErrMsg('See console for error details');
-        }
+        // TODO: delete ?? could be out of sync with error handling that handles rejected promise
+        // if (err instanceof FirebaseError) {
+        //   setErrCode(err.code);
+        //   setErrMsg(err.message);
+        // } else {
+        //   setErrCode('Unknown Error');
+        //   setErrMsg('See console for error details');
+        // }
         // setErrCode(getErrorCode(err));
-        // setErrMsg(getFirebaseAuthErrorMessage(err) || 'An error occured');
+        // setErrMsg(getFirebaseAuthErrorMessage(err) || 'An error occurred');
         setLoading(false);
         return Promise.reject(err);
       }
@@ -132,7 +138,7 @@ export const useCreateAccount = () => {
     [auth, isAnonymous, isSignedIn, updateUserDocOnCreate, user]
   );
 
-  // TODO: move to it's own hook ??
+  // TODO: move to it's own hook (shared error handling with sign in) ??
   const handleEmailAuthError = useCallback(
     async (
       err: unknown,
@@ -145,28 +151,31 @@ export const useCreateAccount = () => {
       console.log('AUTH ERROR: ', err);
 
       const { code, message: msg } = getErrorDetails(err);
-      console.log(`error code: ${code}`);
-      console.log(`error message: ${msg}`);
+      logDev(`error code: ${code}`);
+      logDev(`error message: ${msg}`);
 
       // BLOCKING FUNCTION ERRORS:
       //    - if not tenant, email matched outstanding invite
-      //    - tenant doc not found (retreived for domain restriction)
+      //    - tenant doc not found (retrieved for domain restriction)
       //    - invitation not found under tenant for email
       //    - user doc already exists with email
       if (code === 'auth/internal-error') {
         // if (msg.indexOf('Cloud Function') !== -1) {
         if (msg.indexOf('verify your email') !== -1) {
           // registration succeeded
-          console.log('registration succeeded. need to handle blocking function');
+          logDev('registration succeeded. need to handle blocking function');
           if (
             msg.indexOf('needs to be verified') !== -1 ||
             msg.indexOf('verify your email') !== -1
           ) {
-            // toast.info('Email verification required');
-            toast('Email verification required');
+            toast.info('Email verification required');
 
             return navigate(
-              `/auth/login${params.tenandId || ''}?email=${encodeURIComponent(email)}`,
+              createPath({
+                path: AUTH_ROUTES.LOGIN,
+                params: { tenantId: params.tenantId },
+                search: { email },
+              }),
               {
                 state: { ...location.state },
               }
@@ -207,21 +216,18 @@ export const useCreateAccount = () => {
           );
         }
         if (msg.indexOf('Cloud function deadline exceeded') !== -1) {
-          // s7nQCvsiarxC5Azk1CXSsLgVfPxF
+          // TODO: set variable & only retry once ??
 
-          console.log('Blocking function deadline exceeded. Retrying createAccount');
+          logDev('Blocking function deadline exceeded. Retrying createAccount');
           return createAccount({
             email,
             password,
             firstName: firstName ?? '',
             lastName: lastName ?? '',
           });
-          // return toast('Timeout error. Please try again!');
         }
 
         toast.error(`Auth error: ${code}`);
-        // Emulator doesn't return response with 'Cloud Function' added || above as work around
-        // Firebase: ((HTTP request to http://127.0.0.1:5001/idemand-dev/us-central1/beforeSignIn returned HTTP error 400: {"error":{"message":"Please verify your email before proceeding (atest@idemandinsurance.com)","status":"INVALID_ARGUMENT"}})) (auth/internal-error).
       } else if (code === 'auth/email-already-in-use') {
         if (!isAnonymous) {
           toast.error(`Account with email ${email} already exists. Please login.`);
@@ -229,16 +235,13 @@ export const useCreateAccount = () => {
           navigate(
             createPath({
               path: AUTH_ROUTES.LOGIN,
-              params: { tenantId: params.tenandId || undefined },
+              params: { tenantId: params.tenantId },
               search: { email },
             }),
             {
               state: { ...location.state },
             }
           );
-          // navigate(`/auth/login/${params.tenandId || ''}?email=${encodeURIComponent(email)}`, {
-          //   state: { ...location.state },
-          // });
           // try {
           //   // TODO: set up to handle below when attempting to sign in with provider instead of email ??
           //   // SignInMethod.EMAIL_PASSWORD vs SignInMethod.EMAIL_LINK.
@@ -301,24 +304,22 @@ export const useCreateAccount = () => {
           );
         }
       } else if (code === 'auth/network-request-failed') {
-        toast.error('Timeout error - server took too long to respond.');
+        toast.error('Network request failed'); // 'Timeout error - server took too long to respond.'
       } else {
         toast.error(`Auth error: ${code}`);
       }
     },
-    [isAnonymous, logout, navigate, location, params, createAccount]
+    [isAnonymous, logout, navigate, location, params, toast, createAccount]
   );
 
   return useMemo(
     () => ({
       createAccount,
       handleEmailAuthError,
-      errMsg,
-      errCode,
+      // errMsg,
+      // errCode,
       loading,
     }),
-    [createAccount, handleEmailAuthError, errMsg, errCode, loading]
+    [createAccount, handleEmailAuthError, loading]
   );
-
-  // return { ...memoizedValues };
 };

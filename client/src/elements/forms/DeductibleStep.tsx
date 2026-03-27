@@ -25,7 +25,7 @@ export const DeductibleStep = ({ gridProps, maxDeductible }: DeductibleStepProps
       {...gridProps}
     >
       <Grid xs={12} sx={{ pt: 1 }}>
-        <Typography variant='subtitle1' color='text.secondary'>
+        <Typography variant='body1' color='text.secondary'>
           The deductible is the amount subtracted from a claim payout. It's the portion of the claim
           covered by the policy holder.
         </Typography>
@@ -43,6 +43,9 @@ export const DeductibleStep = ({ gridProps, maxDeductible }: DeductibleStepProps
           valueFormatter={(val: number | undefined) => {
             if (!val) return;
             return dollarFormat(val);
+          }}
+          typographyProps={{
+            fontWeight: 'fontWeightMedium',
           }}
         />
       </Grid>

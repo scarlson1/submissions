@@ -1,3 +1,4 @@
+import { ILocation, Policy, ValueByRiskType } from '@idemand/common';
 import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { isObject } from 'lodash-es';
@@ -5,9 +6,6 @@ import {
   ChangeRequest,
   ChangeRequestStatus,
   DeepPartial,
-  ILocation,
-  Policy,
-  ValueByRiskType,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
@@ -17,9 +15,8 @@ import {
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../../common/index.js';
-import { getDoc } from '../../routes/utils/index.js';
 import { verify } from '../../utils/index.js';
-import { createDocId } from '../db/index.js';
+import { createDocId, getDocData } from '../db/index.js';
 import {
   GetAALRes,
   GetPremiumProps,
@@ -35,7 +32,7 @@ import {
   validateLimits,
   validateRCVs,
 } from '../rating/index.js';
-import { recalcTaxes } from './taxes.js';
+import { recalcTaxes } from '../taxes/index.js';
 import { calcTerm } from './utils.js';
 
 // TODO: delete ?? (replace by calcLocationChanges)
@@ -61,7 +58,7 @@ export async function handleRatingForEndorsement(
     const locationsCol = locationsCollection(db);
     const ratingCol = ratingDataCollection(db);
     const policyRef = policiesCollection(db).doc(policyId);
-    const policy = await getDoc(policyRef);
+    const policy = await getDocData<Policy>(policyRef);
     changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
 
     const { [locationId]: locationSummary, ...otherLocations } = policy.locations;
@@ -177,7 +174,7 @@ export async function handleRatingForEndorsement(
           srSubKey: swissReSubscriptionKey.value(),
           replacementCost: RCVs.building,
           limits,
-          deductible: locationChanges.deductible || deductible,
+          deductible: (locationChanges?.deductible as number | undefined) || deductible, // TODO: fix typing
           coordinates: { latitude: coordinates.latitude, longitude: coordinates.longitude },
           numStories: location.ratingPropertyData?.numStories || 1,
         });
@@ -225,7 +222,7 @@ export async function handleRatingForEndorsement(
     await ratingDocRef.set({
       submissionId: prevRatingData?.submissionId || null,
       locationId,
-      deductible: locationChanges.deductible || deductible,
+      deductible: (locationChanges.deductible as number | undefined) || deductible, // TODO: fix typing
       limits: getPremiumInputs.limits,
       TIV: result.tiv,
       RCVs,

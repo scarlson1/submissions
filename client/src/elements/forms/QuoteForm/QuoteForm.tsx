@@ -18,9 +18,16 @@ import {
   Typography,
 } from '@mui/material';
 import { doc } from 'firebase/firestore';
-import { Formik, FormikConfig, FormikErrors, FormikProps, setNestedObjectValues } from 'formik';
+import {
+  Formik,
+  FormikConfig,
+  FormikErrors,
+  FormikProps,
+  setNestedObjectValues,
+} from 'formik';
 import { isEmpty, pick } from 'lodash';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
@@ -29,7 +36,10 @@ import {
   AgencyDetails,
   AgentDetails,
   Basement,
+  CarrierDetails,
   CBRSDesignation,
+  Collection,
+  CommSource,
   Coordinates,
   FloodZone,
   Limits,
@@ -37,18 +47,21 @@ import {
   Nullable,
   Optional,
   Organization,
+  orgsCollection,
   PriorLossCount,
   RatingPropertyData,
   State,
   Submission,
+  TCommSource,
   TFeeItem,
   TProduct,
   TTaxItem,
+  typesenseIndexName,
   User,
   ValueByRiskType,
-  orgsCollection,
+  type WithId,
 } from 'common';
-import { IconButtonMenu } from 'components';
+import { ErrorFallback, IconButtonMenu } from 'components';
 import {
   Diff,
   FormikCheckbox,
@@ -60,35 +73,54 @@ import {
   FormikNativeSelect,
   FormikTextField,
   IMask,
-  RequiredFieldsIndicator,
   percentMaskProps,
   phoneMaskProps,
+  RequiredFieldsIndicator,
 } from 'components/forms';
-import { TempAgentSearch } from 'components/search/Search';
+import { LoadingComponent } from 'components/layout';
+import { TypesenseAutocomplete } from 'components/search/reactQuery/TypesenseAutocomplete';
+import { UserSearchDialog } from 'components/search/Search';
+import { FormattedAddress } from 'elements/FormattedAddress';
 import {
-  RatingInputsWithAAL,
   extractRatingInputsFromValues,
+  RatingInputsWithAAL,
   useAsyncToast,
   useCalcPremium,
   useDocData,
   useFetchTaxes,
   useRateQuote,
 } from 'hooks';
-import { Obj, dollarFormat, getData, sumFeesTaxesPremium, truthyOrZero } from 'modules/utils';
-import { ROUTES, createPath } from 'router';
+import {
+  dollarFormat,
+  getData,
+  Obj,
+  sumFeesTaxesPremium,
+  truthyOrZero,
+} from 'modules/utils';
+import { createPath, ROUTES } from 'router';
 import { AddressStepQuote } from '../AddressStepQuote';
 import { FormikAddressLite } from '../FormikAddressLite';
 import { LimitsStep } from '../LimitsStep';
 import {
   DEFAULT_VALUES,
-  RATING_FIELDS,
-  commOptions,
   gridProps,
   policyEffShortcuts,
+  RATING_FIELDS,
 } from './constants';
 import { getQuoteValidation } from './validation';
 
+// BUG: setting agency name - gets cleared by autocomplete b/c local autocomplete state does not have option in values/options
+// must be free solo ??
+
+// TODO: require agency ID and stripeAccountId - must have for billing purposes
+
+// TODO: need to save agent orgId in order to validate matches agency (or fetch user doc in validation / onsubmit) or use firestore rule
+
 // TODO: move quote type to field (new, renewal, etc.) ??
+// TODO: must geocode if address is manually entered (add button if missing coordinates ??)
+// TODO: search for named insured
+
+// TODO: store subproducer comm /policies/{policyId}/secure/rating (switch to dev branch ??)
 
 export interface QuoteValues {
   address: Address;
@@ -101,11 +133,13 @@ export interface QuoteValues {
   fees: TFeeItem[];
   taxes: TTaxItem[];
   annualPremium: number | null;
-  subproducerCommission: number;
+  // subproducerCommission: number;
+  commSource: TCommSource;
   quoteTotal: number | null;
   namedInsured: NamedInsuredDetails;
   agent: AgentDetails;
   agency: AgencyDetails;
+  carrier: CarrierDetails;
   ratingPropertyData: Nullable<RatingPropertyData>;
   AALs: Nullable<ValueByRiskType>;
   ratingDocId: string;
@@ -113,7 +147,10 @@ export interface QuoteValues {
 }
 
 // TODO: pass ratingDocId to onSubmit ?? or store ratingDocId with values
-interface QuoteFormProps extends Omit<FormikConfig<QuoteValues>, 'initialValues'> {
+interface QuoteFormProps extends Omit<
+  FormikConfig<QuoteValues>,
+  'initialValues'
+> {
   initialValues?: QuoteValues | undefined;
   title: string;
   product?: TProduct;
@@ -137,7 +174,7 @@ export const QuoteForm = ({
   const firestore = useFirestore();
   const formikRef = useRef<FormikProps<QuoteValues>>(null);
   const toast = useAsyncToast({ position: 'top-right' });
-  const { data: activeStates } = useDocData('ACTIVE_STATES', product);
+  const { data: activeStates } = useDocData('states', product);
 
   // BUG: rerateRequired is true for edit quote because aals are not included
   const [ratingState, setRatingState] = useState({
@@ -149,7 +186,9 @@ export const QuoteForm = ({
     recalcRequired: !initialValues?.annualPremium,
   });
 
-  const [ratingInputsSnap, setRatingInputsSnap] = useState<Optional<RatingInputsWithAAL>>({
+  const [ratingInputsSnap, setRatingInputsSnap] = useState<
+    Optional<RatingInputsWithAAL>
+  >({
     ...initialRatingSnap,
   });
 
@@ -160,13 +199,19 @@ export const QuoteForm = ({
         setTimeout(() => {
           calcTotal();
 
-          const taxes = newTaxes.map((t) => ({ value: true, displayName: true }));
-          formikRef.current?.setTouched({ ...formikRef.current?.touched, taxes }, true);
+          const taxes = newTaxes.map((t) => ({
+            value: true,
+            displayName: true,
+          }));
+          formikRef.current?.setTouched(
+            { ...formikRef.current?.touched, taxes },
+            true,
+          );
         }, 10);
       }, 50);
       toast.success('premium & taxes updated 🎉');
     },
-    (msg) => toast.error(msg)
+    (msg) => toast.error(msg),
   );
 
   const handleRecalcSuccess = useCallback(
@@ -177,7 +222,7 @@ export const QuoteForm = ({
       toast.updateLoadingMsg('fetching taxes...');
       return fetchTaxes({ ...values, annualPremium: newPrem }, 'new');
     },
-    [fetchTaxes, toast]
+    [fetchTaxes, toast],
   );
 
   const setValues = useCallback(
@@ -186,12 +231,16 @@ export const QuoteForm = ({
         ...(formikRef.current?.values || {}),
         ...values,
       }),
-    []
+    [],
   );
 
   const { rerate, loading: rerateLoading } = useRateQuote(
     submissionId,
-    (newPrem: number, ratingInputs: RatingInputsWithAAL, newRatingDocId?: Optional<string>) => {
+    (
+      newPrem: number,
+      ratingInputs: RatingInputsWithAAL,
+      newRatingDocId?: Optional<string>,
+    ) => {
       const setVal = formikRef.current?.setFieldValue;
       setVal && setVal('annualPremium', newPrem);
       setVal && setVal('AALs.inland', ratingInputs.inlandAAL);
@@ -202,7 +251,7 @@ export const QuoteForm = ({
       setRatingInputsSnap({ ...ratingInputs });
       handleRecalcSuccess(newPrem);
     },
-    (msg: string) => toast.error(msg)
+    (msg: string) => toast.error(msg),
     // getRatingInputsFromSubmission(submissionData || undefined)
   );
 
@@ -219,7 +268,7 @@ export const QuoteForm = ({
       handleRecalcSuccess(newPrem);
     },
     (msg: string) => toast.error(msg),
-    submissionId
+    submissionId,
   );
 
   const handleRecalc = useCallback(
@@ -235,7 +284,7 @@ export const QuoteForm = ({
       }
       toast.info('All up to date!');
     },
-    [rerate, calcPremium, ratingState, toast]
+    [rerate, calcPremium, ratingState, toast],
   );
 
   const calcTotal = useCallback(async () => {
@@ -258,47 +307,91 @@ export const QuoteForm = ({
     }
   }, [toast]);
 
-  const setTouched = useCallback(async (keys?: keyof QuoteValues | (keyof QuoteValues)[]) => {
-    const vals = formikRef.current?.values;
-    const picked = keys ? pick(vals, keys) : vals;
+  const setTouched = useCallback(
+    async (keys?: keyof QuoteValues | (keyof QuoteValues)[]) => {
+      const vals = formikRef.current?.values;
+      const picked = keys ? pick(vals, keys) : vals;
 
-    setTimeout(
-      () =>
-        formikRef.current?.setTouched({
-          ...formikRef.current?.touched,
-          ...setNestedObjectValues(picked, true),
-        }),
-      0
-    );
-    return;
-  }, []);
+      setTimeout(
+        () =>
+          formikRef.current?.setTouched({
+            ...formikRef.current?.touched,
+            ...setNestedObjectValues(picked, true),
+          }),
+        0,
+      );
+      return;
+    },
+    [],
+  );
 
   const setSubComm = useCallback(
     (agent?: User, org?: Organization) => {
       const setFieldValue = formikRef.current?.setFieldValue;
       if (!setFieldValue) return toast.error('form error - missing formik ref');
 
-      const newComm = agent?.defaultCommission?.flood ?? org?.defaultCommission?.flood;
+      // TODO: pass product as prop ??
+      const newComm =
+        agent?.defaultCommission?.flood ?? org?.defaultCommission?.flood;
       if (newComm) {
-        setFieldValue('subproducerCommission', newComm);
-        formikRef.current?.setFieldTouched('subproducerCommission', true, true);
+        // setFieldValue('subproducerCommission', newComm);
+        // formikRef.current?.setFieldTouched('subproducerCommission', true, true);
+
         const source = agent?.defaultCommission?.flood ? 'agent' : 'org';
+        setFieldValue('commSource', source);
+        formikRef.current?.setFieldTouched('commSource', true, true);
         toast.info(`commission → ${source} default (${newComm * 100}%)`, {
           duration: 6000,
         });
       }
     },
-    [toast]
+    [toast],
+  );
+
+  const handleInsuredSelected = useCallback(async (user: WithId<User>) => {
+    await setValues({
+      namedInsured: {
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        userId: user.id || '',
+      },
+    });
+    const keys = ['namedInsured'] as (keyof FormikErrors<QuoteValues>)[];
+    setTouched(keys);
+  }, []);
+
+  const handleAgencySelected = useCallback(
+    async (org: WithId<Organization>) => {
+      await setValues({
+        agency: {
+          name: org.orgName || '',
+          orgId: org.id || '', // orgId = firestore ID or tenant ID ??
+          stripeAccountId: org.stripeAccountId || '',
+          address: {
+            addressLine1: org.address?.addressLine1 || '',
+            addressLine2: org.address?.addressLine2 || '',
+            city: org.address?.city || '',
+            state: org.address?.state || '',
+            postal: org.address?.postal || '',
+          },
+          photoURL: org.photoURL || '',
+        },
+      });
+    },
+    [],
   );
 
   const handleAgentSelected = useCallback(
-    async (agentUser: User & { objectID: string }) => {
+    async (agentUser: WithId<User>) => {
       await setValues({
         agent: {
           name: agentUser.displayName || '',
           email: agentUser.email || '',
           phone: agentUser.phone || '',
-          userId: agentUser.objectID || '',
+          userId: agentUser.id || '',
+          photoURL: agentUser.photoURL || '',
         },
       });
 
@@ -308,12 +401,17 @@ export const QuoteForm = ({
         if (!orgId) throw new Error('warning: user missing orgId');
 
         const orgRef = doc(orgsCollection(firestore), orgId);
-        org = await getData<Organization>(orgRef, `Org not found (ID: ${orgId})`);
+        org = await getData<Organization>(
+          orgRef,
+          `Org not found (ID: ${orgId})`,
+        );
 
+        // TODO: use handleAgencySelected
         await setValues({
           agency: {
             name: org.orgName || '',
             orgId: orgId || '',
+            stripeAccountId: org.stripeAccountId || '',
             address: {
               addressLine1: org.address?.addressLine1 || '',
               addressLine2: org.address?.addressLine2 || '',
@@ -321,6 +419,7 @@ export const QuoteForm = ({
               state: org.address?.state || '',
               postal: org.address?.postal || '',
             },
+            photoURL: org.photoURL || '',
           },
         });
       } catch (err: any) {
@@ -331,7 +430,12 @@ export const QuoteForm = ({
         const clearedAgency = {
           name: '',
           orgId: '',
-          address: setNestedObjectValues<Address>(DEFAULT_VALUES.agency.address, ''),
+          stripeAccountId: '',
+          address: setNestedObjectValues<Address>(
+            DEFAULT_VALUES.agency.address,
+            '',
+          ),
+          photoURL: '',
         };
         await setValues({
           agency: clearedAgency,
@@ -342,7 +446,25 @@ export const QuoteForm = ({
       const keys = ['agent', 'agency'] as (keyof FormikErrors<QuoteValues>)[];
       setTouched(keys);
     },
-    [firestore, toast, setValues, setTouched, setSubComm]
+    [firestore, toast, setValues, setTouched, setSubComm],
+  );
+
+  const handleCarrierSelected = useCallback(
+    async (carrier: Organization & { objectID: string }) => {
+      await setValues({
+        carrier: {
+          orgId: carrier.orgId,
+          name: carrier.orgName || '',
+          stripeAccountId: carrier.stripeAccountId || '',
+          address: carrier.address || null,
+          photoURL: carrier.photoURL || '',
+        },
+      });
+
+      const keys = ['carrier'] as (keyof FormikErrors<QuoteValues>)[];
+      setTouched(keys);
+    },
+    [setValues, setTouched],
   );
 
   const handleCancel = useCallback(() => {
@@ -350,30 +472,51 @@ export const QuoteForm = ({
     navigate(createPath({ path: ROUTES.QUOTES }));
   }, [navigate]);
 
-  const handleDiffChange = useCallback((diff: Obj | undefined, isDiff: boolean) => {
-    // recalc: if any diff between prev and current rating fields
-    // rerate: if rerate key is included in diff
-    if (isEmpty(diff)) return setRatingState({ rerateRequired: false, recalcRequired: false });
-    const shouldRerate = RATING_FIELDS.some((key) => {
-      return diff[key];
-    });
-    // Directly setting rerate misses checking for AALs
-    const aals = formikRef.current?.values.AALs;
-    const missingAAL = !(aals?.inland || aals?.surge);
-    setRatingState({ rerateRequired: shouldRerate || missingAAL, recalcRequired: isDiff });
-  }, []);
+  const handleDiffChange = useCallback(
+    (diff: Obj | undefined, isDiff: boolean) => {
+      // recalc: if any diff between prev and current rating fields
+      // rerate: if rerate key is included in diff
+      if (isEmpty(diff))
+        return setRatingState({ rerateRequired: false, recalcRequired: false });
+      const shouldRerate = RATING_FIELDS.some((key) => {
+        return diff[key];
+      });
+      // Directly setting rerate misses checking for AALs
+      const aals = formikRef.current?.values.AALs;
+      const missingAAL = !(aals?.inland || aals?.surge);
+      setRatingState({
+        rerateRequired: shouldRerate || missingAAL,
+        recalcRequired: isDiff,
+      });
+    },
+    [],
+  );
 
   const getDiffIcon = useCallback(
     (handleClick: () => void) => {
       return !ratingState.rerateRequired && !ratingState.recalcRequired ? (
-        <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
+        <CheckCircleOutlineRounded
+          fontSize='small'
+          color='success'
+          sx={{ mx: 2 }}
+        />
       ) : ratingState.rerateRequired ? (
-        <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} onClick={handleClick} />
+        <CalculateRounded
+          fontSize='small'
+          color='warning'
+          sx={{ mx: 2 }}
+          onClick={handleClick}
+        />
       ) : (
-        <CalculateOutlined fontSize='small' color='info' sx={{ mx: 2 }} onClick={handleClick} />
+        <CalculateOutlined
+          fontSize='small'
+          color='info'
+          sx={{ mx: 2 }}
+          onClick={handleClick}
+        />
       );
     },
-    [ratingState]
+    [ratingState],
   );
 
   const validation = useMemo(() => {
@@ -386,7 +529,7 @@ export const QuoteForm = ({
       { label: 'Cancel', action: handleCancel },
       // { label: 'View submission data', action: showSubmissionDialog },
     ],
-    [handleCancel]
+    [handleCancel],
   );
 
   return (
@@ -429,12 +572,19 @@ export const QuoteForm = ({
               py: 2,
             }}
           >
-            <Typography variant='h5' sx={{ display: { xs: 'none', sm: 'block' } }}>
+            <Typography
+              variant='h5'
+              sx={{ display: { xs: 'none', sm: 'block' } }}
+            >
               {title}
             </Typography>
             <Stack direction='row' spacing={2} sx={{ alignItems: 'center' }}>
               <RequiredFieldsIndicator />
-              <Typography variant='subtitle2' fontWeight='fontWeightMedium' color='text.secondary'>
+              <Typography
+                variant='subtitle2'
+                fontWeight='fontWeightMedium'
+                color='text.secondary'
+              >
                 Quote:{' '}
               </Typography>
               <Typography variant='subtitle2'>{`${
@@ -448,7 +598,9 @@ export const QuoteForm = ({
               >
                 <Typography variant='body2' fontWeight={500}>
                   {`Rerate (AALs) required: ${
-                    ratingState.rerateRequired === null ? 'no changes' : ratingState.rerateRequired
+                    ratingState.rerateRequired === null
+                      ? 'no changes'
+                      : ratingState.rerateRequired
                   }`}
                 </Typography>
                 <Typography variant='body2' fontWeight={500}>
@@ -460,7 +612,10 @@ export const QuoteForm = ({
               <LoadingButton
                 onClick={submitForm}
                 disabled={
-                  !isValid || !dirty || ratingState?.rerateRequired || ratingState?.recalcRequired
+                  !isValid ||
+                  !dirty ||
+                  ratingState?.rerateRequired ||
+                  ratingState?.recalcRequired
                 }
                 loading={isValidating || isSubmitting}
                 loadingPosition='start'
@@ -478,31 +633,43 @@ export const QuoteForm = ({
           </Box>
           <Grid container rowSpacing={4} columnSpacing={6} sx={{ my: 4 }}>
             <Grid xs={12} sx={{ py: 1 }}>
-              <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
+              <Typography
+                variant='overline'
+                color='text.secondary'
+                sx={{ pl: 4, lineHeight: 1.4 }}
+              >
                 Location
               </Typography>
             </Grid>
             <Grid xs={12}>
-              <AddressStepQuote
-                gridProps={{ rowSpacing: 4, columnSpacing: 6 }}
-                names={{
-                  addressLine1: `address.addressLine1`,
-                  addressLine2: `address.addressLine2`,
-                  city: `address.city`,
-                  state: `address.state`,
-                  postal: `address.postal`,
-                  county: `address.countyName`,
-                  latitude: `coordinates.latitude`,
-                  longitude: `coordinates.longitude`,
-                }}
-                autocompleteProps={{
-                  name: 'address.addressLine1',
-                }}
-              />
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<LoadingComponent />}>
+                  <AddressStepQuote
+                    gridProps={{ rowSpacing: 4, columnSpacing: 6 }}
+                    names={{
+                      addressLine1: `address.addressLine1`,
+                      addressLine2: `address.addressLine2`,
+                      city: `address.city`,
+                      state: `address.state`,
+                      postal: `address.postal`,
+                      county: `address.countyName`,
+                      latitude: `coordinates.latitude`,
+                      longitude: `coordinates.longitude`,
+                    }}
+                    autocompleteProps={{
+                      name: 'address.addressLine1',
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </Grid>
             <Grid xs={12} sx={{ my: 6 }}>
               <Divider sx={{ my: 3 }} />
-              <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
+              <Typography
+                variant='overline'
+                color='text.secondary'
+                sx={{ pl: 4, lineHeight: 1.4 }}
+              >
                 Limits
               </Typography>
             </Grid>
@@ -516,7 +683,8 @@ export const QuoteForm = ({
                 gridItemProps={{ xs: 6, sm: 6, md: 3 }}
                 replacementCost={
                   typeof values.ratingPropertyData.replacementCost === 'string'
-                    ? parseInt(values.ratingPropertyData.replacementCost) || 250000
+                    ? parseInt(values.ratingPropertyData.replacementCost) ||
+                      250000
                     : values.ratingPropertyData.replacementCost || 250000
                 }
               />
@@ -525,7 +693,11 @@ export const QuoteForm = ({
               <Divider />
             </Grid>
             <Grid xs={12} md={4} lg={3}>
-              <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
+              <Typography
+                variant='overline'
+                color='text.secondary'
+                sx={{ pl: 4, lineHeight: 1.4 }}
+              >
                 Deductible
               </Typography>
               <Box sx={{ py: 3 }}>
@@ -545,7 +717,14 @@ export const QuoteForm = ({
                 orientation='vertical'
                 sx={{ display: { xs: 'none', md: 'block' }, ml: -3 }}
               />
-              <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', pl: { md: 3 } }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '100%',
+                  pl: { md: 3 },
+                }}
+              >
                 <Typography
                   variant='overline'
                   color='text.secondary'
@@ -554,7 +733,11 @@ export const QuoteForm = ({
                   Dates
                 </Typography>
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={6} sx={{ my: 3 }}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={6}
+                  sx={{ my: 3 }}
+                >
                   <FormikDatePicker
                     name='effectiveDate'
                     label='Policy Effective Date'
@@ -576,7 +759,11 @@ export const QuoteForm = ({
             </Grid>
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />
-              <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
+              <Typography
+                variant='overline'
+                color='text.secondary'
+                sx={{ pl: 4, lineHeight: 1.4 }}
+              >
                 Property Data
               </Typography>
             </Grid>
@@ -656,7 +843,10 @@ export const QuoteForm = ({
                 selectOptions={[
                   { label: 'Unknown', value: 'unknown' },
                   { label: 'SFR', value: 'SFR' },
-                  { label: 'Single Family Residence', value: 'Single Family Residence' },
+                  {
+                    label: 'Single Family Residence',
+                    value: 'Single Family Residence',
+                  },
                   { label: 'Condominium', value: 'Condominium' },
                   { label: 'Other', value: 'other' },
                 ]}
@@ -683,7 +873,9 @@ export const QuoteForm = ({
                 required
                 helperText={
                   values.ratingPropertyData.replacementCost &&
-                  values.limits.limitA / values.ratingPropertyData.replacementCost > 1.2
+                  values.limits.limitA /
+                    values.ratingPropertyData.replacementCost >
+                    1.2
                     ? 'Building limit > 20% RCV'
                     : null
                 }
@@ -698,7 +890,12 @@ export const QuoteForm = ({
                 required
                 maskComponent={IMask}
                 inputProps={{
-                  maskProps: { mask: Number, max: 9999, thousandsSeparator: ',', unmask: true },
+                  maskProps: {
+                    mask: Number,
+                    max: 9999,
+                    thousandsSeparator: ',',
+                    unmask: true,
+                  },
                 }}
               />
             </Grid>
@@ -761,6 +958,7 @@ export const QuoteForm = ({
                     }}
                     badgeContent={3}
                     color='secondary'
+                    // color='warning'
                   >
                     <LoadingButton
                       size='small'
@@ -768,13 +966,19 @@ export const QuoteForm = ({
                       onClick={() => handleRecalc(values)}
                       loading={calcLoading || rerateLoading}
                       disabled={
-                        !(ratingState.recalcRequired || ratingState.rerateRequired) ||
+                        !(
+                          ratingState.recalcRequired ||
+                          ratingState.rerateRequired
+                        ) ||
                         !(
                           values.address?.state &&
                           values.limits?.limitA &&
-                          (values.limits?.limitB || values.limits?.limitB === 0) &&
-                          (values.limits?.limitC || values.limits?.limitC === 0) &&
-                          (values.limits?.limitD || values.limits?.limitD === 0) &&
+                          (values.limits?.limitB ||
+                            values.limits?.limitB === 0) &&
+                          (values.limits?.limitC ||
+                            values.limits?.limitC === 0) &&
+                          (values.limits?.limitD ||
+                            values.limits?.limitD === 0) &&
                           values.coordinates?.latitude &&
                           values.coordinates?.longitude &&
                           values.deductible &&
@@ -840,13 +1044,14 @@ export const QuoteForm = ({
                 3) Click "rate and calc premium" button if changes were made
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                4) taxes and total should automatically populate after premium is returned
-                (shouldn't need to click "get taxes" button)
+                4) taxes and total should automatically populate after premium
+                is returned (shouldn't need to click "get taxes" button)
               </Typography>
               <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
-                Taxes and calc total are dependent on premium, fees and commission. Must repeat 3 &
-                4, if changed. Must repeat all steps if changing commission or other rating data.
-                Currently not watching fees to force recalc.
+                Taxes and calc total are dependent on premium, fees and
+                commission. Must repeat 3 & 4, if changed. Must repeat all steps
+                if changing commission or other rating data. Currently not
+                watching fees to force recalc.
               </Typography>
             </Grid>
             <Grid xs={12} sm={6} md={3}>
@@ -860,10 +1065,12 @@ export const QuoteForm = ({
                 sx={{ width: '100%' }}
               >
                 <FormikNativeSelect
-                  name='subproducerCommission'
-                  label='Subproducer Commission'
-                  selectOptions={commOptions}
-                  convertToNumber={true}
+                  // name='subproducerCommission'
+                  name='commSource'
+                  label='Preferred Subproducer Commission'
+                  selectOptions={CommSource.options}
+                  // selectOptions={commOptions}
+                  // convertToNumber={true}
                   sx={{ mt: 3 }}
                 />
               </Badge>
@@ -905,7 +1112,7 @@ export const QuoteForm = ({
                           { label: 'MGA Fee', value: 'MGA Fee' },
                           { label: 'UW Adjustment', value: 'UW Adjustment' },
                         ],
-                        gridProps: { xs: 6, sm: 6, md: 6 },
+                        gridProps: { xs: 6, sm: 6, md: 4, lg: 4 },
                         componentProps: {
                           sx: { minWidth: 50 },
                         },
@@ -915,11 +1122,55 @@ export const QuoteForm = ({
                         label: 'Value',
                         required: false,
                         inputType: 'dollar',
-                        gridProps: { xs: 6, sm: 6, md: 6 },
+                        gridProps: { xs: 6, sm: 6, md: 4, lg: 4 },
                         componentProps: {
                           allowNegative: true,
                         },
                       },
+                      {
+                        name: 'refundable',
+                        label: 'Refundable',
+                        inputType: 'checkbox',
+                        required: false,
+                        gridProps: {
+                          xs: 6,
+                          sm: 4,
+                          md: 4,
+                          lg: 4,
+                          sx: {
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                          },
+                        },
+                        componentProps: {
+                          sx: { minWidth: 100 },
+                        },
+                      },
+                      // {
+                      //   name: 'refundable',
+                      //   label: 'Refundable',
+                      //   inputType: 'select',
+                      //   selectOptions: [
+                      //     { label: 'yes', value: 1 },
+                      //     { label: 'no', value: 0 },
+                      //   ],
+                      //   required: true,
+                      //   gridProps: {
+                      //     xs: 6,
+                      //     sm: 6,
+                      //     md: 4,
+                      //     lg: 4,
+                      //     sx: {
+                      //       display: 'flex',
+                      //       flexDirection: 'column',
+                      //       justifyContent: 'center',
+                      //     },
+                      //   },
+                      //   componentProps: {
+                      //     sx: { minWidth: 100 },
+                      //   },
+                      // },
                     ]}
                     values={values}
                     errors={errors}
@@ -952,7 +1203,9 @@ export const QuoteForm = ({
                       inputType: 'mask',
                       maskComponent: IMask,
                       componentProps: {
-                        inputProps: { maskProps: { ...percentMaskProps, scale: 5 } },
+                        inputProps: {
+                          maskProps: { ...percentMaskProps, scale: 5 },
+                        },
                       },
                       // maskComponent: PercentMask,
                       // componentProps: {
@@ -1015,18 +1268,48 @@ export const QuoteForm = ({
             </Grid>
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />
-              <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
-                Named Insured
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography
+                  variant='overline'
+                  color='text.secondary'
+                  sx={{ pl: 4, lineHeight: 1.4 }}
+                >
+                  Named Insured
+                </Typography>
+                <UserSearchDialog
+                  onSelect={handleInsuredSelected}
+                  indexTitle='Users'
+                  translations={{
+                    button: {
+                      buttonText: 'Find User',
+                      buttonAriaLabel: 'find user',
+                    },
+                  }}
+                  shortcutKey='k'
+                />
+              </Box>
             </Grid>
             <Grid xs={6} md={3}>
-              <FormikTextField name='namedInsured.firstName' label='Insured first name' fullWidth />
+              <FormikTextField
+                name='namedInsured.firstName'
+                label='Insured first name'
+                fullWidth
+              />
+              {/* TODO: use autocomplete instead of dialog */}
             </Grid>
             <Grid xs={6} md={3}>
-              <FormikTextField name='namedInsured.lastName' label='Insured last name' fullWidth />
+              <FormikTextField
+                name='namedInsured.lastName'
+                label='Insured last name'
+                fullWidth
+              />
             </Grid>
             <Grid xs={6} md={3}>
-              <FormikTextField name='namedInsured.email' label='Insured email' fullWidth />
+              <FormikTextField
+                name='namedInsured.email'
+                label='Insured email'
+                fullWidth
+              />
             </Grid>
             <Grid xs={6} md={3}>
               <FormikMaskField
@@ -1048,14 +1331,63 @@ export const QuoteForm = ({
                 >
                   Agent & Agency
                 </Typography>
-                <TempAgentSearch onSelect={handleAgentSelected} />
+                {/* <UserSearchDialog
+                  onSelect={handleAgentSelected}
+                  indexTitle='Agents'
+                  translations={{
+                    button: {
+                      buttonText: 'Find Agent',
+                      buttonAriaLabel: 'find agent',
+                    },
+                  }}
+                  shortcutKey='u'
+                  placeholder='Search agents by name, email, or orgId...'
+                /> */}
               </Box>
             </Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField name='agent.name' label='Agent name' required fullWidth />
+              {/* <FormikTextField
+                name='agent.name'
+                label='Agent name'
+                required
+                fullWidth
+              /> */}
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <TypesenseAutocomplete<User>
+                    name='agent.name'
+                    textFieldProps={{
+                      label: 'Agent name',
+                      required: true,
+                      fullWidth: true,
+                      sx: { minWidth: 120 },
+                    }}
+                    searchOptions={{
+                      indexName: typesenseIndexName(Collection.enum.users),
+                      query_by: 'displayName,firstName,lastName,email,phone',
+                      filter_by: 'isOrgUser:=true',
+                    }}
+                    onSelectItem={(user) =>
+                      handleAgentSelected(user as any as WithId<User>)
+                    }
+                    resetFields={() => {
+                      // reset agency too ??
+                      setFieldValue('agent.userId', '');
+                      setFieldValue('agent.email', '');
+                      setFieldValue('agent.name', '');
+                      setFieldValue('agent.phone', '');
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField name='agent.email' label='Agent email' required fullWidth />
+              <FormikTextField
+                name='agent.email'
+                label='Agent email'
+                required
+                fullWidth
+              />
             </Grid>
             <Grid xs={6} sm={3}>
               <FormikMaskField
@@ -1074,12 +1406,39 @@ export const QuoteForm = ({
             </Grid>
             <Grid xs={12}></Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField name='agency.name' label='Agency Name' fullWidth />
+              {/* <FormikTextField name='agency.name' label='Agency Name' fullWidth /> */}
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <TypesenseAutocomplete<Organization>
+                    name='agency.name'
+                    textFieldProps={{
+                      label: 'Agency name',
+                      required: true,
+                      fullWidth: true,
+                    }}
+                    searchOptions={{
+                      // filters: 'collectionName:organizations AND type:agency',
+                      indexName: typesenseIndexName(
+                        Collection.enum.organizations,
+                      ),
+                      query_by: 'orgName,primaryContact.displayName',
+                      filter_by: 'type:=agency',
+                    }}
+                    onSelectItem={(org) =>
+                      handleAgencySelected(org as any as WithId<Organization>)
+                    }
+                    resetFields={() => {
+                      setFieldValue('agency.orgId', '');
+                      setFieldValue('agency.stripeAccountId', '');
+                      setFieldValue('agency.name', '');
+                      setFieldValue('agency.address', null);
+                      setFieldValue('agency.photoURL', '');
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </Grid>
-            <Grid xs={6} sm={3}>
-              <FormikTextField name='agency.orgId' label='Agency ID' fullWidth />
-            </Grid>
-            <Grid xs={12} sm={6}>
+            <Grid xs={12} sm={6} md={3}>
               <FormikAddressLite
                 names={{
                   addressLine1: 'agency.address.addressLine1',
@@ -1096,9 +1455,90 @@ export const QuoteForm = ({
                 }}
               />
             </Grid>
+            <Grid xs={6} sm={3} md={3}>
+              {/* <FormikTextField name='agency.orgId' label='Agency ID' fullWidth /> */}
+              <Typography variant='overline' color='text.secondary'>
+                Agency Id*
+              </Typography>
+              <Typography>{values.agency?.orgId}</Typography>
+            </Grid>
+            <Grid xs={6} sm={3} md={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Stripe Id*
+              </Typography>
+              <Typography>{values.agency?.stripeAccountId}</Typography>
+            </Grid>
+
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />
-              <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
+              <Typography
+                variant='overline'
+                color='text.secondary'
+                sx={{ pl: 4, lineHeight: 1.4 }}
+              >
+                Carrier
+              </Typography>
+            </Grid>
+            <Grid xs={12} sm={3}>
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <TypesenseAutocomplete<Organization>
+                    name='carrier.name'
+                    textFieldProps={{
+                      label: 'Carrier',
+                      required: true,
+                    }}
+                    searchOptions={{
+                      // filters: 'collectionName:organizations AND type:carrier',
+                      indexName: typesenseIndexName(
+                        Collection.enum.organizations,
+                      ),
+                      query_by: 'orgName,primaryContact.displayName',
+                      filter_by: 'type:=carrier',
+                    }}
+                    onSelectItem={(org) =>
+                      handleCarrierSelected(
+                        org as any as Organization & { objectID: string },
+                      )
+                    }
+                    resetFields={() => {
+                      setFieldValue('carrier.orgId', '');
+                      setFieldValue('carrier.address', null);
+                      setFieldValue('carrier.name', '');
+                      setFieldValue('carrier.stripeAccountId', '');
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Address
+              </Typography>
+              {values.carrier?.address ? (
+                <FormattedAddress address={values.carrier.address} />
+              ) : null}
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Org Id*
+              </Typography>
+              <Typography>{values.carrier?.orgId}</Typography>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Stripe Id*
+              </Typography>
+              <Typography>{values.carrier?.stripeAccountId}</Typography>
+            </Grid>
+
+            <Grid xs={12}>
+              <Divider sx={{ my: 3 }} />
+              <Typography
+                variant='overline'
+                color='text.secondary'
+                sx={{ pl: 4, lineHeight: 1.4 }}
+              >
                 UW Notes
               </Typography>
             </Grid>
@@ -1140,7 +1580,11 @@ interface AALHelperProps {
 function AALHelper({ title, value }: AALHelperProps) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.75rem' }}>
+      <Typography
+        variant='body2'
+        color='text.secondary'
+        sx={{ fontSize: '0.75rem' }}
+      >
         {title}
       </Typography>
       <Box
@@ -1152,7 +1596,11 @@ function AALHelper({ title, value }: AALHelperProps) {
       >
         <Typography
           variant='body1'
-          sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+          sx={{
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+          }}
         >
           {value || value === 0 ? value : null}
         </Typography>
@@ -1162,7 +1610,9 @@ function AALHelper({ title, value }: AALHelperProps) {
 }
 
 // TODO: use useRerateQuote extraction func since submissions schema matches quote schema ??
-export function getRatingInputsFromSubmission(subData?: Partial<Submission> | null) {
+export function getRatingInputsFromSubmission(
+  subData?: Partial<Submission> | null,
+) {
   // TODO: decide whether to flatten or keep in obj ??c create diff function to compare nested values ??
 
   return {
@@ -1179,6 +1629,9 @@ export function getRatingInputsFromSubmission(subData?: Partial<Submission> | nu
     state: subData?.address?.state,
     floodZone: subData?.ratingPropertyData?.floodZone,
     basement: subData?.ratingPropertyData?.basement?.toLowerCase(),
-    commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from client if idemand admin (need to fetch from rating doc instead of storing on submission)
+    commSource: subData?.commSource || 'default',
+    agentId: subData?.agent?.userId,
+    orgId: subData?.agency?.orgId,
+    // commissionPct: subData?.subproducerCommission || 0.15,
   };
 }

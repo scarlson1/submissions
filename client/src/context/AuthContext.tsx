@@ -4,8 +4,8 @@ import { differenceInSeconds } from 'date-fns';
 import { setUserId, setUserProperties } from 'firebase/analytics';
 import { isEqual } from 'lodash';
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -18,10 +18,13 @@ import { useAnalytics, useAuth as useFireAuth, useFunctions } from 'reactfire';
 
 import { CLAIMS } from 'common';
 import { ReauthDialog } from 'components';
-import { useAlgoliaStore, useUserClaims } from 'hooks';
+import { useUserClaims } from 'hooks';
+import { useTypesenseStore } from 'hooks/useAlgoliaStore';
 import { UserWithClaimsResult } from 'hooks/useUserClaims';
 import { usePrevious } from 'hooks/utils';
 import { AUTH_ROUTES, createPath } from 'router';
+
+// TODO: new feature: authStateReady - https://firebase.google.com/support/release-notes/js
 
 // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 
@@ -33,18 +36,21 @@ import { AUTH_ROUTES, createPath } from 'router';
 //   IDEMAND_ADMIN = 'iDemandAdmin',
 //   AGENT = 'agent',
 // }
-export type CustomClaimsInterface = Record<CLAIMS, boolean> & IdTokenResult['claims'];
+export type CustomClaimsInterface = Record<CLAIMS, boolean> &
+  IdTokenResult['claims'];
 
 interface AuthContextValue extends UserWithClaimsResult {
   getSecondsFromLastAuth: () => number | null;
   reauthenticateUser: (dialogMsg?: string) => Promise<void>; // Promise<UserCredential>;
   reauthIfRequired: (
     secondLimit?: number,
-    dialogMsg?: string
+    dialogMsg?: string,
   ) => Promise<void | { user: User | null }>;
 }
 
-export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValue | undefined>(
+  undefined,
+);
 
 // TODO: fix useUserClaims hook not running fast enough (observable already loads, so doesn't suspended on future renders)
 // using useAuth from AuthContext in components is behind useSignInCheck
@@ -61,11 +67,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const claimsPrev = usePrevious(userData?.claims);
 
   useEffect(() => {
-    process.env.REACT_APP_FB_PROJECT_ID !== 'idemand-submissions' &&
+    import.meta.env.VITE_FB_PROJECT_ID !== 'idemand-submissions' &&
       console.log('USER OBS CHANGE: ', userData);
   }, [userData]);
 
-  const [generateKey, resetKey] = useAlgoliaStore((state) => [state.generateKey, state.resetKey]);
+  const [generateKey, resetKey] = useTypesenseStore((state) => [
+    state.generateKey,
+    state.resetKey,
+  ]);
+
+  // TODO: use method or already handled by reactfire ?? const authReady = auth.authStateReady()
 
   // get user in analytics & sentry on change
   useEffect(() => {
@@ -82,11 +93,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // only remove auth.tenantId if not on tenant auth page
         const isTenantLoginPage = matchPath(
           { path: createPath({ path: AUTH_ROUTES.TENANT_LOGIN }) },
-          location.pathname
+          location.pathname,
         );
         const isTenantCreateAccountPage = matchPath(
           { path: createPath({ path: AUTH_ROUTES.TENANT_CREATE_ACCOUNT }) },
-          location.pathname
+          location.pathname,
         );
 
         if (isTenantLoginPage === null && isTenantCreateAccountPage === null) {
@@ -98,13 +109,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         resetKey();
       }
     }
-  }, [userData, userPrev, functions, auth, analytics, location, generateKey, resetKey]);
+  }, [
+    userData,
+    userPrev,
+    functions,
+    auth,
+    analytics,
+    location,
+    generateKey,
+    resetKey,
+  ]);
 
   // update user properties in analytics on claims change
   useEffect(() => {
     if (!isEqual(userData?.claims, claimsPrev)) {
       // if at lease one claim is true, update firebase analytics
-      if (userData?.claims && Object.values(userData.claims).some((claim) => claim === true))
+      if (
+        userData?.claims &&
+        Object.values(userData.claims).some((claim) => claim === true)
+      )
         setUserProperties(analytics, { ...userData.claims });
     }
   }, [userData, claimsPrev, analytics]);
@@ -138,7 +161,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         reauthPromiseRef.current = { resolve, reject };
       });
     },
-    [reauthPromiseRef]
+    [reauthPromiseRef],
   );
 
   const reauthIfRequired = useCallback(
@@ -149,7 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       return { user: userData.user };
     },
-    [reauthenticateUser, getSecondsFromLastAuth, userData]
+    [reauthenticateUser, getSecondsFromLastAuth, userData],
   );
 
   const handleReauthResult = useCallback(
@@ -161,7 +184,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setReauthOpen(false);
       setReauthText(undefined);
     },
-    [reauthPromiseRef]
+    [reauthPromiseRef],
   );
 
   const handleReauthClose = useCallback(() => {
@@ -180,7 +203,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       reauthenticateUser,
       reauthIfRequired,
     }),
-    [userData, getSecondsFromLastAuth, reauthenticateUser, reauthIfRequired]
+    [userData, getSecondsFromLastAuth, reauthenticateUser, reauthIfRequired],
   );
 
   return (

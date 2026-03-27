@@ -7,17 +7,14 @@ import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { Response } from 'firebase-functions/v1';
 
+import { ILocation, Policy, Product, WithId } from '@idemand/common';
 import {
   Disclosure,
-  ILocation,
-  Policy,
-  Product,
-  RequestUserAuth,
-  WithId,
   disclosuresCollection,
   formatPhoneNumber,
   locationsCollection,
   policiesCollection,
+  RequestUserAuth,
   statesList,
 } from '../common/index.js';
 import { getAllById } from '../modules/db/index.js';
@@ -167,7 +164,7 @@ app.post(
       return;
     }
 
-    let locations = locationsQuerySnap.docs.map((snap) => ({
+    const locations = locationsQuerySnap.docs.map((snap) => ({
       ...snap.data(),
       id: snap.id,
     })) as WithId<ILocation>[];
@@ -176,8 +173,14 @@ app.post(
     const locationInterests = getLocationInterests(locations);
     const premiumTable = getPremiumTable(policy);
 
-    const policyEffectiveDate = format(policy.effectiveDate.toDate(), 'MMM dd, yyyy');
-    const policyExpirationDate = format(policy.expirationDate.toDate(), 'MMM dd, yyyy');
+    const policyEffectiveDate = format(
+      policy.effectiveDate.toDate(),
+      'MMM dd, yyyy',
+    );
+    const policyExpirationDate = format(
+      policy.expirationDate.toDate(),
+      'MMM dd, yyyy',
+    );
 
     const {
       namedInsured,
@@ -239,11 +242,15 @@ app.post(
 
     try {
       const disclosureCol = disclosuresCollection(db);
-      const disclosure = await getStateDisclosure(disclosureCol, policy.homeState, policy.product);
+      const disclosure = await getStateDisclosure(
+        disclosureCol,
+        policy.homeState,
+        policy.product,
+      );
       if (disclosure && disclosure.content) {
         templateData['disclosure'] = tiptapJsonToText(disclosure.content);
       } else info(`No state disclosure found for ${policy.homeState}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.log('error fetching disclosure / converting to HTML', err);
     }
 
@@ -251,16 +258,16 @@ app.post(
       const result = await generatePolicyDecPDF(templateData);
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=export.pdf`);
+      res.setHeader('Content-Disposition', 'attachment; filename=export.pdf');
 
       result.pipe(res);
-    } catch (err: any) {
-      error('Error generating PDF from react-pdf template', { err });
+    } catch (err: unknown) {
+      error('Error generating PDF from react-pdf template', err);
       res.status(500).send('Error generating pdf');
     }
 
     return;
-  }
+  },
 );
 
 app.use(errorHandler);
@@ -272,7 +279,7 @@ export default app;
 export async function getStateDisclosure(
   colRef: CollectionReference<Disclosure>,
   state: string,
-  product: Product
+  product: Product,
 ) {
   const snap = await colRef
     .where('state', '==', state)

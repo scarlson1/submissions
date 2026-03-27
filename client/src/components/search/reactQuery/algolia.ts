@@ -1,4 +1,7 @@
-import { SearchOptions as AlgoliaSearchOptions, Hit } from '@algolia/client-search';
+import {
+  SearchOptions as AlgoliaSearchOptions,
+  Hit,
+} from '@algolia/client-search';
 import algoliasearch from 'algoliasearch';
 
 // src: https://tanstack.com/query/latest/docs/react/examples/react/algolia
@@ -7,7 +10,7 @@ import algoliasearch from 'algoliasearch';
 // https://github.com/algolia/react-instantsearch
 // const ALGOLIA_APP_ID = 'latency';
 // const ALGOLIA_SEARCH_API_KEY = '6be0576ff61c053d5f9a3225e2a90f76';
-const ALGOLIA_APP_ID = process.env.REACT_APP_ALGOLIA_APP_ID;
+const ALGOLIA_APP_ID = import.meta.env.VITE_TYPESENSE_NODE; // VITE_ALGOLIA_APP_ID;
 
 // type SearchOptions2 = {
 //   indexName: string;
@@ -35,7 +38,8 @@ export async function search<TData>({
   hits: Hit<TData>[];
   nextPage: number | undefined;
 }> {
-  if (!ALGOLIA_APP_ID) throw new Error('missing algolia appID in env variables');
+  if (!ALGOLIA_APP_ID)
+    throw new Error('missing algolia appID in env variables');
 
   const client = algoliasearch(ALGOLIA_APP_ID, apiKey);
   const index = client.initIndex(indexName);

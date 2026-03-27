@@ -12,13 +12,6 @@ export const Organizations = () => {
   const navigate = useNavigate();
   const { data } = useSigninCheck({ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } });
 
-  // const orgColumns: GridColDef[] = useMemo(
-  //   () => [
-  //     ...orgCols,
-  //   ],
-  //   []
-  // );
-
   if (!data.hasRequiredClaims) {
     return (
       <Typography variant='h6' align='center' sx={{ py: 8 }}>
@@ -45,7 +38,7 @@ export const Organizations = () => {
       </Box>
       <Box sx={{ height: { xs: 400, md: 460, lg: 500 }, width: '100%' }}>
         <ServerDataGrid
-          colName='ORGANIZATIONS'
+          colName='organizations'
           columns={orgCols}
           density='compact'
           autoHeight

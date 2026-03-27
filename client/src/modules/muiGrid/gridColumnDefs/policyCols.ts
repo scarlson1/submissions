@@ -2,11 +2,6 @@ import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
 import { Policy } from 'common';
 import {
-  SLProducerOfRecordLicenseAddress,
-  SLProducerOfRecordLicenseNum,
-  SLProducerOfRecordLicensePhone,
-  SLProducerOfRecordLicenseState,
-  SLProducerOfRecordNameCol,
   agencyAddressCol,
   agencyNameCol,
   agentEmailCol,
@@ -22,8 +17,8 @@ import {
   idCol,
   inStatePremiumCol,
   issuingCarrierCol,
-  locationAddresses,
-  locationsCount,
+  locationAddressesCol,
+  locationsCountCol,
   mailingAddress1Col,
   mailingAddress2Col,
   mailingAddressCol,
@@ -40,6 +35,11 @@ import {
   nestedAgentUserIdCol,
   outStatePremiumCol,
   productCol,
+  SLProducerOfRecordLicenseAddress,
+  SLProducerOfRecordLicenseNum,
+  SLProducerOfRecordLicensePhone,
+  SLProducerOfRecordLicenseState,
+  SLProducerOfRecordNameCol,
   taxesSumCol,
   termDaysCol,
   termPremiumCol,
@@ -48,9 +48,14 @@ import {
   userIdCol,
 } from './gridColumns';
 
+export const defaultPolicyIdCol = {
+  ...idCol,
+  headerName: 'Policy ID',
+};
+
 export const policyCols: GridColDef<Policy>[] = [
   productCol,
-  // locationAddresses,
+  // locationAddressesCol,
   namedInsuredDisplayNameCol,
   { ...namedInsuredFirstNameCol, sortable: false, filterable: false },
   { ...namedInsuredLastNameCol, sortable: false, filterable: false },
@@ -70,8 +75,8 @@ export const policyCols: GridColDef<Policy>[] = [
   taxesSumCol,
   feesSumCol,
   termDaysCol,
-  locationAddresses,
-  locationsCount,
+  locationAddressesCol,
+  locationsCountCol,
   effectiveDateCol,
   expirationDateCol,
   cancelEffDateCol,
@@ -86,10 +91,10 @@ export const policyCols: GridColDef<Policy>[] = [
   nestedAgentUserIdCol,
   nestedAgencyOrgIdCol,
   userIdCol,
-  {
-    ...idCol,
-    headerName: 'Policy ID',
-  },
+  // {
+  //   ...idCol,
+  //   headerName: 'Policy ID',
+  // },
   mailingAddressCol,
   mailingAddress1Col,
   mailingAddress2Col,
@@ -106,8 +111,9 @@ export const policyCols: GridColDef<Policy>[] = [
 ];
 
 export const POLICY_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
+  id: false,
   product: false,
-  paymentStatus: false,
+  paymentStatus: true,
   'namedInsured.firstName': false,
   'namedInsured.lastName': false,
   'namedInsured.email': false,

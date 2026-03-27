@@ -10,6 +10,7 @@ import {
   addressSummaryCol,
   createdCol,
   emailCol,
+  emailDomainsCol,
   fileLinkCol,
   firstNameCol,
   lastNameCol,
@@ -20,11 +21,13 @@ import {
   percentColBaseProps,
   phoneCol,
   statusCol,
+  typeCol,
   updatedCol,
 } from './gridColumns';
 
 export const orgCols: GridColDef<Organization>[] = [
   orgNameCol,
+  typeCol,
   {
     ...statusCol,
     valueOptions: ['active', 'inactive'], // TODO org status enum (zod)
@@ -77,16 +80,18 @@ export const orgCols: GridColDef<Organization>[] = [
   addrPostalCol,
   latitudeCol,
   longitudeCol,
-  {
-    field: 'emailDomain',
-    headerName: 'Domain',
-    minWidth: 140,
-    flex: 1,
-    editable: false,
-    sortable: false,
-    filterable: false,
-    valueGetter: (params) => params.row.emailDomain || null,
-  },
+  emailDomainsCol,
+  // {
+  //   field: 'emailDomains',
+  //   headerName: 'Domain',
+  //   minWidth: 140,
+  //   flex: 1,
+  //   editable: false,
+  //   sortable: false,
+  //   filterable: false,
+  //   valueGetter: (params) => params.row.emailDomains || [],
+  //   valueFormatter: (params) => params.value?.join(', ')
+  // },
   {
     field: 'enforceDomainRestriction',
     headerName: 'Domain Restriction',

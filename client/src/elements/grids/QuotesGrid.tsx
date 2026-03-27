@@ -9,7 +9,7 @@ import {
 import { useCallback, useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { QUOTE_STATUS, ServerDataGridCollectionProps } from 'common';
+import { QUOTE_STATUS, Quote, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import {
@@ -23,7 +23,7 @@ import { QUOTE_COLUMN_VISIBILITY, quoteCols, statusCol } from 'modules/muiGrid';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
 
-export type QuotesGridProps = ServerDataGridCollectionProps;
+export type QuotesGridProps = ServerDataGridCollectionProps<Quote, Quote>;
 
 export const QuotesGrid = ({
   renderActions = () => [],
@@ -112,7 +112,7 @@ export const QuotesGrid = ({
   return (
     <Box sx={{ height: { xs: 500, sm: 560, md: 600 }, width: '100%' }}>
       <ServerDataGrid
-        colName='QUOTES'
+        colName='quotes'
         columns={quoteColumns}
         density='compact'
         autoHeight

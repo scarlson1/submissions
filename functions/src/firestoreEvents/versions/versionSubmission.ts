@@ -1,14 +1,9 @@
+import { Collection, Submission } from '@idemand/common';
 import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
-
-import {
-  Collection,
-  Submission,
-  getReportErrorFn,
-  versionsCollection,
-} from '../../common/index.js';
+import { getReportErrorFn, versionsCollection } from '../../common/index.js';
 import { getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_SUBMISSION_DIFF_KEYS = [
@@ -61,7 +56,11 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, Collection.enum.SUBMISSIONS, submissionId);
+    const versionsCol = versionsCollection<Submission>(
+      db,
+      Collection.enum.submissions,
+      submissionId
+    );
 
     const batch = db.batch();
 
@@ -76,6 +75,7 @@ export default async (
     );
 
     if (shouldVersion && beforeData) {
+      info(`creating new version for submission ${submissionId}...`);
       const versionDocId = beforeData.metadata?.version || 0;
       const versionRef = versionsCol.doc(`${versionDocId}`);
 
@@ -84,6 +84,7 @@ export default async (
       });
       batch.set(versionRef, versionData);
     }
+
     await batch.commit();
   } catch (err: any) {
     let errMsg = 'error saving policy version';

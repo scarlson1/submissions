@@ -1,6 +1,6 @@
 // import { encode } from 'blurhash';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { getStorage } from 'firebase-admin/storage';
+import { getDownloadURL, getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { storageBucket } from 'firebase-functions/params';
 import { CloudEvent } from 'firebase-functions/v2';
@@ -10,22 +10,19 @@ import { tmpdir } from 'os';
 import path from 'path';
 // import sharp from 'sharp';
 
-import {
-  LocationImageTypes,
-  getReportErrorFn,
-  mapboxPublicToken,
-  storageBaseUrl,
-} from '../common/index.js';
+import { LocationImageTypes } from '@idemand/common';
+import { StorageFolder, getReportErrorFn, mapboxPublicToken } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
 import { clearTempFiles, randomFileName, verify } from '../utils/index.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // boost cpu if hashing blurhash
 // https://firebase.google.com/docs/functions/manage-functions?gen=2nd#set_timeout_and_memory_allocation
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
-const MAPBOX_STYLES: { name: LocationImageTypes; style: string; zoom: number }[] = [
+export const MAPBOX_STYLES: { name: LocationImageTypes; style: string; zoom: number }[] = [
   { name: 'light', style: 'mapbox/light-v11', zoom: 13 },
   { name: 'dark', style: 'spencer-carlson/clkrsmyib01wz01qwdbujb4da', zoom: 13 },
   { name: 'satellite', style: 'mapbox/satellite-v9', zoom: 17 },
@@ -68,17 +65,23 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
   });
   const startMS = new Date().getTime();
 
-  let collection = null;
-  let docPath = null;
-  let locationPath = null;
+  // let collection = null;
+  // let docPath = null;
+  // let locationPath = null;
 
-  try {
-    collection = event.data?.message?.json?.collection;
-    docPath = event.data?.message?.json?.docPath;
-    locationPath = event.data?.message?.json?.locationPath;
-  } catch (e) {
-    reportErr('PubSub message was not JSON', { ...event }, e);
-  }
+  // try {
+  //   collection = event.data?.message?.json?.collection;
+  //   docPath = event.data?.message?.json?.docPath;
+  //   locationPath = event.data?.message?.json?.locationPath;
+  // } catch (e) {
+  //   reportErr('PubSub message was not JSON', { ...event }, e);
+  // }
+
+  const { collection, docPath, locationPath } = extractPubSubPayload(
+    event,
+    ['collection', 'docPath', 'locationPath'],
+    true
+  );
 
   const cleanUpTempPaths = [];
 
@@ -109,6 +112,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
     let docUpdates: Record<string, string> = {};
 
     for (const styleType of MAPBOX_STYLES) {
+      // TODO: axios instance ??
       const url = `https://api.mapbox.com/styles/v1/${
         styleType.style
       }/static/${longitude},${latitude},${
@@ -120,16 +124,16 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
 
       // Try catch needed ? throw will break out of loop
       try {
-        console.log(
-          `DOWNLOADING MAPBOX - ${styleType.name} for ${docRef.id} [${getMS(startMS)}ms]`
-        );
+        // console.log(
+        //   `DOWNLOADING MAPBOX - ${styleType.name} for ${docRef.id} [${getMS(startMS)}ms]`
+        // );
         const downloadStart = new Date().getTime();
         await downloadFromUrl(url, tempFilePath, {
           responseType: 'stream',
         });
         console.log(`DOWNLOAD MS: ${getMS(downloadStart)} - [${docRef.id}]`);
 
-        const fileId = createDocId();
+        const fileId = createDocId(6);
         const initialMetadata = {
           metadata: {
             docId: docRef.id,
@@ -173,7 +177,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
 
         // getting height width: https://gist.github.com/rijkerd/80b77145ca3f7c8f256d5835c7f282b5
 
-        const destinationPath = `locationMapImages/map_${styleType.name}_${fileId}.jpeg`;
+        const destinationPath = `${StorageFolder.Enum.locationMapImages}/map_${styleType.name}_${fileId}.jpeg`;
         const saveStart = new Date().getTime();
         await bucket.upload(tempFilePath, {
           destination: destinationPath,
@@ -182,9 +186,9 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         info(`uploaded file to: ${destinationPath}`);
         console.log(`STORAGE UPLOAD MS: ${getMS(saveStart)} - [${docRef.id}]`);
 
-        const downloadURL = `${storageBaseUrl.value()}/v0/b/${storageBucket.value()}/o/${encodeURIComponent(
-          destinationPath
-        )}?alt=media&token=${initialMetadata.metadata.firebaseStorageDownloadTokens}`;
+        const fileRef = bucket.file(destinationPath);
+        const downloadURL = await getDownloadURL(fileRef);
+        // const downloadURL = `${storageBaseUrl.value()}/v0/b/${storageBucket.value()}/o/${encodeURIComponent(destinationPath)}?alt=media&token=${initialMetadata.metadata.firebaseStorageDownloadTokens}`;
 
         info(`Static img download URL: ${downloadURL}`);
 
@@ -195,7 +199,13 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         if (cleanUpTempPaths.length > 0) {
           await clearTempFiles(cleanUpTempPaths);
         }
-        error(`Error downloading map images`, { errMsg: err?.message || null });
+        error(`Error downloading map images`, {
+          errMsg: err?.message || null,
+          status: err?.response?.status || null,
+          responseData: err?.response?.data || null,
+          styleType: styleType.name,
+          docId: docRef.id,
+        });
         return;
       }
     }

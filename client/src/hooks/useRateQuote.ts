@@ -1,26 +1,40 @@
 import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
+import invariant from 'tiny-invariant';
 
 import { getAnnualPremium } from 'api';
 import { GetAnnualPremiumRequest, RatingInputs } from 'api/getAnnualPremium';
-import { Optional } from 'common';
+import { Optional, TCommSource } from 'common';
 import { QuoteValues } from 'elements/forms';
-import invariant from 'tiny-invariant';
 import { validateCommonInputs } from './useCalcPremium';
 
-export interface RatingInputsWithAAL extends RatingInputs {
+export interface RatingInputsWithComm extends RatingInputs {
+  agentId: string | null;
+  orgId: string | null;
+  commSource: TCommSource;
+}
+export interface RatingInputsWithAAL extends RatingInputsWithComm {
   inlandAAL: number | null;
   surgeAAL: number | null;
   tsunamiAAL: number | null;
 }
 
-export function extractRatingInputsFromValues(values: QuoteValues): RatingInputs {
-  const { coordinates, limits, deductible, address, ratingPropertyData } = values;
+export function extractRatingInputsFromValues(values: QuoteValues): RatingInputsWithComm {
+  const {
+    coordinates,
+    limits,
+    deductible,
+    address,
+    commSource,
+    ratingPropertyData,
+    agent,
+    agency,
+  } = values;
 
-  let subproducerCommission =
-    typeof values.subproducerCommission === 'string'
-      ? parseFloat(values.subproducerCommission)
-      : values.subproducerCommission;
+  // let subproducerCommission =
+  //   typeof values.subproducerCommission === 'string'
+  //     ? parseFloat(values.subproducerCommission)
+  //     : values.subproducerCommission;
   let numStories = ratingPropertyData.numStories;
 
   if (numStories && typeof numStories === 'string') {
@@ -38,7 +52,10 @@ export function extractRatingInputsFromValues(values: QuoteValues): RatingInputs
     priorLossCount: ratingPropertyData?.priorLossCount || '',
     floodZone: ratingPropertyData?.floodZone, // || undefined,
     basement: ratingPropertyData?.basement?.toLowerCase(), // || undefined,
-    commissionPct: subproducerCommission || 0.15, // TODO: use env var ??
+    // commissionPct: subproducerCommission || 0.15,
+    commSource,
+    agentId: agent?.userId,
+    orgId: agency?.orgId,
   };
 }
 
@@ -64,11 +81,6 @@ export const useRateQuote = (
   const functions = useFunctions();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // TODO: delete ?? pass as prop - dup of state in QuoteNew
-  // pass rating inputs when function called
-  // const [ratingInputsSnap, setRatingInputsSnap] = useState<Optional<RatingInputs> | undefined>(
-  //   initialRatingSnap
-  // );
 
   const rerate = useCallback(
     async (values: QuoteValues) => {
@@ -101,7 +113,10 @@ export const useRateQuote = (
           state: ratingInputs.state,
           floodZone: ratingInputs.floodZone,
           basement: ratingInputs.basement,
-          commissionPct: ratingInputs.commissionPct,
+          // commissionPct: ratingInputs.commissionPct,
+          commSource: ratingInputs.commSource,
+          agentId: ratingInputs.agentId,
+          orgId: ratingInputs.orgId,
         };
         const { data } = await getAnnualPremium(functions, {
           ...reformatRatingInputs,

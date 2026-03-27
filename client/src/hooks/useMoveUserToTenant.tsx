@@ -14,7 +14,7 @@ export const useMoveUserToTenant = (
   const moveUser = useCallback(
     async (userId: string, fromTenantId: string | null, toTenantId: string | null) => {
       if (!(fromTenantId || toTenantId)) {
-        if (onError) onError('Must provode to or from tenant ID');
+        if (onError) onError('Must provide to or from tenant ID');
         return;
       }
 

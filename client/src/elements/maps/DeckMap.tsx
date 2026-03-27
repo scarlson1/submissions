@@ -1,41 +1,21 @@
-import { ReactNode } from 'react';
+import DeckGL, { DeckGLProps } from '@deck.gl/react';
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import Map from 'react-map-gl';
-import DeckGL, { DeckGLProps } from '@deck.gl/react/typed';
-import { GeoJsonLayerProps, LayersList, MapViewState, PickingInfo } from 'deck.gl/typed';
+import { LayersList, PickingInfo } from 'deck.gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { ReactNode } from 'react';
+import Map from 'react-map-gl';
 
-export const DEFAULT_INITIAL_VIEW_STATE = {
-  longitude: -94.25,
-  latitude: 38.25,
-  zoom: 3.5,
-  maxZoom: 18,
-  minZoom: 3,
-  pitch: 0,
-  bearing: 0,
-};
-
-export const defaultGeoJsonLayerProps: Partial<GeoJsonLayerProps> = {
-  pickable: true,
-  stroked: true,
-  filled: true,
-  extruded: true,
-  lineWidthScale: 20,
-  lineWidthMinPixels: 2,
-  autoHighlight: true,
-  wireframe: true,
-  highlightColor: [80, 144, 211, 20],
-  getLineColor: [178, 186, 194, 200],
-  getFillColor: [255, 255, 255, 20],
-  getPointRadius: 100,
-  getLineWidth: 10,
-};
+import { MAPBOX_DARK, MAPBOX_LIGHT } from 'components';
+import { useWidth } from 'hooks';
+import { DEFAULT_INITIAL_VIEW_STATE, MAPBOX_TOKEN } from './constants';
 
 // TODO: pass HoverInfo as child ?? needs to be direct descendant of DeckGl ??
 
+// ONLY SUPPLY ONE OF viewState or initialViewState
+
 export interface DeckMapProps extends Partial<DeckGLProps> {
-  mapViewState?: MapViewState;
+  // mapViewState?: MapViewState;
   layers?: LayersList | undefined;
   hoverInfo?: PickingInfo | null | undefined;
   renderTooltipContent?: (info: PickingInfo) => ReactNode;
@@ -43,7 +23,8 @@ export interface DeckMapProps extends Partial<DeckGLProps> {
 }
 
 export const DeckMap = ({
-  mapViewState = DEFAULT_INITIAL_VIEW_STATE,
+  initialViewState = DEFAULT_INITIAL_VIEW_STATE, // TODO: remove default if using viewState (don't pass both)
+  // mapViewState = DEFAULT_INITIAL_VIEW_STATE,
   layers,
   hoverInfo,
   renderTooltipContent,
@@ -51,32 +32,47 @@ export const DeckMap = ({
   ...rest
 }: DeckMapProps) => {
   const theme = useTheme();
+  const { isMobile } = useWidth();
 
   return (
     <Box sx={{ height: '100%', width: '100%' }}>
       <DeckGL
-        initialViewState={mapViewState}
+        initialViewState={initialViewState}
         controller={true}
         layers={layers}
         width='100%'
         height='100%'
         style={{ position: 'relative' }}
+        eventRecognizerOptions={
+          isMobile
+            ? {
+                pan: { threshold: 10 },
+                tap: { threshold: 5 },
+              }
+            : {}
+        }
         {...rest}
       >
         <Map
+          mapboxAccessToken={MAPBOX_TOKEN}
           mapStyle={
             theme.palette.mode === 'light'
-              ? 'mapbox://styles/mapbox/light-v11' // 8
-              : 'mapbox://styles/spencer-carlson/clkrsmyib01wz01qwdbujb4da'
+              ? MAPBOX_LIGHT // 'mapbox://styles/mapbox/light-v11' // 8
+              : MAPBOX_DARK // 'mapbox://styles/spencer-carlson/clkrsmyib01wz01qwdbujb4da'
           }
           styleDiffing
           minZoom={2}
           maxZoom={20}
           maxPitch={85}
+          // react-map-gl bug - uses globe view instead of defaulting to mercator
+          projection={{ name: 'mercator' }}
         >
           {children}
         </Map>
-        <HoverInfo pickingInfo={hoverInfo} renderTooltipContent={renderTooltipContent} />
+        <HoverInfo
+          pickingInfo={hoverInfo}
+          renderTooltipContent={renderTooltipContent}
+        />
       </DeckGL>
     </Box>
   );
@@ -89,7 +85,11 @@ interface HoverInfoProps {
   children?: ReactNode;
 }
 
-export function HoverInfo({ pickingInfo, renderTooltipContent, children }: HoverInfoProps) {
+export function HoverInfo({
+  pickingInfo,
+  renderTooltipContent,
+  children,
+}: HoverInfoProps) {
   if (!(pickingInfo && pickingInfo.object)) return null;
 
   return (

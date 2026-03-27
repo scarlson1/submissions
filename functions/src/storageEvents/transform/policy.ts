@@ -1,6 +1,3 @@
-import { GeoPoint } from 'firebase-admin/firestore';
-import { lowerCase, upperCase } from 'lodash-es';
-
 import {
   AdditionalInsured,
   AgencyDetails,
@@ -16,13 +13,15 @@ import {
   Policy,
   PriorLossCount,
   RatingPropertyData,
+  State,
   SubjectBaseItem,
   TaxItem,
   TaxItemName,
   ValueByRiskType,
-  extractNumber,
-  extractNumberNeg,
-} from '../../common/index.js';
+} from '@idemand/common';
+import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
+import { lowerCase, upperCase } from 'lodash-es';
+import { extractNumber, extractNumberNeg } from '../../common/index.js';
 import { createDocId } from '../../modules/db/utils.js';
 import { getRCVs } from '../../modules/rating/index.js';
 import { dateWithTimeZone } from '../../modules/storage/index.js';
@@ -77,8 +76,10 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     phone: row.agentPhone || null,
   };
 
+  // TODO: add to stripe id to import
   const agency: AgencyDetails = {
-    orgId: row.agencyId || '',
+    orgId: row.agencyId || '', // @ts-ignore
+    stripeAccountId: row.agencyStripeAccountId || '',
     name: row.agencyName || '',
     address: {
       addressLine1: row.agencyAddressLine1 || '',
@@ -194,9 +195,10 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     techPremium,
     billingEntityId,
     billingEntityName,
+    commSource: row.commSource || 'default',
   };
   // TODO: fix typing & delete as assertion
-  return transformed as NullablePolicyRow;
+  return transformed as unknown as NullablePolicyRow;
 }
 
 export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {
@@ -204,10 +206,12 @@ export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {
   const fee1: FeeItem = {
     displayName: (row.fee1Name || '') as FeeItemName,
     value: row.fee1Value ? extractNumber(row.fee1Value) : 0,
+    refundable: row.fee1Name !== FeeItemName.Enum['Inspection Fee'],
   };
   const fee2: FeeItem = {
     displayName: (row.fee2Name || '') as FeeItemName,
     value: row.fee2Value ? extractNumber(row.fee2Value) : 0,
+    refundable: row.fee1Name !== FeeItemName.Enum['Inspection Fee'],
   };
   if (fee1.value) fees.push(fee1);
   if (fee2.value) fees.push(fee2);
@@ -229,6 +233,22 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',
+    taxId: '', // TODO: fix type (require in import row ??)
+    taxCalcId: '',
+    refundable: true,
+    state: row.homeState as State,
+    subjectBaseAmount: 0, // TODO: fix
+    transactionTypes: [
+      'new',
+      'endorsement',
+      'amendment',
+      'cancellation',
+      'flat_cancel',
+      'reinstatement',
+      'renewal',
+    ],
+    expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+    calcDate: Timestamp.now(),
   };
   const tax2: TaxItem = {
     displayName: (row.tax2Name || '') as TaxItemName,
@@ -242,6 +262,22 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',
+    taxId: '', // TODO: fix type (require in import row ??)
+    taxCalcId: '',
+    refundable: true,
+    state: row.homeState as State,
+    subjectBaseAmount: 0, // TODO: fix
+    transactionTypes: [
+      'new',
+      'endorsement',
+      'amendment',
+      'cancellation',
+      'flat_cancel',
+      'reinstatement',
+      'renewal',
+    ],
+    expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+    calcDate: Timestamp.now(),
   };
   if (tax1.value) taxes.push(tax1);
   if (tax2.value) taxes.push(tax2);

@@ -1,15 +1,21 @@
 export { ActionHandler } from './ActionHandler';
 export { CSVUploadDialog, RequiredHeaders } from './CSVUploadDialog';
+export { DevWarningBanner } from './DevWarningBanner';
 export { FormattedAddress } from './FormattedAddress';
-export { LocationCard } from './LocationCard';
-export { PolicyLocationCards } from './PolicyLocationCards';
+export { StripeConnectViewsLayout } from './StripeConnectViewsLayout';
+export { UpdateAvatarImg } from './UpdateAvatarImg';
 export { UpdateProfileImg } from './UpdateProfileImg';
+export { VerifyEmailButton } from './VerifyEmailButton';
+export { LocationCard } from './cards/LocationCard';
+export { PolicyLocationCards } from './cards/PolicyLocationCards';
+export { QuoteCards } from './cards/QuoteCards';
 export { CountiesMap } from './maps/CountiesMap';
-export { DeckMap, defaultGeoJsonLayerProps } from './maps/DeckMap';
+export { DeckMap } from './maps/DeckMap';
 export { LocationsMap } from './maps/LocationsMap';
+export { defaultGeoJsonLayerProps } from './maps/constants';
 
-export type { LocationCardProps } from './LocationCard';
 export type { UpdateProfileImgProps } from './UpdateProfileImg';
+export type { LocationCardProps } from './cards/LocationCard';
 export type { CountiesMapProps } from './maps/CountiesMap';
 export type { DeckMapProps } from './maps/DeckMap';
 export type { LocationsMapProps } from './maps/LocationsMap';

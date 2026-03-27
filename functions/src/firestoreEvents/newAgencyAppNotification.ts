@@ -2,7 +2,12 @@ import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { AgencyApplication, audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
+import {
+  AgencyApplication,
+  audience,
+  hostingBaseURL,
+  resendKey,
+} from '../common/index.js';
 import { sendNewAgencySubmissionAdminNotification } from '../services/sendgrid/index.js';
 
 export default async (
@@ -11,7 +16,7 @@ export default async (
     {
       submissionId: string;
     }
-  >
+  >,
 ) => {
   const snap = event.data;
   if (!snap) {
@@ -25,15 +30,15 @@ export default async (
   const link = `${hostingBaseURL.value()}/admin/agencies/submissions/${submissionId}`;
   info(`submission link: ${link}`);
 
-  const adminRecipients = ['spencer.carlson@idemandinsurance.com'];
+  const adminRecipients = ['spencer@s-carlson.com'];
   if (audience.value() !== 'LOCAL HUMANS') {
-    adminRecipients.push('ron.carlson@idemandinsurance.com');
+    adminRecipients.push('noreply@s-carlson.com');
   }
 
   if (submission.sendAppReceivedNotification) {
     info(`sending admin notifications to: ${JSON.stringify(adminRecipients)}`);
     await sendNewAgencySubmissionAdminNotification(
-      sendgridApiKey.value(),
+      resendKey.value(),
       link,
       submission.orgName,
       adminRecipients,
@@ -42,7 +47,7 @@ export default async (
           firebaseEventId: event.id,
           emailType: 'agency_submission_received',
         },
-      }
+      },
     );
   }
 

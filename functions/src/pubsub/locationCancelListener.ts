@@ -21,6 +21,7 @@ import {
 } from '../modules/transactions/index.js';
 import { verify } from '../utils/index.js';
 import { premEndorsementPrevTypes } from './endorsementListener.js';
+import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 const reportErr = getReportErrorFn('locationCancelListener');
 
@@ -35,19 +36,25 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
   info('LOCATION CANCEL EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
 
   const eventId = event.id;
-  let policyId = null;
-  let locationId = null;
-  let cancelReason = null;
-  let cancelEffDateMS = null;
+  // let policyId = null;
+  // let locationId = null;
+  // let cancelReason = null;
+  // let cancelEffDateMS = null;
 
-  try {
-    policyId = event.data?.message?.json?.policyId;
-    locationId = event.data?.message?.json?.locationId;
-    cancelReason = event.data?.message?.json?.cancelReason || null;
-    cancelEffDateMS = event.data?.message?.json?.cancelEffDateMS || null;
-  } catch (e) {
-    reportErr('PubSub message was not JSON', {}, e);
-  }
+  // try {
+  //   policyId = event.data?.message?.json?.policyId;
+  //   locationId = event.data?.message?.json?.locationId;
+  //   cancelReason = event.data?.message?.json?.cancelReason || null;
+  //   cancelEffDateMS = event.data?.message?.json?.cancelEffDateMS || null;
+  // } catch (e) {
+  //   reportErr('PubSub message was not JSON', {}, e);
+  // }
+  const { policyId, locationId, cancelReason, cancelEffDateMS } = extractPubSubPayload(event, [
+    'policyId',
+    'locationId',
+    'cancelReason',
+    'cancelEffDateMS',
+  ]);
 
   try {
     verify(policyId && typeof policyId === 'string', 'missing policy ID');

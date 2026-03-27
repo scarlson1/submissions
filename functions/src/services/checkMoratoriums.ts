@@ -1,7 +1,6 @@
+import { Product, moratoriumsCollection } from '@idemand/common';
 import { Firestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
-
-import { Product, moratoriumsCollection } from '../common/index.js';
 
 export async function checkMoratoriums(
   firestore: Firestore,

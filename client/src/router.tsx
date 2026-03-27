@@ -1,5 +1,4 @@
-import { wrapCreateBrowserRouter } from '@sentry/react';
-import { Helmet } from 'react-helmet-async';
+import { wrapCreateBrowserRouterV6 } from '@sentry/react';
 import {
   createBrowserRouter,
   createSearchParams,
@@ -8,22 +7,38 @@ import {
 } from 'react-router-dom';
 
 import { CLAIMS, TProduct } from 'common';
-import { RequireAuth, RouterErrorBoundary } from 'components';
-import { ConfigLayout, Layout } from 'components/layout';
+import { PageMeta, RequireAuth } from 'components';
+import RouterErrorBoundary from 'components/RouterErrorBoundary';
+// import { StripePmtIntentWrapper } from 'components/forms/StripeCheckout/StripeElementsWrapper';
+import { ConnectPayments, ConnectPayouts } from '@stripe/react-connect-js';
+import { ConfigLayout, Layout, SettingsLayout } from 'components/layout';
 import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
-import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
+import {
+  hasAdminClaimsValidator,
+  RequireAuthReactFire,
+} from 'components/RequireAuthReactFire';
 import { TempWrappedSearch } from 'components/search/Search';
 import { AuthActionsProvider } from 'context';
 import { ActionHandler } from 'elements';
 import { SuccessStep } from 'elements/forms';
 import { LocationChangeWrapper } from 'elements/forms/LocationChangeForm';
+import StripeBindQuote from 'elements/forms/StripeBindQuote';
+import StripeCheckout from 'elements/forms/StripeCheckout';
+import { StripePaymentSuccess } from 'elements/forms/StripeReceivableCheckout/StripePaymentSuccess';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid, ImportsSummaryGrid } from 'elements/grids';
 import { ActiveEventsMap, PoliciesMap } from 'elements/maps';
 import { TestSubmissionsMapWithFilters } from 'elements/maps/SubmissionsMap';
 import {
-  Account,
-  AccountDetails,
+  OrgDetails,
+  OrgSecurity,
+  OrgUsers,
+  UserDetails as UserDetailsNew,
+  UserSecurity,
+} from 'elements/settings';
+import { CurrentUserOrgStripeConnectOnboarding } from 'elements/settings/OrgStripeConnectOnboarding';
+import { StripeConnectViewsLayout } from 'elements/StripeConnectViewsLayout';
+import {
   AddLocation,
   AgencyNew,
   ContactUs,
@@ -34,11 +49,14 @@ import {
   Policy,
   QuoteBind,
   Quotes,
+  ReceivableCheckout,
   SubmissionNew,
   SubmissionNewPortfolio,
   Submissions,
+  UserDetails,
   ViewQuote,
 } from 'views';
+import { AccountDetailsNew } from 'views/AccountDetailsNew';
 import {
   Home as AdminHome,
   AdminLocations,
@@ -52,6 +70,7 @@ import {
   LicenseEdit,
   LicenseNew,
   Licenses,
+  MoratoriumEdit,
   MoratoriumNew,
   Moratoriums,
   Organization,
@@ -60,6 +79,7 @@ import {
   QuoteEdit,
   QuoteNew,
   QuoteNewFromSub,
+  Receivables,
   SLTaxEdit,
   SLTaxes,
   SLTaxNew,
@@ -68,10 +88,13 @@ import {
   Users,
 } from 'views/admin';
 import { Disclosures } from 'views/admin/Disclosures';
+import { ViewReceivables } from 'views/admin/ViewReceivables';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ClaimNew } from 'views/ClaimNew';
 import { EmailVerified } from 'views/EmailVerified';
 import App from './App';
+
+// TODO: move react component exports to different file (vite hot reload issue)
 
 export interface CrumbMatch {
   id: string;
@@ -102,17 +125,25 @@ export enum ROUTES {
   QUOTES = '/quotes',
   QUOTE_VIEW = '/quotes/:quoteId',
   QUOTE_BIND = '/quotes/:quoteId/bind',
-  QUOTE_BIND_SUCCESS = '/quotes/:quoteId/bind/success/:transactionId?',
+  QUOTE_STRIPE_CHECKOUT = '/quotes/:quoteId/checkout',
+  // QUOTE_BIND_SUCCESS_STRIPE = '/quotes/:quoteId/bind/success',
+  QUOTE_BIND_SUCCESS_STRIPE = '/quotes/bind/success',
+  QUOTE_BIND_EPAY = '/quotes/:quoteId/bind/epay',
+  QUOTE_BIND_SUCCESS_EPAY = '/quotes/:quoteId/bind/epay/success/:transactionId?', // OLD EPAY
   CONTACT = '/contact',
-  USER_QUOTES = '/quotes/list/:userId',
+  USER_QUOTES = '/quotes/list/:userId', // TODO: use users view instead (with query param to initialize tab state)
   POLICIES = '/policies',
   POLICY = '/policies/:policyId',
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
   // CLAIM_NEW = '/policies/:policyId/claim/new',
   CLAIM_NEW = '/policies/:policyId/:locationId/claims/new',
+  POLICY_RECEIVABLES = '/policies/:policyId/receivables',
+  POLICY_RECEIVABLE_CHECKOUT = '/receivables/:receivableId', // TODO: /policies/:policyId/receivables/receivableId
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
   ACCOUNT = '/account',
+  STRIPE_PAYOUTS = '/account/stripe/payouts',
+  USER = '/user/:userId',
 }
 
 export enum ADMIN_ROUTES {
@@ -138,6 +169,7 @@ export enum ADMIN_ROUTES {
   EDIT_ACTIVE_STATES = '/admin/config/active-states/:productId/edit',
   MORATORIUMS = '/admin/config/moratoriums',
   MORATORIUM_NEW = '/admin/config/moratoriums/new',
+  MORATORIUM_EDIT = '/admin/config/moratoriums/:moratoriumId/edit',
   SL_LICENSES = '/admin/config/licenses',
   SL_LICENSE_NEW = '/admin/config/licenses/new',
   LICENSE_EDIT = '/admin/config/licenses/:licenseId/edit',
@@ -148,6 +180,7 @@ export enum ADMIN_ROUTES {
   IMPORT_REVIEW = '/admin/config/imports/:importId',
   EMAIL_ACTIVITY = '/admin/config/email-activity',
   TRANSACTIONS = '/admin/config/transactions',
+  RECEIVABLES = '/admin/config/receivables', // TODO: move to non admin route once permissions fixed
   LOCATIONS = '/admin/locations',
 }
 
@@ -162,7 +195,12 @@ export enum AUTH_ROUTES {
 }
 
 export enum ACCOUNT_ROUTES {
-  ACCOUNT = '/account',
+  // ACCOUNT = '/account',
+  USER_SETTINGS = '/account/user',
+  USER_SETTING = '/account/user/:setting',
+  ORG_SETTINGS = '/account/org',
+  ORG_SETTING = '/account/org/:setting',
+  // ORG_STRIPE_ONBOARDING = '/account/org/:orgId/stripe', // onboarding
 }
 
 type TArgs =
@@ -174,23 +212,42 @@ type TArgs =
   | { path: ROUTES.QUOTES }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
-  | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
+  | { path: ROUTES.QUOTE_STRIPE_CHECKOUT; params: { quoteId: string } }
+  | { path: ROUTES.QUOTE_BIND_SUCCESS_STRIPE; params: { quoteId: string } }
+  | { path: ROUTES.POLICY_RECEIVABLES; params: { policyId: string } }
+  | { path: ROUTES.STRIPE_PAYOUTS }
+  | { path: ROUTES.QUOTE_BIND_EPAY; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
+  | {
+      path: ROUTES.QUOTE_BIND_SUCCESS_EPAY;
+      params: { quoteId: string; transactionId?: string };
+    }
   | { path: ROUTES.POLICIES; search?: { productId?: TProduct } }
-  | { path: ROUTES.POLICY; params: { policyId: string }; search?: { l_view: string } }
+  | {
+      path: ROUTES.POLICY;
+      params: { policyId: string };
+      search?: { view: string };
+    }
   | { path: ROUTES.ADD_LOCATION_NEW; params: { policyId: string } }
   | { path: ROUTES.CLAIM_NEW; params: { policyId: string; locationId: string } }
+  | {
+      path: ROUTES.POLICY_RECEIVABLE_CHECKOUT;
+      params: { receivableId: string };
+    }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
-  // | { path: ROUTES.ACCOUNT }
-  // | { path: ADMIN_ROUTES.SUBMISSIONS }
+  | { path: ROUTES.USER; params: { userId: string } } // TODO: move users route from admin so can be used for agents (users grid) -- what would query look like ??
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
-  // | { path: ADMIN_ROUTES.QUOTES }
   | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: TProduct } }
-  | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: TProduct; submissionId: string } }
-  | { path: ADMIN_ROUTES.QUOTE_EDIT; params: { productId: TProduct; quoteId: string } }
+  | {
+      path: ADMIN_ROUTES.QUOTE_NEW;
+      params: { productId: TProduct; submissionId: string };
+    }
+  | {
+      path: ADMIN_ROUTES.QUOTE_EDIT;
+      params: { productId: TProduct; quoteId: string };
+    }
   | { path: ADMIN_ROUTES.POLICY_DELIVERY; params: { policyId: string } }
-  // | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: TProduct } }
   | { path: ADMIN_ROUTES.CONFIG }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
@@ -198,6 +255,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: TProduct } }
   | { path: ADMIN_ROUTES.MORATORIUMS }
   | { path: ADMIN_ROUTES.MORATORIUM_NEW }
+  | { path: ADMIN_ROUTES.MORATORIUM_EDIT; params: { moratoriumId: string } }
   | { path: ADMIN_ROUTES.SL_LICENSES }
   | { path: ADMIN_ROUTES.SL_LICENSE_NEW }
   | { path: ADMIN_ROUTES.LICENSE_EDIT; params: { licenseId: string } }
@@ -208,13 +266,18 @@ type TArgs =
   | { path: ADMIN_ROUTES.DISCLOSURE_EDIT; params: { disclosureId: string } }
   | { path: ADMIN_ROUTES.CREATE_TENANT }
   | { path: ADMIN_ROUTES.ORGANIZATIONS }
-  | { path: ADMIN_ROUTES.ORGANIZATION; params: { orgId: string }; search?: { tab: string } }
+  | {
+      path: ADMIN_ROUTES.ORGANIZATION;
+      params: { orgId: string };
+      search?: { tab: string };
+    }
   | { path: ADMIN_ROUTES.USERS }
   | { path: ADMIN_ROUTES.PORTFOLIO_RATING }
   | { path: ADMIN_ROUTES.DATA_IMPORTS }
   | { path: ADMIN_ROUTES.IMPORT_REVIEW; params: { importId: string } }
   | { path: ADMIN_ROUTES.EMAIL_ACTIVITY }
   | { path: ADMIN_ROUTES.TRANSACTIONS }
+  | { path: ADMIN_ROUTES.RECEIVABLES }
   | { path: ADMIN_ROUTES.LOCATIONS }
   | {
       path: AUTH_ROUTES.CREATE_ACCOUNT;
@@ -246,14 +309,25 @@ type TArgs =
       search: { mode: string; oobCode: string; continueUrl?: string | null };
     }
   | { path: AUTH_ROUTES.EMAIL_VERIFIED; search?: { email: string } }
-  | { path: ACCOUNT_ROUTES.ACCOUNT };
+  // | { path: ACCOUNT_ROUTES.ACCOUNT }
+  | { path: ACCOUNT_ROUTES.USER_SETTINGS }
+  | { path: ACCOUNT_ROUTES.USER_SETTING; params: { setting: string } }
+  | { path: ACCOUNT_ROUTES.ORG_SETTINGS }
+  | { path: ACCOUNT_ROUTES.ORG_SETTING; params: { setting: string } };
+// | { path: ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING; params: { orgId: string } };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
 
-type TArgsWithSearch = Extract<TArgs, { path: any; search: URLSearchParamsInit }>;
+type TArgsWithSearch = Extract<
+  TArgs,
+  { path: any; search: URLSearchParamsInit }
+>;
 
 export function createPath(args: TArgs) {
-  if (args.hasOwnProperty('params') === false && args.hasOwnProperty('search') === false)
+  if (
+    args.hasOwnProperty('params') === false &&
+    args.hasOwnProperty('search') === false
+  )
     return args.path;
 
   let resolvedPath: string = args.path;
@@ -261,8 +335,9 @@ export function createPath(args: TArgs) {
   // Create a path by replacing params in the route definition
   if (args.hasOwnProperty('params') !== false) {
     resolvedPath = Object.entries((args as TArgsWithParams).params).reduce(
-      (previousValue: string, [param, value]) => previousValue.replace(`:${param}`, '' + value),
-      args.path
+      (previousValue: string, [param, value]) =>
+        previousValue.replace(`:${param}`, '' + value),
+      args.path,
     );
   }
   if (args.hasOwnProperty('search') !== false) {
@@ -273,17 +348,8 @@ export function createPath(args: TArgs) {
   return resolvedPath;
 }
 
-const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
-
-export function PageMeta({ title }: { title: string }) {
-  return (
-    <Helmet>
-      <title>{title}</title>
-      <meta name='title' content={title} data-react-helmet='true'></meta>
-      {/* <link rel='canonical' href='https://idemand-submissions.web.app/' /> */}
-    </Helmet>
-  );
-}
+const sentryCreateBrowserRouter =
+  wrapCreateBrowserRouterV6(createBrowserRouter);
 
 // export const router = createBrowserRouter([
 export const router = sentryCreateBrowserRouter([
@@ -294,7 +360,11 @@ export const router = sentryCreateBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Layout containerProps={{ maxWidth: 'xl', sx: { flex: '1 0 auto' } }} />,
+        element: (
+          <Layout
+            containerProps={{ maxWidth: 'xl', sx: { flex: '1 0 auto' } }}
+          />
+        ),
         errorElement: <RouterErrorBoundary />,
         children: [
           {
@@ -432,6 +502,131 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.QUOTE_BIND,
+            // element: <QuoteBind />,
+            element: (
+              <RequireAuthReactFire>
+                <StripeBindQuote />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Quotes',
+                  link: createPath({
+                    path: ROUTES.QUOTES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.quoteId || ''}`,
+                  link: createPath({
+                    path: ROUTES.QUOTE_VIEW,
+                    params: { quoteId: `${match?.params?.quoteId || ''}` },
+                  }),
+                },
+                {
+                  label: `Bind`,
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.QUOTE_STRIPE_CHECKOUT,
+            element: (
+              <RequireAuthReactFire
+              // signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <StripeCheckout />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Quotes',
+                  link: createPath({
+                    path: ROUTES.QUOTES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.quoteId || ''}`,
+                  link: createPath({
+                    path: ROUTES.QUOTE_VIEW,
+                    params: { quoteId: `${match?.params?.quoteId || ''}` },
+                  }),
+                },
+                {
+                  label: `Checkout`,
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.QUOTE_BIND_SUCCESS_STRIPE,
+            element: (
+              <RequireAuthReactFire
+              // signInCheckProps={{
+              //   requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+              // }}
+              >
+                <StripePaymentSuccess />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Quotes',
+                  link: createPath({
+                    path: ROUTES.QUOTES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.quoteId || ''}`,
+                  link: createPath({
+                    path: ROUTES.QUOTE_VIEW,
+                    params: { quoteId: `${match?.params?.quoteId || ''}` },
+                  }),
+                },
+                {
+                  label: `Bound`,
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.POLICY_RECEIVABLES,
+            element: (
+              <RequireAuthReactFire>
+                <ViewReceivables />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: ROUTES.STRIPE_PAYOUTS,
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{
+                  validateCustomClaims: hasAdminClaimsValidator,
+                }}
+              >
+                <StripeConnectViewsLayout />
+              </RequireAuthReactFire>
+            ),
+            children: [
+              {
+                path: 'payments',
+                element: <ConnectPayments />,
+              },
+              {
+                path: 'payouts',
+                element: <ConnectPayouts />,
+              },
+              // {
+              //   path: 'payouts',
+              //   element: <OrgStripeConnectOnboarding orgId={orgId} />,
+              // },
+            ],
+          },
+          {
+            path: ROUTES.QUOTE_BIND_EPAY,
             element: <QuoteBind />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -455,7 +650,7 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
-            path: ROUTES.QUOTE_BIND_SUCCESS,
+            path: ROUTES.QUOTE_BIND_SUCCESS_EPAY,
             element: (
               <>
                 <PageMeta title='iDemand - Bound' />
@@ -508,6 +703,29 @@ export const router = sentryCreateBrowserRouter([
                   // link: createPath({
                   //   path: ROUTES.SUBMISSION_SUBMITTED,
                   //   params: { submissionId: `${match?.params?.submissionId || ''}` },
+                  // }),
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.POLICY_RECEIVABLE_CHECKOUT,
+            element: <ReceivableCheckout />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Receivables',
+                  // TODO: add link once route added
+                  // link: createPath({
+                  //   path: ROUTES.POLICIES,
+                  // }),
+                },
+                {
+                  label: `${match?.params?.receivableId || ''}`,
+                  // link: createPath({
+                  //   path: ROUTES.POLICY,
+                  //   params: { policyId: `${match?.params?.policyId || ''}` },
                   // }),
                 },
               ],
@@ -580,25 +798,193 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
-            path: ROUTES.ACCOUNT,
+            path: ROUTES.USER,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ suspense: false }}>
+              <RequireAuth>
                 <>
-                  <PageMeta title='iDemand - Account' />
-                  <Account />
+                  <PageMeta title='iDemand - User' />
+                  <UserDetails />
                 </>
-              </RequireAuthReactFire>
+              </RequireAuth>
             ),
             handle: {
               crumb: (match: CrumbMatch) => [
                 {
-                  label: 'Account',
-                  link: createPath({
-                    path: ACCOUNT_ROUTES.ACCOUNT, // ROUTES.ACCOUNT,
-                  }),
+                  label: 'Users',
+                },
+                {
+                  label: `${match?.params?.userId || ''}`,
                 },
               ],
             },
+          },
+          {
+            path: 'account',
+            element: (
+              <AuthActionsProvider>
+                <RequireAuthReactFire>
+                  <>
+                    <PageMeta title='iDemand - Account' />
+                    {/* <Layout /> */}
+                    <AccountDetailsNew />
+                  </>
+                </RequireAuthReactFire>
+              </AuthActionsProvider>
+            ),
+            errorElement: <RouterErrorBoundary />,
+            // alternatively could use :tab and handle nav routes display in component ??
+            children: [
+              {
+                index: true,
+                // element: <AccountDetails />,
+                element: (
+                  <SettingsLayout
+                    navItems={[
+                      {
+                        title: 'User Details',
+                        route: 'details',
+                      },
+                      {
+                        title: 'Security',
+                        route: 'security',
+                      },
+                    ]}
+                  />
+                ),
+              },
+              {
+                // index: true, cannot specify children on index route
+                path: 'user',
+                element: (
+                  <SettingsLayout
+                    navItems={[
+                      {
+                        title: 'User Details',
+                        route: 'details',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.USER_SETTING,
+                        //   params: { setting: 'details' },
+                        // }),
+                      },
+                      // { title: 'Security', route: 'security' },
+                      {
+                        title: 'Security',
+                        route: 'security',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.USER_SETTING,
+                        //   params: { setting: 'security' },
+                        // }),
+                      },
+                    ]}
+                  />
+                ),
+                children: [
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    index: true,
+                    element: <UserDetailsNew />,
+                  },
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    // index: true,
+                    path: 'details',
+                    element: <UserDetailsNew />,
+                  },
+                  // path: 'details/edit' ?? or handle edit state in component ??
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    path: 'security',
+                    element: <UserSecurity />,
+                  },
+                ],
+              },
+              {
+                path: 'org',
+                element: (
+                  <SettingsLayout
+                    navItems={[
+                      {
+                        title: 'Org Details',
+                        route: 'details',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.ORG_SETTING,
+                        //   params: { setting: 'details' },
+                        // }),
+                      },
+                      {
+                        title: 'Team',
+                        route: 'team',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.ORG_SETTING,
+                        //   params: { setting: 'team' },
+                        // }),
+                      },
+                      {
+                        title: 'Security',
+                        route: 'security',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.ORG_SETTING,
+                        //   params: { setting: 'security' },
+                        // }),
+                      },
+                      {
+                        title: 'Payouts',
+                        route: 'stripe',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.ORG_SETTING,
+                        //   params: { setting: 'security' },
+                        // }),
+                      },
+                    ]}
+                  />
+                ),
+                children: [
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    index: true,
+                    // path: 'details',
+                    element: <OrgDetails />,
+                  },
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    path: 'details',
+                    element: <OrgDetails />,
+                  },
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    path: 'team',
+                    element: <OrgUsers />,
+                  },
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    path: 'security',
+                    element: <OrgSecurity />,
+                  },
+                  {
+                    path: 'stripe', // ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING,
+                    element: (
+                      <RequireAuth
+                        requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}
+                      >
+                        <CurrentUserOrgStripeConnectOnboarding />
+                      </RequireAuth>
+                    ),
+                    // element: (
+                    //   <RequireAuthReactFire requiredClaims>
+                    //     <OrgStripeConnectOnboarding />
+                    //   </RequireAuthReactFire>
+                    // ),
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -697,7 +1083,10 @@ export const router = sentryCreateBrowserRouter([
             <Layout
               noPadding={true}
               bodyWrapperSX={{ px: 0 }}
-              containerProps={{ maxWidth: false, sx: { px: '0 !important', flex: '1 0 auto' } }}
+              containerProps={{
+                maxWidth: false,
+                sx: { px: '0 !important', flex: '1 0 auto' },
+              }}
             />
           </RequireAuth>
         ),
@@ -837,7 +1226,10 @@ export const router = sentryCreateBrowserRouter([
           // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}>
           <>
             <PageMeta title='iDemand - Admin' />
-            <Layout withBreadcrumbs={true} containerProps={{ maxWidth: 'xl' }} />
+            <Layout
+              withBreadcrumbs={true}
+              containerProps={{ maxWidth: 'xl' }}
+            />
           </>
           // </RequireAuthReactFire>
         ),
@@ -847,18 +1239,89 @@ export const router = sentryCreateBrowserRouter([
             index: true,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <AdminHome />
               </RequireAuthReactFire>
             ),
           },
-
+          // {
+          //   path: 'stripe-test/:quoteId',
+          //   element: (
+          //     <RequireAuthReactFire
+          //       signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+          //     >
+          //       <StripeCheckout />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: 'stripe-test/success',
+          //   element: (
+          //     <RequireAuthReactFire
+          //     // signInCheckProps={{
+          //     //   requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+          //     // }}
+          //     >
+          //       <StripePaymentSuccess />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: 'stripe-test/receivables/:policyId',
+          //   element: (
+          //     <RequireAuthReactFire
+          //       signInCheckProps={{
+          //         requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+          //       }}
+          //     >
+          //       <ViewReceivables />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: 'stripe-test/data',
+          //   element: (
+          //     <RequireAuthReactFire
+          //       signInCheckProps={{
+          //         validateCustomClaims: hasAdminClaimsValidator,
+          //       }}
+          //     >
+          //       <StripeConnectViewsLayout />
+          //     </RequireAuthReactFire>
+          //   ),
+          //   children: [
+          //     {
+          //       path: 'payments',
+          //       element: <ConnectPayments />,
+          //     },
+          //     {
+          //       path: 'payouts',
+          //       element: <ConnectPayouts />,
+          //     },
+          //     // {
+          //     //   path: 'payouts',
+          //     //   element: <OrgStripeConnectOnboarding orgId={orgId} />,
+          //     // },
+          //   ],
+          // },
+          // {
+          //   path: 'stripe-test/quote/bind/:quoteId',
+          //   element: (
+          //     <RequireAuthReactFire>
+          //       <StripeBindQuote />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <SubmissionView />
               </RequireAuthReactFire>
@@ -882,7 +1345,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.QUOTE_NEW_BLANK,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='New Quote' />
@@ -908,7 +1373,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.QUOTE_NEW,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='New Quote' />
@@ -944,7 +1411,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.QUOTE_EDIT,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='iDemand - New Quote' />
@@ -976,7 +1445,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.LOCATIONS,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='iDemand - Locations' />
@@ -989,10 +1460,12 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.POLICY_DELIVERY,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
-                  <PageMeta title='iDemand - Locations' />
+                  <PageMeta title='iDemand - Deliver Policy' />
                   <PolicyDelivery />
                 </>
               </RequireAuthReactFire>
@@ -1022,7 +1495,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.AGENCY_APPS,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='iDemand - Agency Apps' />
@@ -1045,7 +1520,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.AGENCY_APP,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <AgencyApp />
               </RequireAuthReactFire>
@@ -1068,7 +1545,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.CREATE_TENANT,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='iDemand - Create Agency' />
@@ -1094,7 +1573,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.ORGANIZATIONS,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='iDemand - Orgs' />
@@ -1118,7 +1599,9 @@ export const router = sentryCreateBrowserRouter([
             element: (
               <AuthActionsProvider>
                 <RequireAuthReactFire
-                  signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                  signInCheckProps={{
+                    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                  }}
                 >
                   <Organization />
                 </RequireAuthReactFire>
@@ -1142,7 +1625,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.USERS,
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title={'iDemand - Users'} />
@@ -1165,7 +1650,9 @@ export const router = sentryCreateBrowserRouter([
             path: '/admin/map/submissions',
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='iDemand - Submissions Map' />
@@ -1191,7 +1678,9 @@ export const router = sentryCreateBrowserRouter([
             path: '/admin/map/policies',
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='iDemand - Policies Map' />
@@ -1217,7 +1706,9 @@ export const router = sentryCreateBrowserRouter([
             path: '/admin/map/active-events',
             element: (
               <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                signInCheckProps={{
+                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                }}
               >
                 <>
                   <PageMeta title='iDemand - Active Events' />
@@ -1241,8 +1732,8 @@ export const router = sentryCreateBrowserRouter([
             element: (
               <TempWrappedSearch />
               // <Search
-              //   appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
-              //   apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
+              //   appId={import.meta.env.VITE_ALGOLIA_APP_ID as string}
+              //   apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY as string}
               //   indexName='local_tasks'
               //   indexTitle='Tasks'
               //   placeholder='Search...'
@@ -1273,7 +1764,9 @@ export const router = sentryCreateBrowserRouter([
                 index: true,
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <SLTaxes />
                   </RequireAuthReactFire>
@@ -1296,7 +1789,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'taxes',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Taxes' />
@@ -1322,7 +1817,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'taxes/new',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - New Tax' />
@@ -1349,7 +1846,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'taxes/:taxId/edit',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Edit Tax' />
@@ -1379,7 +1878,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'disclosures',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Disclosures' />
@@ -1404,7 +1905,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'disclosures/new',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - New Disclosure' />
@@ -1431,7 +1934,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'disclosures/:disclosureId/edit',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Edit Disclosure' />
@@ -1461,7 +1966,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'licenses',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Licenses' />
@@ -1486,7 +1993,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'licenses/new',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - New License' />
@@ -1516,7 +2025,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'licenses/:licenseId/edit',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Edit License' />
@@ -1546,7 +2057,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'moratoriums',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Moratoriums' />
@@ -1571,7 +2084,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'moratoriums/new',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - New Moratorium' />
@@ -1594,10 +2109,46 @@ export const router = sentryCreateBrowserRouter([
                 },
               },
               {
+                path: 'moratoriums/:moratoriumId/edit',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
+                  >
+                    <>
+                      <PageMeta title='iDemand - Edit Moratorium' />
+                      <MoratoriumEdit />
+                    </>
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => {
+                    const moratoriumId = match.params.moratoriumId;
+                    return [
+                      {
+                        label: 'Moratoriums',
+                        link: createPath({
+                          path: ADMIN_ROUTES.MORATORIUMS,
+                        }),
+                      },
+                      {
+                        label: `${moratoriumId || ''}`,
+                      },
+                      {
+                        label: 'Edit',
+                      },
+                    ];
+                  },
+                },
+              },
+              {
                 path: 'active-states/:productId/edit',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Active States' />
@@ -1627,7 +2178,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'imports',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Imports' />
@@ -1650,7 +2203,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'imports/:importId',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Import' />
@@ -1676,7 +2231,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'email-activity',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Email Activity' />
@@ -1696,7 +2253,9 @@ export const router = sentryCreateBrowserRouter([
                 path: 'transactions',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
                   >
                     <>
                       <PageMeta title='iDemand - Transactions' />
@@ -1712,30 +2271,98 @@ export const router = sentryCreateBrowserRouter([
                   ],
                 },
               },
+              {
+                path: 'receivables',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{
+                      requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+                    }}
+                  >
+                    <>
+                      <PageMeta title='iDemand - Receivables' />
+                      <Receivables />
+                    </>
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => [
+                    {
+                      label: 'Receivables',
+                    },
+                  ],
+                },
+              },
             ],
           },
         ],
       },
-      {
-        path: 'account',
-        element: (
-          <AuthActionsProvider>
-            <RequireAuthReactFire>
-              <>
-                <PageMeta title='iDemand - Account' />
-                <Layout />
-              </>
-            </RequireAuthReactFire>
-          </AuthActionsProvider>
-        ),
-        errorElement: <RouterErrorBoundary />,
-        children: [
-          {
-            index: true,
-            element: <AccountDetails />,
-          },
-        ],
-      },
+      // layout issue --> need to move account under
+      // {
+      //   path: 'account',
+      //   element: (
+      //     <AuthActionsProvider>
+      //       <RequireAuthReactFire>
+      //         <>
+      //           <PageMeta title='iDemand - Account' />
+      //           {/* <Layout /> */}
+      //           <AccountDetailsNew />
+      //         </>
+      //       </RequireAuthReactFire>
+      //     </AuthActionsProvider>
+      //   ),
+      //   errorElement: <RouterErrorBoundary />,
+      //   children: [
+      //     // {
+      //     //   index: true,
+      //     //   // element: <AccountDetails />,
+      //     //   element: <AccountDetailsNew />,
+      //     // },
+      //     {
+      //       path: 'user',
+      //       element: <SettingsLayout navItems={['User Details', 'Security']} />, // TODO: pass in nav routes to layout component
+      //       children: [
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'details',
+      //           element: (() => <div>TODO: user details component</div>)(),
+      //         },
+      //         // path: 'details/edit' ?? or handle edit state in component ??
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'security',
+      //           element: (() => <div>TODO: user security component</div>)(),
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       path: 'org',
+      //       element: <SettingsLayout navItems={['Org Details', 'Team', 'Security']} />, // TODO: pass in nav routes to layout component
+      //       children: [
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'details',
+      //           element: (() => <div>TODO: org details component</div>)(),
+      //         },
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'team',
+      //           element: (() => <div>TODO: team component</div>)(),
+      //         },
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'security',
+      //           element: (() => <div>TODO: org security component</div>)(),
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // },
     ],
   },
 ]);

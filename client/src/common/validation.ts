@@ -1,7 +1,6 @@
-// import * as yup from 'yup';
-import { array, boolean, number, object, string } from 'yup';
+import { array, boolean, date, mixed, number, object, string } from 'yup';
 
-import { isValidEmail } from 'modules/utils/helpers';
+import { isValidEmail, validateRoutingNumber } from 'modules/utils';
 import { State } from './enums';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
@@ -18,17 +17,18 @@ export function phoneRequiredVal(val: any) {
   return error;
 }
 
-// export const isValidEmail = (str: string) => {
-//   // eslint-disable-next-line
-//   return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-//     str
-//   );
-// };
-
 export const emailVal = string().test('valid-email', 'Invalid email', async (val) => {
   if (val && !isValidEmail(val)) return false;
   return true;
 });
+
+export const passwordValidation = string()
+  .min(8, 'Password must be 8 characters long')
+  .matches(/[0-9]/, 'Password requires a number')
+  .matches(/[a-z]/, 'Password requires a lowercase letter')
+  .matches(/[A-Z]/, 'Password requires an uppercase letter')
+  .matches(/[^\w]/, 'Password requires a symbol')
+  .required();
 
 export const postalRegEx = /^[0-9]{5}(?:-[0-9]{4})?/;
 export const postalVal = string()
@@ -150,7 +150,7 @@ export const checkBCDSumValid = (
   limit3 = getNumValue(limit3);
 
   return (
-    limit1 + limit2 + limit3 < parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_B_C_D || '1000000')
+    limit1 + limit2 + limit3 < parseInt(import.meta.env.VITE_FLOOD_MAX_LIMIT_B_C_D || '1000000')
   );
 };
 
@@ -164,8 +164,8 @@ export const limitAVal = string()
   })
   .test('limitA', 'Amount must be between 100k and 1M.', (value) => {
     let num = parseInt(value || '0');
-    let min = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A!) || 100000;
-    let max = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A!) || 1000000;
+    let min = parseInt(import.meta.env.VITE_FLOOD_MIN_LIMIT_A!) || 100000;
+    let max = parseInt(import.meta.env.VITE_FLOOD_MAX_LIMIT_A!) || 1000000;
 
     return num >= min && num <= max;
   });
@@ -215,35 +215,6 @@ export const limitsValidationNested = object({
   limits: limitsValidation,
 });
 
-// export const limitsValidation = object({
-//   coverageActive: object({
-//     building: bool(),
-//     structures: bool(),
-//     contents: bool(),
-//     additional: bool(),
-//   }),
-//   coverageActiveBuilding: boolean(),
-//   coverageActiveStructures: boolean(),
-//   coverageActiveContents: boolean(),
-//   coverageActiveAdditional: boolean(),
-//   limitA: string().when('coverageActiveBuilding', {
-//     is: true,
-//     then: limitAVal,
-//   }),
-//   limitB: string().when('coverageActiveStructures', {
-//     is: true,
-//     then: limitBVal,
-//   }),
-//   limitC: string().when('coverageActiveStructures', {
-//     is: true,
-//     then: limitCVal,
-//   }),
-//   limitD: string().when('coverageActiveStructures', {
-//     is: true,
-//     then: limitDVal,
-//   }),
-// });
-
 export const deductibleVal = number().min(1000).required();
 
 // TODO: max validation
@@ -262,8 +233,8 @@ export const exclusionsValidation = object({
   exclusionsExist: boolean().oneOf([true, false], 'Please select an option').nullable(),
   exclusions: array().when(['exclusionsExist'], {
     is: (existsVal: boolean | null) => !!existsVal,
-    then: array().min(1, 'Please select at least one option from dropdown'),
-    otherwise: array(),
+    then: () => array().min(1, 'Please select at least one option from dropdown'),
+    otherwise: () => array(),
   }),
 });
 
@@ -317,7 +288,133 @@ export const agentValidation = object().shape({
 });
 
 export const agencyValidation = object().shape({
-  orgId: string().typeError('agency orgId required').required(),
+  orgId: string().typeError('agency org ID required').required(),
   name: string().typeError('agency name required').required(),
   address: addressValidation,
+});
+
+export const carrierValidation = object().shape({
+  orgId: string().typeError('org ID required').required('org ID required'),
+  stripeAccountId: string()
+    .typeError('Stripe account ID required')
+    .required('Stripe account ID required'),
+  name: string().typeError('carrier required').required('carrier required'),
+  address: addressValidation.nullable(),
+});
+
+// moved from AgencyNew (vite)
+
+export const orgNameValidation = object().shape({
+  orgName: string().required(),
+});
+
+export const agencyContactValidation = object().shape({
+  contact: object().shape({
+    firstName: string().required('First name is required'),
+    lastName: string().required('Last name is required'),
+    email: emailVal.required('Email is required'),
+    phone: phoneVal.required('Phone is required'),
+  }),
+});
+
+export const FEINVal = string()
+  .matches(/^[1-9]\d?-\d{7}$/, 'FEIN must be valid format')
+  .required();
+
+export const feinValidation = object().shape({
+  FEIN: FEINVal,
+});
+
+export const EandOVal = mixed()
+  .test('required', 'E and O is required', (value) => {
+    if (!value || !Array.isArray(value) || !value.length) return false;
+    return true;
+  })
+  .test('fileSize', 'The file must be less than 2mb', (value) => {
+    if (!value || !Array.isArray(value) || !value.length) return false;
+    return value[0].size / 1024 < 2048;
+  })
+  .test('fileType', 'The file type must be .pdf', (value) => {
+    if (!value || !Array.isArray(value) || !value.length) return false;
+    return value[0].type.includes('pdf');
+  });
+
+export const EandOValidation = object().shape({
+  EandO: EandOVal,
+});
+
+// TODO:  reuse AddUsersDialog validation ??
+
+export const agentsValidation = object().shape({
+  agents: array().of(
+    object().shape({
+      email: emailVal.required(),
+      firstName: string()
+        .min(2, 'Please enter first name. Min 2 letters.')
+        .max(40, 'Must be less than 40 characters')
+        .required('Full name is required'),
+      lastName: string()
+        .min(2, 'Please enter first name. Min 2 letters.')
+        .max(40, 'Must be less than 40 characters')
+        .required('Full name is required'),
+      phone: phoneVal.required(),
+      // access: yup
+      //   .string()
+      //   .oneOf(['admin', 'agent'], 'Please select an option')
+      //   .required('Access level required'),
+    })
+  ),
+});
+
+export const bankingValidation = object().shape({
+  routingNumber: string()
+    .required()
+    .test('routing-number', 'Invalid routing number', validateRoutingNumber),
+  accountNumber: string()
+    .min(4, 'Account number must be at least 4 digits')
+    .max(17, 'Account number must be less than 17 digits')
+    .required(),
+});
+
+export const contactUsValidation = object().shape({
+  email: emailVal.required(),
+  subject: string().required(),
+  body: string().min(20, 'Please provide more details').required('Required'),
+});
+
+export const newTaxValidation = object().shape({
+  state: string().required(),
+  displayName: string().required(),
+  effectiveDate: date().required(),
+  expirationDate: date().nullable(),
+  LOB: array().of(string()),
+  products: array().of(string()).min(1),
+  transactionTypes: array().of(string()).min(1, 'Must select at lease one option'),
+  subjectBase: array()
+    .of(string())
+    .min(1, 'Must select at lease one option')
+    .test(
+      'fixedFee only',
+      'fixedFee must be selected alone. Remove other options or unselected fixedFee.',
+      (value) => {
+        if (value?.includes('fixedFee') && value.length > 1) return false;
+        return true;
+      }
+    ),
+  rate: number().when(['subjectBase'], {
+    is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
+    then: () => number().notRequired().nullable(),
+    otherwise: () =>
+      number().positive().max(20, 'Rate must be less than 20%').required('Rate is required'),
+  }),
+  fixedRate: number().when(['subjectBase'], {
+    is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
+    then: () => number().min(0).max(100).required(),
+    otherwise: () => number().notRequired().nullable(),
+  }),
+  baseRoundType: string().required(),
+  baseDigits: number().min(0, 'Must be 0 or greater').integer('Must be an integer'),
+  resultRoundType: string().required(),
+  resultDigits: number().min(0, 'Must be 0 or greater').integer('Must be an integer'),
+  // refundable: boolean()
 });

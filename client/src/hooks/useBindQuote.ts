@@ -21,10 +21,6 @@ export const useBindQuote = (
         const { data: policyData } = await createPolicy(functions, { quoteId });
         logDev('CREATE POLICY RES: ', policyData);
 
-        // TODO: handle errors where policy is created, but payment fails
-        // include payment methodId in createPolicy call --> emit pubsub event --> attempt transaction ??
-        // then handle errors with email to named insured and link to retry with new payment method ??
-
         const { data: pmtData } = await executePayment(functions, {
           policyId: policyData.policyId,
           paymentMethodId,

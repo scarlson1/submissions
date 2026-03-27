@@ -1,18 +1,18 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  TextField,
-  Grid,
-  Autocomplete,
-  Box,
-  Typography,
-  AutocompleteChangeReason,
-  TextFieldProps,
-  Stack,
-} from '@mui/material';
 import { LocationOn } from '@mui/icons-material';
-import { throttle } from 'lodash';
+import {
+  Autocomplete,
+  AutocompleteChangeReason,
+  Box,
+  Grid,
+  Stack,
+  TextField,
+  TextFieldProps,
+  Typography,
+} from '@mui/material';
 import parse from 'autosuggest-highlight/parse';
 import { useField } from 'formik';
+import { throttle } from 'lodash';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 function loadScript(src: string, position: HTMLElement | null, id: string) {
   if (!position) {
@@ -69,7 +69,7 @@ export interface AddressAutocompleteProps {
   name?: string;
   handleSelection?: (newValue: NewAddress) => void;
   resetFields?: () => void;
-  textFieldProps?: TextFieldProps;
+  textFieldProps?: Omit<TextFieldProps, 'value' | 'onChange'>;
 }
 
 export const AddressAutocomplete = ({
@@ -87,7 +87,9 @@ export const AddressAutocomplete = ({
   if (typeof window !== 'undefined' && !loaded.current) {
     if (!document.querySelector('#google-maps')) {
       loadScript(
-        `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_GEO_KEY}&libraries=places&types=address`,
+        `https://maps.googleapis.com/maps/api/js?key=${
+          import.meta.env.VITE_GOOGLE_GEO_KEY
+        }&libraries=places&types=address`,
         document.querySelector('head'),
         'google-maps'
       );
@@ -228,7 +230,6 @@ export const AddressAutocomplete = ({
         renderInput={(params) => (
           <TextField
             {...params}
-            // id='addressLine1'
             label='Address'
             size='medium'
             autoComplete='off'

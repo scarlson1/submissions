@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
 import { DocumentReference, doc, getDoc, getFirestore, where } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 
 import { Policy, User, WithId } from 'common';
 import { useCollectionData } from './useCollectionData';
+
+// TODO: use subcollection group query instead (users/uid/permissions/private) - rxjs switchMap ??
 
 let uniq = (a: any) => [...new Set(a)];
 
@@ -12,7 +14,7 @@ export const useAgencyInsureds = (agencyId: string) => {
   // const [cursor, setCursor] = useState()
 
   const { data: policies, status } = useCollectionData<Policy>(
-    'POLICIES',
+    'policies',
     [where('orgId', '==', agencyId)],
     { suspense: false }
   );

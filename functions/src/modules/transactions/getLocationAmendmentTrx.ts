@@ -1,6 +1,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { AmendmentTransaction, ILocationPolicy, Policy, WithId } from '../../common/index.js';
+import { ILocationPolicy, Policy, WithId } from '@idemand/common';
+import { AmendmentTransaction } from '../../common/index.js';
 import { getBookingDate, getTermDays } from './utils.js';
 
 export const getLocationAmendmentTrx = (
@@ -32,6 +33,8 @@ export const getLocationAmendmentTrx = (
     issuingCarrier: policy.issuingCarrier,
     namedInsured: policy.namedInsured.displayName,
     mailingAddress: policy.mailingAddress,
+    agent: policy.agent,
+    agency: policy.agency,
     insuredLocation: location,
     homeState: policy.homeState,
     policyEffDate: policy.effectiveDate,

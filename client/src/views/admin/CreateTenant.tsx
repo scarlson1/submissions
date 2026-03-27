@@ -14,28 +14,67 @@ import { FirebaseError } from 'firebase/app';
 import { Form, Formik, FormikHelpers } from 'formik';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
+import { object, string } from 'yup';
 
-import { addressValidation, contactValidation } from 'common';
 import {
+  addressValidation,
+  contactValidation,
+  EandOVal,
+  FEINVal,
+  OrgType,
+  TOrgType,
+} from 'common';
+import {
+  feinMaskProps,
   FormikDragDrop,
   FormikMaskField,
+  FormikNativeSelect,
   FormikTextField,
   IMask,
-  feinMaskProps,
   phoneMaskProps,
 } from 'components/forms';
-import FormikAddress from 'elements/forms/FormikAddress';
-import { useAsyncToast, useCreateAgencySubmission, useCreateTenant } from 'hooks';
+import { FormikAddress } from 'elements/forms';
+import {
+  useAsyncToast,
+  useCreateAgencySubmission,
+  useCreateTenant,
+} from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { AgencyAppValues, EandOVal, FEINVal, INITIAL_VALUES } from 'views/AgencyNew';
+import { AgencyAppValues } from 'views/AgencyNew';
 
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
 
-// TODO: use rxFire to upload to storage and create submission in Observable ??
+type CreateTenantValues = AgencyAppValues & { type: TOrgType };
 
-const validation = yup.object().shape({
-  orgName: yup.string().required(),
+const INITIAL_VALUES: CreateTenantValues = {
+  type: '' as TOrgType,
+  orgName: '',
+  address: {
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    postal: '',
+    countyName: '',
+  },
+  coordinates: {
+    latitude: null,
+    longitude: null,
+  },
+  contact: {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  },
+  agents: [{ firstName: '', lastName: '', email: '', phone: '' }],
+  FEIN: '',
+  EandO: '',
+};
+
+const validation = object().shape({
+  type: string().required(),
+  orgName: string().required(),
   address: addressValidation,
   contact: contactValidation,
   EandO: EandOVal,
@@ -46,14 +85,19 @@ export const CreateTenant = () => {
   const navigate = useNavigate();
   const toast = useAsyncToast();
 
-  const { handleSubmission, error: createAgencyError } = useCreateAgencySubmission();
+  const { handleSubmission, error: createAgencyError } =
+    useCreateAgencySubmission();
 
   const { createTenant, error: createTenantError } = useCreateTenant(
-    ({ tenantId }) => tenantId && navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }))
+    ({ tenantId }) =>
+      tenantId && navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS })),
   );
 
   const handleSubmit = useCallback(
-    async (values: AgencyAppValues, helpers: FormikHelpers<AgencyAppValues>) => {
+    async (
+      values: CreateTenantValues,
+      helpers: FormikHelpers<CreateTenantValues>,
+    ) => {
       toast.dismiss();
       toast.loading('creating agency doc...');
       console.log('values => ', values);
@@ -64,9 +108,11 @@ export const CreateTenant = () => {
         // TODO: set status to something other than submitted ??
         // upload E and O and create submission doc
         let agencyId = await handleSubmission(values, false);
-        if (!agencyId) {
-          throw new Error('Error creating submission. See console for details.');
-        }
+        if (!agencyId)
+          throw new Error(
+            'Error creating submission. See console for details.',
+          );
+
         toast.success(`Agency app doc created (ID: ${agencyId})`);
 
         // toast.updateLoadingMsg('creating tenant ...');
@@ -79,7 +125,8 @@ export const CreateTenant = () => {
       } catch (err) {
         console.log('ERR => ', err);
 
-        let msg = 'An error occurred while attempting to create tenant. See console for details.';
+        let msg =
+          'An error occurred while attempting to create tenant. See console for details.';
         if (err instanceof FirebaseError) msg = `${err.message} (${err.code})`;
         toast.error(msg);
 
@@ -87,20 +134,15 @@ export const CreateTenant = () => {
         return;
       }
     },
-    [handleSubmission, createTenant, toast]
+    [handleSubmission, createTenant, toast],
   );
 
-  // const handleSaveDraft = useCallback(() => {
-  //   alert('save draft not implemented yet.');
-  //   // CREATE SUBMISSION -> REDIRECT TO EDIT SUBMISSION ??
-  // }, []);
-
   const handleCancel = useCallback(
-    (setValues: (values: AgencyAppValues) => void) => {
+    (setValues: (values: CreateTenantValues) => void) => {
       setValues(INITIAL_VALUES);
       navigate(createPath({ path: ADMIN_ROUTES.AGENCY_APPS }));
     },
-    [navigate]
+    [navigate],
   );
 
   return (
@@ -121,8 +163,9 @@ export const CreateTenant = () => {
                   alignItems: 'center',
                   position: 'sticky',
                   top: 0,
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'light' ? '#FAFAFB' : theme.palette.background.paper,
+                  // backgroundColor: (theme) =>
+                  //   theme.palette.mode === 'light' ? '#FAFAFB' : theme.palette.background.paper,
+                  backgroundColor: (theme) => theme.palette.background.default,
                   borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                   zIndex: 10,
                   py: 2,
@@ -134,7 +177,7 @@ export const CreateTenant = () => {
                     variant='contained'
                     disabled={isSubmitting || !isValid || !dirty}
                   >
-                    Create Agency
+                    Create Org
                   </Button>
                   <Button
                     variant='outlined'
@@ -199,9 +242,21 @@ export const CreateTenant = () => {
                           }}
                         />
                       </Box>
+
                       <Divider sx={{ mt: 3 }} />
                     </Grid>
                     <Grid container xs={12}>
+                      <Grid xs={6} sm={4}>
+                        <FormikNativeSelect
+                          name='type'
+                          label='Type'
+                          selectOptions={OrgType.options}
+                          sx={{ minWidth: 120 }}
+                          variant='standard'
+                          required
+                        />
+                      </Grid>
+
                       {/* <Grid xs={6} sm={4}>
                         <FormikTextField
                           id='routingNumber'
@@ -237,7 +292,11 @@ export const CreateTenant = () => {
                         <Divider sx={{ mb: 3 }} />
                         <Box sx={{ flex: 1 }}>
                           {/* TODO: display file url if "save draft" is clicked ?? */}
-                          <Typography variant='body2' color='text.secondary' component='span'>
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                            component='span'
+                          >
                             E&O
                           </Typography>
                           <FormikDragDrop
@@ -267,9 +326,17 @@ export const CreateTenant = () => {
               <Card>
                 <CardContent>
                   <Grid container spacing={8}>
-                    <Grid container xs={12} sm={6} spacing={4} sx={{ alignContent: 'flex-start' }}>
+                    <Grid
+                      container
+                      xs={12}
+                      sm={6}
+                      spacing={4}
+                      sx={{ alignContent: 'flex-start' }}
+                    >
                       <Grid xs={12}>
-                        <Typography variant='overline'>Primary Contact</Typography>
+                        <Typography variant='overline'>
+                          Primary Contact
+                        </Typography>
                       </Grid>
                       {/* TODO: make it a select field ?? add search ?? add action button to users section (set as primary contact) */}
                       <Grid xs={6}>
@@ -387,53 +454,3 @@ export const CreateTenant = () => {
     </Box>
   );
 };
-
-// const createOrg = useCallback(
-//   async (submissionId: string) => {
-//     try {
-//       const createTenantRes = await createTenant(submissionId);
-
-//       return createTenantRes;
-//     } catch (error) {
-//       if (error instanceof FirebaseError) {
-//         toast.error(`${error.message} (${error.code})`);
-//       } else {
-//         toast.error(
-//           'An error occurred while attempting to create tenant. See console for details.'
-//         );
-//       }
-//     }
-//   },
-//   [createTenant, toast]
-// );
-
-// const promptForNotification = useCallback(async () => {
-//   try {
-//     await confirm({
-//       catchOnCancel: true,
-//       variant: 'danger',
-//       title: 'Notify Primary Contact?',
-//       confirmButtonText: 'Submit',
-//       description:
-//         'Would you like to notify the primary contact and invite them to create an account?',
-//       dialogContentProps: { dividers: true },
-//     });
-//     return true;
-//   } catch (err) {
-//     return false;
-//   }
-// }, [confirm]);
-
-// const handleSuccess = useCallback(
-//   async (agencyId: string, tenantId?: string) => {
-//     const shouldNotify = await promptForNotification();
-//     if (!!shouldNotify) {
-//       toast.loading('sending notification...');
-//       await sendApprovedNotification(agencyId, `${tenantId}`);
-//       toast.success('Error delivering notification');
-//     }
-
-//     navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
-//   },
-//   [promptForNotification, sendApprovedNotification, navigate, toast]
-// );

@@ -26,14 +26,17 @@ export interface SendClaimSubmittedProps extends BaseTemplateProps {
 
 const reportErr = getReportErrorFn('sendClaimSubmitted');
 
-export async function sendClaimSubmitted(sgKey: string, args: SendClaimSubmittedProps) {
+export async function sendClaimSubmitted(
+  sgKey: string,
+  args: SendClaimSubmittedProps,
+) {
   try {
     const { to, policyId, locationId } = args;
     sgMail.setApiKey(sgKey);
     const html = claimSubmittedHTML({ ...args });
 
-    // const to = ['spencer.carlson@idemandinsurance.com'];
-    // if (audience.value() !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
+    // const to = ['spencer@s-carlson.com'];
+    // if (audience.value() !== 'LOCAL HUMANS') to.push('noreply@s-carlson.com');
     await sgMail.send({
       html,
       subject: `Claim submission confirmation`,

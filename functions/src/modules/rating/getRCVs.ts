@@ -8,14 +8,14 @@ import type { Limits, RCVs } from '../../common/index.js';
  */
 
 export const getRCVs = (replacementCost: number, limits: Limits): RCVs => {
-  const buildingRef = Math.min(replacementCost, 1000000);
-  const defaultB = Math.max(buildingRef * 0.05, limits.limitB);
-  const defaultC = Math.max(buildingRef * 0.25, limits.limitC);
+  // const buildingRef = Math.min(replacementCost, 1000000);
+  // const defaultB = Math.max(buildingRef * 0.05, limits.limitB);
+  // const defaultC = Math.max(buildingRef * 0.25, limits.limitC);
 
   const RCVs: Omit<RCVs, 'total'> = {
     building: Math.max(replacementCost, limits.limitA),
-    otherStructures: limits.limitB ? defaultB : 0,
-    contents: limits.limitC ? defaultC : 0,
+    otherStructures: limits.limitB, // ? defaultB : 0,
+    contents: limits.limitC, // ? defaultC : 0,
     BI: limits.limitD,
   };
 

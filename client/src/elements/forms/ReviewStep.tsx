@@ -2,19 +2,19 @@ import {
   Box,
   Card,
   CardContent,
-  Grid,
-  Typography,
-  Stack,
-  Divider,
   CircularProgress,
+  Divider,
+  Grid,
+  Stack,
+  Typography,
 } from '@mui/material';
 import { useFormikContext } from 'formik';
 
-import { FloodValues } from 'views/SubmissionNew';
 import { LimitKeys } from 'common';
-import { dollarFormat } from 'modules/utils/helpers';
 import { FormikCheckbox } from 'components/forms';
 import { useDisclosure, useGeneralQuoteDisclosure } from 'hooks';
+import { dollarFormat } from 'modules/utils/helpers';
+import { FloodValues } from 'views/SubmissionNew';
 
 // TODO: generalize component
 
@@ -27,22 +27,22 @@ interface Detail {
   valueKey: LimitKeys | 'deductible'; //  keyof NestedLimits | 'deductible'
 }
 
-export const policyDetails: Detail[] = [
+const policyDetails: Detail[] = [
   {
     title: 'A: Building Coverage Limit',
-    valueKey: 'limitA', // 'building',
+    valueKey: 'limitA',
   },
   {
     title: 'B: Additional Structures Coverage Limit',
-    valueKey: 'limitB', // 'structures',
+    valueKey: 'limitB',
   },
   {
     title: 'C: Contents Coverage Limit',
-    valueKey: 'limitC', // 'contents',
+    valueKey: 'limitC',
   },
   {
     title: 'D: Expenses Coverage Limit',
-    valueKey: 'limitD', // 'additional',
+    valueKey: 'limitD',
   },
   {
     title: 'Deductible',
@@ -190,5 +190,3 @@ export const ReviewStep = () => {
     </Card>
   );
 };
-
-export default ReviewStep;

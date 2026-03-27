@@ -1,26 +1,29 @@
-import { GeoPoint } from 'firebase-admin/firestore';
 import {
-  AmendmentTransaction,
-  BaseTransaction,
   Basement,
   BillingEntity,
   CBRSDesignation,
-  CancellationReason,
-  DeepNullable,
   FeeItem,
   FloodZone,
   ILocation,
   ILocationPolicy,
+  PriorLossCount,
+  Product,
+  RatingPropertyData,
+  State,
+  TaxItem,
+  Totals,
+} from '@idemand/common';
+import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
+import {
+  AmendmentTransaction,
+  BaseTransaction,
+  CancellationReason,
+  DeepNullable,
   Nullable,
   OffsetTransaction,
   OffsetTrxType,
   PremTrxType,
   PremiumTransaction,
-  PriorLossCount,
-  Product,
-  RatingPropertyData,
-  TaxItem,
-  Totals,
   Transaction,
   extractNumber,
   extractNumberNeg,
@@ -125,7 +128,23 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       value: extractNumberNeg(row.billingEntitySurplusLinesTax),
       rate: 0, // TODO: fix
       subjectBase: ['premium'], // TODO: fix
+      subjectBaseAmount: 0, // TODO: fix
       resultRoundType: 'nearest',
+      taxId: '', // TODO: fix type
+      taxCalcId: '', // TODO
+      state: row.homeState as State,
+      refundable: true,
+      transactionTypes: [
+        'new',
+        'endorsement',
+        'amendment',
+        'cancellation',
+        'flat_cancel',
+        'reinstatement',
+        'renewal',
+      ],
+      expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+      calcDate: Timestamp.now(),
     });
   }
   if (row.billingEntitySurplusLinesRegulatoryFee) {
@@ -134,19 +153,37 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       value: extractNumberNeg(row.billingEntitySurplusLinesRegulatoryFee),
       rate: 0, // TODO: fix
       subjectBase: ['premium'], // TODO: fix
+      subjectBaseAmount: 0, // TODO: fix
       resultRoundType: 'nearest',
+      taxId: '', // TODO: fix type
+      taxCalcId: '', // TODO
+      state: row.homeState as State,
+      refundable: true,
+      transactionTypes: [
+        'new',
+        'endorsement',
+        'amendment',
+        'cancellation',
+        'flat_cancel',
+        'reinstatement',
+        'renewal',
+      ],
+      expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+      calcDate: Timestamp.now(),
     });
   }
   if (row.billingEntityInspectionFee) {
     billingEntityFees.push({
       displayName: 'Inspection Fee',
       value: extractNumberNeg(row.billingEntityInspectionFee),
+      refundable: false,
     });
   }
   if (row.billingEntityMgaFee) {
     billingEntityFees.push({
       displayName: 'MGA Fee',
       value: extractNumberNeg(row.billingEntityMgaFee),
+      refundable: true,
     });
   }
   // TODO: billing entity totals (issues getting all fees/taxes ?? need to use same format as policy import ??)
@@ -279,6 +316,19 @@ function csvRowCommon(row: TrxRow): DeepNullable<Omit<BaseTransaction, 'metadata
     bookingDate: csvCellToTimestamp(row.bookingDate),
     issuingCarrier: row.issuingCarrier || null,
     namedInsured: row.namedInsured || null, // TODO: reusable func for getting address from csv
+    // TODO: agent details in upload (or just agent ID and look up agent info / agency info ??)
+    agent: {
+      name: null, // row.agentName || null,
+      email: null,
+      phone: null,
+      userId: null,
+    },
+    agency: {
+      name: null,
+      orgId: null,
+      stripeAccountId: null, // TODO: fix (loop up ??)
+      address: null,
+    },
     mailingAddress: {
       addressLine1: row.mailingAddressLine1 || null,
       addressLine2: row.mailingAddressLine2 || '',

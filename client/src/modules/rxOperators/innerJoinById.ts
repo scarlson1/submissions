@@ -50,6 +50,7 @@ export const populateById = <JoinKey extends string, T = DocumentData, K = Docum
           collectionData = data; // as T[]; // as any
 
           const reads$: Observable<K | {}>[] = [];
+          // const reads$: Observable<K | undefined>[] = []; // | Observable<{}>
           for (const doc of collectionData) {
             // Push doc read to Array
             // only get docs where shared key:value pair in both collections
@@ -68,6 +69,7 @@ export const populateById = <JoinKey extends string, T = DocumentData, K = Docum
                 doc[docIdField]
               ) as DocumentReference<K>;
 
+              // @ts-ignore TODO: fix type
               reads$.push(docData(joinDocRef));
             } else {
               reads$.push(of({}));
@@ -93,8 +95,8 @@ export const populateById = <JoinKey extends string, T = DocumentData, K = Docum
           // }`;
 
           return collectionData.map((v, i) => {
-            // @ts-ignore
-            if (joins[i]) totalJoins += joins[i]?.length || 0;
+            // if (joins[i]) totalJoins += joins[i].length || 0;
+            if (joins[i]) totalJoins++;
             return { ...v, [keyName]: joins[i] || null };
           });
         }),

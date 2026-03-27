@@ -3,6 +3,10 @@ node_modules/
 build/
 dist/
 lib/
+isolate/
+
+common
+
 <<<<<<< HEAD
 =======
 functions/dist/
@@ -33,7 +37,7 @@ ui-debug.log*
 **/.runtimeconfig.json
 **/package-lock.json
 # keep the root package-lock so that tools are consistent
-!/package-lock.json
+# !/package-lock.json
 **/ui-debug.log
 **/database-debug.log
 **/firebase-debug.log
@@ -43,4 +47,8 @@ ui-debug.log*
 .firebase/*
 
 .env*.local
-emulator-data/*
+emulator-data
+typesense-data/
+
+# switched to pnpm (ignore npm lock files)
+package-lock.json
