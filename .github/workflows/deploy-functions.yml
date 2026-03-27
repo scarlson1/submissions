@@ -20,8 +20,8 @@ jobs:
       shared: ${{ steps.filter.outputs.shared }}
     steps:
       - uses: actions/checkout@v4
-        # with:
-        #   fetch-depth: 2 # Required for accurate diffing
+        with:
+          fetch-depth: 5 # Required for accurate diffing
       - uses: dorny/paths-filter@v4
         id: filter
         with:
@@ -88,7 +88,7 @@ jobs:
         run: pnpm build --filter functions
 
       - name: deploy-auth-fns
-        if: steps.filter.outputs.auth == 'true'
+        if: needs.filter.outputs.auth == 'true'
         run: npx firebase deploy --only functions:auth
 
 #   deploy-auth-fns:
