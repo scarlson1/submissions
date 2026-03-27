@@ -29,6 +29,7 @@ export default async (event: AuthBlockingEvent) => {
   const db = getFirestore();
   const user = event.data;
   info(`CREATE USER (UID: ${user.uid} | TENANT ID: ${user.tenantId})`, user);
+  console.log('test deploy');
 
   if (!user.email) {
     throw new HttpsError(
