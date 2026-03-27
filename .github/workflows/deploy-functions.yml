@@ -107,7 +107,7 @@ jobs:
         run: pnpm --filter functions build
 
       - name: Deploy auth
-        if: needs.detect-changes.outputs.auth == 'true' || needs.detect-changes.outputs.shared == 'true'
+        if: needs.detect-changes.outputs.auth == 'true' || needs.detect-changes.outputs.shared == 'true' || 'true' == 'true'
         run: pnpm exec firebase deploy --only functions:auth
 
       #   - name: Deploy callables
