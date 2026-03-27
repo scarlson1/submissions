@@ -125,6 +125,15 @@ jobs:
       TYPESENSE_HOST: ${{ vars.TYPESENSE_HOST }}
       TYPESENSE_PORT: ${{ vars.TYPESENSE_PORT }}
       TYPESENSE_PROTOCOL: ${{ vars.TYPESENSE_PROTOCOL }}
+      PUBSUB_EMULATOR_HOST: ${{ vars.PUBSUB_EMULATOR_HOST }}
+      QUICKBOOKS_CLIENT_ID: ${{ vars.QUICKBOOKS_CLIENT_ID }}
+      FLOOD_MAX_LIMIT_A: ${{ vars.FLOOD_MAX_LIMIT_A }}
+      FLOOD_MIN_LIMIT_A: ${{ vars.FLOOD_MIN_LIMIT_A }}
+      FLOOD_MAX_LIMIT_B_C_D: ${{ vars.FLOOD_MAX_LIMIT_B_C_D }}
+      FLOOD_MIN_DEDUCTIBLE: ${{ vars.FLOOD_MIN_DEDUCTIBLE }}
+      DEFAULT_COMMISSION_AS_INT: ${{ vars.DEFAULT_COMMISSION_AS_INT }}
+      CARD_FEE_PCT: ${{ vars.CARD_FEE_PCT }}
+      EMULATORS: ${{ vars.EMULATORS }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -201,6 +210,15 @@ jobs:
           TYPESENSE_HOST=${{ vars.TYPESENSE_HOST }}
           TYPESENSE_PORT=${{ vars.TYPESENSE_PORT }}
           TYPESENSE_PROTOCOL=${{ vars.TYPESENSE_PROTOCOL }}
+          PUBSUB_EMULATOR_HOST=${{ vars.PUBSUB_EMULATOR_HOST }}
+          QUICKBOOKS_CLIENT_ID=${{ vars.QUICKBOOKS_CLIENT_ID }}
+          FLOOD_MAX_LIMIT_A=${{ vars.FLOOD_MAX_LIMIT_A }}
+          FLOOD_MIN_LIMIT_A=${{ vars.FLOOD_MIN_LIMIT_A }}
+          FLOOD_MAX_LIMIT_B_C_D=${{ vars.FLOOD_MAX_LIMIT_B_C_D }}
+          FLOOD_MIN_DEDUCTIBLE=${{ vars.FLOOD_MIN_DEDUCTIBLE }}
+          DEFAULT_COMMISSION_AS_INT=${{ vars.DEFAULT_COMMISSION_AS_INT }}
+          CARD_FEE_PCT=${{ vars.CARD_FEE_PCT }}
+          EMULATORS=${{ vars.EMULATORS }}
           EOF
 
       - name: Set Project Alias
