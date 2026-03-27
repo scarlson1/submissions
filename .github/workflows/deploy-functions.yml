@@ -154,7 +154,7 @@ jobs:
           cat > functions/.env.${{ vars.FIREBASE_PROJECT_ID_DEV }} << EOF
           SWISS_RE_CLIENT_ID=${{ secrets.SWISS_RE_CLIENT_ID }}
           SWISS_RE_CLIENT_SECRET=${{ secrets.SWISS_RE_CLIENT_SECRET }}
-          FIREBASE_PROJECT: ${{ vars.FIREBASE_PROJECT_ID_DEV }}
+          FIREBASE_PROJECT=${{ vars.FIREBASE_PROJECT_ID_DEV }}
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
           RESEND_SECRET=${{ secrets.RESEND_SECRET }}
           EMAIL_VERIFICATION_KEY=${{ secrets.EMAIL_VERIFICATION_KEY }}
