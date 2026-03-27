@@ -8,7 +8,6 @@ import {
   stripeSecretKey,
   transfersCollection,
   type Receivable,
-  type UpdateData,
 } from '../../common/index.js';
 import { getQueryData } from '../../modules/db/utils.js';
 import { getStripe } from '../../services/stripe.js';
