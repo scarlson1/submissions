@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'functions/**'
-      - '.github/workflows/firebase-deploy.yml'
+      - '.github/workflows/deploy-functions.yml'
 
 jobs:
   detect-changes:
