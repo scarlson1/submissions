@@ -75,7 +75,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY_DEV }}
-      #   RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       RESEND_SECRET: ${{ secrets.RESEND_SECRET }}
       EMAIL_VERIFICATION_KEY: ${{ secrets.EMAIL_VERIFICATION_KEY }}
       SWISS_RE_CLIENT_ID: ${{ secrets.SWISS_RE_CLIENT_ID }}
@@ -160,37 +159,14 @@ jobs:
       - name: Write env file
         run: |
           cat > functions/.env.${{ vars.FIREBASE_PROJECT_ID_DEV }} << EOF
-          SWISS_RE_CLIENT_ID=${{ secrets.SWISS_RE_CLIENT_ID }}
-          SWISS_RE_CLIENT_SECRET=${{ secrets.SWISS_RE_CLIENT_SECRET }}
-          RESEND_SECRET=${{ secrets.RESEND_SECRET }}
-          EMAIL_VERIFICATION_KEY=${{ secrets.EMAIL_VERIFICATION_KEY }}
-          SWISS_RE_SUBSCRIPTION_KEY=${{ secrets.SWISS_RE_SUBSCRIPTION_KEY }}
           ENCODED_EPAY_AUTH=${{ secrets.ENCODED_EPAY_AUTH }}
-          SIGN_NOW_CREDS=${{ secrets.SIGN_NOW_CREDS }}
-          SIGN_NOW_USER_CREDS=${{ secrets.SIGN_NOW_USER_CREDS }}
-          SPATIALKEY_USER_API_KEY=${{ secrets.SPATIALKEY_USER_API_KEY }}
-          SPATIALKEY_ORG_API_KEY=${{ secrets.SPATIALKEY_ORG_API_KEY }}
-          SPATIALKEY_ORG_SECRET_KEY=${{ secrets.SPATIALKEY_ORG_SECRET_KEY }}
-          ATTOM_API_KEY=${{ secrets.ATTOM_API_KEY }}
           VERISK_CREDS_DEMO=${{ secrets.VERISK_CREDS_DEMO }}
-          FB_AUTH_HASH_CONFIG=${{ secrets.FB_AUTH_HASH_CONFIG }}
-          TYPESENSE_ADMIN_KEY=${{ secrets.TYPESENSE_ADMIN_KEY }}
-          TYPESENSE_IDEMAND_ADMIN_SEARCH_KEY=${{ secrets.TYPESENSE_IDEMAND_ADMIN_SEARCH_KEY }}
-          TYPESENSE_USER_SEARCH_KEY=${{ secrets.TYPESENSE_USER_SEARCH_KEY }}
-          GOOGLE_BACKEND_GEO_KEY=${{ secrets.GOOGLE_BACKEND_GEO_KEY }}
-          EXPORT_SDK_KEY=${{ secrets.EXPORT_SDK_KEY }}
-          GPXZ_KEY=${{ secrets.GPXZ_KEY }}
-          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
-          STRIPE_ENDPOINT_SECRET=${{ secrets.STRIPE_ENDPOINT_SECRET }}
-          QUICKBOOKS_CLIENT_SECRET=${{ secrets.QUICKBOOKS_CLIENT_SECRET }}
-          RENTCAST_KEY=${{ secrets.RENTCAST_KEY }}
           AUDIENCE=${{ vars.AUDIENCE }}
           HOSTING_BASE_URL=${{ vars.HOSTING_BASE_URL }}
           FUNCTIONS_BASE_URL=${{ vars.FUNCTIONS_BASE_URL }}
           EPAY_HOSTING_BASE_URL=${{ vars.EPAY_HOSTING_BASE_URL }}
           EPAY_BASE_URL=${{ vars.EPAY_BASE_URL }}
           ATTOM_BASE_URL=${{ vars.ATTOM_BASE_URL }}
-          MAPBOX_PUBLIC_TOKEN=${{ vars.MAPBOX_PUBLIC_TOKEN }}
           COUNTIES_URL=${{ vars.COUNTIES_URL }}
           DEFAULT_FLOOD_ZONE=${{ vars.DEFAULT_FLOOD_ZONE }}
           IDEMAND_ORG_ID=${{ vars.IDEMAND_ORG_ID }}
