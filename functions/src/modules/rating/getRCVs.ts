@@ -1,5 +1,7 @@
 import type { Limits, RCVs } from '../../common/index.js';
 
+// TODO: change to using RCVs from @idemand/common
+
 /**
  * Calculate RCVs for each limit from building RCV & limits
  * @param  {number} replacementCost - Source object to compare newObj against

@@ -3,7 +3,12 @@ import { info } from 'firebase-functions/logger';
 import { capitalize } from 'lodash-es';
 import { extname } from 'path';
 
-import { Address, CompressedAddress, Nullable } from '../common/index.js';
+import {
+  Address,
+  CompressedAddress,
+  Nullable,
+  type Concrete,
+} from '../common/index.js';
 
 export function getFormattedAddress(addr: Nullable<Address>) {
   let formatted = `${addr?.addressLine1 || ''}`;
@@ -15,7 +20,9 @@ export function getFormattedAddress(addr: Nullable<Address>) {
   return formatted;
 }
 
-export function getFormattedAddressArray(addr: Nullable<Address>): [string, string] {
+export function getFormattedAddressArray(
+  addr: Nullable<Address>,
+): [string, string] {
   let line1 = `${addr?.addressLine1 || ''}`;
   if (addr?.addressLine2) line1 += `, ${addr.addressLine2}`;
   let line2 = `${addr?.city || ''}`;
@@ -25,13 +32,13 @@ export function getFormattedAddressArray(addr: Nullable<Address>): [string, stri
   return [line1, line2];
 }
 
-export function compressAddress(addr: Address): CompressedAddress {
+export function compressAddress(addr: Address): Concrete<CompressedAddress> {
   return {
-    s1: addr.addressLine1 || '',
-    s2: addr.addressLine2 || '',
-    c: addr.city || '',
-    st: addr.state || '',
-    p: addr.postal || '',
+    s1: addr?.addressLine1 || '',
+    s2: addr?.addressLine2 || '',
+    c: addr?.city || '',
+    st: addr?.state || '',
+    p: addr?.postal || '',
   };
 }
 

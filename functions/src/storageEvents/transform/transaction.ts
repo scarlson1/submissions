@@ -12,6 +12,7 @@ import {
   State,
   TaxItem,
   Totals,
+  type RCVs,
 } from '@idemand/common';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import {
@@ -19,26 +20,32 @@ import {
   BaseTransaction,
   CancellationReason,
   DeepNullable,
+  extractNumber,
+  extractNumberNeg,
   Nullable,
   OffsetTransaction,
   OffsetTrxType,
-  PremTrxType,
   PremiumTransaction,
+  PremTrxType,
   Transaction,
-  extractNumber,
-  extractNumberNeg,
 } from '../../common/index.js';
 import { getRCVs } from '../../modules/rating/index.js';
 import { premEndorsementPrevTypes } from '../../pubsub/endorsementListener.js';
 import { TrxRow } from '../models/index.js';
 import { csvCellToTimestamp } from './utils.js';
 
-const offsetTrxTypes: OffsetTrxType[] = ['cancellation', 'endorsement', 'flat_cancel'];
+const offsetTrxTypes: OffsetTrxType[] = [
+  'cancellation',
+  'endorsement',
+  'flat_cancel',
+];
 function isOffsetTrx(row: TrxRow) {
   // @ts-ignore
   const isOffsetType = offsetTrxTypes.includes(row.trxType);
 
-  const termPrem = row.locationTermPremium ? extractNumberNeg(row.locationTermPremium) : 0;
+  const termPrem = row.locationTermPremium
+    ? extractNumberNeg(row.locationTermPremium)
+    : 0;
 
   if (isOffsetType && Math.sign(termPrem) === -1) return true;
   return false;
@@ -48,7 +55,9 @@ function isPremTrx(row: TrxRow) {
   // @ts-ignore
   const isPremType = premEndorsementPrevTypes.includes(row.trxType);
 
-  const termPrem = row.locationTermPremium ? extractNumberNeg(row.locationTermPremium) : 0;
+  const termPrem = row.locationTermPremium
+    ? extractNumberNeg(row.locationTermPremium)
+    : 0;
 
   if (isPremType && Math.sign(termPrem)) return true;
   return false;
@@ -72,30 +81,46 @@ export function transformTrxRow(row: TrxRow): TrxTransformResult {
 
 // TODO: create abstract mapping config that checks for value, then returns value (passed through optional parsing function), else null ??
 
-function csvRowToOffsetTrx(row: TrxRow): DeepNullable<Omit<OffsetTransaction, 'metadata'>> {
+function csvRowToOffsetTrx(
+  row: TrxRow,
+): DeepNullable<Omit<OffsetTransaction, 'metadata'>> {
   return {
     ...csvRowCommon(row),
     trxType: row.trxType as OffsetTrxType,
     trxInterfaceType: 'offset',
     insuredLocation: csvRowToInsuredLocation(row) as ILocation,
-    termPremium: row.locationTermPremium ? extractNumberNeg(row.locationTermPremium) : null,
-    MGACommission: row.mgaCommission ? extractNumberNeg(row.mgaCommission) : null,
-    MGACommissionPct: row.mgaCommissionPct ? extractNumberNeg(row.mgaCommissionPct) : null,
-    netDWP: row.netDirectWrittenPremium ? extractNumberNeg(row.netDirectWrittenPremium) : null,
+    termPremium: row.locationTermPremium
+      ? extractNumberNeg(row.locationTermPremium)
+      : null,
+    MGACommission: row.mgaCommission
+      ? extractNumberNeg(row.mgaCommission)
+      : null,
+    MGACommissionPct: row.mgaCommissionPct
+      ? extractNumberNeg(row.mgaCommissionPct)
+      : null,
+    netDWP: row.netDirectWrittenPremium
+      ? extractNumberNeg(row.netDirectWrittenPremium)
+      : null,
     dailyPremium: row.dailyPremium ? extractNumberNeg(row.dailyPremium) : null,
     netErrorAdj: row.netErrorAdj ? extractNumberNeg(row.netErrorAdj) : null,
-    surplusLinesTax: row.surplusLinesTax ? extractNumberNeg(row.surplusLinesTax) : null,
+    surplusLinesTax: row.surplusLinesTax
+      ? extractNumberNeg(row.surplusLinesTax)
+      : null,
     surplusLinesRegulatoryFee: row.surplusLinesRegulatoryFee
       ? extractNumberNeg(row.surplusLinesRegulatoryFee)
       : null,
     MGAFee: row.mgaFee ? extractNumberNeg(row.mgaFee) : null,
-    inspectionFee: row.inspectionFee ? extractNumberNeg(row.inspectionFee) : null,
+    inspectionFee: row.inspectionFee
+      ? extractNumberNeg(row.inspectionFee)
+      : null,
     cancelReason: (row.cancelReason as CancellationReason) || null,
     previousPremiumTrxId: row.previousPremiumTrxId || '',
   };
 }
 
-function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 'metadata'>> {
+function csvRowToPremiumTrx(
+  row: TrxRow,
+): DeepNullable<Omit<PremiumTransaction, 'metadata'>> {
   const limits = {
     limitA: row.limitA ? extractNumber(row.limitA) : 0,
     limitB: row.limitB ? extractNumber(row.limitB) : 0,
@@ -188,10 +213,14 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
   }
   // TODO: billing entity totals (issues getting all fees/taxes ?? need to use same format as policy import ??)
   const billingEntityTotals: Nullable<Totals> = {
-    termPremium: row.billingEntityTermPremium ? extractNumber(row.billingEntityTermPremium) : null,
+    termPremium: row.billingEntityTermPremium
+      ? extractNumber(row.billingEntityTermPremium)
+      : null,
     taxes: billingEntityTaxes,
     fees: billingEntityFees,
-    price: row.billingEntityPrice ? extractNumber(row.billingEntityPrice) : null,
+    price: row.billingEntityPrice
+      ? extractNumber(row.billingEntityPrice)
+      : null,
   };
 
   return {
@@ -205,28 +234,54 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
     TIV,
     RCVs,
     premiumCalcData: {
-      MGACommission: row.mgaCommission ? extractNumberNeg(row.mgaCommission) : null,
-      MGACommissionPct: row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null,
+      MGACommission: row.mgaCommission
+        ? extractNumberNeg(row.mgaCommission)
+        : null,
+      MGACommissionPct: row.mgaCommissionPct
+        ? extractNumber(row.mgaCommissionPct)
+        : null,
       // TODO: rename annualPremium --> annualPremium
-      annualPremium: row.locationAnnualPremium ? extractNumberNeg(row.locationAnnualPremium) : null,
+      annualPremium: row.locationAnnualPremium
+        ? extractNumberNeg(row.locationAnnualPremium)
+        : null,
       techPremium: {
-        inland: row.techPremiumInland ? extractNumber(row.techPremiumInland) : null,
-        surge: row.techPremiumSurge ? extractNumber(row.techPremiumSurge) : null,
-        tsunami: row.techPremiumTsunami ? extractNumber(row.techPremiumTsunami) : null,
+        inland: row.techPremiumInland
+          ? extractNumber(row.techPremiumInland)
+          : null,
+        surge: row.techPremiumSurge
+          ? extractNumber(row.techPremiumSurge)
+          : null,
+        tsunami: row.techPremiumTsunami
+          ? extractNumber(row.techPremiumTsunami)
+          : null,
       },
-      provisionalPremium: row.provisionalPremium ? extractNumberNeg(row.provisionalPremium) : null,
+      provisionalPremium: row.provisionalPremium
+        ? extractNumberNeg(row.provisionalPremium)
+        : null,
     },
     locationAnnualPremium: row.locationAnnualPremium
       ? extractNumberNeg(row.locationAnnualPremium)
       : null,
-    termPremium: row.locationTermPremium ? extractNumberNeg(row.locationTermPremium) : null,
-    MGACommission: row.mgaCommission ? extractNumberNeg(row.mgaCommission) : null,
-    MGACommissionPct: row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null,
-    netDWP: row.netDirectWrittenPremium ? extractNumberNeg(row.netDirectWrittenPremium) : null,
+    termPremium: row.locationTermPremium
+      ? extractNumberNeg(row.locationTermPremium)
+      : null,
+    MGACommission: row.mgaCommission
+      ? extractNumberNeg(row.mgaCommission)
+      : null,
+    MGACommissionPct: row.mgaCommissionPct
+      ? extractNumber(row.mgaCommissionPct)
+      : null,
+    netDWP: row.netDirectWrittenPremium
+      ? extractNumberNeg(row.netDirectWrittenPremium)
+      : null,
     dailyPremium: row.dailyPremium ? extractNumberNeg(row.dailyPremium) : null,
-    termProratedPct: row.termProratedPct ? extractNumber(row.termProratedPct) : null,
+    termProratedPct: row.termProratedPct
+      ? extractNumber(row.termProratedPct)
+      : null,
     netErrorAdj: row.netErrorAdj ? extractNumberNeg(row.netErrorAdj) : 0,
-    surplusLinesTax: row.surplusLinesTax ? extractNumberNeg(row.surplusLinesTax) : 0,
+    surplusLinesTax: row.surplusLinesTax
+      ? extractNumberNeg(row.surplusLinesTax)
+      : 0,
     surplusLinesRegulatoryFee: row.surplusLinesRegulatoryFee
       ? extractNumberNeg(row.surplusLinesRegulatoryFee)
       : 0,
@@ -235,12 +290,18 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
     billingEntityId,
     billingEntity,
     billingEntityTotals,
-    otherInterestedParties: row.otherInterestedParties ? row.otherInterestedParties.split(',') : [],
-    additionalNamedInsured: row.additionalNamedInsured ? row.additionalNamedInsured.split(',') : [],
+    otherInterestedParties: row.otherInterestedParties
+      ? row.otherInterestedParties.split(',')
+      : [],
+    additionalNamedInsured: row.additionalNamedInsured
+      ? row.additionalNamedInsured.split(',')
+      : [],
   };
 }
 
-function csvRowToAmendmentTrx(row: TrxRow): DeepNullable<Omit<AmendmentTransaction, 'metadata'>> {
+function csvRowToAmendmentTrx(
+  row: TrxRow,
+): DeepNullable<Omit<AmendmentTransaction, 'metadata'>> {
   return {
     ...csvRowCommon(row),
     trxType: 'amendment',
@@ -254,7 +315,9 @@ function csvRowToAmendmentTrx(row: TrxRow): DeepNullable<Omit<AmendmentTransacti
   };
 }
 
-function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocationPolicy, 'metadata'>> {
+function csvRowToInsuredLocation(
+  row: TrxRow,
+): DeepNullable<Omit<ILocationPolicy, 'metadata'>> {
   const lat = row.latitude ? extractNumberNeg(row.latitude) : null;
   const lng = row.longitude ? extractNumberNeg(row.longitude) : null;
   const coordinates = lat && lng ? new GeoPoint(lat, lng) : null;
@@ -267,7 +330,14 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocationPolicy
   };
 
   const TIV = Object.values(limits).reduce((acc, curr) => acc + curr, 0);
-  const RCVs = getRCVs(extractNumber(row.replacementCost || '0'), limits);
+  let rawRCVs = getRCVs(extractNumber(row.replacementCost || '0'), limits);
+  const RCVs = {
+    total: rawRCVs.total ?? null,
+    building: rawRCVs.building ?? null,
+    otherStructures: rawRCVs.otherStructures ?? null,
+    contents: rawRCVs.contents ?? null,
+    BI: rawRCVs.BI ?? null,
+  } as DeepNullable<RCVs>;
 
   return {
     parentType: 'policy',
@@ -282,8 +352,12 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocationPolicy
     },
     coordinates,
     geoHash: null,
-    annualPremium: row.locationAnnualPremium ? extractNumber(row.locationAnnualPremium) : null,
-    termPremium: row.locationTermPremium ? extractNumber(row.locationTermPremium) : null,
+    annualPremium: row.locationAnnualPremium
+      ? extractNumber(row.locationAnnualPremium)
+      : null,
+    termPremium: row.locationTermPremium
+      ? extractNumber(row.locationTermPremium)
+      : null,
     termDays: null, // TODO: calc term days from eff and exp dates
     limits,
     TIV,
@@ -293,7 +367,9 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocationPolicy
     additionalInsureds: [], // TODO
     mortgageeInterest: [],
     ratingDocId: row.ratingDocId || null,
-    ratingPropertyData: csvRatingPropertyData(row) as Nullable<RatingPropertyData>,
+    ratingPropertyData: csvRatingPropertyData(
+      row,
+    ) as Nullable<RatingPropertyData>,
     effectiveDate: null,
     expirationDate: null,
     cancelEffDate: null,
@@ -305,7 +381,9 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocationPolicy
   };
 }
 
-function csvRowCommon(row: TrxRow): DeepNullable<Omit<BaseTransaction, 'metadata' | 'trxType'>> {
+function csvRowCommon(
+  row: TrxRow,
+): DeepNullable<Omit<BaseTransaction, 'metadata' | 'trxType'>> {
   return {
     product: (row.product as Product) || null,
     policyId: row.policyId || null,
@@ -349,10 +427,14 @@ function csvRowCommon(row: TrxRow): DeepNullable<Omit<BaseTransaction, 'metadata
 // TODO: zod parse instead of "as" assertions
 function csvRatingPropertyData(row: TrxRow) {
   return {
-    replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : null,
+    replacementCost: row.replacementCost
+      ? extractNumber(row.replacementCost)
+      : null,
     CBRSDesignation: (row.cbrsDesignation as CBRSDesignation) || null,
     basement: (row.basement as Basement) || null,
-    distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : null,
+    distToCoastFeet: row.distToCoastFeet
+      ? extractNumber(row.distToCoastFeet)
+      : null,
     floodZone: (row.floodZone as FloodZone) || null,
     numStories: row.numStories ? extractNumber(row.numStories) : null,
     propertyCode: row.propertyCode || null,

@@ -17,7 +17,10 @@ import { sumFeesByType } from '../taxes/index.js';
 
 // TODO: move to taxes folder ??
 
-export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItem, 'fixedFee' | 'noFee'>, number>;
+export type SubjectBaseKeyVal = Record<
+  Exclude<SubjectBaseItem, 'fixedFee' | 'noFee'>,
+  number
+>;
 
 interface StateTaxRequest extends SubjectBaseKeyVal {
   state: string;
@@ -38,8 +41,10 @@ interface StateTaxRequest extends SubjectBaseKeyVal {
 //   expirationDate: string | null;
 // }
 
-interface TaxResLineItem
-  extends Omit<Tax, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
+interface TaxResLineItem extends Omit<
+  Tax,
+  'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'
+> {
   displayName: TaxItemName;
   taxBaseAmount: number | null; // null if fixed rate ($10)
   rate: number | null; // null if fixed rate ($10)
@@ -58,7 +63,7 @@ export async function fetchTaxes(
   quote: Quote,
   transactionType: TransactionType,
   effDate?: Date,
-  stripeCustomerId?: string
+  stripeCustomerId?: string,
 ) {
   const fees = quote?.fees;
   const state = quote?.homeState;
@@ -91,10 +96,10 @@ export async function fetchTaxes(
   };
   if (effDate) body['effectiveDate'] = effDate;
 
-  const { data } = await axios.post<StateTaxRequest, AxiosResponse<StateTaxResponse>>(
-    `${submissionsApiBaseURL.value()}/state-tax`,
-    body
-  );
+  const { data } = await axios.post<
+    StateTaxRequest,
+    AxiosResponse<StateTaxResponse>
+  >(`${submissionsApiBaseURL.value()}/state-tax`, body);
 
   info('TAX RES: ', data);
 
@@ -102,7 +107,7 @@ export async function fetchTaxes(
   if (data && data.lineItems?.length > 0) {
     newTaxes = data.lineItems.map((t) => ({
       state: t.state,
-      displayName: t.displayName || '',
+      displayName: t.displayName,
       rate: t.rate || t.value,
       value: t.value,
       subjectBase: t.subjectBase || [],
@@ -113,7 +118,9 @@ export async function fetchTaxes(
       resultRoundType: t.resultRoundType,
       taxId: t.taxId,
       transactionTypes: t.transactionTypes,
-      expirationDate: t.expirationDate ? Timestamp.fromDate(new Date('01/01/2050')) : null,
+      expirationDate: t.expirationDate
+        ? Timestamp.fromDate(new Date('01/01/2050'))
+        : null,
       calcDate: Timestamp.now(), // t.calcDate || Timestamp.now(),
       taxCalcId: t.taxCalcId || '',
     }));

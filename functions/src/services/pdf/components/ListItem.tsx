@@ -11,12 +11,20 @@ interface ListItemProps {
 
 export const ListItem = ({ content, styles }: ListItemProps) => {
   let stylesArr: Style[] = [];
-  if (styles) stylesArr = styles && Array.isArray(styles) ? styles : [styles];
+  if (styles)
+    stylesArr =
+      styles && Array.isArray(styles) ? styles : ([styles] as Style[]);
 
   return (
     <View style={[rootStyles.listItem]}>
-      <Text style={[rootStyles.listItemBullet]}>•</Text>
-      <Text style={[rootStyles.paragraph, rootStyles.textPrimary, ...stylesArr]}>{content}</Text>
+      <Text style={[rootStyles.listItemBullet] as any}>•</Text>
+      <Text
+        style={
+          [rootStyles.paragraph, rootStyles.textPrimary, ...stylesArr] as any
+        }
+      >
+        {content}
+      </Text>
       {/* {children} */}
     </View>
   );
@@ -27,7 +35,10 @@ interface InsetListItemProps {
   children: JSX.Element;
 }
 
-export const InsetWrapper = ({ insetLevel = 1, children }: InsetListItemProps) => {
+export const InsetWrapper = ({
+  insetLevel = 1,
+  children,
+}: InsetListItemProps) => {
   const ml = insetLevel * 20;
   return <View style={{ marginLeft: ml }}>{children}</View>;
 };
@@ -39,13 +50,22 @@ interface OrderedListItemProps {
   noParens?: boolean;
 }
 
-export const OrderedListItem = ({ number, content, styles, noParens }: OrderedListItemProps) => {
+export const OrderedListItem = ({
+  number,
+  content,
+  styles,
+  noParens,
+}: OrderedListItemProps) => {
   let stylesArr: Style[] = [];
-  if (styles) stylesArr = styles && Array.isArray(styles) ? styles : [styles];
+  if (styles)
+    stylesArr =
+      styles && Array.isArray(styles) ? styles : ([styles] as Style[]);
 
   return (
     <View style={[rootStyles.listItem]}>
-      <Text style={[rootStyles.listItemBullet]}>{`${number}${noParens ? '' : ')'}`}</Text>
+      <Text
+        style={[rootStyles.listItemBullet]}
+      >{`${number}${noParens ? '' : ')'}`}</Text>
       <Text
         style={[
           rootStyles.paragraph,

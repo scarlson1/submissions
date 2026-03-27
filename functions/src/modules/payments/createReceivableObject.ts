@@ -29,8 +29,9 @@ export const createReceivableObject = async (
     billingEntityLocations,
     dueDate,
   } = params;
-  const customer = await stripe.customers.retrieve(cusId);
-  verify(!customer.deleted, `stripe customer deleted ${cusId}`);
+  const customerRes = await stripe.customers.retrieve(cusId);
+  verify(!customerRes.deleted, `stripe customer deleted ${cusId}`);
+  const customer = customerRes as Stripe.Customer;
 
   const lineItems = billingEntityTotalsToLineItems(totals, policyId);
   // console.log('billing entity lineItems: ', lineItems);

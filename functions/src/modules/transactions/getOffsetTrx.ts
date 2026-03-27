@@ -1,9 +1,18 @@
 import { Policy, WithId } from '@idemand/common';
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
-import { CancellationReason, OffsetTransaction, PremiumTransaction } from '../../common/index.js';
+import {
+  CancellationReason,
+  OffsetTransaction,
+  PremiumTransaction,
+} from '../../common/index.js';
 import { getTrxTaxesAndFees } from '../taxes/index.js';
-import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils.js';
+import {
+  getBookingDate,
+  getMGAComm,
+  getNetDWP,
+  getOffsetTermPremium,
+} from './utils.js';
 
 // TODO: cancelReason - some subject to minEarnedPremium
 
@@ -23,9 +32,12 @@ export const getOffsetTrx = (
   trxEffDate: Timestamp,
   eventId: string,
   trxType: OffsetTransaction['trxType'],
-  cancelReason: CancellationReason | null = null
+  cancelReason: CancellationReason | null = null,
 ): OffsetTransaction => {
-  const bookingDate = getBookingDate(trxEffDate.toMillis(), policy.effectiveDate.toMillis());
+  const bookingDate = getBookingDate(
+    trxEffDate.toMillis(),
+    policy.effectiveDate.toMillis(),
+  );
 
   const trxExpDate = add(trxEffDate.toDate(), { days: 1 });
   const trxDays = 1;
@@ -56,8 +68,24 @@ export const getOffsetTrx = (
     issuingCarrier: prevTrx.issuingCarrier,
     namedInsured: prevTrx.namedInsured,
     mailingAddress: prevTrx.mailingAddress,
-    agent: prevTrx.agent || {}, // TODO: fix agent not being set on CSV imported transactions
-    agency: prevTrx.agency || {},
+    agent: prevTrx.agent || {
+      name: '',
+      email: '',
+      userId: '',
+      phone: '',
+    }, // TODO: fix agent not being set on CSV imported transactions (throw without valid stripeAccountId)
+    agency: prevTrx.agency || {
+      name: '',
+      orgId: '',
+      stripeAccountId: '',
+      address: {
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        postal: '',
+      },
+    },
     homeState: prevTrx.homeState || '',
     locationId: prevTrx.locationId,
     externalId: prevTrx.externalId,

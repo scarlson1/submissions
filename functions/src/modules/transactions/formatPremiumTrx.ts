@@ -21,13 +21,16 @@ export function formatPremiumTrx(
   location: ILocation, // TODO: wrap in WithId ?? in case "locationId" gets removed from interface ??
   ratingData: RatingData,
   trxEffDate: Timestamp,
-  eventId: string
+  eventId: string,
 ): PremiumTransaction {
-  const bookingDate = getBookingDate(trxEffDate.toMillis(), location.effectiveDate.toMillis());
+  const bookingDate = getBookingDate(
+    trxEffDate.toMillis(),
+    location.effectiveDate.toMillis(),
+  );
 
   const policyTermDays = getTermDays(
     policy.effectiveDate?.toDate(),
-    policy.expirationDate?.toDate()
+    policy.expirationDate?.toDate(),
   );
 
   const termProratedPct = getTermProratedPct(policyTermDays, location.termDays);
@@ -36,14 +39,16 @@ export function formatPremiumTrx(
   const { surplusLinesTax, surplusLinesRegulatoryFee, MGAFee, inspectionFee } =
     getTrxTaxesAndFees(policy);
 
-  const billingEntityId = getBillingEntityId(policy, location.locationId) || 'namedInsured';
+  const billingEntityId =
+    getBillingEntityId(policy, location.locationId) || 'namedInsured';
   const billingEntity = getBillingEntityDetails(policy, location.locationId);
-  const billingEntityTotals = getBillingEntityTotals(policy, location.locationId) || null;
+  const billingEntityTotals =
+    getBillingEntityTotals(policy, location.locationId) || null;
 
   return {
     trxType,
     trxInterfaceType: 'premium',
-    product: policy.product || '',
+    product: policy.product || 'flood',
     policyId: policy.id,
     term: policy.term,
     bookingDate,
@@ -77,7 +82,10 @@ export function formatPremiumTrx(
     termPremium: location.termPremium,
     MGACommission: ratingData?.premiumCalcData?.MGACommission,
     MGACommissionPct: ratingData.premiumCalcData?.MGACommissionPct ?? null,
-    netDWP: getNetDWP(location.termPremium, ratingData?.premiumCalcData?.MGACommission || 0),
+    netDWP: getNetDWP(
+      location.termPremium,
+      ratingData?.premiumCalcData?.MGACommission || 0,
+    ),
     netErrorAdj: 0, // TODO: where is this coming from ??
     dailyPremium,
     surplusLinesTax,
@@ -87,8 +95,10 @@ export function formatPremiumTrx(
     billingEntityId,
     billingEntity,
     billingEntityTotals,
-    otherInterestedParties: location.mortgageeInterest?.map((m) => m.name) || [],
-    additionalNamedInsured: location.additionalInsureds?.map((ai) => ai.name) || [],
+    otherInterestedParties:
+      location.mortgageeInterest?.map((m) => m.name) || [],
+    additionalNamedInsured:
+      location.additionalInsureds?.map((ai) => ai.name) || [],
     homeState: policy.homeState || '',
     eventId,
     metadata: {

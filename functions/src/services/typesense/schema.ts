@@ -5,7 +5,10 @@ import { typesenseCollectionPrefix } from '../../common/index.js';
 export const typesenseColName = (colName: Collection) =>
   `${typesenseCollectionPrefix.value()}_${colName}`;
 
-export const usersSchema: CollectionCreateSchema = {
+// type CollectionSchema = BaseCollectionCreateSchema & {}
+// Omit<CollectionCreateSchema, 'src'> & { enable_nested_fields?: boolean };
+
+export const usersSchema: CollectionCreateSchema<{}> = {
   name: typesenseColName(Collection.enum.users),
   enable_nested_fields: true,
   fields: [
@@ -97,7 +100,7 @@ export const usersSchema: CollectionCreateSchema = {
   ],
 };
 
-export const policiesSchema: CollectionCreateSchema = {
+export const policiesSchema: CollectionCreateSchema<{}> = {
   name: typesenseColName(Collection.enum.policies),
   enable_nested_fields: true,
   fields: [
@@ -353,7 +356,7 @@ export const policiesSchema: CollectionCreateSchema = {
   default_sorting_field: 'effectiveDate',
 };
 
-export const quotesSchema: CollectionCreateSchema = {
+export const quotesSchema: CollectionCreateSchema<{}> = {
   name: typesenseColName(Collection.enum.quotes),
   enable_nested_fields: true,
   fields: [
@@ -606,7 +609,7 @@ export const quotesSchema: CollectionCreateSchema = {
   default_sorting_field: 'metadata.created', // 'effectiveDate',
 };
 
-export const submissionsSchema: CollectionCreateSchema = {
+export const submissionsSchema: CollectionCreateSchema<{}> = {
   name: typesenseColName(Collection.enum.submissions),
   enable_nested_fields: true,
   fields: [
@@ -713,7 +716,7 @@ export const submissionsSchema: CollectionCreateSchema = {
   default_sorting_field: 'metadata.created',
 };
 
-export const orgsSchema: CollectionCreateSchema = {
+export const orgsSchema: CollectionCreateSchema<{}> = {
   name: typesenseColName(Collection.enum.organizations),
   enable_nested_fields: true,
   fields: [
@@ -804,7 +807,7 @@ export const orgsSchema: CollectionCreateSchema = {
   ],
 };
 
-export const locationsSchema: CollectionCreateSchema = {
+export const locationsSchema: CollectionCreateSchema<{}> = {
   name: typesenseColName(Collection.enum.locations),
   enable_nested_fields: true,
   fields: [
@@ -951,13 +954,13 @@ export const locationsSchema: CollectionCreateSchema = {
   default_sorting_field: 'metadata.updated',
 };
 
-export const financialTrxSchema: CollectionCreateSchema = {
+export const financialTrxSchema: CollectionCreateSchema<{}> = {
   name: typesenseColName(Collection.enum.financialTransactions),
   enable_nested_fields: true,
   fields: [{ name: '.*', type: 'auto' }],
 };
 
-// export const transactionsSchema: CollectionCreateSchema = {
+// export const transactionsSchema: CollectionCreateSchema<{}> = {
 //   name: typesenseColName(Collection.enum.transactions),
 //   enable_nested_fields: true,
 //   fields: [

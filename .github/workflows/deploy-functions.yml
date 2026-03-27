@@ -102,6 +102,9 @@ jobs:
       - name: Set Project Alias
         run: pnpm exec firebase use ${{ vars.FIREBASE_PROJECT_ID_DEV }} --non-interactive
 
+      - name: Typecheck Functions
+        run: pnpm --filter functions typecheck
+
       # already handled by predeploy build config ??
       - name: Build Functions
         run: pnpm --filter functions build

@@ -1,18 +1,23 @@
-import { ILocation, PolicyLocation } from '@idemand/common';
+import {
+  ILocation,
+  PolicyLocation,
+  type AdditionalInterest,
+  type Address,
+} from '@idemand/common';
 import { isValid } from 'date-fns';
-import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { GeoPoint, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { geohashForLocation } from 'geofire-common';
 import { isFinite, sum } from 'lodash-es';
 import {
-  DraftAddLocationRequest,
-  RatingData,
   changeRequestsCollection,
   defaultFloodZone,
+  DraftAddLocationRequest,
   getReportErrorFn,
   locationsCollection,
   policiesCollection,
+  RatingData,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
@@ -21,8 +26,8 @@ import {
 import { createDocId } from '../modules/db/index.js';
 import { GetPremiumCalcResult } from '../modules/rating/getPremium.js';
 import {
-  GetAALRes,
   calcPolicyPremiumAndTaxes,
+  GetAALRes,
   getAALs,
   getComm,
   getPremium,
@@ -32,7 +37,11 @@ import {
 import { calcTerm } from '../modules/transactions/index.js';
 import { getFEMAFloodZone } from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
-import { compressAddress, isValidCoords, separateAdditionalInterests } from '../utils/index.js';
+import {
+  compressAddress,
+  isValidCoords,
+  separateAdditionalInterests,
+} from '../utils/index.js';
 import { requireAuth, validate } from './utils/index.js';
 
 // TODO: modify function so it can be used for endorsements (use calcLocationChanges or keep separate ??)
@@ -57,7 +66,10 @@ type CalcAddLocationResponse = Pick<
   'locationId' | 'locationChanges' | 'policyChanges' | 'formValues'
 >;
 
-const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationProps>) => {
+const calcAddLocation = async ({
+  data,
+  auth,
+}: CallableRequest<CalcAddLocationProps>) => {
   info(`Calc add location called`, { ...data });
 
   const { requestId, policyId } = data;
@@ -73,17 +85,24 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
 
   const policyRef = policyCol.doc(policyId);
   const changeReqRef = changeRequestCol.doc(requestId);
-  const [policySnap, changeReqSnap] = await Promise.all([policyRef.get(), changeReqRef.get()]);
+  const [policySnap, changeReqSnap] = await Promise.all([
+    policyRef.get(),
+    changeReqRef.get(),
+  ]);
 
   const policy = policySnap.data();
   const changeRequest = changeReqSnap.data();
 
   validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
-  validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
+  validate(
+    changeRequest,
+    'not-found',
+    `change request does not exist (ID: ${requestId})`,
+  );
   validate(
     changeRequest.status === 'draft',
     'failed-precondition',
-    'Change request already submitted. Please create a new one.'
+    'Change request already submitted. Please create a new one.',
   );
 
   try {
@@ -107,22 +126,34 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
     validate(
       replacementCost && typeof replacementCost === 'number',
       'failed-precondition',
-      'invalid replacement cost'
+      'invalid replacement cost',
     );
     validate(numStories, 'failed-precondition', '# Stories required');
     validate(limits, 'failed-precondition', 'limits required');
     validate(deductible, 'failed-precondition', 'deductible required');
-    validate(isValidCoords(coordinates), 'failed-precondition', 'coordinates required');
+    validate(
+      isValidCoords(coordinates),
+      'failed-precondition',
+      'coordinates required',
+    );
     validateLimits(limits);
 
     // prem calc input validation
     validate(address?.state, 'failed-precondition', 'state required');
-    validate(ratingPropertyData.basement, 'failed-precondition', 'basement required');
-    validate(ratingPropertyData.priorLossCount, 'failed-precondition', 'prior loss count required');
+    validate(
+      ratingPropertyData.basement,
+      'failed-precondition',
+      'basement required',
+    );
+    validate(
+      ratingPropertyData.priorLossCount,
+      'failed-precondition',
+      'prior loss count required',
+    );
     validate(
       effectiveDate && isValid(effectiveDate?.toDate()),
       'failed-precondition',
-      'effective date required'
+      'effective date required',
     );
     validate(billingEntityId, 'failed-precondition', 'billing entity required');
 
@@ -139,7 +170,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       policy.commSource,
       policy.agency?.orgId,
       policy.agent?.userId,
-      policy.product
+      policy.product,
     );
     const commissionPct = commData.subproducerCommissionPct || 0.15;
     // need to get location and then fetch rating doc ?? maybe set up commission as private subcollection of policy ??
@@ -169,7 +200,9 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
     validateAALs(AALsRes.AALs);
 
     let floodZone = ratingPropertyData.floodZone;
-    if (!floodZone) floodZone = (await getFEMAFloodZone(coordinates)) || defaultFloodZone.value();
+    if (!floodZone)
+      floodZone =
+        (await getFEMAFloodZone(coordinates)) || defaultFloodZone.value();
 
     validate(floodZone, 'failed-precondition', 'missing flood zone');
 
@@ -188,7 +221,9 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       });
       // TODO: move validation to getPremium function
       const { premiumData } = lcnPremResult;
-      info(`Premium location calc: ${premiumData.annualPremium}`, { lcnPremResult });
+      info(`Premium location calc: ${premiumData.annualPremium}`, {
+        lcnPremResult,
+      });
 
       if (
         !premiumData.annualPremium ||
@@ -231,10 +266,14 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
     const { termPremium, termDays } = calcTerm(
       lcnPremData.annualPremium,
       effectiveDate.toDate(),
-      policy.expirationDate.toDate()
+      policy.expirationDate.toDate(),
     );
 
-    validate(termPremium && termDays, 'internal', 'error calculating location term premium');
+    validate(
+      termPremium && termDays,
+      'internal',
+      'error calculating location term premium',
+    );
 
     // TODO: break here (policy level calc handled in separate function)
 
@@ -256,7 +295,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       newLcnArr,
       policy.homeState,
       policy.taxes,
-      policy.fees
+      policy.fees,
     );
 
     const ratingDocRef = ratingDataCollection(db).doc(createDocId());
@@ -283,16 +322,21 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       },
     };
 
-    const { additionalInsureds, mortgageeInterest } = separateAdditionalInterests(
-      additionalInterests || []
-    );
+    // TODO: fix type
+    const { additionalInsureds, mortgageeInterest } =
+      separateAdditionalInterests(
+        (additionalInterests as any as AdditionalInterest[]) || [],
+      );
 
     const locationData: Omit<ILocation, 'metadata'> = {
       parentType: null,
       ratingDocId: ratingDocRef.id,
-      address,
+      address: address as Address, // TODO: fix type
       coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
-      geoHash: geohashForLocation([coordinates.latitude, coordinates.longitude]),
+      geoHash: geohashForLocation([
+        coordinates.latitude,
+        coordinates.longitude,
+      ]),
       annualPremium: lcnPremData.annualPremium,
       termPremium,
       termDays,
@@ -329,7 +373,9 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       },
       formValues,
     };
-    info(`saving change request location/policy changes...`, { ...calcChangeRequestRes });
+    info(`saving change request location/policy changes...`, {
+      ...calcChangeRequestRes,
+    });
 
     const changeRequestUpdates: Partial<DraftAddLocationRequest> = {
       ...calcChangeRequestRes,
@@ -367,4 +413,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
   }
 };
 
-export default onCallWrapper<CalcAddLocationProps>('calcaddlocation', calcAddLocation);
+export default onCallWrapper<CalcAddLocationProps>(
+  'calcaddlocation',
+  calcAddLocation,
+);

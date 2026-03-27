@@ -9,7 +9,9 @@ import {
 
 const reportErr = getReportErrorFn('handleInvoiceFinalized');
 
-export const handleInvoiceFinalized = async (invoice: Stripe.Invoice) => {
+export const handleInvoiceFinalized = async (
+  invoice: Stripe.Invoice,
+): Promise<UpdateData<Receivable> | void> => {
   try {
     const db = getFirestore();
     const q = receivablesCollection(db)
