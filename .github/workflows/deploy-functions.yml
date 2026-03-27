@@ -7,6 +7,7 @@ on:
     paths:
       - 'functions/**'
       - '.github/workflows/deploy-functions.yml'
+  workflow_dispatch: # adds a "Run workflow" button in the Actions tab
 
 jobs:
   detect-changes:
@@ -103,7 +104,7 @@ jobs:
 
       # already handled by predeploy build config ??
       - name: Build Functions
-        run: pnpm build --filter functions
+        run: pnpm --filter functions build
 
       - name: Deploy auth
         if: needs.detect-changes.outputs.auth == 'true' || needs.detect-changes.outputs.shared == 'true'
