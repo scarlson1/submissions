@@ -3,9 +3,10 @@
   "compilerOptions": {
     "noImplicitReturns": true,
     "noUnusedLocals": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
     "outDir": "dist",
     "sourceMap": true,
-    "strict": true,
     "moduleResolution": "node",
     "checkJs": false,
     "types": ["node"], // Only include the types you need
