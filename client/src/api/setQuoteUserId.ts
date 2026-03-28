@@ -9,5 +9,11 @@ export interface SetQuoteUserIdResponse {
   userId: string | null;
 }
 
-export const setQuoteUserId = (functions: Functions, args: SetQuoteUserIdRequest) =>
-  httpsCallable<SetQuoteUserIdRequest, SetQuoteUserIdResponse>(functions, 'setquoteuserid')(args);
+export const setQuoteUserId = (
+  functions: Functions,
+  args: SetQuoteUserIdRequest,
+) =>
+  httpsCallable<SetQuoteUserIdRequest, SetQuoteUserIdResponse>(
+    functions,
+    'call-setquoteuserid',
+  )(args);

@@ -7,5 +7,5 @@ export interface InitializeFipsResponse {
 export const initializeFipsDb = (functions: Functions) =>
   httpsCallable<unknown, InitializeFipsResponse>(
     functions,
-    'initializefipsfirestoredata',
+    'call-initializefipsfirestoredata',
   )();

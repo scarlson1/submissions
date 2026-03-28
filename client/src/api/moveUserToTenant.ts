@@ -14,8 +14,11 @@ export interface MoveUserToTenantResponse {
   toTenantId: string | null;
 }
 
-export const moveUserToTenant = (functions: Functions, args: MoveUserToTenantRequest) =>
+export const moveUserToTenant = (
+  functions: Functions,
+  args: MoveUserToTenantRequest,
+) =>
   httpsCallable<MoveUserToTenantRequest, MoveUserToTenantResponse>(
     functions,
-    'moveusertotenant'
+    'call-moveusertotenant',
   )(args);

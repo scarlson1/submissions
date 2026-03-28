@@ -2,11 +2,11 @@ import { Functions, httpsCallable } from 'firebase/functions';
 
 import {
   AgencyApprovedProps,
+  BaseSendEmailResponse,
   ContactUsEmailProps,
   NewQuoteEmailProps,
   PolicyDeliveryProps,
   SendEmailRequest,
-  BaseSendEmailResponse,
 } from 'common';
 
 export const sendEmail = (functions: Functions, args: SendEmailRequest) => {
@@ -14,22 +14,22 @@ export const sendEmail = (functions: Functions, args: SendEmailRequest) => {
     case 'agency_approved':
       return httpsCallable<AgencyApprovedProps, BaseSendEmailResponse>(
         functions,
-        'sendagencyapprovednotification'
+        'call-sendagencyapprovednotification',
       )(args);
     case 'quote_notification':
       return httpsCallable<NewQuoteEmailProps, BaseSendEmailResponse>(
         functions,
-        'sendnewquotenotifications'
+        'call-sendnewquotenotifications',
       )(args);
     case 'policy_delivery':
       return httpsCallable<PolicyDeliveryProps, BaseSendEmailResponse>(
         functions,
-        'sendpolicydoc'
+        'call-sendpolicydoc',
       )(args);
     case 'contact_us':
       return httpsCallable<ContactUsEmailProps, BaseSendEmailResponse>(
         functions,
-        'sendcontactemail'
+        'call-sendcontactemail',
       )(args);
   }
 };

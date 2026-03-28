@@ -8,8 +8,11 @@ export interface SendNewQuoteEmailResponse {
   emails: string[];
 }
 
-export const sendNewQuoteNotifications = (functions: Functions, args: SendNewQuoteEmailRequest) =>
+export const sendNewQuoteNotifications = (
+  functions: Functions,
+  args: SendNewQuoteEmailRequest,
+) =>
   httpsCallable<SendNewQuoteEmailRequest, SendNewQuoteEmailResponse>(
     functions,
-    'sendnewquotenotifications'
+    'call-sendnewquotenotifications',
   )(args);

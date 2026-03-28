@@ -13,9 +13,12 @@ export type CalcPolicyCancelChangesResponse = Pick<
 
 export const calcPolicyCancelChanges = (
   functions: Functions,
-  args: CalcPolicyCancelChangesRequest
+  args: CalcPolicyCancelChangesRequest,
 ) =>
-  httpsCallable<CalcPolicyCancelChangesRequest, CalcPolicyCancelChangesResponse>(
+  httpsCallable<
+    CalcPolicyCancelChangesRequest,
+    CalcPolicyCancelChangesResponse
+  >(
     functions,
-    'calcpolicycancelchanges'
+    'call-calcpolicycancelchanges',
   )(args);

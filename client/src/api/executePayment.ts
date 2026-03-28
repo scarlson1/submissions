@@ -11,4 +11,7 @@ export interface ExecutePmtResponse {
 }
 
 export const executePayment = (functions: Functions, args: ExecutePmtRequest) =>
-  httpsCallable<ExecutePmtRequest, ExecutePmtResponse>(functions, 'executepayment')(args);
+  httpsCallable<ExecutePmtRequest, ExecutePmtResponse>(
+    functions,
+    'call-executepayment',
+  )(args);

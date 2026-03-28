@@ -71,7 +71,7 @@ jobs:
       needs.detect-changes.outputs.request == 'true' ||
       needs.detect-changes.outputs.cron == 'true' ||
       needs.detect-changes.outputs.storage == 'true' ||
-      needs.detect-changes.outputs.shared == 'true' || 'true' == 'true'
+      needs.detect-changes.outputs.shared == 'true'
     runs-on: ubuntu-latest
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY_DEV }}
@@ -206,41 +206,41 @@ jobs:
         run: pnpm --filter functions build
 
       - name: Deploy auth
-        if: needs.detect-changes.outputs.auth == 'true' || needs.detect-changes.outputs.shared == 'true' || 'true' == 'true'
+        if: needs.detect-changes.outputs.auth == 'true' || needs.detect-changes.outputs.shared == 'true'
         run: pnpm exec firebase deploy --only functions:auth
 
-      #   - name: Deploy callables
-      #     if: needs.detect-changes.outputs.callables == 'true' || needs.detect-changes.outputs.shared == 'true'
-      #     run: pnpm exec firebase deploy --only functions:call
+      - name: Deploy callables
+        if: needs.detect-changes.outputs.callables == 'true' || needs.detect-changes.outputs.shared == 'true'
+        run: pnpm exec firebase deploy --only functions:call
 
-      #   - name: Deploy firestore functions
-      #     if: needs.detect-changes.outputs.firestore == 'true' || needs.detect-changes.outputs.shared == 'true'
-      #     run: pnpm exec firebase deploy --only functions:firestore
+      - name: Deploy firestore functions
+        if: needs.detect-changes.outputs.firestore == 'true' || needs.detect-changes.outputs.shared == 'true'
+        run: pnpm exec firebase deploy --only functions:firestore
 
-      #   - name: Deploy search sync functions
-      #     if: needs.detect-changes.outputs.search == 'true' || needs.detect-changes.outputs.shared == 'true'
-      #     run: pnpm exec firebase deploy --only functions:search
+      - name: Deploy search sync functions
+        if: needs.detect-changes.outputs.search == 'true' || needs.detect-changes.outputs.shared == 'true'
+        run: pnpm exec firebase deploy --only functions:search
 
-      #   - name: Deploy firestore version functions
-      #     if: needs.detect-changes.outputs.firestore == 'true' || needs.detect-changes.outputs.shared == 'true'
-      #     run: pnpm exec firebase deploy --only functions:version
+      - name: Deploy firestore version functions
+        if: needs.detect-changes.outputs.firestore == 'true' || needs.detect-changes.outputs.shared == 'true'
+        run: pnpm exec firebase deploy --only functions:version
 
-      #   - name: Deploy pubsub functions
-      #     if: needs.detect-changes.outputs.pubsub == 'true' || needs.detect-changes.outputs.shared == 'true'
-      #     run: pnpm exec firebase deploy --only functions:pubsub
+      - name: Deploy pubsub functions
+        if: needs.detect-changes.outputs.pubsub == 'true' || needs.detect-changes.outputs.shared == 'true'
+        run: pnpm exec firebase deploy --only functions:pubsub
 
-      #   - name: Deploy stripe pubsub functions
-      #     if: needs.detect-changes.outputs.stripepubsub == 'true' || needs.detect-changes.outputs.shared == 'true'
-      #     run: pnpm exec firebase deploy --only functions:stripepubsub
+      - name: Deploy stripe pubsub functions
+        if: needs.detect-changes.outputs.stripepubsub == 'true' || needs.detect-changes.outputs.shared == 'true'
+        run: pnpm exec firebase deploy --only functions:stripepubsub
 
-      #   - name: Deploy onRequest functions
-      #     if: needs.detect-changes.outputs.request == 'true' || needs.detect-changes.outputs.shared == 'true'
-      #     run: pnpm exec firebase deploy --only functions:request
+      - name: Deploy onRequest functions
+        if: needs.detect-changes.outputs.request == 'true' || needs.detect-changes.outputs.shared == 'true'
+        run: pnpm exec firebase deploy --only functions:authRequests,functions:authrequeststest,functions:copytaxes,functions:generatepdf,functions:stripe,functions:resend
 
       - name: Deploy scheduled functions
         if: needs.detect-changes.outputs.cron == 'true' || needs.detect-changes.outputs.shared == 'true'
         run: pnpm exec firebase deploy --only functions:cron
 
-    #   - name: Deploy storage functions
-    #     if: needs.detect-changes.outputs.storage == 'true' || needs.detect-changes.outputs.shared == 'true'
-    #     run: pnpm exec firebase deploy --only functions:storage
+      - name: Deploy storage functions
+        if: needs.detect-changes.outputs.storage == 'true' || needs.detect-changes.outputs.shared == 'true'
+        run: pnpm exec firebase deploy --only functions:storage

@@ -11,7 +11,10 @@ export interface AssignQuoteResponse {
 }
 
 export const assignQuote = (functions: Functions, args: AssignQuoteRequest) =>
-  httpsCallable<AssignQuoteRequest, AssignQuoteResponse>(functions, 'assignquote')(args);
+  httpsCallable<AssignQuoteRequest, AssignQuoteResponse>(
+    functions,
+    'call-assignquote',
+  )(args);
 
 // export const assignQuote = httpsCallable<AssignQuoteRequest, AssignQuoteResponse>(
 //   getFunctions(), // functions,

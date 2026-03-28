@@ -12,8 +12,11 @@ export interface AddBillingEntityResponse {
   stripeCustomerId: string;
 }
 
-export const addBillingEntity = (functions: Functions, args: AddBillingEntityRequest) =>
+export const addBillingEntity = (
+  functions: Functions,
+  args: AddBillingEntityRequest,
+) =>
   httpsCallable<AddBillingEntityRequest, AddBillingEntityResponse>(
     functions,
-    'addbillingentity'
+    'call-addbillingentity',
   )(args);
