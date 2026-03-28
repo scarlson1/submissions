@@ -1,17 +1,16 @@
-name: Firebase Hosting Preview
+name: Firebase Hosting Deploy
 
 on:
-  pull_request:
+  push:
     branches:
       - main
+  workflow_dispatch: # "Run workflow" button in the Actions tab
 
 jobs:
-  build_and_preview:
+  build_and_deploy:
     runs-on: ubuntu-latest
     permissions:
-      checks: write
       contents: read
-      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +28,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build client
-        run: pnpm --filter client build:channel:dev
+        run: pnpm use:dev && pnpm --filter client build:dev
         # env:
         # Add any env vars your Vite build needs, e.g.:
         # VITE_API_URL: ${{ vars.VITE_API_URL }}
@@ -39,6 +38,5 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.GCP_SA_KEY_DEV }}
           projectId: ${{ vars.FIREBASE_PROJECT_ID_DEV }}
-          #   target: client
           entryPoint: . # directory containing firebase.json
-          channelId: staging
+          channelId: live
