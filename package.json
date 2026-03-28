@@ -28,6 +28,13 @@
       "firebase-admin": "12.7.0",
       "@google-cloud/firestore": "7.7.0",
       "firebase-functions": "^4.5.0"
+    },
+    "packageExtensions": {
+      "@tanstack/react-query": {
+        "dependencies": {
+          "@tanstack/query-core": "*"
+        }
+      }
     }
   },
   "repository": {
