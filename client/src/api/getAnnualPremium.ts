@@ -49,8 +49,11 @@ export interface GetAnnualPremiumResponse {
   ratingDocId?: string;
 }
 
-export const getAnnualPremium = (functions: Functions, args: GetAnnualPremiumRequest) =>
+export const getAnnualPremium = (
+  functions: Functions,
+  args: GetAnnualPremiumRequest,
+) =>
   httpsCallable<GetAnnualPremiumRequest, GetAnnualPremiumResponse>(
     functions,
-    'getannualpremium'
+    'call-getannualpremium',
   )(args);

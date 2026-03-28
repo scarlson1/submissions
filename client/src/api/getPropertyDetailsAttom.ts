@@ -1,8 +1,17 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import { Address, Coordinates, ElevationResult, Nullable, RatingPropertyData } from 'common/types';
+import {
+  Address,
+  Coordinates,
+  ElevationResult,
+  Nullable,
+  RatingPropertyData,
+} from 'common/types';
 
-export interface GetPropertyDetailsAttomRequest extends Omit<Address, 'addressLine2'> {
+export interface GetPropertyDetailsAttomRequest extends Omit<
+  Address,
+  'addressLine2'
+> {
   coordinates?: Nullable<Coordinates> | null | undefined;
 }
 export interface GetPropertyDetailsAttomResponse extends Nullable<RatingPropertyData> {
@@ -18,7 +27,7 @@ export interface GetPropertyDetailsAttomResponse extends Nullable<RatingProperty
 }
 
 export const getPropertyDetailsAttom = (functions: Functions) =>
-  httpsCallable<GetPropertyDetailsAttomRequest, GetPropertyDetailsAttomResponse>(
-    functions,
-    'getpropertydetailsattom'
-  );
+  httpsCallable<
+    GetPropertyDetailsAttomRequest,
+    GetPropertyDetailsAttomResponse
+  >(functions, 'call-getpropertydetailsattom');

@@ -8,4 +8,7 @@ export interface GenerateSearchKeyResponse {
 }
 
 export const generateSearchKey = (functions: Functions) =>
-  httpsCallable<any, GenerateSearchKeyResponse>(functions, 'generatesearchkey')();
+  httpsCallable<any, GenerateSearchKeyResponse>(
+    functions,
+    'call-generatesearchkey',
+  )();

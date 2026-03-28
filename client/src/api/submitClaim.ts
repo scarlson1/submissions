@@ -10,4 +10,7 @@ export interface SubmitClaimResponse {
 }
 
 export const submitClaim = (functions: Functions, args: SubmitClaimRequest) =>
-  httpsCallable<SubmitClaimRequest, SubmitClaimResponse>(functions, 'submitclaim')(args);
+  httpsCallable<SubmitClaimRequest, SubmitClaimResponse>(
+    functions,
+    'call-submitclaim',
+  )(args);

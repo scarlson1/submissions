@@ -6,10 +6,16 @@ export interface CalcCancellationChangeRequest {
   requestId: string;
   policyId: string;
 }
-export type CalcCancellationChangeResponse = Pick<LocationChangeRequest, 'locationChanges'>;
+export type CalcCancellationChangeResponse = Pick<
+  LocationChangeRequest,
+  'locationChanges'
+>;
 
-export const calcCancelChange = (functions: Functions, args: CalcCancellationChangeRequest) =>
+export const calcCancelChange = (
+  functions: Functions,
+  args: CalcCancellationChangeRequest,
+) =>
   httpsCallable<CalcCancellationChangeRequest, CalcCancellationChangeResponse>(
     functions,
-    'calccancelchange'
+    'call-calccancelchange',
   )(args);

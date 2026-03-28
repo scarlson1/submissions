@@ -7,8 +7,11 @@ export interface CreatePaymentIntentResponse {
   clientSecret: string;
 }
 
-export const createPaymentIntent = (functions: Functions, args: CreatePaymentIntentRequest) =>
+export const createPaymentIntent = (
+  functions: Functions,
+  args: CreatePaymentIntentRequest,
+) =>
   httpsCallable<CreatePaymentIntentRequest, CreatePaymentIntentResponse>(
     functions,
-    'createpaymentintent'
+    'call-createpaymentintent',
   )(args);

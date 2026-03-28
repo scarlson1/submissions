@@ -1,5 +1,5 @@
-import { Functions, httpsCallable } from 'firebase/functions';
 import { CLAIMS } from 'common';
+import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface NewUser {
   email: string;
@@ -24,4 +24,7 @@ export interface InviteUsersResponse {
 }
 
 export const inviteUsers = (functions: Functions, args: InviteUsersRequest) =>
-  httpsCallable<InviteUsersRequest, InviteUsersResponse>(functions, 'inviteusers')(args);
+  httpsCallable<InviteUsersRequest, InviteUsersResponse>(
+    functions,
+    'call-inviteusers',
+  )(args);

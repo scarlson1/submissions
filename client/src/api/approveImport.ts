@@ -10,5 +10,11 @@ export interface ApproveImportResponse {
   successCount: string;
 }
 
-export const approveImport = (functions: Functions, args: ApproveImportRequest) =>
-  httpsCallable<ApproveImportRequest, ApproveImportResponse>(functions, 'approveimport')(args);
+export const approveImport = (
+  functions: Functions,
+  args: ApproveImportRequest,
+) =>
+  httpsCallable<ApproveImportRequest, ApproveImportResponse>(
+    functions,
+    'call-approveimport',
+  )(args);

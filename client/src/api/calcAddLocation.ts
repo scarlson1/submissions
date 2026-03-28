@@ -11,8 +11,11 @@ export type CalcAddLocationResponse = Pick<
   'locationId' | 'locationChanges' | 'policyChanges' | 'formValues'
 >;
 
-export const calcAddLocation = (functions: Functions, args: CalcAddLocationRequest) =>
+export const calcAddLocation = (
+  functions: Functions,
+  args: CalcAddLocationRequest,
+) =>
   httpsCallable<CalcAddLocationRequest, CalcAddLocationResponse>(
     functions,
-    'calcaddlocation'
+    'call-calcaddlocation',
   )(args);

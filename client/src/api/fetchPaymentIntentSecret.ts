@@ -9,9 +9,12 @@ export interface FetchPaymentIntentSecretResponse {
 
 export const fetchPaymentIntentSecret = (
   functions: Functions,
-  args: FetchPaymentIntentSecretRequest
+  args: FetchPaymentIntentSecretRequest,
 ) =>
-  httpsCallable<FetchPaymentIntentSecretRequest, FetchPaymentIntentSecretResponse>(
+  httpsCallable<
+    FetchPaymentIntentSecretRequest,
+    FetchPaymentIntentSecretResponse
+  >(
     functions,
-    'fetchpaymentintentsecret'
+    'call-fetchpaymentintentsecret',
   )(args);

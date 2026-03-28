@@ -13,9 +13,12 @@ export interface CalcTotalsByBillingEntityResponse {
 
 export const calcTotalsByBillingEntity = (
   functions: Functions,
-  args: CalcTotalsByBillingEntityRequest
+  args: CalcTotalsByBillingEntityRequest,
 ) =>
-  httpsCallable<CalcTotalsByBillingEntityRequest, CalcTotalsByBillingEntityResponse>(
+  httpsCallable<
+    CalcTotalsByBillingEntityRequest,
+    CalcTotalsByBillingEntityResponse
+  >(
     functions,
-    'calctotalsbybillingentity'
+    'call-calctotalsbybillingentity',
   )(args);

@@ -15,8 +15,11 @@ export interface DeliverAgreementResponse {
   status: string;
 }
 
-export const deliverAgencyAgreement = (functions: Functions, args: DeliverAgreementRequest) =>
+export const deliverAgencyAgreement = (
+  functions: Functions,
+  args: DeliverAgreementRequest,
+) =>
   httpsCallable<DeliverAgreementRequest, DeliverAgreementResponse>(
     functions,
-    'deliveragencyagreement'
+    'call-deliveragencyagreement',
   )(args);

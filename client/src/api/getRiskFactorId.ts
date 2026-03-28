@@ -1,8 +1,7 @@
 import {
   Functions,
-  HttpsCallableOptions,
   httpsCallable,
-  // httpsCallableFromURL,
+  HttpsCallableOptions,
 } from 'firebase/functions';
 
 export interface GetRiskFactorIdRequest {
@@ -18,12 +17,12 @@ export interface GetRiskFactorIdResponse {
 export const getRiskFactorId = (
   functions: Functions,
   args: GetRiskFactorIdRequest,
-  options?: HttpsCallableOptions | undefined
+  options?: HttpsCallableOptions | undefined,
 ) =>
   httpsCallable<GetRiskFactorIdRequest, GetRiskFactorIdResponse>(
     functions,
-    'getriskfactorid',
-    options
+    'call-getriskfactorid',
+    options,
   )(args);
 
 // const v2URL = 'http://127.0.0.1:5001/idemand-submissions-dev/us-central1/getriskfactoridv2';

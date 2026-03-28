@@ -24,4 +24,7 @@ export interface CalcQuoteResponse {
 }
 
 export const calcQuote = (functions: Functions, args: CalcQuoteRequest) =>
-  httpsCallable<CalcQuoteRequest, CalcQuoteResponse>(functions, 'calcquote')(args);
+  httpsCallable<CalcQuoteRequest, CalcQuoteResponse>(
+    functions,
+    'call-calcquote',
+  )(args);

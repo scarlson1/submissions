@@ -7,5 +7,11 @@ export interface GetTenantResponse {
   tenantId: string;
 }
 
-export const getTenantIdFromEmail = (functions: Functions, args: GetTenantRequest) =>
-  httpsCallable<GetTenantRequest, GetTenantResponse>(functions, 'gettenantidfromemail')(args);
+export const getTenantIdFromEmail = (
+  functions: Functions,
+  args: GetTenantRequest,
+) =>
+  httpsCallable<GetTenantRequest, GetTenantResponse>(
+    functions,
+    'call-gettenantidfromemail',
+  )(args);

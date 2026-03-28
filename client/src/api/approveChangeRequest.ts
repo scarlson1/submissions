@@ -10,8 +10,11 @@ export interface ApproveChangeResponse {
   status: string;
 }
 
-export const approveChangeRequest = (functions: Functions, args: ApproveChangeRequest) =>
+export const approveChangeRequest = (
+  functions: Functions,
+  args: ApproveChangeRequest,
+) =>
   httpsCallable<ApproveChangeRequest, ApproveChangeResponse>(
     functions,
-    'approvechangerequest'
+    'call-approvechangerequest',
   )(args);

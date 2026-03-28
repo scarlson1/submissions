@@ -17,8 +17,11 @@ export interface CreateTenantResponse {
   anonymousSignInEnabled: boolean;
 }
 
-export const createTenantFromSubmission = (functions: Functions, args: CreateTenantRequest) =>
+export const createTenantFromSubmission = (
+  functions: Functions,
+  args: CreateTenantRequest,
+) =>
   httpsCallable<CreateTenantRequest, CreateTenantResponse>(
     functions,
-    'createtenantfromsubmission'
+    'call-createtenantfromsubmission',
   )(args);

@@ -217,17 +217,23 @@ import {
   authrequeststest,
   copytaxes,
   generatepdf,
-  quickbooks,
+  // quickbooks,
   resend,
   stripe,
 } from './routes/index.js';
 
-export const request = {
+// export const request = {
+//   authRequests,
+//   authrequeststest,
+//   copytaxes,
+//   generatepdf,
+//   // quickbooks,
+// };
+export {
   authRequests,
   authrequeststest,
   copytaxes,
   generatepdf,
-  quickbooks,
   resend,
   stripe,
 };

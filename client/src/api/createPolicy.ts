@@ -9,4 +9,7 @@ export interface CreatePolicyResponse {
 }
 
 export const createPolicy = (functions: Functions, args: CreatePolicyRequest) =>
-  httpsCallable<CreatePolicyRequest, CreatePolicyResponse>(functions, 'createpolicy')(args);
+  httpsCallable<CreatePolicyRequest, CreatePolicyResponse>(
+    functions,
+    'call-createpolicy',
+  )(args);
