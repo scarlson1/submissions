@@ -8,9 +8,10 @@ on:
       - 'functions/**'
       - '.github/workflows/deploy-functions.yml'
   workflow_dispatch: # "Run workflow" button in the Actions tab
-
+# disable until firebase function groups get sorted
 jobs:
   detect-changes:
+    if: false
     runs-on: ubuntu-latest
     outputs:
       auth: ${{ steps.filter.outputs.auth }}

@@ -147,13 +147,13 @@ import {
 
 export const search = {
   syncusersvisibleby,
-  typesensesynclocations,
-  typesensesyncorgs,
-  typesensesyncpolicies,
-  typesensesyncquotes,
-  typesensesyncsubmissions,
-  typesensesynctransactions,
-  typesensesyncusers,
+  synclocations: typesensesynclocations,
+  syncorgs: typesensesyncorgs,
+  syncpolicies: typesensesyncpolicies,
+  syncquotes: typesensesyncquotes,
+  syncsubmissions: typesensesyncsubmissions,
+  synctransactions: typesensesynctransactions,
+  syncusers: typesensesyncusers,
 };
 
 import {
@@ -166,12 +166,12 @@ import {
 } from './firestoreEvents/versions/index.js';
 
 export const version = {
-  versionlocation,
-  versionorganization,
-  versionpolicy,
-  versionquote,
-  versionsubmission,
-  versiontransaction,
+  location: versionlocation,
+  organization: versionorganization,
+  policy: versionpolicy,
+  quote: versionquote,
+  submission: versionsubmission,
+  transaction: versiontransaction,
 };
 
 import {
