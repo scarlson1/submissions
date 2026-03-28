@@ -1,0 +1,27 @@
+{
+  "name": "@idemand/common",
+  "version": "1.0.33",
+  "description": "",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "clean": "del ./dist/*",
+    "build": "pnpm run clean && tsc",
+    "pub:do:not:use:for:reference": "git add . && git commit -m \"Updates\" && npm version patch && npm run build && npm publish"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase-admin": "12.7.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "del-cli": "^5.1.0",
+    "typescript": "^5.2.2"
+  }
+}

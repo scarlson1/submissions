@@ -1,6 +1,7 @@
 packages:
   - client
   - functions
+  - common
 
 ignoredBuiltDependencies:
   - '@vaadin/vaadin-usage-statistics'

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "ES2022",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "dist",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2022",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "checkJs": false,
+    "declaration": true
+  },
+  "compileOnSave": true,
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
+  "exclude": ["src/**/*.js", "src/**/*.jsx", "node_modules", "dist"]
+}
