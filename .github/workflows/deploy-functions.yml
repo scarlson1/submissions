@@ -7,7 +7,7 @@ on:
     paths:
       - 'functions/**'
       - '.github/workflows/deploy-functions.yml'
-  workflow_dispatch: # adds a "Run workflow" button in the Actions tab
+  workflow_dispatch: # "Run workflow" button in the Actions tab
 
 jobs:
   detect-changes:
