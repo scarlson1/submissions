@@ -8,10 +8,9 @@ on:
       - 'functions/**'
       - '.github/workflows/deploy-functions.yml'
   workflow_dispatch: # "Run workflow" button in the Actions tab
-# disable until firebase function groups get sorted
+
 jobs:
   detect-changes:
-    if: false
     runs-on: ubuntu-latest
     outputs:
       auth: ${{ steps.filter.outputs.auth }}
@@ -72,7 +71,7 @@ jobs:
       needs.detect-changes.outputs.request == 'true' ||
       needs.detect-changes.outputs.cron == 'true' ||
       needs.detect-changes.outputs.storage == 'true' ||
-      needs.detect-changes.outputs.shared == 'true' || 'true' == 'true'
+      needs.detect-changes.outputs.shared == 'true'
     runs-on: ubuntu-latest
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY_DEV }}
@@ -151,6 +150,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --filter . --frozen-lockfile && pnpm install --filter functions --frozen-lockfile
+
+      - name: Build common
+        run: pnpm --filter @idemand/common build
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2

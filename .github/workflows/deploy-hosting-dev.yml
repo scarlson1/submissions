@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build common
+        run: pnpm --filter @idemand/common build
+
       - name: Build client
         run: pnpm --filter client build:dev
         # env:
