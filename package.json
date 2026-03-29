@@ -16,6 +16,8 @@
     "setSAPath:prod": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/dev/service_accounts/idemand-submissions-firebase-admin.json\"",
     "deploy:rules:firestore": "firebase deploy --only firestore:rules",
     "deploy:rules:storage": "firebase deploy --only storage",
+    "deploy:api:dev": "gcloud config set project idemand-submissions-dev && gcloud run deploy idemand-submissions-api --source . --env-vars-file=\"./api/env-dev.yaml\"",
+    "deploy:api:prod": "gcloud config set project idemand-submissions && gcloud run deploy idemand-submissions-api --source .",
     "list:java": "ps -ax | grep java",
     "ngrok": "ngrok http --url=wondrous-opossum-sensible.ngrok-free.app 5001",
     "tailscale": "tailscale funnel 5001",

@@ -15,9 +15,10 @@ export class RequestValidationError extends CustomError {
     return this.errors.map((err) => {
       let field;
       if (err.type === 'field') field = err.path;
-      if (err.type === 'unknown_fields') field = err.fields.map((field) => field.path).join(', ');
+      if (err.type === 'unknown_fields')
+        field = err.fields.map((field) => field.path).join(', ');
 
-      let result: ICustomError = { message: err.msg }; //field: err.param
+      const result: ICustomError = { message: err.msg }; // field: err.param
       if (field) result['field'] = field;
 
       return result;
