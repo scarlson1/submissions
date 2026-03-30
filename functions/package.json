@@ -4,7 +4,7 @@
   "scripts": {
     "lint": "eslint --ext .js,.ts",
     "build": "rm -rf ./dist/ && tsc",
-    "build:watch": "tsc --watch",
+    "dev": "tsc --watch",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "shell:inspect": "npm run build:watch && firebase functions:shell --inspect-functions",

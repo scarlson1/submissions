@@ -4,14 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "client:dev": "cd client && pnpm start:emulators",
-    "client:live": "cd client && pnpm start",
-    "functions:build": "cd functions && pnpm build:watch",
+    "client:dev": "pnpm --filter client dev",
+    "client:live": "pnpm --filter client start",
+    "functions:build": "pnpm --filter functions dev",
     "emulators:dev": "firebase emulators:start --only functions,auth,firestore,storage,pubsub,eventarc --import ./emulator-data",
     "emulators:save": "firebase emulators:export ./emulator-data",
     "use:dev": "firebase use dev",
     "use:prod": "firebase use prod",
-    "dev": "npm run use:dev && npm run setSAPath:dev && concurrently \"npm run client:dev\" \"npm run functions:build\" \"npm run emulators:dev\"",
     "setSAPath:dev": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/dev/service_accounts/idemand-submissions-dev-firebase-admin.json\"",
     "setSAPath:prod": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/dev/service_accounts/idemand-submissions-firebase-admin.json\"",
     "deploy:rules:firestore": "firebase deploy --only firestore:rules",
@@ -42,9 +41,6 @@
     "url": "https://github.com/scarlson1/submissions/issues"
   },
   "homepage": "https://github.com/scarlson1/submissions#readme",
-  "dependencies": {
-    "concurrently": "^7.6.0"
-  },
   "devDependencies": {
     "firebase-tools-with-isolate": "^14.16.0"
   }
