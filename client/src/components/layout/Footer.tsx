@@ -10,7 +10,7 @@ const Copyright = () => {
   return (
     <Typography variant='body2' color='text.secondary'>
       {'Copyright © '}
-      <Link color='inherit' href='https://idemandinsurance.com/'>
+      <Link color='inherit' href='https://portfolio.s-carlson.com/'>
         iDemand Insurance Agency, Inc.
       </Link>{' '}
       {new Date().getFullYear()}
@@ -29,7 +29,9 @@ export const Footer = () => {
     if (!data || data.length < 1) return;
     const content: string[] = [];
 
-    data.forEach((d) => content.push(generateHTML(d.content, EDITOR_EXTENSION_DEFAULTS)));
+    data.forEach((d) =>
+      content.push(generateHTML(d.content, EDITOR_EXTENSION_DEFAULTS)),
+    );
 
     dialog.prompt({
       variant: 'info',
@@ -40,7 +42,9 @@ export const Footer = () => {
           {content.map((c, i, arr) => (
             <Box key={`disclosure-content-${i}`}>
               <div dangerouslySetInnerHTML={{ __html: c }} />
-              {arr.length > 1 && i !== arr.length - 1 ? <Divider sx={{ my: 3 }} /> : null}
+              {arr.length > 1 && i !== arr.length - 1 ? (
+                <Divider sx={{ my: 3 }} />
+              ) : null}
             </Box>
           ))}
         </div>
@@ -94,7 +98,9 @@ export const Footer = () => {
           <Typography
             variant='body2'
             color='text.secondary'
-            sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
+            sx={{
+              '&:hover': { textDecoration: 'underline', cursor: 'pointer' },
+            }}
             onClick={showDisclosure}
           >
             Disclosure
