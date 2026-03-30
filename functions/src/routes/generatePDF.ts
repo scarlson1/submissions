@@ -255,12 +255,13 @@ app.post(
     }
 
     try {
-      const result = await generatePolicyDecPDF(templateData);
+      const pdfBuffer = await generatePolicyDecPDF(templateData);
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename=export.pdf');
 
-      result.pipe(res);
+      // result.pipe(res); // cloud run doesn't allow result.pipe()
+      res.send(pdfBuffer);
     } catch (err: unknown) {
       error('Error generating PDF from react-pdf template', err);
       res.status(500).send('Error generating pdf');
