@@ -50,6 +50,11 @@ service firebase.storage {
       allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')
     }
 
+    match /importTransactions/{fileId} {
+      allow read: if isIDemandAdmin();
+      allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')
+    }
+
     // TODO: change to allow other file types  - or make images subdirectory?
     match /submissions/{submissionId}/{fileName} {
       allow read: if true;

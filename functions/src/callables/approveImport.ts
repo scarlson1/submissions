@@ -1,8 +1,8 @@
 import {
   CollectionGroup,
   DocumentReference,
-  Timestamp,
   getFirestore,
+  Timestamp,
 } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
@@ -10,14 +10,14 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { Collection } from '@idemand/common';
 import invariant from 'tiny-invariant';
 import {
-  StageImportRecord,
-  StagedPolicyImport,
-  StagedTransactionImport,
-  WithId,
   getReportErrorFn,
   importSummaryCollection,
   stagedImportsCollection,
+  StagedPolicyImport,
+  StagedTransactionImport,
+  StageImportRecord,
   transactionsCollection,
+  WithId,
 } from '../common/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { verify } from '../utils/index.js';
@@ -26,17 +26,19 @@ import { requireIDemandAdminClaims, validate } from './utils/index.js';
 const reportErr = getReportErrorFn('approveImport');
 
 const isPolicyImports = (
-  importDocs: WithId<StageImportRecord>[]
+  importDocs: WithId<StageImportRecord>[],
 ): importDocs is WithId<StagedPolicyImport>[] => {
   return (
-    importDocs.length > 0 && importDocs[0].importMeta?.targetCollection === Collection.enum.policies
+    importDocs.length > 0 &&
+    importDocs[0].importMeta?.targetCollection === Collection.enum.policies
   );
 };
 
 const hasLcnIdMap = (
-  stagedDoc: Omit<StageImportRecord, 'importMeta'>
+  stagedDoc: Omit<StageImportRecord, 'importMeta'>,
 ): stagedDoc is WithId<StagedPolicyImport> => {
-  return stagedDoc.hasOwnProperty('lcnIdMap');
+  // return stagedDoc.hasOwnProperty('lcnIdMap');
+  return Object.hasOwn(stagedDoc, 'lcnIdMap');
 };
 
 interface ApproveImportProps {
@@ -45,8 +47,11 @@ interface ApproveImportProps {
   approvedByName?: string;
 }
 
-const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>) => {
-  info(`Approve import called`, { ...data });
+const approveImport = async ({
+  data,
+  auth,
+}: CallableRequest<ApproveImportProps>) => {
+  info('Approve import called', { ...data });
 
   requireIDemandAdminClaims(auth?.token);
 
@@ -55,7 +60,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
   validate(
     records === null || Array.isArray(records),
     'failed-precondition',
-    'records must be null (import all) or an array of docIds'
+    'records must be null (import all) or an array of docIds',
   );
 
   let importDocIds = records;
@@ -69,17 +74,21 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
   validate(
     importSummarySnap.exists && importSummary,
     'not-found',
-    `import summary not found (${importId})`
+    `import summary not found (${importId})`,
   );
   if (!records) importDocIds = importSummary.importDocIds;
 
   validate(
     importDocIds && importDocIds.length,
     'failed-precondition',
-    'import summary missing staged document IDs'
+    'import summary missing staged document IDs',
   );
   // TODO: remove after breaking into batches
-  validate(importDocIds.length < 500, 'failed-precondition', 'import must be < 500 items');
+  validate(
+    importDocIds.length < 500,
+    'failed-precondition',
+    'import must be < 500 items',
+  );
 
   const successIds = [];
   const errorIds = [];
@@ -99,31 +108,39 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     })) as WithId<StageImportRecord>[]; // TODO: handle promise all errors or let the whole thing fail ??
 
     const trxCol = transactionsCollection(db);
-    let correspondingTrxImports: [
+    const correspondingTrxImports: [
       DocumentReference<StagedTransactionImport>,
-      StagedTransactionImport
+      StagedTransactionImport,
     ][] = [];
     // if policy import, must check for staged or existing transaction
     // TODO: execute everything in a firestore transaction ??
     const isPolicyImport = isPolicyImports(stagedDocs);
     if (isPolicyImport) {
       const stagedCollectionGroup = db.collectionGroup(
-        Collection.enum.stagedDocs
+        Collection.enum.stagedDocs,
       ) as CollectionGroup<StageImportRecord>;
 
       try {
-        for (let stagedPolicy of stagedDocs) {
+        for (const stagedPolicy of stagedDocs) {
           const { lcnIdMap, ...policy } = stagedPolicy;
 
-          let locationIds = Object.keys(policy.locations || {});
+          const locationIds = Object.keys(policy.locations || {});
 
           // check for existing or staged transaction
-          for (let lcnId of locationIds) {
+          for (const lcnId of locationIds) {
             const externalId = lcnIdMap[lcnId];
-            invariant(externalId, `failed to map lcn ID to external ID`);
+            invariant(
+              externalId,
+              'failed to map lcn ID to external ID [missing `externalId`]',
+            );
 
+            // check for staged transactions with external Id
             const stagedTrxQuery = stagedCollectionGroup
-              .where('importMeta.targetCollection', '==', Collection.Enum.transactions)
+              .where(
+                'importMeta.targetCollection',
+                '==',
+                Collection.Enum.transactions,
+              )
               .where('externalId', '==', externalId)
               // .where('locationId', '==', lcnId) // Use external ID ?? (not available in policy)
               .where('importMeta.status', '==', 'new')
@@ -132,16 +149,16 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
             // TODO: check for at least one of type "new" ??
             // check for offset trx if cancelled location ??
 
-            const existingTrxQuery = trxCol.where('locationId', '==', lcnId).get();
+            const existingTrxQuery = trxCol
+              .where('locationId', '==', lcnId)
+              .get();
 
-            const [stagedTrxQuerySnap, existingTrxQuerySnap] = await Promise.all([
-              stagedTrxQuery,
-              existingTrxQuery,
-            ]);
+            const [stagedTrxQuerySnap, existingTrxQuerySnap] =
+              await Promise.all([stagedTrxQuery, existingTrxQuery]);
 
             verify(
               !(stagedTrxQuerySnap.empty && existingTrxQuerySnap.empty),
-              `could not find staged transaction or existing transaction for location ${lcnId}`
+              `could not find staged transaction or existing transaction for location ${lcnId}`,
             );
             // TODO: get location doc and set rating doc ID on transaction ?? required for future offset trx calc ??
 
@@ -150,23 +167,30 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
               stagedTrxQuerySnap.forEach((snap) => {
                 correspondingTrxImports.push([
                   snap.ref as DocumentReference<StagedTransactionImport>,
-                  { ...snap.data(), locationId: lcnId } as StagedTransactionImport,
+                  {
+                    ...snap.data(),
+                    locationId: lcnId,
+                  } as StagedTransactionImport,
                 ]);
               });
             }
           }
         }
       } catch (err: any) {
-        let msg = err?.message ?? 'error locating corresponding transaction for location import';
+        const msg =
+          err?.message ??
+          'error locating corresponding transaction for location import';
         throw new HttpsError('not-found', msg);
       }
     }
 
-    const targetCollectionRef = db.collection(`${importSummary.targetCollection}`);
+    const targetCollectionRef = db.collection(
+      `${importSummary.targetCollection}`,
+    );
     const batch = db.batch();
 
     for (const doc of stagedDocs) {
-      let { id, importMeta, ...stagedData } = doc;
+      const { id, importMeta, ...stagedData } = doc;
       let data:
         | Omit<StageImportRecord, 'importMeta'>
         | Omit<StageImportRecord, 'importMeta' | 'lcnIdMap'> = stagedData;
@@ -202,14 +226,16 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
               status: 'imported',
             },
           },
-          { merge: true }
+          { merge: true },
         );
       }
     }
 
     // TODO: do everything in a firestore transaction ??
     // import staged transaction for each location
-    info(`Importing ${correspondingTrxImports.length} transactions that matched policy locations`);
+    info(
+      `Importing ${correspondingTrxImports.length} transactions that matched policy locations`,
+    );
     correspondingTrxImports.forEach(([trxImportRef, stagedTrx]) => {
       const { importMeta, ...trx } = stagedTrx;
       const trxRef = trxCol.doc(trxImportRef.id);
@@ -233,14 +259,20 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
             status: 'imported',
           },
         },
-        { merge: true }
+        { merge: true },
       );
     });
 
     if (!successIds.length)
-      throw new HttpsError('failed-precondition', 'no imports matched "new" status');
+      throw new HttpsError(
+        'failed-precondition',
+        'no imports matched "new" status',
+      );
 
-    info(`saving batch document import to ${importSummary.targetCollection}...`, { importId });
+    info(
+      `saving batch document import to ${importSummary.targetCollection}...`,
+      { importId },
+    );
     await batch.commit();
     info`created ${stagedDocs.length} documents in ${importSummary.targetCollection}`;
 
@@ -261,13 +293,16 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
       errorCount: errorIds.length,
     };
   } catch (err: any) {
-    let errMsg = `Error importing documents`;
+    let errMsg = 'Error importing documents';
     if (err?.message) errMsg += ` - ${err.message}`;
     reportErr(errMsg, {}, err);
     if (err instanceof HttpsError) throw err;
 
-    throw new HttpsError('internal', `import failed`);
+    throw new HttpsError('internal', 'import failed');
   }
 };
 
-export default onCallWrapper<ApproveImportProps>('approveimport', approveImport);
+export default onCallWrapper<ApproveImportProps>(
+  'approveimport',
+  approveImport,
+);
