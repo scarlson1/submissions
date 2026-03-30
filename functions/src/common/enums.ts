@@ -186,7 +186,7 @@ export const PUB_SUB_TOPICS = {
 //   LOCATION_CANCELLATION = 'location.cancellation',
 // }
 
-export const EmailTemplates = z.enum([
+export const EmailTemplate = z.enum([
   'contact',
   'policy_doc_delivery',
   'new_quote',
@@ -206,4 +206,4 @@ export const EmailTemplates = z.enum([
   'portfolio_rating_complete',
   'claim_submitted',
 ]);
-export type EmailTemplates = z.infer<typeof EmailTemplates>;
+export type EmailTemplate = z.infer<typeof EmailTemplate>;

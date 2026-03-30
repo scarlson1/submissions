@@ -12,6 +12,7 @@ import {
   functionsBaseURL,
   iDemandOrgId,
   invitesCollection,
+  mgaDomain,
   orgsCollection,
   resendKey,
   userClaimsCollection,
@@ -196,10 +197,7 @@ export default async (event: AuthBlockingEvent) => {
 
   // use invite to set permissions ??
   // TODO: delete ?? using invites & userClaims collections
-  if (
-    user.email &&
-    user.email?.toLowerCase().endsWith('@idemandinsurance.com')
-  ) {
+  if (user.email && user.email?.toLowerCase().endsWith(mgaDomain.value())) {
     const claimsColRef = userClaimsCollection(db, iDemandOrgId.value());
     try {
       await claimsColRef.doc(user.uid).set({

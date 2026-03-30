@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import {
   emailVerificationKey,
   functionsBaseURL,
+  mgaDomain,
   resendKey,
 } from '../common/index.js';
 import {
@@ -18,10 +19,7 @@ import {
 export default async (event: AuthBlockingEvent) => {
   const user = event.data;
   // REQUIRE EMAIL VERIFICATION BEFORE CREATING ACCOUNT IF @idemandinsurance.com DOMAIN
-  if (
-    user.email &&
-    user.email?.toLowerCase().endsWith('@idemandinsurance.com')
-  ) {
+  if (user.email && user.email?.toLowerCase().endsWith(mgaDomain.value())) {
     if (!user.emailVerified) {
       try {
         const verificationKey = emailVerificationKey.value();

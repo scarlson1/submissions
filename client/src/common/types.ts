@@ -2168,7 +2168,7 @@ export type StoredDocSearchHit = Omit<
 
 export type EmailData = string | { name?: string; email: string };
 
-// export type EmailTemplates =
+// export type EmailTemplate =
 //   | 'contact'
 //   | 'policy_doc_delivery'
 //   | 'new_quote'

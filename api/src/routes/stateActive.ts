@@ -2,8 +2,7 @@ import express, { Request, Response } from 'express';
 import { query } from 'express-validator';
 import { getFirestore } from 'firebase-admin/firestore';
 
-import { activeStates, Product } from '@idemand/common';
-import { statesArr } from '../common/index.js';
+import { activeStates, Product, State } from '@idemand/common';
 import { validateRequest } from '../middlewares/index.js';
 
 const router = express.Router();
@@ -11,7 +10,7 @@ const router = express.Router();
 router.get(
   '/state-active',
   query('state')
-    .isIn(statesArr)
+    .isIn(State.options)
     .withMessage(
       'state must be two letter abbreviation in query params (ex. .../state-active?state=FL)',
     ),

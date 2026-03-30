@@ -6,6 +6,7 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
   CLAIMS,
   iDemandOrgId,
+  mgaDomain,
   // Quote,
   orgsCollection,
   quotesCollection,
@@ -46,7 +47,7 @@ const assignQuote = async ({
     // TODO: check to see if quote is already claimed ??
     let updates: Partial<Quote> = {};
     if (isAgent) {
-      const orgId = token.email?.endsWith('@idemandinsurance.com')
+      const orgId = token.email?.endsWith(mgaDomain.value())
         ? iDemandOrgId.value()
         : token?.firebase.tenant;
       if (!orgId) {

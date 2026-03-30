@@ -194,8 +194,8 @@ const createTenantFromSubmission = async ({
       orgName: org.orgName,
       isCreateOrgInvite: true,
       invitedBy: {
-        name: 'iDemand admin',
-        email: 'admin@idemandinsurance.com',
+        name: 'MGA admin',
+        email: 'noreply@s-carlson.com',
       },
     });
 

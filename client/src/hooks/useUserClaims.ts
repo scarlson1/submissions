@@ -13,7 +13,7 @@ import { doc as rxDoc } from 'rxfire/firestore';
 import { from, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
-import { userClaimsCollection } from 'common';
+import { env, userClaimsCollection } from 'common';
 import type { CustomClaimsInterface } from 'context';
 
 // guided by useSignInCheck observable: https://github.com/FirebaseExtended/reactfire/blob/main/src/auth.tsx
@@ -45,7 +45,7 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
       if (!user) return of(getResult(null, null, null));
 
       let orgId = user.tenantId ?? null;
-      if (!orgId && user.email?.endsWith('@idemandinsurance.com'))
+      if (!orgId && user.email?.endsWith(env.VITE_MGA_DOMAIN))
         orgId = import.meta.env.VITE_IDEMAND_ORG_ID;
 
       // if no org, return user without orgId or claims

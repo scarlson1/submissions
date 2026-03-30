@@ -10,8 +10,8 @@ import {
   type Tax,
   type TaxItemName,
   type TransactionType,
-  type WithId,
 } from '@idemand/common';
+import { createDocId } from '../lib/helpers.js';
 import { validateRequest } from '../middlewares/index.js';
 import { stateTaxValidation } from '../middlewares/validation/index.js';
 
@@ -32,15 +32,18 @@ export interface StateTaxRequest extends SubjectBaseKeyVal {
 }
 
 interface ResLineItem extends Omit<
-  WithId<Tax>,
+  Tax,
   'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'
 > {
+  // WithId<Tax>
   displayName: TaxItemName;
-  calculatedTaxBase: number | null; // null if fixed rate ($10)
+  taxBaseAmount: number | null; // null if fixed rate ($10)
   rate: number | null; // null if fixed rate ($10)
   value: number;
   effectiveDate: string;
   expirationDate: string | null;
+  taxId: string;
+  taxCalcId: string;
 }
 
 export interface StateTaxResponse {
@@ -70,7 +73,6 @@ router.post(
     const taxQuerySnap = await taxesCollection(db)
       .where('state', '==', state)
       .where('effectiveDate', '<=', effectiveDate)
-      // .where('effectiveDate', '<=', queryEffectiveDate)
       .where('transactionTypes', 'array-contains', transactionType)
       .get();
 
@@ -88,7 +90,7 @@ router.post(
       .filter(
         (doc) =>
           (!doc.expirationDate ||
-            effectiveDate.toMillis() < doc.expirationDate.toMillis()) &&
+            effectiveDate.getTime() < doc.expirationDate.toMillis()) &&
           doc.LOB.includes(lineOfBusiness),
       );
     console.log('TAXES: ', taxes);
@@ -100,17 +102,34 @@ router.post(
 
     let lineItems: ResLineItem[] = [];
     taxes.forEach((t) => {
+      // const baseItems = t.subjectBase;
+      // if (baseItems[0] === 'fixedFee') {
+      //   let { metadata: _, ...rest } = t;
+      //   lineItems.push({
+      //     ...rest,
+      //     effectiveDate: t.effectiveDate.toDate().toISOString(),
+      //     expirationDate: t.expirationDate
+      //       ? t.expirationDate.toDate().toISOString()
+      //       : null,
+      //     calculatedTaxBase: null,
+      //     value: t.rate,
+      //   });
+      //   return;
+      // }
+      let { metadata: _, id, ...rest } = t;
+      const taxCalcId = `taxcalc_${createDocId(8)}`;
       const baseItems = t.subjectBase;
       if (baseItems[0] === 'fixedFee') {
-        let { metadata: _, ...rest } = t;
         lineItems.push({
           ...rest,
+          taxId: id,
           effectiveDate: t.effectiveDate.toDate().toISOString(),
           expirationDate: t.expirationDate
             ? t.expirationDate.toDate().toISOString()
             : null,
-          calculatedTaxBase: null,
+          taxBaseAmount: null,
           value: t.rate,
+          taxCalcId,
         });
         return;
       }
@@ -121,19 +140,36 @@ router.post(
         return acc + num;
       }, 0);
 
-      const taxValue = taxBase * t.rate;
-      console.log(`${taxBase} (base) * ${t.rate} (rate) = ${taxValue}`);
+      const taxBaseAmount = round(taxBase, t.baseDigits ?? 2);
 
-      let { metadata: _, ...rest } = t;
+      const value = round(taxBaseAmount * t.rate, t.resultDigits ?? 2);
+      console.log(`${taxBaseAmount} (base) * ${t.rate} (rate) = ${value}`);
+
       lineItems.push({
         ...rest,
+        taxId: id,
         effectiveDate: t.effectiveDate.toDate().toISOString(),
         expirationDate: t.expirationDate
           ? t.expirationDate.toDate().toISOString()
           : null,
-        calculatedTaxBase: round(taxBase, t.baseDigits ?? 2),
-        value: round(taxValue, t.resultDigits ?? 2),
+        taxBaseAmount,
+        value,
+        taxCalcId,
       });
+
+      // const taxValue = taxBase * t.rate;
+      // console.log(`${taxBase} (base) * ${t.rate} (rate) = ${taxValue}`);
+
+      // let { metadata: _, ...rest } = t;
+      // lineItems.push({
+      //   ...rest,
+      //   effectiveDate: t.effectiveDate.toDate().toISOString(),
+      //   expirationDate: t.expirationDate
+      //     ? t.expirationDate.toDate().toISOString()
+      //     : null,
+      //   calculatedTaxBase: round(taxBase, t.baseDigits ?? 2),
+      //   value: round(taxValue, t.resultDigits ?? 2),
+      // });
     });
     console.log('LINE ITEMS: ', lineItems);
 

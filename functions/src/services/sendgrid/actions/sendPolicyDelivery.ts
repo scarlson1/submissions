@@ -9,12 +9,18 @@ export interface SendPolicyDeliveryProps extends BaseTemplateProps {
   templateId: 'policy_doc_delivery';
 }
 
-export async function sendPolicyDelivery(sgKey: string, args: SendPolicyDeliveryProps) {
+export async function sendPolicyDelivery(
+  sgKey: string,
+  args: SendPolicyDeliveryProps,
+) {
   try {
     throw new Error('not implemented yet');
-  } catch (err: any) {
+  } catch (err: unknown) {
     reportErr('error sending policy delivery notification', { ...args }, err);
 
-    throw new HttpsError('unimplemented', 'send policy delivery function not set up yet');
+    throw new HttpsError(
+      'unimplemented',
+      'send policy delivery function not set up yet',
+    );
   }
 }

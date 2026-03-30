@@ -22,7 +22,9 @@ router.get(
     const db = getFirestore();
 
     const { countyFIPS, date } = req.query;
-    const qDate = Timestamp.fromDate(new Date(date as string));
+    const qDate = date
+      ? Timestamp.fromDate(new Date(date as string))
+      : Timestamp.now();
 
     try {
       let q = moratoriumsCollection(db)

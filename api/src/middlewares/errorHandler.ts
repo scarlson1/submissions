@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 // import { FirebaseError } from '@firebase/util';
 
-import { CustomError } from '../errors/custom-error.js';
+import { CustomError } from '../errors/customError.js';
 // import { IDemandError } from '../errors/idemand-error.js';
 // import { IDemandAuthError } from '../errors/idemand-auth-error.js';
 
@@ -22,7 +22,7 @@ export const errorHandler = (
   // if (err instanceof FirebaseError) {
   //   return res.status(400).send({ errors: [{ code: err.code, message: err.message }] });
   // }
-  console.log(err);
+
   console.error(err.message);
   return res.status(400).send({
     errors: [{ message: 'Something went wrong' }],

@@ -29,7 +29,8 @@ export const surplusLinesLicenseValidation = checkSchema({
     },
     isIn: {
       options: [['flood', 'wind']],
-      errorMessage: 'product must be either "flood" or "wind" or excluded from the request.',
+      errorMessage:
+        'product must be either "flood" or "wind" or excluded from the request.',
     },
   },
 });

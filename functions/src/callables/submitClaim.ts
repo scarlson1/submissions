@@ -1,10 +1,10 @@
-import { EmailData } from '@sendgrid/helpers/classes/email-address.js';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
   audience,
   getReportErrorFn,
   locationsCollection,
+  mgaDomain,
   policiesCollection,
   policyClaimsCollection,
   resendKey,
@@ -80,7 +80,7 @@ const submitClaim = async ({
     // TODO: wrap notifications and updating status in transaction ??
     const orgId =
       token.firebase.tenant ??
-      (token.email?.endsWith('@idemandinsurance.com') || null);
+      (token.email?.endsWith(mgaDomain.value()) || null);
     await claimRef.update({
       status: 'submitted',
       submittedBy: {
@@ -106,7 +106,7 @@ const submitClaim = async ({
     // TODO: send claim to alacrity (promise all)
 
     // TODO: fix typing once claim type is complete
-    const to: EmailData[] = [];
+    const to: string[] = [];
     if (claim.contact?.email) to.push(claim.contact?.email);
 
     try {
@@ -121,7 +121,7 @@ const submitClaim = async ({
         contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
       });
       // TODO: pull idemand to emails up to function or integrating into sendgrid flow
-      const adminTo: EmailData[] = ['spencercarlson@idemandinsurance.com'];
+      const adminTo: string[] = ['spencer@s-carlson.com'];
       if (audience.value() !== 'PROD HUMANS')
         adminTo.push('noreply@s-carlson.com');
 
@@ -136,13 +136,17 @@ const submitClaim = async ({
         contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
       });
       await Promise.all([insuredNotificationPromise, adminNotificationPromise]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       reportErr('error sending email notifications', data, err);
     }
 
     return { message: 'TODO', status: 'success' };
-  } catch (err: any) {
-    reportErr(err?.message || 'error submitting claim', { data }, err);
+  } catch (err: unknown) {
+    reportErr(
+      err instanceof Error ? err?.message : 'error submitting claim',
+      { data },
+      err,
+    );
     if (err instanceof HttpsError) throw err;
 
     throw new HttpsError('internal', 'An error occurred');

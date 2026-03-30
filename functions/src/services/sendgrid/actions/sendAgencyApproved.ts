@@ -12,12 +12,18 @@ export interface SendAgencyApprovedProps extends BaseTemplateProps {
 
 const reportErr = getReportErrorFn('sendEmail');
 
-export async function sendAgencyApproved(sgKey: string, args: SendAgencyApprovedProps) {
+export async function sendAgencyApproved(
+  key: string,
+  args: SendAgencyApprovedProps,
+) {
   try {
     throw new Error('no set up yet');
-  } catch (err: any) {
+  } catch (err: unknown) {
     reportErr('error sending agency approved notification', {}, err);
 
-    throw new HttpsError('internal', 'error sending agency approved notification');
+    throw new HttpsError(
+      'internal',
+      'error sending agency approved notification',
+    );
   }
 }

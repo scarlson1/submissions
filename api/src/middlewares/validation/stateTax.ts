@@ -1,7 +1,7 @@
 import { checkSchema } from 'express-validator';
 import { round } from 'lodash-es';
 
-import { statesArr } from '../../common/index.js';
+import { State } from '@idemand/common';
 import { dateSanitizer } from './index.js';
 
 // https://github.com/validatorjs/validator.js
@@ -51,13 +51,14 @@ export const stateTaxValidation = checkSchema({
     },
     isIn: {
       options: ['residential', 'commercial'],
-      errorMessage: 'lineOfBusiness must be either "residential" or "commercial", if provided',
+      errorMessage:
+        'lineOfBusiness must be either "residential" or "commercial", if provided',
     },
   },
   state: {
     in: ['body'],
     isIn: {
-      options: [statesArr],
+      options: [State.options],
       errorMessage: '2 letter state abbreviation required in body of request',
     },
   },

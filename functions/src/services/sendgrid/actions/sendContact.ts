@@ -2,7 +2,7 @@ import { HttpsError } from 'firebase-functions/v1/auth';
 
 // import { audience } from '../../../common/environmentVars';
 import { Resend } from 'resend';
-import { getReportErrorFn } from '../../../common/index.js';
+import { EmailTemplate, getReportErrorFn } from '../../../common/index.js';
 import { CreateMsgContentProps } from '../index.js';
 import { newContactMessage } from '../templates/index.js'; // /newContactMessage
 
@@ -12,7 +12,7 @@ export interface SendContactProps extends BaseTemplateProps {
   templateId: 'contact';
   userEmail: string;
   subject: string;
-  body: any;
+  body: string;
 }
 
 const reportErr = getReportErrorFn('sendEmail');
@@ -28,17 +28,6 @@ export async function sendContact(key: string, args: SendContactProps) {
     });
 
     const to = ['spencer@s-carlson.com'];
-    // if (audience.value() !== 'LOCAL HUMANS') to.push('noreply@s-carlson.com');
-    // TODO: optional cc emails
-    // await sgMail.send({
-    //   html,
-    //   subject: `New contact us submission: ${subject}`,
-    //   to,
-    //   from: 'hello@idemandinsurance.com',
-    //   customArgs: {
-    //     emailType: 'contact',
-    //   },
-    // });
 
     const resend = new Resend(key);
 
@@ -50,7 +39,7 @@ export async function sendContact(key: string, args: SendContactProps) {
       tags: [
         {
           name: 'emailType',
-          value: 'contact',
+          value: EmailTemplate.enum.contact,
         },
       ],
     });
