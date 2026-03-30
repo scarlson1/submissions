@@ -1,13 +1,15 @@
 import express, { Request, Response } from 'express';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { round } from 'lodash-es';
 
 import {
+  taxCalcCollection,
   taxesCollection,
   type LineOfBusiness,
   type Product,
   type SubjectBaseItem,
   type Tax,
+  type TaxCalc,
   type TaxItemName,
   type TransactionType,
   type WithId,
@@ -174,6 +176,36 @@ router.post(
       // });
     });
     console.log('LINE ITEMS: ', lineItems);
+
+    const taxCalcCol = taxCalcCollection(db);
+    const batch = db.batch();
+
+    for (let taxCalc of lineItems) {
+      let taxCalcData: TaxCalc = {
+        ...taxCalc,
+        rate: taxCalc.rate ?? 0,
+        expirationDate: taxCalc.expirationDate
+          ? Timestamp.fromDate(new Date(taxCalc.expirationDate))
+          : null,
+        subjectBaseItemValues: {
+          premium: req.body.premium,
+          inspectionFees: req.body.inspectionFees,
+          mgaFees: req.body.mgaFees,
+          outStatePremium: req.body.outStatePremium,
+          homeStatePremium: req.body.homeStatePremium,
+        },
+        subjectBaseAmount: taxCalc.taxBaseAmount,
+        stripeCustomerId: req.body.stripeCustomerId || null,
+        calcDate: Timestamp.now(),
+        metadata: {
+          created: Timestamp.now(),
+          updated: Timestamp.now(),
+        },
+      };
+      const taxCalcRef = taxCalcCol.doc(taxCalc.taxCalcId);
+      batch.set(taxCalcRef, taxCalcData);
+    }
+    await batch.commit();
 
     res.status(200).send({ lineItems });
   },
