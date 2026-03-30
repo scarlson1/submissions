@@ -10,14 +10,16 @@ import {
   type Tax,
   type TaxItemName,
   type TransactionType,
+  type WithId,
 } from '@idemand/common';
 import { validateRequest } from '../middlewares/index.js';
 import { stateTaxValidation } from '../middlewares/validation/index.js';
 import { createDocId } from '../utils/helpers.js';
 
-// TODO: centralize tax calc logic (here or functions ??)
-
 // calculates taxes for given state, transaction type, product, LOB
+
+// TODO: centralize tax calc logic (here or functions ??)
+// TODO: reverse ordering - calc taxes first, then derive line items
 
 type SubjectBaseKeyVal = Record<
   Exclude<SubjectBaseItem, 'fixedFee' | 'noFee'>,
@@ -29,6 +31,7 @@ export interface StateTaxRequest extends SubjectBaseKeyVal {
   lineOfBusiness?: LineOfBusiness;
   product?: Product;
   effectiveDate?: any; // Date;
+  stripeCustomerId?: string;
 }
 
 interface ResLineItem extends Omit<
@@ -77,7 +80,6 @@ router.post(
       .get();
 
     if (taxQuerySnap.empty) {
-      // TODO: what should response be if no taxes are found ??
       console.log(`NO TAXES FOUND FOR ${state}`);
       res.status(200).send({ lineItems: [] });
       return;
@@ -85,7 +87,7 @@ router.post(
 
     // filter for expiration date and line of business
     // firebase doesn't support inequality operators on separate fields
-    let taxes = taxQuerySnap.docs // : WithId<Tax>[]
+    let taxes: WithId<Tax>[] = taxQuerySnap.docs
       .map((snap) => ({ ...snap.data(), id: snap.id }))
       .filter(
         (doc) =>
