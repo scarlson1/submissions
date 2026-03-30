@@ -38,9 +38,16 @@ jobs:
         # VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        id: deploy
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.GCP_SA_KEY_DEV }}
           projectId: ${{ vars.FIREBASE_PROJECT_ID_DEV }}
           entryPoint: . # directory containing firebase.json
           channelId: live
+
+      - name: Output preview URL
+        run: |
+          echo "## 🚀 Deployed URL" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.deploy.outputs.urls }}" >> $GITHUB_STEP_SUMMARY
+          echo "::notice ::Deployed URL: ${{ steps.deploy.outputs.urls }}"
