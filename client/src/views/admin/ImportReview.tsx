@@ -156,7 +156,7 @@ export const ImportReviewComponent = ({
   importType,
 }: ImportReviewComponentProps) => {
   const { isMobile } = useWidth();
-  const { claims, ...rest } = useAuth();
+  const { claims } = useAuth();
   const toast = useAsyncToast({ id: 'import-toast', position: 'top-right' });
   const { handleApproveImport, handleDeclineImport, loading } =
     useManageImports(
@@ -174,8 +174,6 @@ export const ImportReviewComponent = ({
     (id: string) => () => showJson(id),
     [showJson],
   );
-
-  console.log('REST: ', rest);
 
   const props = useMemo(() => {
     const actionsCol: GridActionsColDef = {

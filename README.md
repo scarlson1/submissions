@@ -271,3 +271,4 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 - Fix update Quote / create account in bind quote form
 - /user/{userId} route queries (query by agent/org depending on claims)
 - update firestore rules
+- quote form agent / agency search - filter by org if agent selected

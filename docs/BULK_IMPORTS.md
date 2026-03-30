@@ -29,6 +29,10 @@ Common implementation details:
 - Approval currently requires fewer than 500 staged records in a single `approveimport` call.
 - If parsing fails before staging completes, the handler returns early and the import never reaches the review screen.
 
+![upload transactions](/docs/import-upload.png)
+
+![approve import](/docs/import-records.png)
+
 ## Quote Imports
 
 Code path:

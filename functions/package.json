@@ -98,6 +98,7 @@
     "zod-validation-error": "^2.1.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@react-pdf/types": "^2.9.2",
     "@sentry/types": "^10.44.0",
     "@types/body-parser": "^1.19.6",
