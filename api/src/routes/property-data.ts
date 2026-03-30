@@ -1,10 +1,15 @@
-import express, { Request, Response } from 'express';
 import { AxiosResponse } from 'axios';
+import express, { Request, Response } from 'express';
 
-import { propertyDataValidation, geocodeSanitization } from '../middlewares/validation/index.js';
-import { validateRequest } from '../middlewares/index.js';
-import { protosure, spatialKeyInstance } from '../services/index.js';
 import { ProtosureFormData, SpatialKeyResponse } from '../common/index.js';
+import { validateRequest } from '../middlewares/index.js';
+import {
+  geocodeSanitization,
+  propertyDataValidation,
+} from '../middlewares/validation/index.js';
+import { protosure, spatialKeyInstance } from '../services/index.js';
+
+// DELETE ?? fetches property data from spatial key -> updates property data in protosure quote
 
 interface PropertyReqBody {
   address: {
@@ -42,11 +47,12 @@ router.post(
 
     let skRes: SpatialKeyResponse;
     try {
-      let { data: propData }: AxiosResponse<SpatialKeyResponse[]> = await spatialKeyInstance.get(
-        `/api/analytics/v3/uw/single.json?lat=${encodeURIComponent(
-          latitude
-        )}&lon=${encodeURIComponent(longitude)}&shortFieldNames=true`
-      );
+      let { data: propData }: AxiosResponse<SpatialKeyResponse[]> =
+        await spatialKeyInstance.get(
+          `/api/analytics/v3/uw/single.json?lat=${encodeURIComponent(
+            latitude,
+          )}&lon=${encodeURIComponent(longitude)}&shortFieldNames=true`,
+        );
       skRes = propData[0];
     } catch (err) {
       // @ts-ignore
@@ -60,14 +66,17 @@ router.post(
     console.log('extractedValues', extractedValues);
     let newInputData: Partial<ProtosureFormData> = mapExtractedToProtosure(
       extractedValues,
-      req.body
+      req.body,
     );
     console.log('mapped: ', newInputData);
 
     try {
-      const { data: updateRes } = await protosure.patch(`/quotes/${quoteId}/update_input_data/`, {
-        inputData: { ...newInputData, hazardhub: skRes },
-      });
+      const { data: updateRes } = await protosure.patch(
+        `/quotes/${quoteId}/update_input_data/`,
+        {
+          inputData: { ...newInputData, hazardhub: skRes },
+        },
+      );
 
       res.status(200).send({ updateRes });
     } catch (err) {
@@ -75,7 +84,7 @@ router.post(
       console.log(err.response);
       throw err;
     }
-  }
+  },
 );
 
 export { router as propertyDataRouter };
@@ -104,7 +113,9 @@ interface PropData {
 
 function extractValuesFromSKRes(spatialKeyData: SpatialKeyResponse): PropData {
   let sqFootage = parseFloat(spatialKeyData.us_hh_square_footage) || null;
-  let numStories = parseInt(spatialKeyData.us_hh_assessment_num_stories.replace(/\D/g, '')) || null;
+  let numStories =
+    parseInt(spatialKeyData.us_hh_assessment_num_stories.replace(/\D/g, '')) ||
+    null;
   let replacementCost = parseInt(spatialKeyData.us_hh_replacement_cost) || null;
   let propertyCode = spatialKeyData.us_hh_property_use_code;
   let yearBuilt = parseInt(spatialKeyData.us_hh_year_built) || null;
@@ -113,7 +124,9 @@ function extractValuesFromSKRes(spatialKeyData: SpatialKeyResponse): PropData {
   let basement = spatialKeyData.us_hh_assessment_basement;
   const dtcArr = spatialKeyData.us_hh_dtc_beach_distance.split(' ');
   let distToCoastUnit = dtcArr[dtcArr.length - 1];
-  let distToCoastFeet = parseInt(spatialKeyData.us_hh_dtc_beach_distance.replace(/\D/g, '')); // || null
+  let distToCoastFeet = parseInt(
+    spatialKeyData.us_hh_dtc_beach_distance.replace(/\D/g, ''),
+  ); // || null
 
   console.log(`SPATIALKEY SQ FOOTAGE: ${sqFootage}`);
   console.log(`SPATIALKEY NUM STORIES: ${numStories}`);
@@ -131,7 +144,10 @@ function extractValuesFromSKRes(spatialKeyData: SpatialKeyResponse): PropData {
     // reject('Not ratable. Property within CBRS perimeter.');
     // return;
   }
-  if (distToCoastUnit.toLowerCase() === 'mile' || distToCoastUnit.toLowerCase() === 'miles') {
+  if (
+    distToCoastUnit.toLowerCase() === 'mile' ||
+    distToCoastUnit.toLowerCase() === 'miles'
+  ) {
     distToCoastFeet = Math.round(5280 * distToCoastFeet);
   }
 
@@ -159,7 +175,10 @@ function extractValuesFromSKRes(spatialKeyData: SpatialKeyResponse): PropData {
 //   d: 0.1,
 // };
 
-function mapExtractedToProtosure(extractedValues: PropData, reqBody: PropertyReqBody) {
+function mapExtractedToProtosure(
+  extractedValues: PropData,
+  reqBody: PropertyReqBody,
+) {
   // let rcRef = extractedValues.replacementCost;
   // if (!rcRef) rcRef = 250000;
   // rcRef = Math.min(rcRef, parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000);
@@ -189,7 +208,8 @@ function mapExtractedToProtosure(extractedValues: PropData, reqBody: PropertyReq
 
   // const { addressLine1, addressLine2, city, state, postal, latitude, longitude, countyName, fips } =
   //   reqBody;
-  const { addressLine1, addressLine2, city, state, postal, countyName, fips } = reqBody.address;
+  const { addressLine1, addressLine2, city, state, postal, countyName, fips } =
+    reqBody.address;
   const { latitude, longitude } = reqBody.coordinates;
 
   const defaults = {

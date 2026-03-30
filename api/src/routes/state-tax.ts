@@ -3,20 +3,24 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { round } from 'lodash-es';
 
 import {
-  LineOfBusiness,
-  Product,
-  SubjectBaseItems,
-  Tax,
   taxesCollection,
-  TaxItemName,
-  TransactionType,
-  WithId,
-} from '../common/index.js';
+  type LineOfBusiness,
+  type Product,
+  type SubjectBaseItem,
+  type Tax,
+  type TaxItemName,
+  type TransactionType,
+  type WithId,
+} from '@idemand/common';
 import { validateRequest } from '../middlewares/index.js';
 import { stateTaxValidation } from '../middlewares/validation/index.js';
 
+// TODO: centralize tax calc logic (here or functions ??)
+
+// calculates taxes for given state, transaction type, product, LOB
+
 type SubjectBaseKeyVal = Record<
-  Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>,
+  Exclude<SubjectBaseItem, 'fixedFee' | 'noFee'>,
   number
 >;
 export interface StateTaxRequest extends SubjectBaseKeyVal {
@@ -79,7 +83,7 @@ router.post(
 
     // filter for expiration date and line of business
     // firebase doesn't support inequality operators on separate fields
-    let taxes: WithId<Tax>[] = taxQuerySnap.docs
+    let taxes = taxQuerySnap.docs // : WithId<Tax>[]
       .map((snap) => ({ ...snap.data(), id: snap.id }))
       .filter(
         (doc) =>

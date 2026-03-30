@@ -1,10 +1,11 @@
+import { licensesCollection, type License, type WithId } from '@idemand/common';
 import express, { Request, Response } from 'express';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-// import { query } from 'express-validator';
 
-import { surplusLinesLicenseValidation } from '../middlewares/validation/index.js';
 import { validateRequest } from '../middlewares/index.js';
-import { licensesCollection, LicenseWithId } from '../common/index.js';
+import { surplusLinesLicenseValidation } from '../middlewares/validation/index.js';
+
+// fetch surplus lines license for state
 
 const router = express.Router();
 
@@ -31,7 +32,10 @@ router.get(
       const snap = await q.get();
       // snap.forEach((i) => console.log(i.data()));
 
-      const licenses: Omit<LicenseWithId, 'effectiveDate' | 'expirationDate'>[] = snap.docs
+      const licenses: Omit<
+        WithId<License>,
+        'effectiveDate' | 'expirationDate'
+      >[] = snap.docs
         .map((snap) => ({
           ...snap.data(),
           effectiveDate: snap.data().effectiveDate.toDate(),
@@ -50,7 +54,7 @@ router.get(
     } catch (error) {
       throw new Error('Error querying licenses');
     }
-  }
+  },
 );
 
 export { router as licenseRouter };

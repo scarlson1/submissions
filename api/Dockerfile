@@ -1,5 +1,5 @@
 # need to configure this for Cloud Build / Cloud Run 
-# b/c buildpack doesnt know what to do with typescript
+# b/c buildpack doesn't know what to do with typescript
 # https://stackoverflow.com/a/71619945/10887890
 # Secret manager with Cloud Build (testing?) 
 # https://cloud.google.com/build/docs/securing-builds/use-secrets
@@ -56,14 +56,14 @@ FROM node:22-alpine as production
 # use the value to set the ENV var default
 # ENV an_env_var=$A_VARIABLE
 
-# ARG PROJECT_ID=idemand-submissions
-# ARG GOOGLE_CLOUD_PROJECT=idemand-submissions
-# ARG GCLOUD_PROJECT=idemand-submissions
-# ARG PROJECT_ID_NUMBER=234623719115
-ARG PROJECT_ID=idemand-submissions-dev
-ARG GOOGLE_CLOUD_PROJECT=idemand-submissions-dev
-ARG GCLOUD_PROJECT=idemand-submissions-dev
-ARG PROJECT_ID_NUMBER=704781428847
+ARG PROJECT_ID=idemand-submissions
+ARG GOOGLE_CLOUD_PROJECT=idemand-submissions
+ARG GCLOUD_PROJECT=idemand-submissions
+ARG PROJECT_ID_NUMBER=234623719115
+# ARG PROJECT_ID=idemand-submissions-dev
+# ARG GOOGLE_CLOUD_PROJECT=idemand-submissions-dev
+# ARG GCLOUD_PROJECT=idemand-submissions-dev
+# ARG PROJECT_ID_NUMBER=704781428847
 
 ENV PROJECT_ID=${PROJECT_ID}
 ENV GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}

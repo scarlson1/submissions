@@ -1,15 +1,23 @@
-import express, { Request, Response } from 'express';
-// import { NotFoundError } from '../errors/not-found-error.js';
-// import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { getFirestore, GeoPoint } from 'firebase-admin/firestore';
 import { AxiosResponse } from 'axios';
+import express, { Request, Response } from 'express';
+import { GeoPoint, getFirestore } from 'firebase-admin/firestore';
 
-import { updateQuoteValidation } from '../middlewares/validation/index.js';
-import { validateRequest } from '../middlewares/index.js';
-import { protosure, spatialKeyInstance, swissReInstance } from '../services/index.js';
-import { swissReBody, SwissReBodyParams } from '../lib/swiss-re-body-template.js';
-import { ProtosureQuoteData, SpatialKeyResponse, swissReResCollection } from '../common/index.js';
+import { swissReResCollection } from '@idemand/common';
+import { ProtosureQuoteData, SpatialKeyResponse } from '../common/index.js';
 import { getByCountyAndState } from '../lib/getFIPS.js';
+import {
+  swissReBody,
+  SwissReBodyParams,
+} from '../lib/swiss-re-body-template.js';
+import { validateRequest } from '../middlewares/index.js';
+import { updateQuoteValidation } from '../middlewares/validation/index.js';
+import {
+  protosure,
+  spatialKeyInstance,
+  swissReInstance,
+} from '../services/index.js';
+
+// DELETE - updates protosure quote
 
 const router = express.Router();
 
@@ -74,7 +82,9 @@ router.post(
     // GET QUOTE FROM PROTOSURE
     // let quoteData;
     timers.getQuote.start = new Date().getTime();
-    const { data: quoteData } = await protosure.get<ProtosureQuoteData>(`/quotes/${quoteId}/`);
+    const { data: quoteData } = await protosure.get<ProtosureQuoteData>(
+      `/quotes/${quoteId}/`,
+    );
     timers.getQuote.end = new Date().getTime();
     // IF COORDS NOT THE SAME, NEED TO RESET QUOTE
     //    - rerun SK & SR api calls, lookup county fips,
@@ -86,7 +96,10 @@ router.post(
     let county_fips = quoteData.formData.county_fips;
     if (clientValues.countyName && clientValues.state && !county_fips) {
       timers.getFIPS.start = new Date().getTime();
-      const fipsSearch = getByCountyAndState(clientValues.countyName, clientValues.state);
+      const fipsSearch = getByCountyAndState(
+        clientValues.countyName,
+        clientValues.state,
+      );
       console.log('FIPS SEARCH RESULT: ', fipsSearch);
       timers.getFIPS.end = new Date().getTime();
       if (fipsSearch) county_fips = fipsSearch.fips;
@@ -100,11 +113,12 @@ router.post(
     if (shouldCallSK) {
       // call sk && extract data and add to propertyDataUpdates
       timers.getSK.start = new Date().getTime();
-      let { data: propResData }: AxiosResponse<SpatialKeyResponse[]> = await spatialKeyInstance.get(
-        `/api/analytics/v3/uw/single.json?lat=${encodeURIComponent(
-          clientValues.latitude
-        )}&lon=${encodeURIComponent(clientValues.longitude)}&shortFieldNames=true`
-      );
+      let { data: propResData }: AxiosResponse<SpatialKeyResponse[]> =
+        await spatialKeyInstance.get(
+          `/api/analytics/v3/uw/single.json?lat=${encodeURIComponent(
+            clientValues.latitude,
+          )}&lon=${encodeURIComponent(clientValues.longitude)}&shortFieldNames=true`,
+        );
       timers.getSK.end = new Date().getTime();
 
       const extractedValues = extractValuesFromSKRes(propResData[0]);
@@ -113,25 +127,28 @@ router.post(
       // TEMPORARY WORKAROUND
       propertyDataUpdates.cov_a_rcv_building_replacement_cost = Math.min(
         extractedValues.replacementCost || 500000,
-        1000000
+        1000000,
       );
       propertyDataUpdates.cov_b_rcv_unattached_dwellings_limit = Math.min(
         (extractedValues.replacementCost || 500000) * 0.05,
-        1000000
+        1000000,
       );
       propertyDataUpdates.cov_c_rcv_content_limit = Math.min(
         (extractedValues.replacementCost || 500000) * 0.25,
-        1000000
+        1000000,
       );
       propertyDataUpdates.cov_d_rcv_living_expenses_limit = Math.min(
         (extractedValues.replacementCost || 500000) * 0.1,
-        1000000
+        1000000,
       );
       if (!clientValues.limitA || clientValues.limitA === '') {
-        clientValues.limitA = propertyDataUpdates.cov_a_rcv_building_replacement_cost;
-        clientValues.limitB = propertyDataUpdates.cov_b_rcv_unattached_dwellings_limit;
+        clientValues.limitA =
+          propertyDataUpdates.cov_a_rcv_building_replacement_cost;
+        clientValues.limitB =
+          propertyDataUpdates.cov_b_rcv_unattached_dwellings_limit;
         clientValues.limitC = propertyDataUpdates.cov_c_rcv_content_limit;
-        clientValues.limitD = propertyDataUpdates.cov_d_rcv_living_expenses_limit;
+        clientValues.limitD =
+          propertyDataUpdates.cov_d_rcv_living_expenses_limit;
       }
       // TODO: save spatial key data to database ??
     }
@@ -151,19 +168,23 @@ router.post(
       console.log('SR BODY VARS: ', xmlBodyVars);
       timers.getSR.start = new Date().getTime();
       const body = swissReBody(xmlBodyVars);
-      const { data } = await swissReInstance.post('/rate/sync/srxplus/losses', body, {
-        headers: {
-          'Content-Type': 'application/octet-stream',
+      const { data } = await swissReInstance.post(
+        '/rate/sync/srxplus/losses',
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/octet-stream',
+          },
         },
-      });
+      );
       timers.getSR.end = new Date().getTime();
       console.log('SWISS RE RES: ', data);
 
       let code200Index = data.expectedLosses.findIndex(
-        (floodObj: any) => floodObj.perilCode === '200'
+        (floodObj: any) => floodObj.perilCode === '200',
       );
       let code300Index = data.expectedLosses.findIndex(
-        (floodObj: any) => floodObj.perilCode === '300'
+        (floodObj: any) => floodObj.perilCode === '300',
       );
 
       if (code200Index !== -1) {
@@ -191,7 +212,10 @@ router.post(
           state: clientValues.state,
           postal: clientValues.postal,
         },
-        coordinates: new GeoPoint(clientValues.latitude, clientValues.longitude),
+        coordinates: new GeoPoint(
+          clientValues.latitude,
+          clientValues.longitude,
+        ),
       });
       timers.setSRDoc.end = new Date().getTime();
       console.log(`Save Swiss Re response to ${swissReRef.id}`);
@@ -209,7 +233,8 @@ router.post(
           cov_b_limit: clientValues.limitB,
           cov_c_limit: clientValues.limitC,
           cov_d_limit: clientValues.limitD,
-          first_named_insured: `${clientValues.firstName} ${clientValues.lastName}`.trim() || null,
+          first_named_insured:
+            `${clientValues.firstName} ${clientValues.lastName}`.trim() || null,
           historical_flood_losses: clientValues.priorLossCount,
           county_fips,
           ...ratingUpdates,
@@ -235,7 +260,7 @@ router.post(
       timers.updateQuote.start = new Date().getTime();
       const { data: updateRes } = await protosure.patch(
         `/quotes/${quoteId}/update_input_data/`,
-        inputUpdates
+        inputUpdates,
       );
       timers.updateQuote.end = new Date().getTime();
       console.log('UPDATE RES: ', updateRes);
@@ -276,7 +301,10 @@ router.post(
       let premCalc;
       try {
         timers.calcQuote.start = new Date().getTime();
-        const { data: calcRes } = await protosure.post(`/quotes/${quoteId}/calculate_rater/`, {});
+        const { data: calcRes } = await protosure.post(
+          `/quotes/${quoteId}/calculate_rater/`,
+          {},
+        );
         console.log('CALC RES: ', JSON.stringify(calcRes, null, 2));
         timers.calcQuote.end = new Date().getTime();
         premCalc = calcRes;
@@ -296,21 +324,23 @@ router.post(
       console.log(error.response);
       throw new Error('Error updating quote');
     }
-  }
+  },
 );
 
 export { router as updateQuoteRouter };
 
 function checkPropertyDataCallRequired(clientValues: any, dbValues: any) {
   const { latitude: clientLat, longitude: clientLng } = clientValues;
-  const { latitude: dbLat, longitude: dbLng } = dbValues.formData.risk_location_address;
+  const { latitude: dbLat, longitude: dbLng } =
+    dbValues.formData.risk_location_address;
 
   return !(clientLat === dbLat && clientLng === dbLng);
 }
 
 // coords limits, numStories, deductible, RCV (possible to change RCV ?? check anyway ??)
 function checkSRCallRequired(clientValues: any, dbValues: any) {
-  const limitASame = clientValues.limitA === dbValues.formData.building_coverage_limit;
+  const limitASame =
+    clientValues.limitA === dbValues.formData.building_coverage_limit;
   const limitBSame = clientValues.limitB === dbValues.formData.cov_b_limit;
   const limitCSame = clientValues.limitC === dbValues.formData.cov_c_limit;
   const limitDSame = clientValues.limitD === dbValues.formData.cov_d_limit;
@@ -318,13 +348,21 @@ function checkSRCallRequired(clientValues: any, dbValues: any) {
   // TODO: Protosure missing number of stories
   const deductibleSame =
     clientValues.deductible ===
-    dbValues.formData.type_wtextinput_a0b9f72cac5f42108dafa0b4450baed7_20230202171321;
+    dbValues.formData
+      .type_wtextinput_a0b9f72cac5f42108dafa0b4450baed7_20230202171321;
 
-  return !(limitASame && limitBSame && limitCSame && limitDSame && deductibleSame);
+  return !(
+    limitASame &&
+    limitBSame &&
+    limitCSame &&
+    limitDSame &&
+    deductibleSame
+  );
 }
 
 function getXMLBodyVars(clientValues: any, rcvRef?: number | null) {
-  const { latitude, longitude, limitA, limitB, limitC, limitD, deductible } = clientValues;
+  const { latitude, longitude, limitA, limitB, limitC, limitD, deductible } =
+    clientValues;
   rcvRef = rcvRef ?? 250000;
   const rcvA = rcvRef;
   const rcvB = limitB > 0 ? rcvRef * 0.05 : 0;
@@ -388,7 +426,9 @@ interface PropData {
 
 function extractValuesFromSKRes(spatialKeyData: SpatialKeyResponse): PropData {
   let sqFootage = parseFloat(spatialKeyData.us_hh_square_footage) || null;
-  let numStories = parseInt(spatialKeyData.us_hh_assessment_num_stories.replace(/\D/g, '')) || null;
+  let numStories =
+    parseInt(spatialKeyData.us_hh_assessment_num_stories.replace(/\D/g, '')) ||
+    null;
   let replacementCost = parseInt(spatialKeyData.us_hh_replacement_cost) || null;
   let propertyCode = spatialKeyData.us_hh_property_use_code;
   let yearBuilt = parseInt(spatialKeyData.us_hh_year_built) || null;
@@ -397,7 +437,9 @@ function extractValuesFromSKRes(spatialKeyData: SpatialKeyResponse): PropData {
   let basement = spatialKeyData.us_hh_assessment_basement;
   const dtcArr = spatialKeyData.us_hh_dtc_beach_distance.split(' ');
   let distToCoastUnit = dtcArr[dtcArr.length - 1];
-  let distToCoastFeet = parseInt(spatialKeyData.us_hh_dtc_beach_distance.replace(/\D/g, '')); // || null
+  let distToCoastFeet = parseInt(
+    spatialKeyData.us_hh_dtc_beach_distance.replace(/\D/g, ''),
+  ); // || null
 
   console.log(`SPATIALKEY SQ FOOTAGE: ${sqFootage}`);
   console.log(`SPATIALKEY NUM STORIES: ${numStories}`);
@@ -415,7 +457,10 @@ function extractValuesFromSKRes(spatialKeyData: SpatialKeyResponse): PropData {
     // reject('Not ratable. Property within CBRS perimeter.');
     // return;
   }
-  if (distToCoastUnit.toLowerCase() === 'mile' || distToCoastUnit.toLowerCase() === 'miles') {
+  if (
+    distToCoastUnit.toLowerCase() === 'mile' ||
+    distToCoastUnit.toLowerCase() === 'miles'
+  ) {
     distToCoastFeet = Math.round(5280 * distToCoastFeet);
   }
 

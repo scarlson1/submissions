@@ -1,9 +1,13 @@
+import {
+  moratoriumsCollection,
+  type Moratorium,
+  type WithId,
+} from '@idemand/common';
 import express, { Request, Response } from 'express';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
-import { moratoriumValidation } from '../middlewares/validation/index.js';
 import { validateRequest } from '../middlewares/index.js';
-import { moratoriumsCollection, MoratoriumWithId } from '../common/index.js';
+import { moratoriumValidation } from '../middlewares/validation/index.js';
 
 const router = express.Router();
 
@@ -32,7 +36,7 @@ router.get(
       const snap = await q.get();
       snap.forEach((i) => console.log(i.data()));
 
-      const moratoriums: MoratoriumWithId[] = snap.docs
+      const moratoriums: WithId<Moratorium>[] = snap.docs
         .map((snap) => ({ ...snap.data(), id: snap.id }))
         .filter((doc) => {
           if (!doc.expirationDate) return true;
@@ -41,11 +45,13 @@ router.get(
         });
       console.log('MORATORIUMS: ', moratoriums);
 
-      res.status(200).send({ isMoratorium: moratoriums.length !== 0, moratoriums });
+      res
+        .status(200)
+        .send({ isMoratorium: moratoriums.length !== 0, moratoriums });
     } catch (error) {
       throw new Error('Error querying moratoriums');
     }
-  }
+  },
 );
 
 export { router as moratoriumRouter };

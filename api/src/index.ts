@@ -7,13 +7,10 @@ import { morganMiddleware } from './config/index.js';
 import { NotFoundError } from './errors/index.js';
 import { errorHandler } from './middlewares/index.js';
 import {
-  calcPremiumRouter,
   licenseRouter,
   listStatesRouter,
   moratoriumRouter,
-  propertyDataRouter,
   stateTaxRouter,
-  updateQuoteRouter,
 } from './routes/index.js';
 
 // TODO: connect login to google Logger (set up with morgan ??)
@@ -45,9 +42,10 @@ app.use(listStatesRouter);
 app.use(moratoriumRouter);
 app.use(licenseRouter);
 
-app.use(updateQuoteRouter);
-app.use(calcPremiumRouter);
-app.use(propertyDataRouter);
+// abandoned protosure integration
+// app.use(updateQuoteRouter);
+// app.use(calcPremiumRouter);
+// app.use(propertyDataRouter);
 
 // TEST FOR FIREBASE REWRITES (DELETE)
 const router = express.Router();

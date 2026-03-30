@@ -31,6 +31,7 @@ export const Collection = z.enum([
   'versions',
   'permissions', // TODO: switch to privileged / secure
   // 'secure',
+  'states', // active states by productId
 ]);
 export type Collection = z.infer<typeof Collection>;
 
@@ -66,7 +67,11 @@ export const ChangeRequestTrxType = z.enum([
 ]);
 export type ChangeRequestTrxType = z.infer<typeof ChangeRequestTrxType>;
 
-export const TransactionType = z.enum([...ChangeRequestTrxType.options, 'new', 'renewal'] as const);
+export const TransactionType = z.enum([
+  ...ChangeRequestTrxType.options,
+  'new',
+  'renewal',
+] as const);
 export type TransactionType = z.infer<typeof TransactionType>;
 
 export const TaxItemName = z.enum([
@@ -87,7 +92,12 @@ export type TaxRateType = z.infer<typeof TaxRateType>;
 export const LicenseOwner = z.enum(['individual', 'organization']);
 export type LicenseOwner = z.infer<typeof LicenseOwner>;
 
-export const LicenseType = z.enum(['producer', 'surplus lines', 'MGA', 'Tax ID']);
+export const LicenseType = z.enum([
+  'producer',
+  'surplus lines',
+  'MGA',
+  'Tax ID',
+]);
 export type LicenseType = z.infer<typeof LicenseType>;
 
 export const Basement = z.enum(['no', 'finished', 'unfinished', 'unknown']);
@@ -99,7 +109,19 @@ export type CBRSDesignation = z.infer<typeof CBRSDesignation>;
 export const PriorLossCount = z.enum(['0', '1', '2', '3']);
 export type PriorLossCount = z.infer<typeof PriorLossCount>;
 
-export const FloodZone = z.enum(['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']);
+export const FloodZone = z.enum([
+  'A',
+  'B',
+  'C',
+  'D',
+  'V',
+  'X',
+  'AE',
+  'AO',
+  'AH',
+  'AR',
+  'VE',
+]);
 export type FloodZone = z.infer<typeof FloodZone>;
 
 export const CancelReason = z.enum([

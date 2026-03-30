@@ -1,4 +1,8 @@
-import { CollectionReference, DocumentData, Firestore } from 'firebase-admin/firestore';
+import {
+  CollectionReference,
+  DocumentData,
+  Firestore,
+} from 'firebase-admin/firestore';
 
 import { Collection } from './enums.js';
 import {
@@ -20,31 +24,39 @@ import {
   UserAccess,
 } from './types/index.js';
 
-const createCollection = <T = DocumentData>(db: Firestore, collectionPath: Collection | string) => {
+const createCollection = <T = DocumentData>(
+  db: Firestore,
+  collectionPath: Collection | string,
+) => {
   return db.collection(collectionPath) as CollectionReference<T>;
 };
 
-export const taxesCollection = (db: Firestore) => createCollection<Tax>(db, 'taxes');
+export const taxesCollection = (db: Firestore) =>
+  createCollection<Tax>(db, Collection.enum.taxes);
 
 export const moratoriumsCollection = (db: Firestore) =>
-  createCollection<Moratorium>(db, 'moratoriums');
+  createCollection<Moratorium>(db, Collection.enum.moratoriums);
 
-export const usersCollection = (db: Firestore) => createCollection<User>(db, 'users');
+export const usersCollection = (db: Firestore) =>
+  createCollection<User>(db, Collection.enum.users);
 
 export const orgsCollection = (db: Firestore) =>
-  createCollection<Organization>(db, 'organizations');
+  createCollection<Organization>(db, Collection.enum.organizations);
 
 export const submissionsCollection = (db: Firestore) =>
-  createCollection<Submission>(db, 'submissions');
+  createCollection<Submission>(db, Collection.enum.submissions);
 
-export const quotesCollection = (db: Firestore) => createCollection<Quote>(db, 'quotes');
+export const quotesCollection = (db: Firestore) =>
+  createCollection<Quote>(db, Collection.enum.quotes);
 
-export const policiesCollection = (db: Firestore) => createCollection<Policy>(db, 'policies');
+export const policiesCollection = (db: Firestore) =>
+  createCollection<Policy>(db, Collection.enum.policies);
 
-export const locationsCollection = (db: Firestore) => createCollection<ILocation>(db, 'locations');
+export const locationsCollection = (db: Firestore) =>
+  createCollection<ILocation>(db, Collection.enum.locations);
 
 export const ratingDataCollection = (db: Firestore) =>
-  createCollection<RatingData>(db, 'ratingData');
+  createCollection<RatingData>(db, Collection.enum.ratingData);
 
 export const taxCalcCollection = (db: Firestore) =>
   createCollection<TaxCalc>(db, Collection.Enum.taxCalculations);
@@ -52,32 +64,40 @@ export const taxCalcCollection = (db: Firestore) =>
 export const taxTransactionsCollection = <T = TaxTransaction>(db: Firestore) =>
   createCollection<T>(db, Collection.Enum.taxTransactions);
 
-export const licensesCollection = (db: Firestore) => createCollection<License>(db, 'licenses');
+export const licensesCollection = (db: Firestore) =>
+  createCollection<License>(db, Collection.enum.licenses);
 
 export const swissReResCollection = (db: Firestore) =>
-  createCollection<SRResWithAAL | SRRes>(db, 'swissReRes');
+  createCollection<SRResWithAAL | SRRes>(db, Collection.enum.swissReRes);
 
 // export const secureCollection = <T = DocumentData>(db: Firestore) =>
 //   createCollection<T>(db, 'secure');
+
+export const activeStates = (db: Firestore) =>
+  createCollection(db, Collection.enum.states);
 
 // sub collections
 
 export const versionsCollection = <T extends DocumentData>(
   db: Firestore,
   parentCollection: Collection,
-  parentId: string
-) => createCollection<T>(db, `${parentCollection}/${parentId}/${Collection.Enum.versions}`);
+  parentId: string,
+) =>
+  createCollection<T>(
+    db,
+    `${parentCollection}/${parentId}/${Collection.Enum.versions}`,
+  );
 
 export const invitesCollection = (db: Firestore, orgId: string) =>
   createCollection<Invite>(
     db,
-    `${Collection.Enum.organizations}/${orgId}/${Collection.Enum.invitations}`
+    `${Collection.Enum.organizations}/${orgId}/${Collection.Enum.invitations}`,
   );
 
 const userAccessCollection = (db: Firestore, userId: string) =>
   createCollection<UserAccess>(
     db,
-    `${Collection.Enum.users}/${userId}/${Collection.Enum.permissions}`
+    `${Collection.Enum.users}/${userId}/${Collection.Enum.permissions}`,
   );
 
 export const getUserAccessRef = (db: Firestore, userId: string) =>

@@ -1,4 +1,4 @@
-import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
+// import { Timestamp } from 'firebase-admin/firestore';
 
 // delete - replaced with array of SubjectBaseItems
 // export type SubjectBase =
@@ -9,80 +9,68 @@ import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 //   | 'flat_dollar'
 //   | 'no_fee';
 
-export type WithId<T> = T & { id: string };
+// export type WithId<T> = T & { id: string };
 
-export type Product = 'flood' | 'wind';
+// export type Product = 'flood' | 'wind';
 
-export type SubjectBaseItems =
-  | 'premium'
-  | 'inspectionFees'
-  | 'mgaFees'
-  | 'outStatePremium'
-  | 'homeStatePremium'
-  | 'fixedFee';
+// export type SubjectBaseItems =
+//   | 'premium'
+//   | 'inspectionFees'
+//   | 'mgaFees'
+//   | 'outStatePremium'
+//   | 'homeStatePremium'
+//   | 'fixedFee';
 
-export type RoundingType = 'nearest' | 'up' | 'down';
+// export type AddressComponentType =
+//   | 'street_number'
+//   | 'route'
+//   | 'locality'
+//   | 'administrative_area_level_1'
+//   | 'administrative_area_level_2'
+//   | 'postal_code'
+//   | 'country';
 
-export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+// export interface AddressComponent {
+//   long_name: string;
+//   short_name: string;
+//   types: AddressComponentType[];
+// }
 
-export interface Address {
-  addressLine1: string;
-  addressLine2?: string | null;
-  city: string;
-  state: string;
-  postal: string;
-}
+// export interface BaseMetadata {
+//   created: Timestamp;
+//   updated: Timestamp;
+// }
 
-export type AddressComponentType =
-  | 'street_number'
-  | 'route'
-  | 'locality'
-  | 'administrative_area_level_1'
-  | 'administrative_area_level_2'
-  | 'postal_code'
-  | 'country';
+// export type LineOfBusiness = 'commercial' | 'residential';
 
-export interface AddressComponent {
-  long_name: string;
-  short_name: string;
-  types: AddressComponentType[];
-}
+// export type TaxItemName =
+//   | 'Premium Tax'
+//   | 'Service Fee'
+//   | 'Stamping Fee'
+//   | 'Regulatory Fee'
+//   | 'Windpool Fee'
+//   | 'Surcharge'
+//   | 'EMPA Surcharge'
+//   | 'Bureau of Insurance Assessment';
 
-export interface BaseMetadata {
-  created: Timestamp;
-  updated: Timestamp;
-}
-
-export type LineOfBusiness = 'commercial' | 'residential';
-
-export type TaxItemName =
-  | 'Premium Tax'
-  | 'Service Fee'
-  | 'Stamping Fee'
-  | 'Regulatory Fee'
-  | 'Windpool Fee'
-  | 'Surcharge'
-  | 'EMPA Surcharge'
-  | 'Bureau of Insurance Assessment';
-
-export interface Tax {
-  state: string;
-  displayName: TaxItemName;
-  effectiveDate: Timestamp;
-  expirationDate?: Timestamp;
-  LOB: LineOfBusiness[];
-  products: Product[];
-  transactionTypes: TransactionType[];
-  subjectBase: SubjectBaseItems[];
-  baseRoundType?: RoundingType;
-  baseDigits?: number;
-  resultRoundType: RoundingType;
-  resultDigits?: number;
-  rate: number;
-  rateType: 'fixed' | 'percent';
-  refundable?: boolean;
-  metadata: BaseMetadata;
-}
+// export interface Tax {
+//   state: string;
+//   displayName: TaxItemName;
+//   effectiveDate: Timestamp;
+//   expirationDate?: Timestamp | null;
+//   LOB: LineOfBusiness[];
+//   products: Product[];
+//   transactionTypes: TransactionType[];
+//   subjectBase: SubjectBaseItems[];
+//   baseRoundType?: RoundingType;
+//   baseDigits?: number;
+//   resultRoundType: RoundingType;
+//   resultDigits?: number;
+//   rate: number;
+//   rateType: 'fixed' | 'percent';
+//   refundable?: boolean;
+//   metadata: BaseMetadata;
+// }
 
 // code?: string;
 // SLAMembershipRequired?: boolean;
@@ -97,77 +85,77 @@ export interface Tax {
 // password?: string; // TODO: do not store here !! ??
 // address?: Address;
 
-export interface FIPSDetails {
-  state: string;
-  stateFP: string;
-  countyName: string;
-  countyFP: string;
-  classFP?: string;
-}
+// export interface FIPSDetails {
+//   state: string;
+//   stateFP: string;
+//   countyName: string;
+//   countyFP: string;
+//   classFP?: string;
+// }
 
-export interface Moratorium {
-  locationDetails: FIPSDetails[];
-  locations: string[];
-  product: { [Property in keyof Product]: boolean };
-  effectiveDate: Timestamp; // string;
-  expirationDate: Timestamp; // string;
-  reason?: string;
-  metadata: BaseMetadata;
-}
+// export interface Moratorium {
+//   locationDetails: FIPSDetails[];
+//   locations: string[];
+//   product: { [Property in keyof Product]: boolean };
+//   effectiveDate: Timestamp; // string;
+//   expirationDate: Timestamp; // string;
+//   reason?: string;
+//   metadata: BaseMetadata;
+// }
 
-export interface MoratoriumWithId extends Moratorium {
-  id: string;
-}
+// export interface MoratoriumWithId extends Moratorium {
+//   id: string;
+// }
 
-export type LicenseOwner = 'individual' | 'organization';
-export type LicenseType = 'producer' | 'surplus lines' | 'MGA' | 'Tax ID';
+// export type LicenseOwner = 'individual' | 'organization';
+// export type LicenseType = 'producer' | 'surplus lines' | 'MGA' | 'Tax ID';
 
-export interface License {
-  state: string;
-  ownerType: LicenseOwner;
-  licenseType: LicenseType;
-  surplusLinesProducerOfRecord: boolean;
-  licenseNumber: string;
-  effectiveDate: Timestamp;
-  expirationDate?: Timestamp | null;
-  SLAssociationMembershipRequired?: boolean;
-}
+// export interface License {
+//   state: string;
+//   ownerType: LicenseOwner;
+//   licenseType: LicenseType;
+//   surplusLinesProducerOfRecord: boolean;
+//   licenseNumber: string;
+//   effectiveDate: Timestamp;
+//   expirationDate?: Timestamp | null;
+//   SLAssociationMembershipRequired?: boolean;
+// }
 
-export interface LicenseWithId extends License {
-  id: string;
-}
+// export interface LicenseWithId extends License {
+//   id: string;
+// }
 
-export interface SRPerilAAL {
-  tiv: number;
-  fguLoss: number;
-  preCatLoss: number;
-  perilCode: string;
-}
+// export interface SRPerilAAL {
+//   tiv: number;
+//   fguLoss: number;
+//   preCatLoss: number;
+//   perilCode: string;
+// }
 
-export interface SRRes {
-  correlationId: string;
-  bound: boolean;
-  messages?: {
-    text: string;
-    type: string;
-    severity: string;
-  }[];
-  expectedLosses: SRPerilAAL[];
-}
+// export interface SRRes {
+//   correlationId: string;
+//   bound: boolean;
+//   messages?: {
+//     text: string;
+//     type: string;
+//     severity: string;
+//   }[];
+//   expectedLosses: SRPerilAAL[];
+// }
 
-export interface SRResWithAAL extends SRRes {
-  inlandAAL?: number | null;
-  surgeAAL?: number | null;
-  submissionId: string;
-  address?: {
-    addressLine1: string;
-    addressLine2?: string;
-    city: string;
-    state: string;
-    postal: string;
-  };
-  coordinates?: GeoPoint;
-}
+// export interface SRResWithAAL extends SRRes {
+//   inlandAAL?: number | null;
+//   surgeAAL?: number | null;
+//   submissionId: string;
+//   address?: {
+//     addressLine1: string;
+//     addressLine2?: string;
+//     city: string;
+//     state: string;
+//     postal: string;
+//   };
+//   coordinates?: GeoPoint;
+// }
 
 export interface ProtosureQuoteData {
   calculatedData: ProtosureCalcData;
@@ -261,10 +249,18 @@ export interface ProtosureFormData {
   surplus_producer: string | null;
   surplus_producer_address: ProtosureAddress;
   uw_adjust: string | number | null;
-  type_wpercentselectinput_1e4ab3589010432889dd344147dced88_20230203153845: number | null;
-  type_wsliderinput_60cd8d7804f54613979ee9c251b0bfe9_20230205165831: number | null;
-  type_wtextinput_022fd521dbfa4ae99a321b250ef0727e_20230202142214: number | null;
-  type_wtextinput_a0b9f72cac5f42108dafa0b4450baed7_20230202171321: number | null;
+  type_wpercentselectinput_1e4ab3589010432889dd344147dced88_20230203153845:
+    | number
+    | null;
+  type_wsliderinput_60cd8d7804f54613979ee9c251b0bfe9_20230205165831:
+    | number
+    | null;
+  type_wtextinput_022fd521dbfa4ae99a321b250ef0727e_20230202142214:
+    | number
+    | null;
+  type_wtextinput_a0b9f72cac5f42108dafa0b4450baed7_20230202171321:
+    | number
+    | null;
 }
 
 export interface ProtosureRaterData {
