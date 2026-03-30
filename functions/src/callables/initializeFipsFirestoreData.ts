@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getFirestore } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
 import { HttpsError, type CallableRequest } from 'firebase-functions/v2/https';
+import { fipsUrl } from '../common/environmentVars.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims } from './utils/index.js';
 
@@ -9,11 +10,7 @@ const initializeFipsFirestoreData = async ({ auth }: CallableRequest) => {
   requireIDemandAdminClaims(auth?.token);
 
   try {
-    const { data } = await axios.get(
-      'https://scarlson1.github.io/data/fips.json',
-    );
-
-    // alternatively import from common/fips ??
+    const { data } = await axios.get(fipsUrl.value());
 
     // Collection.enum.public
     await getFirestore().collection('public').doc('fips').set({

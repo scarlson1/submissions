@@ -1,9 +1,11 @@
+import type { FIPSDetails } from '@idemand/common';
 import { startCase } from 'lodash-es';
-import { FIPS } from '../common/fips.js';
+import { fipsData } from './downloadFIPSData.js';
+// import { FIPS } from '../common/fips.js';
 
 // TODO: lazy load ?? improve cold start time ??
 
-export const getByCountyAndState = (county: string, state: string) => {
+export const getByCountyAndState = async (county: string, state: string) => {
   console.log('state: ', state);
   console.log('county: ', county);
   if (!state || !county)
@@ -17,8 +19,11 @@ export const getByCountyAndState = (county: string, state: string) => {
 
   const abbreviation = state.toUpperCase().trim();
   county = startCase(county);
+
+  const FIPS = await fipsData();
+
   const match = FIPS.find(
-    (row) =>
+    (row: FIPSDetails) =>
       row.countyName === county ||
       (row.countyName === `${county} County` && row.state === abbreviation),
   );
@@ -34,7 +39,7 @@ export const getByCountyAndState = (county: string, state: string) => {
   };
 };
 
-export const getByFipsAndState = (fips: string, state: string) => {
+export const getByFipsAndState = async (fips: string, state: string) => {
   if (!fips) throw new Error('You must provide a three digit fips code.');
   if (!state || state.length !== 2)
     throw new Error('You must provide a two letter state abbreviation.');
@@ -43,8 +48,10 @@ export const getByFipsAndState = (fips: string, state: string) => {
   if (fips.length === 5) fips = fips.slice(2);
   if (fips.length !== 3) throw new Error('Fips code must be three digits.');
 
+  const FIPS = await fipsData();
+
   const match = FIPS.find(
-    (county) =>
+    (county: FIPSDetails) =>
       county.countyFP === fips && county.state === state.toUpperCase(),
   );
 
