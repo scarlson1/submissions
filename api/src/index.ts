@@ -3,9 +3,8 @@ import express, { Request, Response } from 'express';
 import 'express-async-errors';
 import { applicationDefault, initializeApp } from 'firebase-admin/app';
 
-import { morganMiddleware } from './config/index.js';
 import { NotFoundError } from './errors/index.js';
-import { errorHandler } from './middlewares/index.js';
+import { errorHandler, morganMiddleware } from './middlewares/index.js';
 import {
   licenseRouter,
   listStatesRouter,

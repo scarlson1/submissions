@@ -1,2 +1,1 @@
-export { morganMiddleware } from './morgan-middleware.js';
-export * from './generateSRAccessToken';
+export * from './secretManager.js';

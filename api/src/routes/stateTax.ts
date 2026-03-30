@@ -11,9 +11,9 @@ import {
   type TaxItemName,
   type TransactionType,
 } from '@idemand/common';
-import { createDocId } from '../lib/helpers.js';
 import { validateRequest } from '../middlewares/index.js';
 import { stateTaxValidation } from '../middlewares/validation/index.js';
+import { createDocId } from '../utils/helpers.js';
 
 // TODO: centralize tax calc logic (here or functions ??)
 

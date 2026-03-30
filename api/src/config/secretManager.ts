@@ -1,20 +1,22 @@
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 
 const client = new SecretManagerServiceClient();
-const parent = `projects/${process.env.PROJECT_NUMBER}`;
+// const parent = `projects/${process.env.PROJECT_NUMBER}`;
 
 export const getSecret = async (name: string, ver: string = 'latest') => {
+  const projectId = await client.getProjectId();
+  const secretPath = `${client.secretPath(projectId, name)}/versions/${ver}`;
+
   const [version] = await client.accessSecretVersion({
-    name: `${parent}/secrets/${name}/versions/${ver}`,
+    name: secretPath,
   });
 
   if (version) {
     try {
-      // json ????
       return version.payload?.data?.toString();
     } catch (err) {
       throw Error(
-        `Unable to parse secret from Secret Manager. Make sure the secret is JSON formatted: ${err}`
+        `Unable to parse secret from Secret Manager. Make sure the secret is JSON formatted: ${err}`,
       );
     }
   }
@@ -22,8 +24,10 @@ export const getSecret = async (name: string, ver: string = 'latest') => {
 };
 
 export const listSecrets = async () => {
+  const projectId = await client.getProjectId();
+  const parent = client.projectPath(projectId);
   const [secrets] = await client.listSecrets({
-    parent: parent,
+    parent, // : `projects/${projectId}`,
   });
 
   let secretNames: string[] = [];

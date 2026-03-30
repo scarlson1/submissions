@@ -3,7 +3,6 @@ import express, { Request, Response } from 'express';
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { AddressInfo } from 'net';
 import { NotFoundError } from './errors/index.js';
-import logger from './lib/logger.js';
 import { errorHandler, morganMiddleware } from './middlewares/index.js';
 import {
   licenseRouter,
@@ -11,6 +10,7 @@ import {
   moratoriumRouter,
   stateTaxRouter,
 } from './routes/index.js';
+import logger from './utils/logger.js';
 
 // https://kentcdodds.com/blog/how-i-structure-express-apps
 // see above for integrations test example
