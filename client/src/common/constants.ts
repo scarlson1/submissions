@@ -1,4 +1,10 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from '@mui/material';
 import { ProviderId } from 'firebase/auth';
 import { z } from 'zod';
 
@@ -12,7 +18,8 @@ export const SUPPORTED_AUTH_PROVIDER_IDS = [
 ];
 
 export const STATES_URL = 'https://scarlson1.github.io/data/states_20m.json';
-export const COUNTIES_URL = 'https://scarlson1.github.io/data/counties_20m.json';
+export const COUNTIES_URL =
+  'https://scarlson1.github.io/data/counties_20m.json'; // TODO:  env var ??
 
 export const VIEW_QUERY_KEY = 'view';
 
@@ -71,7 +78,8 @@ export const stateFIPS = {
 };
 
 export const COMMISSION_OPTIONS = [
-  0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2,
+  0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17,
+  0.18, 0.19, 0.2,
 ];
 
 // TODO: change default to be nested under address
@@ -156,6 +164,7 @@ export const CONTEXT_DIALOG_DEFAULT_SLOT_PROPS: DialogSlotProps = {
 
 // TODO: use zod import types to derive required headers
 
+// add userId, name, etc.
 export const QUOTE_IMPORT_REQUIRED_HEADERS = [
   'product',
   'limitA',
@@ -393,73 +402,5 @@ export const TrxImportRow = z.object({
 export type TTrxImportRow = z.infer<typeof TrxImportRow>;
 
 export const TRANSACTION_IMPORT_REQUIRED_HEADERS = Object.keys(
-  TrxImportRow.omit({ insuredCountyFips: true, insuredCountyName: true }).shape
+  TrxImportRow.omit({ insuredCountyFips: true, insuredCountyName: true }).shape,
 ) as (keyof typeof TrxImportRow)[];
-
-// export const TRANSACTION_IMPORT_REQUIRED_HEADERS = [
-//   'trxType',
-//   'product',
-//   'policyId',
-//   'externalId',
-//   'term',
-//   'bookingDate',
-//   'issuingCarrier',
-//   'namedInsured',
-//   'mailingAddressLine1',
-//   'mailingAddressLine2',
-//   'mailingCity',
-//   'mailingState',
-//   'mailingPostal',
-//   'homeState',
-//   'insuredAddressLine1',
-//   'insuredAddressLine2',
-//   'insuredCity',
-//   'insuredState',
-//   'insuredPostal',
-//   'latitude',
-//   'longitude',
-//   'otherInterestedParties',
-//   'additionalNamedInsured',
-//   'policyEffDate',
-//   'policyExpDate',
-//   'trxEffDate',
-//   'trxExpDate',
-//   'trxDays',
-//   'cancelReason',
-//   'locationTermPremium',
-//   'locationAnnualPremium',
-//   'mgaCommission',
-//   'mgaCommissionPct',
-//   'netDirectWrittenPremium',
-//   'dailyPremium',
-//   'termProratedPct',
-//   'netErrorAdj',
-//   'surplusLinesTax',
-//   'surplusLinesRegulatoryFee',
-//   'mgaFee',
-//   'inspectionFee',
-//   'previousPremiumTrxId',
-//   'limitA',
-//   'limitB',
-//   'limitC',
-//   'limitD',
-//   'deductible',
-//   'ratingDocId',
-//   'replacementCost',
-//   'cbrsDesignation',
-//   'basement',
-//   'distToCoastFeet',
-//   'floodZone',
-//   'numStories',
-//   'propertyCode',
-//   'sqFootage',
-//   'yearBuilt',
-//   'ffh',
-//   'units',
-//   'tier1',
-//   'construction',
-//   'priorLossCount',
-//   'techPremiumInland',
-//   'techPremiumSurge',
-//   'techPremiumTsunami',
-// ];
