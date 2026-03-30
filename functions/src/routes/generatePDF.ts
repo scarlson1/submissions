@@ -140,7 +140,7 @@ app.post(
       }
 
       policy = policyData;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error('Error fetching policy', { err });
       // TODO: use custom error classes
       res.status(500).send(`error fetching policy (${policyId})`);
