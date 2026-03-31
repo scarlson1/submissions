@@ -86,8 +86,10 @@ function wrap<A, B, C>(
       req = a as unknown as https.Request;
     }
     if (type === 'callable') {
-      const ctxLocal = b as unknown as https.CallableContext;
-      req = ctxLocal.rawRequest;
+      // new versions are only one param: request
+      // const ctxLocal = b as unknown as https.CallableContext;
+      // req = ctxLocal.rawRequest;
+      // req = a as CallableRequest
     }
     if (type === 'document') {
       ctx = b as unknown as Record<string, unknown>;
@@ -96,9 +98,12 @@ function wrap<A, B, C>(
       ctx = a as unknown as Record<string, unknown>;
     }
 
-    const traceparentData = extractTraceparentData(
-      req?.header('sentry-trace') || '',
-    );
+    const traceparentData =
+      type === 'http'
+        ? extractTraceparentData(
+            (req as https.Request)?.header('sentry-trace') || '',
+          )
+        : '';
     const transaction = startTransaction({
       name,
       op: 'transaction',

@@ -248,7 +248,7 @@ async function sendMoveToTenantEmail(
 
   // TODO: use hosting rewrites so v2 functions can be used
   // ie: const link = `${hostingBaseURL.value}/auth-api/confirm-move-tenant/${token}`
-  const link = `${functionsBaseURL.value()}/authRequests/confirm-move-tenant/${token}`;
+  const link = `${functionsBaseURL.value()}/authrequests/confirm-move-tenant/${token}`;
 
   info(`move tenant verification link: ${link}`);
 

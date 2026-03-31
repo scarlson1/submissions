@@ -5,7 +5,6 @@ import express, { json, urlencoded } from 'express';
 import 'express-async-errors';
 import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
-import { Response } from 'firebase-functions/v1';
 
 import { ILocation, Policy, Product, WithId } from '@idemand/common';
 import {
@@ -110,7 +109,7 @@ app.post(
   '/generateDecPDF',
   generatePDFSchema,
   validateRequest,
-  async (req: RequestUserAuth, res: Response) => {
+  async (req: RequestUserAuth, res) => {
     const { policyId } = req.body;
     info('new generate policy request received', { ...req.body });
 

@@ -1,5 +1,5 @@
-import * as functions from 'firebase-functions';
 import { projectID } from 'firebase-functions/params';
+import * as functions from 'firebase-functions/v1';
 import {
   beforeUserCreated,
   beforeUserSignedIn,

@@ -245,7 +245,7 @@ jobs:
 
       - name: Deploy onRequest functions
         if: needs.detect-changes.outputs.request == 'true' || needs.detect-changes.outputs.shared == 'true'
-        run: pnpm exec firebase deploy --only functions:authRequests,functions:authrequeststest,functions:copytaxes,functions:generatepdf,functions:stripe,functions:resend
+        run: pnpm exec firebase deploy --only functions:authrequests,functions:authrequeststest,functions:copytaxes,functions:generatepdf,functions:stripe,functions:resend
 
       - name: Deploy scheduled functions
         if: needs.detect-changes.outputs.cron == 'true' || needs.detect-changes.outputs.shared == 'true'

@@ -216,7 +216,7 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 
 <!-- ### HTTPS Triggered
 
-- `authRequests` - used to verify idemand email addresses. Link in verification email calls this endpoint. Returns "example@email.com has been verified, if successful. (weird bug with blocking function prevents using the Firebase SDK email verification method) -->
+- `authrequests` - used to verify idemand email addresses. Link in verification email calls this endpoint. Returns "example@email.com has been verified, if successful. (weird bug with blocking function prevents using the Firebase SDK email verification method) -->
 
 <!-- ### Pub/Sub
 

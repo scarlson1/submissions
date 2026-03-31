@@ -213,7 +213,7 @@ export const stripepubsub = {
 };
 
 import {
-  authRequests,
+  authrequests,
   authrequeststest,
   copytaxes,
   generatepdf,
@@ -230,7 +230,7 @@ import {
 //   // quickbooks,
 // };
 export {
-  authRequests,
+  authrequests,
   authrequeststest,
   copytaxes,
   generatepdf,
