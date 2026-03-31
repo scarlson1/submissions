@@ -35,7 +35,6 @@ jobs:
       - name: Build client
         run: pnpm --filter client build:channel:dev
         # env:
-        # Add any env vars your Vite build needs, e.g.:
         # VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - name: Deploy hosting preview
