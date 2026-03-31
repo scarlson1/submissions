@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase-admin/app';
-import 'firebase-functions';
+// import 'firebase-functions';
 
 initializeApp();
 

@@ -10,13 +10,18 @@ overrides:
   '@google-cloud/firestore': 8.3.0
   firebase-functions: ^7.2.2
 
+patchedDependencies:
+  firebase-tools-with-isolate@14.16.0:
+    hash: a73f4da3cc3685e1d0172dce93969261725ff5c7340b94d6d5597bee4558cca3
+    path: patches/firebase-tools-with-isolate@14.16.0.patch
+
 importers:
 
   .:
     devDependencies:
       firebase-tools-with-isolate:
         specifier: ^14.16.0
-        version: 14.16.0(@types/node@22.19.15)
+        version: 14.16.0(patch_hash=a73f4da3cc3685e1d0172dce93969261725ff5c7340b94d6d5597bee4558cca3)(@types/node@22.19.15)
 
   api:
     dependencies:
@@ -17686,7 +17691,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  firebase-tools-with-isolate@14.16.0(@types/node@22.19.15):
+  firebase-tools-with-isolate@14.16.0(patch_hash=a73f4da3cc3685e1d0172dce93969261725ff5c7340b94d6d5597bee4558cca3)(@types/node@22.19.15):
     dependencies:
       '@electric-sql/pglite': 0.3.16
       '@electric-sql/pglite-tools': 0.2.21(@electric-sql/pglite@0.3.16)

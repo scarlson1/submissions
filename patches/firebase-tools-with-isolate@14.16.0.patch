@@ -1,0 +1,32 @@
+diff --git a/lib/emulator/functionsEmulatorRuntime.js b/lib/emulator/functionsEmulatorRuntime.js
+index eb864e9d142e888a09b579b0c61abb91c269e3ac..cc424cb22473763d0b027b3f212263e84beed752 100644
+--- a/lib/emulator/functionsEmulatorRuntime.js
++++ b/lib/emulator/functionsEmulatorRuntime.js
+@@ -452,10 +452,23 @@ function warnAboutStorageProd() {
+ async function initializeFunctionsConfigHelper() {
+     const functionsResolution = await assertResolveDeveloperNodeModule("firebase-functions");
+     const localFunctionsModule = require(functionsResolution.resolution);
+-    logDebug("Checked functions.config()", {
+-        config: localFunctionsModule.config(),
+-    });
+-    const originalConfig = localFunctionsModule.config();
++    // logDebug("Checked functions.config()", {
++    //     config: localFunctionsModule.config(),
++    // });
++    // const originalConfig = localFunctionsModule.config();
++    let originalConfig = {};
++    try {
++        logDebug("Checked functions.config()", {
++            config: localFunctionsModule.config(),
++        });
++        originalConfig = localFunctionsModule.config();
++    }
++    catch (err) {
++        logDebug("functions.config() unavailable; defaulting to empty config", {
++            error: err?.message || String(err),
++        });
++        originalConfig = {};
++    }
+     const proxiedConfig = new Proxied(originalConfig)
+         .any((parentConfig, parentKey) => {
+         const isInternal = parentKey.startsWith("Symbol(") || parentKey.startsWith("inspect");
