@@ -1,15 +1,19 @@
 import { GppBadRounded, RequestQuoteRounded } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridRowId, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridRowId,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { noop } from 'lodash';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { SUBMISSION_STATUS, Submission } from 'common';
+import { Submission, SUBMISSION_STATUS } from 'common';
 import { SubmissionsGrid } from 'elements/grids';
 import { useAsyncToast, useConfirmAndUpdate, useUpdateDoc } from 'hooks';
 import { rcvSourceUserCol } from 'modules/muiGrid/gridColumnDefs';
-import { ADMIN_ROUTES, createPath } from 'router';
+import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 
 // move admin grid to elements folder ??
 
@@ -25,13 +29,15 @@ const getUpdateValues = (newRow: Submission) => {
 export function AdminSubmissionsGrid() {
   const navigate = useNavigate();
   const toast = useAsyncToast();
-  const { update: updateSubmission } = useUpdateDoc<Submission>('submissions', noop, (msg) =>
-    toast.error(msg)
+  const { update: updateSubmission } = useUpdateDoc<Submission>(
+    'submissions',
+    noop,
+    (msg) => toast.error(msg),
   );
   const confirmAndUpdate = useConfirmAndUpdate<Submission>(
     'submissions',
     getUpdateValues,
-    getChangeMsg
+    getChangeMsg,
   );
 
   const handleCreateQuote = useCallback(
@@ -43,7 +49,7 @@ export function AdminSubmissionsGrid() {
         }),
       });
     },
-    [navigate]
+    [navigate],
   );
 
   // TODO: move to hook (confirm and update ??) (build general email hook first)
@@ -51,7 +57,9 @@ export function AdminSubmissionsGrid() {
     (id: GridRowId) => async () => {
       try {
         toast.loading('saving status...');
-        await updateSubmission(id.toString(), { status: SUBMISSION_STATUS.NOT_ELIGIBLE });
+        await updateSubmission(id.toString(), {
+          status: SUBMISSION_STATUS.NOT_ELIGIBLE,
+        });
 
         toast.success('saved'); // TODO: prompt "would you like to notify insured"
         toast.warn('saved - user has NOT been notified', { duration: 6000 });
@@ -60,7 +68,7 @@ export function AdminSubmissionsGrid() {
         toast.error('an error occurred');
       }
     },
-    [updateSubmission, toast]
+    [updateSubmission, toast],
   );
 
   const handleProcessRowUpdateError = useCallback((err: Error) => {
@@ -89,7 +97,7 @@ export function AdminSubmissionsGrid() {
         showInMenu
       />,
     ],
-    [handleCreateQuote, handleDecline]
+    [handleCreateQuote, handleDecline],
   );
 
   return (
@@ -98,9 +106,9 @@ export function AdminSubmissionsGrid() {
         if (!params.isEditable) {
           navigate(
             createPath({
-              path: ADMIN_ROUTES.SUBMISSION_VIEW,
+              path: ROUTES.SUBMISSION_VIEW,
               params: { submissionId: params.id.toString() },
-            })
+            }),
           );
         }
       }}

@@ -1,24 +1,31 @@
-import { useMemo } from 'react';
-import { Content, EditorOptions, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import { Color } from '@tiptap/extension-color';
-import ListItem from '@tiptap/extension-list-item';
-import TextStyle from '@tiptap/extension-text-style';
-import Link from '@tiptap/extension-link';
 import FontFamily from '@tiptap/extension-font-family';
+import Highlight from '@tiptap/extension-highlight';
+import Link from '@tiptap/extension-link';
+import ListItem from '@tiptap/extension-list-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
+import TextStyle from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
-import Highlight from '@tiptap/extension-highlight';
+import {
+  Content,
+  EditorOptions,
+  useEditor,
+  type Extensions,
+} from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { useMemo } from 'react';
 
 import FontSize from 'modules/textEditor/FontSize';
 
-export const EDITOR_EXTENSION_DEFAULTS = [
-  Color.configure({ types: [TextStyle.name, ListItem.name] }), // @ts-ignore
+export const EDITOR_EXTENSION_DEFAULTS: Extensions = [
+  Color.configure({ types: [TextStyle.name, ListItem.name] }),
+  // @ts-expect-error
   TextStyle.configure({ types: [ListItem.name] }),
   Underline,
   Link,
   Highlight.configure({ multicolor: true }),
+  // @ts-expect-error parent type issue
   StarterKit.configure({
     bulletList: {
       keepMarks: true,
@@ -51,7 +58,10 @@ export const useTextEditor = ({
   extensions = [],
   ...props
 }: UseTextEditorProps) => {
-  const extns = useMemo(() => [...EDITOR_EXTENSION_DEFAULTS, ...extensions], [extensions]);
+  const extns = useMemo(
+    () => [...EDITOR_EXTENSION_DEFAULTS, ...extensions],
+    [extensions],
+  );
 
   const editor = useEditor({
     content: initContent,

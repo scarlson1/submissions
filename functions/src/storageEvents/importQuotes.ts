@@ -1,13 +1,14 @@
-import { Collection, Quote } from '@idemand/common';
+import { createReadStream } from 'fs';
+import { tmpdir } from 'os';
+import { basename, join } from 'path';
+
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { StorageEvent } from 'firebase-functions/v2/storage';
-import { createReadStream } from 'fs';
-import { tmpdir } from 'os';
-import { basename, join } from 'path';
+
+import { Collection, Quote } from '@idemand/common';
 import {
-  audience,
   getCardFee,
   hostingBaseURL,
   importSummaryCollection,
@@ -79,7 +80,7 @@ export default async (event: StorageEvent) => {
     if (!dataArr.length) throw new Error('No valid rows');
 
     await unlinkFile(tempFilePath);
-  } catch (err: any) {
+  } catch (err: unknown) {
     error('ERROR PARSING CSV. RETURNING EARLY', { err });
 
     await unlinkFile(tempFilePath);
@@ -143,7 +144,7 @@ export default async (event: StorageEvent) => {
       const quoteRef = await importStagingCol.add(data);
 
       quoteIds.push(quoteRef.id);
-    } catch (err: any) {
+    } catch (err: unknown) {
       error('Error saving quote', { err });
       importErrors.push(q);
     }
@@ -169,12 +170,11 @@ export default async (event: StorageEvent) => {
     info(`SAVED IMPORT SUMMARY TO DOC ${importSummaryRef.id}`);
 
     const to = ['spencer@s-carlson.com'];
-    let link;
 
-    if (audience.value() !== 'LOCAL HUMANS') {
-      to.push('noreply@s-carlson.com');
-      link = `${hostingBaseURL.value}/admin/config/imports`;
-    }
+    // if (audience.value() !== 'LOCAL HUMANS') {
+    // to.push('noreply@s-carlson.com');
+    const link = `${hostingBaseURL.value()}/admin/config/imports`;
+    // }
 
     await sendAdminPolicyImportNotification(
       resendKey.value(),
@@ -185,14 +185,14 @@ export default async (event: StorageEvent) => {
       fileName,
       link,
       undefined,
-      {
-        customArgs: {
-          firebaseEventId: event.id,
-          emailType: 'quote_import',
-        },
-      },
+      // {
+      //   customArgs: {
+      //     firebaseEventId: event.id,
+      //     emailType: 'quote_import',
+      //   },
+      // },
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     error('Error saving import summary doc or delivering email notification', {
       err,
     });

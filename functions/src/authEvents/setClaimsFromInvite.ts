@@ -1,13 +1,21 @@
 import { UserRecord } from 'firebase-admin/auth';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { EventContext } from 'firebase-functions/v1';
 
-import { iDemandOrgId, invitesCollection, userClaimsCollection } from '../common/index.js';
+import {
+  iDemandOrgId,
+  invitesCollection,
+  mgaDomain,
+  userClaimsCollection,
+} from '../common/index.js';
 
 // BUG - are claims set when user is move to tenant ?? (and status stays pending)
 
-export default async (user: UserRecord, context: EventContext<Record<string, string>>) => {
+export default async (
+  user: UserRecord,
+  context: EventContext<Record<string, string>>,
+) => {
   const db = getFirestore();
 
   if (!!user.tenantId && !!user.email) {
@@ -27,16 +35,21 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
         .set({ ...claims }, { merge: true });
 
       info(`Setting invite status to accepted ${inviteRef.id}`);
-      await inviteRef.update({ status: 'accepted', 'metadata.updated': Timestamp.now() });
+      await inviteRef.update({
+        status: 'accepted',
+        'metadata.updated': Timestamp.now(),
+      });
     } catch (err) {
       error(`Error setting claims for user ${user.email}`, { err });
     }
   }
 
-  if (user.email?.endsWith('@idemandinsurance.com')) {
+  if (user.email?.endsWith(mgaDomain.value())) {
     try {
       info(`Fetching invite for user idemand user: ${user.email}`);
-      const inviteRef = invitesCollection(db, iDemandOrgId.value()).doc(user.email);
+      const inviteRef = invitesCollection(db, iDemandOrgId.value()).doc(
+        user.email,
+      );
       const inviteSnap = await inviteRef.get();
       if (!inviteSnap.exists) return;
 
@@ -49,7 +62,10 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
         .set({ ...claims }, { merge: true });
 
       info(`Setting invite status to accepted ${inviteRef.id}`);
-      await inviteRef.update({ status: 'accepted', 'metadata.updated': Timestamp.now() });
+      await inviteRef.update({
+        status: 'accepted',
+        'metadata.updated': Timestamp.now(),
+      });
     } catch (err: any) {
       error('Error updating iDemand users claims from invite', { err });
     }

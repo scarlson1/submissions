@@ -12,9 +12,12 @@ const reportErr = getReportErrorFn('sendEmail');
 export async function sendInvite(sgKey: string, args: SendInviteProps) {
   try {
     throw new Error('not implemented yet');
-  } catch (err: any) {
+  } catch (err: unknown) {
     reportErr('error sending invite notification', { ...args }, err);
 
-    throw new HttpsError('unimplemented', 'send invite function not set up yet');
+    throw new HttpsError(
+      'unimplemented',
+      'send invite function not set up yet',
+    );
   }
 }

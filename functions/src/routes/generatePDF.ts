@@ -1,11 +1,10 @@
 // import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import { format } from 'date-fns';
-import express, { json, urlencoded } from 'express';
+import express from 'express';
 import 'express-async-errors';
 import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
-import { Response } from 'firebase-functions/v1';
 
 import { ILocation, Policy, Product, WithId } from '@idemand/common';
 import {
@@ -55,10 +54,9 @@ const app = express();
 // const router = express.Router();
 // TODO: accepted origins
 app.use(cors({ origin: true })); // { origin: true }
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: false }));
-app.use(json());
-app.use(urlencoded({ extended: false }));
+// firebase automatically added body-parser in new versions ??
+// app.use(json());
+// app.use(urlencoded({ extended: false }));
 // app.use(validateFirebaseIdToken);
 app.use(currentUser);
 app.use(requireAuth);
@@ -110,7 +108,7 @@ app.post(
   '/generateDecPDF',
   generatePDFSchema,
   validateRequest,
-  async (req: RequestUserAuth, res: Response) => {
+  async (req: RequestUserAuth, res) => {
     const { policyId } = req.body;
     info('new generate policy request received', { ...req.body });
 
@@ -140,7 +138,7 @@ app.post(
       }
 
       policy = policyData;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error('Error fetching policy', { err });
       // TODO: use custom error classes
       res.status(500).send(`error fetching policy (${policyId})`);
@@ -255,12 +253,30 @@ app.post(
     }
 
     try {
+      // const pdfBuffer = await generatePolicyDecPDF(templateData);
+
+      // res.setHeader('Content-Type', 'application/pdf');
+      // res.setHeader('Content-Disposition', `attachment; filename=policy_${policyId}.pdf`);
+
+      // res.send(pdfBuffer);
+
       const result = await generatePolicyDecPDF(templateData);
 
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=export.pdf');
+      // const chunks: Buffer[] = []
+      // for await (const chunk of stream) {
+      //   chunks.push(chunk as Buffer);
+      // }
+      // const pdfBuffer = Buffer.concat(chunks);
 
-      result.pipe(res);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=policy_${policyId}.pdf`,
+      );
+
+      // res.send(pdfBuffer);
+
+      result.pipe(res); // cloud run doesn't allow result.pipe() ??
     } catch (err: unknown) {
       error('Error generating PDF from react-pdf template', err);
       res.status(500).send('Error generating pdf');

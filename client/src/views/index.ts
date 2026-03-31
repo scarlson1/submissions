@@ -15,5 +15,6 @@ export { ReceivableCheckout } from './ReceivableCheckout';
 export { SubmissionNew } from './SubmissionNew';
 export { SubmissionNewPortfolio } from './SubmissionNewPortfolio';
 export { Submissions } from './Submissions';
+export { SubmissionView } from './SubmissionView';
 export { UserDetails } from './UserDetails';
 export { ViewQuote } from './ViewQuote';

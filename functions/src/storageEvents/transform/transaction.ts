@@ -40,8 +40,7 @@ const offsetTrxTypes: OffsetTrxType[] = [
   'flat_cancel',
 ];
 function isOffsetTrx(row: TrxRow) {
-  // @ts-ignore
-  const isOffsetType = offsetTrxTypes.includes(row.trxType);
+  const isOffsetType = offsetTrxTypes.includes(row.trxType as OffsetTrxType);
 
   const termPrem = row.locationTermPremium
     ? extractNumberNeg(row.locationTermPremium)
@@ -52,8 +51,9 @@ function isOffsetTrx(row: TrxRow) {
 }
 
 function isPremTrx(row: TrxRow) {
-  // @ts-ignore
-  const isPremType = premEndorsementPrevTypes.includes(row.trxType);
+  const isPremType = premEndorsementPrevTypes.includes(
+    row.trxType as PremTrxType,
+  );
 
   const termPrem = row.locationTermPremium
     ? extractNumberNeg(row.locationTermPremium)
@@ -134,9 +134,9 @@ function csvRowToPremiumTrx(
 
   const billingEntityId = row.billingEntityId || 'namedInsured';
   const billingEntity: Nullable<BillingEntity> = {
-    displayName: row.billingEntityName,
-    email: row.billingEntityEmail,
-    phone: row.billingEntityPhone,
+    displayName: row.billingEntityName || '',
+    email: row.billingEntityEmail || '',
+    phone: row.billingEntityPhone || '',
     billingType: (row.billingType as BillingEntity['billingType']) || 'invoice',
     paymentMethods: [],
   };
@@ -330,7 +330,7 @@ function csvRowToInsuredLocation(
   };
 
   const TIV = Object.values(limits).reduce((acc, curr) => acc + curr, 0);
-  let rawRCVs = getRCVs(extractNumber(row.replacementCost || '0'), limits);
+  const rawRCVs = getRCVs(extractNumber(row.replacementCost || '0'), limits);
   const RCVs = {
     total: rawRCVs.total ?? null,
     building: rawRCVs.building ?? null,
@@ -387,8 +387,10 @@ function csvRowCommon(
   return {
     product: (row.product as Product) || null,
     policyId: row.policyId || null,
-    // locationId: row.locationId || null,
-    locationId: null,
+    locationId:
+      Boolean(row.locationId) && row.locationId !== null
+        ? row.locationId
+        : null,
     externalId: row.externalId || null,
     term: row.term ? extractNumber(row.term) : null,
     bookingDate: csvCellToTimestamp(row.bookingDate),

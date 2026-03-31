@@ -1,5 +1,13 @@
 import { InfoRounded, OpenInNewRounded } from '@mui/icons-material';
-import { Alert, AlertTitle, Box, Button, Collapse, Link, Typography } from '@mui/material';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  Collapse,
+  Link,
+  Typography,
+} from '@mui/material';
 import { UploadResult } from 'firebase/storage';
 import { camelCase } from 'lodash';
 import { useCallback, useState } from 'react';
@@ -34,17 +42,21 @@ function ImportTransactions() {
     setDupHeaders([]);
   }, []);
 
-  const checkForDuplicates = useCallback((headers: string[], formatFn: (str: string) => string) => {
-    let formatted = headers.map((h) => formatFn(h));
-    setDupHeaders(getDuplicates(formatted));
-  }, []);
+  const checkForDuplicates = useCallback(
+    (headers: string[], formatFn: (str: string) => string) => {
+      let formatted = headers.map((h) => formatFn(h));
+      setDupHeaders(getDuplicates(formatted));
+    },
+    [],
+  );
 
   const handleHeaderStatus = useCallback(
-    (requiredHeaders: string[], formatFn: (str: string) => string) => (headers: string[]) => {
-      checkForDuplicates(headers, formatFn);
-      return getCsvHeaderStatus(headers, requiredHeaders, formatFn);
-    },
-    [checkForDuplicates]
+    (requiredHeaders: string[], formatFn: (str: string) => string) =>
+      (headers: string[]) => {
+        checkForDuplicates(headers, formatFn);
+        return getCsvHeaderStatus(headers, requiredHeaders, formatFn);
+      },
+    [checkForDuplicates],
   );
 
   return (
@@ -54,10 +66,19 @@ function ImportTransactions() {
         open={open}
         onClose={() => setOpen(false)}
         destinationFolder={StorageFolder.enum.importTransactions}
-        getCsvHeaderStatus={handleHeaderStatus(TRANSACTION_IMPORT_REQUIRED_HEADERS, camelCase)}
+        getCsvHeaderStatus={handleHeaderStatus(
+          TRANSACTION_IMPORT_REQUIRED_HEADERS,
+          camelCase,
+        )}
         onSuccess={onSuccess}
         title={
-          <Box>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <Typography>Import Transactions</Typography>
             <DownloadStorageFileButton filePath='public/transactionImportTemplate.csv'>
               Download template
@@ -67,7 +88,11 @@ function ImportTransactions() {
       >
         <Typography variant='body2' color='text.secondary' component='div'>
           Headers will be transformed to{' '}
-          <Link href='https://lodash.com/docs/4.17.15#camelCase' target='_blank' rel='noopener'>
+          <Link
+            href='https://lodash.com/docs/4.17.15#camelCase'
+            target='_blank'
+            rel='noopener'
+          >
             camel case <OpenInNewRounded sx={{ fontSize: 16 }} />
           </Link>
           {`. (ex: "CovA limit" → "cov_a_limit")`}

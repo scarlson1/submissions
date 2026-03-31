@@ -24,7 +24,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['js-big-decimal'],
   },
-  resolve: {
-    preserveSymlinks: true,
-  },
+  // resolve: {
+  //   preserveSymlinks: true,
+  // },
 });

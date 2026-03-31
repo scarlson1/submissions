@@ -147,7 +147,7 @@ When Stripe later finalizes the invoice, the webhook path updates the receivable
 - `invoicePdfUrl`
 - `invoiceNumber`
 
-![stripe checkout event flow](./)
+![stripe checkout event flow](./stripe-checkout-event-flow.svg)
 
 ### 4. Receivable Checkout
 
@@ -163,7 +163,7 @@ That flow works like this:
 4. The page mounts Stripe Elements using `VITE_STRIPE_PUBLISHABLE_KEY`.
 5. `CheckoutForm` confirms payment with Stripe.
 
-This route is the strongest existing production-facing Stripe payment surface in the app.
+![stripe checkout](./stripe-invoice.png)
 
 ## Stripe Bind Flow
 
@@ -177,7 +177,7 @@ Route:
 
 Status:
 
-- this is the main implementation in use
+- transitioning away from epay - lacks, webhook events, transfers, invoicing, etc.
 - it still uses ePay, not Stripe, for payment execution
 
 High level steps:
@@ -193,6 +193,8 @@ High level steps:
 Route:
 
 ~~- `/admin/stripe-test/quote/bind/:quoteId`~~
+
+- `/receivables/:receivableId`
 
 TODO: update docs - stripe moved to regular bind route
 

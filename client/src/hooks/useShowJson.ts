@@ -1,15 +1,15 @@
 import {
-  CollectionReference,
-  FirestoreDataConverter,
   collection,
+  CollectionReference,
   doc,
+  FirestoreDataConverter,
   getDoc,
+  type DocumentData,
 } from 'firebase/firestore';
 import { capitalize } from 'lodash';
 import { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useFirestore } from 'reactfire';
-import { DocumentData } from 'rxfire/firestore/interfaces';
 
 import { TCollection, WithId } from 'common';
 import { DialogOptions } from 'context';
@@ -23,7 +23,7 @@ export const useShowJson = <T extends DocumentData>(
   paths: string[] = [],
   getTitle?: null | ((data: WithId<T>) => string),
   converter?: FirestoreDataConverter<T> | null,
-  dialogOptions?: Partial<Omit<DialogOptions, 'onSubmit' | 'content'>>
+  dialogOptions?: Partial<Omit<DialogOptions, 'onSubmit' | 'content'>>,
 ) => {
   const firestore = useFirestore();
   const dialog = useJsonDialog({
@@ -44,7 +44,8 @@ export const useShowJson = <T extends DocumentData>(
         let docPath = subPath ? `${subPath}/${docId}` : docId;
         const snap = await getDoc(doc(colRef, docPath));
         const data = snap.data();
-        if (!snap.exists || !data) throw new Error(`doc not found (${colName}/${docId})`);
+        if (!snap.exists || !data)
+          throw new Error(`doc not found (${colName}/${docId})`);
 
         let title;
         if (getTitle) {
@@ -64,7 +65,7 @@ export const useShowJson = <T extends DocumentData>(
         toast.error(msg);
       }
     },
-    [colRef, colName, paths, dialog, getTitle]
+    [colRef, colName, paths, dialog, getTitle],
   );
 
   return showJson;

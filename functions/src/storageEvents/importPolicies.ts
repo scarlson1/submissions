@@ -24,7 +24,6 @@ import { round } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
 import {
-  audience,
   CancellationReason,
   getReportErrorFn,
   hostingBaseURL,
@@ -129,7 +128,7 @@ export default async (event: StorageEvent) => {
     if (!dataArr.length) throw new Error('No valid rows');
 
     await unlinkFile(tempFilePath);
-  } catch (err: any) {
+  } catch (err: unknown) {
     reportErr('ERROR PARSING CSV. RETURNING EARLY', {}, err);
 
     await unlinkFile(tempFilePath);
@@ -157,7 +156,7 @@ export default async (event: StorageEvent) => {
     lcnIdMap = idMap;
 
     if (!policyRecords) throw new Error('Error formatting rows into policies');
-  } catch (err: any) {
+  } catch (err: unknown) {
     // TODO: report error to admin (email?)
     reportErr('Errror grouping & formatting locations into policies', {}, err);
     return;
@@ -215,7 +214,7 @@ export default async (event: StorageEvent) => {
       importedIds.push(policyId);
 
       await batch.commit();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.log('ERR: ', err);
       error(`Error creating policy record in DB ${policyId}`, { err });
       createErrors.push(policyData);
@@ -237,13 +236,13 @@ export default async (event: StorageEvent) => {
 
     const sgKey = resendKey.value();
     const to = ['spencer@s-carlson.com'];
-    let link;
+    // let link;
 
-    if (audience.value() !== 'LOCAL HUMANS') {
-      to.push('noreply@s-carlson.com');
+    // if (audience.value() !== 'LOCAL HUMANS') {
+    //   to.push('noreply@s-carlson.com');
 
-      link = `${hostingBaseURL.value}/admin/config/imports`;
-    }
+    const link = `${hostingBaseURL.value()}/admin/config/imports`;
+    // }
 
     await sendAdminPolicyImportNotification(
       sgKey,
@@ -261,7 +260,7 @@ export default async (event: StorageEvent) => {
         },
       },
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     error('Error saving summary or notifying admin', { err });
   }
 

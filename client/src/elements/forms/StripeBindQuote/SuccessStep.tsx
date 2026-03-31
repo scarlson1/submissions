@@ -108,7 +108,7 @@ export const SuccessStep = ({ policyId }: { policyId: string }) => {
             >
               Invoice(s) have been emailed to the provided billing email
               addresses. You may also complete the payment using the links below
-              (it may take a moment to create the payment).
+              (it may take a moment to create the invoice).
             </Typography>
           </Box>
         </CardContent>

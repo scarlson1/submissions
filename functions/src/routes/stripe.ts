@@ -13,6 +13,7 @@ import {
   getReportErrorFn,
   hostingBaseURL,
   iDemandOrgId,
+  mgaDomain,
   orgsCollection,
   RequestUserAuth,
   stripeEndpointSecret,
@@ -569,7 +570,7 @@ app.post(
 function extractUserOrg(req: RequestUserAuth) {
   let orgId = req.tenantId;
   if (
-    req.user?.email?.endsWith('@idemandinsurance.com') &&
+    req.user?.email?.endsWith(mgaDomain.value()) &&
     req.user?.email_verified
   ) {
     orgId = iDemandOrgId.value();

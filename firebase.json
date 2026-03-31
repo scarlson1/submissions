@@ -30,7 +30,7 @@
       },
       {
         "source": "/auth-api{,/**}",
-        "function": "authRequests"
+        "function": "authrequests"
       },
       {
         "source": "/auth-api-test{,/**}",

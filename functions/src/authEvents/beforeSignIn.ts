@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import {
   emailVerificationKey,
   functionsBaseURL,
+  mgaDomain,
   resendKey,
 } from '../common/index.js';
 import {
@@ -18,10 +19,7 @@ import {
 export default async (event: AuthBlockingEvent) => {
   const user = event.data;
   // REQUIRE EMAIL VERIFICATION BEFORE CREATING ACCOUNT IF @idemandinsurance.com DOMAIN
-  if (
-    user.email &&
-    user.email?.toLowerCase().endsWith('@idemandinsurance.com')
-  ) {
+  if (user.email && user.email?.toLowerCase().endsWith(mgaDomain.value())) {
     if (!user.emailVerified) {
       try {
         const verificationKey = emailVerificationKey.value();
@@ -90,7 +88,7 @@ async function sendAdminVerificationEmail(
 
   // TODO: use hosting rewrites so v2 functions can be used
   // ie: const link = `${hostingBaseURL.value}/auth-api/confirm-move-tenant/${token}`
-  const link = `${functionsBaseURL.value()}/authRequests/verify-email/${token}`;
+  const link = `${functionsBaseURL.value()}/authrequests/verify-email/${token}`;
 
   info(`Verification link: ${link}`);
 

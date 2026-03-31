@@ -98,6 +98,14 @@ type CSVPolicyCamelCaseHeaders =
   | 'techPremiumSurge'
   | 'techPremiumTsunami'
   | 'ratingDocId'
-  | 'commSource';
+  | 'commSource'
+  | 'carrierName'
+  | 'carrierOrgId'
+  | 'carrierStripeAccountId'
+  | 'carrierAddressLine1'
+  | 'carrierAddressLine2'
+  | 'carrierCity'
+  | 'carrierState'
+  | 'carrierPostal';
 
 export type CSVPolicyRow = Record<CSVPolicyCamelCaseHeaders, string>;

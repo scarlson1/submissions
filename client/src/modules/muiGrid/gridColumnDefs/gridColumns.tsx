@@ -112,7 +112,7 @@ import {
 } from 'modules/utils';
 import { memo, Suspense } from 'react';
 import { useSigninCheck } from 'reactfire';
-import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
+import { createPath, ROUTES } from 'router';
 
 export const copyBaseProps: Partial<GridColDef> = {
   flex: 1.2,
@@ -198,7 +198,7 @@ export const submissionIdCol: GridColDef = {
       <Link
         component={RouterLink}
         to={createPath({
-          path: ADMIN_ROUTES.SUBMISSION_VIEW,
+          path: ROUTES.SUBMISSION_VIEW,
           params: { submissionId: params.value },
         })}
       >

@@ -1,17 +1,28 @@
 import { LoadingButton } from '@mui/lab';
-import { Badge, Box, ListItemIcon, ListItemText, MenuItem, Tooltip } from '@mui/material';
+import {
+  Badge,
+  Box,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Tooltip,
+} from '@mui/material';
 import {
   GridActionsCellItem,
   GridActionsColDef,
+  gridRowSelectionStateSelector,
   GridToolbarColumnsButton,
   GridToolbarContainer,
   GridToolbarFilterButton,
-  gridRowSelectionStateSelector,
   useGridApiContext,
 } from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
 
-import { DataObjectRounded, ThumbDownRounded, ThumbUpRounded } from '@mui/icons-material';
+import {
+  DataObjectRounded,
+  ThumbDownRounded,
+  ThumbUpRounded,
+} from '@mui/icons-material';
 import { Collection, ImportSummary } from 'common';
 import { IconMenu, ServerDataGrid } from 'components';
 import { useAuth } from 'context';
@@ -55,7 +66,13 @@ const ImportToolBar = ({
   }, [selected, handleDeclineImport]);
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}
+    >
       <Box sx={{ flex: '1 1 auto' }}>
         <GridToolbarContainer sx={{ pt: 2.5 }}>
           <GridToolbarColumnsButton />
@@ -98,7 +115,9 @@ const ImportToolBar = ({
             <IconMenu>
               <MenuItem
                 onClick={onApprove}
-                disabled={!claims?.iDemandAdmin || updateLoading || declineLoading}
+                disabled={
+                  !claims?.iDemandAdmin || updateLoading || declineLoading
+                }
                 disableRipple
               >
                 <ListItemIcon>
@@ -109,7 +128,9 @@ const ImportToolBar = ({
               <MenuItem
                 onClick={onDecline}
                 divider
-                disabled={!claims?.iDemandAdmin || updateLoading || declineLoading}
+                disabled={
+                  !claims?.iDemandAdmin || updateLoading || declineLoading
+                }
                 disableRipple
               >
                 <ListItemIcon>
@@ -130,19 +151,29 @@ interface ImportReviewComponentProps {
   importType: string;
 }
 
-export const ImportReviewComponent = ({ importId, importType }: ImportReviewComponentProps) => {
+export const ImportReviewComponent = ({
+  importId,
+  importType,
+}: ImportReviewComponentProps) => {
   const { isMobile } = useWidth();
   const { claims } = useAuth();
   const toast = useAsyncToast({ id: 'import-toast', position: 'top-right' });
-  const { handleApproveImport, handleDeclineImport, loading } = useManageImports(
+  const { handleApproveImport, handleDeclineImport, loading } =
+    useManageImports(
+      importId,
+      (msg) => toast.success(msg),
+      (msg) => toast.error(msg),
+    );
+
+  const showJson = useShowJson('dataImports', [
     importId,
-    (msg) => toast.success(msg),
-    (msg) => toast.error(msg)
+    Collection.Enum.stagedDocs,
+  ]);
+
+  const handleShowJson = useCallback(
+    (id: string) => () => showJson(id),
+    [showJson],
   );
-
-  const showJson = useShowJson('dataImports', [importId, Collection.Enum.stagedDocs]);
-
-  const handleShowJson = useCallback((id: string) => () => showJson(id), [showJson]);
 
   const props = useMemo(() => {
     const actionsCol: GridActionsColDef = {
@@ -162,7 +193,9 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
             handleApproveImport([params.id.toString()]);
           }}
           label='Approve import'
-          disabled={!claims?.iDemandAdmin || params.row.importMeta?.status !== 'new'}
+          disabled={
+            !claims?.iDemandAdmin || params.row.importMeta?.status !== 'new'
+          }
           showInMenu={isMobile}
         />,
         <GridActionsCellItem
@@ -176,7 +209,9 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
             handleDeclineImport([params.id.toString()]);
           }}
           label='Decline import'
-          disabled={!claims?.iDemandAdmin || params.row.importMeta?.status !== 'new'}
+          disabled={
+            !claims?.iDemandAdmin || params.row.importMeta?.status !== 'new'
+          }
           showInMenu={isMobile}
         />,
         <GridActionsCellItem
@@ -187,7 +222,7 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
           }
           onClick={handleShowJson(params.id.toString())}
           label='Details'
-          disabled={!Boolean(claims?.iDemandAdmin)}
+          // disabled={!Boolean(claims?.iDemandAdmin)}
           showInMenu={isMobile}
         />,
       ],
@@ -255,5 +290,10 @@ export const ImportReview = () => {
   const { importId } = useSafeParams(['importId']);
   const { data } = useDocData<ImportSummary>('dataImports', importId);
 
-  return <ImportReviewComponent importId={importId} importType={data.targetCollection} />;
+  return (
+    <ImportReviewComponent
+      importId={importId}
+      importType={data.targetCollection}
+    />
+  );
 };

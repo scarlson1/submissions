@@ -1,4 +1,11 @@
-import ReactPDF, { Document, Image, Page, Text, View } from '@react-pdf/renderer';
+import {
+  Document,
+  Image,
+  Page,
+  renderToStream,
+  Text,
+  View,
+} from '@react-pdf/renderer';
 
 import { formatPhoneNumber } from '../../common/helpers.js';
 import {
@@ -18,7 +25,8 @@ import {
 } from './pages/index.js';
 import { styles } from './styles.js';
 
-export const IDEMAND_LOGO_URL = 'https://scarlson1.github.io/iDemand_SPI_720x240.png';
+export const IDEMAND_LOGO_URL =
+  'https://scarlson1.github.io/iDemand_SPI_720x240.png';
 
 interface DecPageTemplateData extends Record<string, unknown> {
   policyId: string;
@@ -88,7 +96,9 @@ const DecPagePDF = ({ data }: PDFProps) => {
           <Text style={{ ...styles.overline, paddingBottom: 0 }}>
             6017 Pine Ridge Rd., Suite 401, Naples, FL 34119
           </Text>
-          <Text style={{ ...styles.overline, paddingBottom: 0 }}>FLOOD POLICY DECLARATIONS</Text>
+          <Text style={{ ...styles.overline, paddingBottom: 0 }}>
+            FLOOD POLICY DECLARATIONS
+          </Text>
         </View>
         <View
           style={{
@@ -154,9 +164,13 @@ const DecPagePDF = ({ data }: PDFProps) => {
               >
                 {data.insuredName}
               </Text>
-              <Text style={{ ...styles.blockSecondaryText }}>{data.insuredEmail}</Text>
+              <Text style={{ ...styles.blockSecondaryText }}>
+                {data.insuredEmail}
+              </Text>
               {data.insuredPhone && (
-                <Text style={{ ...styles.blockSecondaryText }}>{data.insuredPhone}</Text>
+                <Text style={{ ...styles.blockSecondaryText }}>
+                  {data.insuredPhone}
+                </Text>
               )}
             </View>
           </View>
@@ -171,7 +185,9 @@ const DecPagePDF = ({ data }: PDFProps) => {
               >
                 {data.mailingAddressName}
               </Text>
-              <Text style={{ ...styles.blockSecondaryText }}>{`${data.mailingAddressLine1} ${
+              <Text
+                style={{ ...styles.blockSecondaryText }}
+              >{`${data.mailingAddressLine1} ${
                 data.mailingAddressLine2 ? `, ${data.mailingAddressLine2}` : ''
               }`}</Text>
               <Text
@@ -190,8 +206,12 @@ const DecPagePDF = ({ data }: PDFProps) => {
               >
                 {data.agentName}
               </Text>
-              <Text style={{ ...styles.blockSecondaryText }}>{data.agencyName}</Text>
-              <Text style={{ ...styles.blockSecondaryText }}>{data.agentEmail}</Text>
+              <Text style={{ ...styles.blockSecondaryText }}>
+                {data.agencyName}
+              </Text>
+              <Text style={{ ...styles.blockSecondaryText }}>
+                {data.agentEmail}
+              </Text>
               {data.agentPhone ? (
                 <Text style={{ ...styles.blockSecondaryText }}>
                   {formatPhoneNumber(data.agentPhone)}
@@ -217,8 +237,12 @@ const DecPagePDF = ({ data }: PDFProps) => {
               >
                 {data.issuingCarrier}
               </Text>
-              <Text style={{ ...styles.blockSecondaryText }}>633 East Main St.</Text>
-              <Text style={{ ...styles.blockSecondaryText }}>Harrisonburg, VA 22801</Text>
+              <Text style={{ ...styles.blockSecondaryText }}>
+                633 East Main St.
+              </Text>
+              <Text style={{ ...styles.blockSecondaryText }}>
+                Harrisonburg, VA 22801
+              </Text>
             </View>
           </View>
           <View style={{ flex: '0 0 33.3%', paddingRight: 8 }}>
@@ -232,29 +256,46 @@ const DecPagePDF = ({ data }: PDFProps) => {
               >
                 iDemand Insurance Agency, Inc.
               </Text>
-              <Text style={{ ...styles.blockSecondaryText }}>6017 Pine Ridge Rd., Suite 401</Text>
-              <Text style={{ ...styles.blockSecondaryText }}>Naples, FL 34119</Text>
+              <Text style={{ ...styles.blockSecondaryText }}>
+                6017 Pine Ridge Rd., Suite 401
+              </Text>
+              <Text style={{ ...styles.blockSecondaryText }}>
+                Naples, FL 34119
+              </Text>
             </View>
           </View>
           <View style={{ flex: '0 0 33.3%', paddingRight: 8 }}>
             <BlockTitle title='Surplus Lines Producer License' />
             <View style={{ width: '100%' }}>
-              {data.surplusLinesName && <KeyValItem title='Name:' value={data.surplusLinesName} />}
+              {data.surplusLinesName && (
+                <KeyValItem title='Name:' value={data.surplusLinesName} />
+              )}
               {data.surplusLinesLicenseNum && (
-                <KeyValItem title='License #:' value={data.surplusLinesLicenseNum} />
+                <KeyValItem
+                  title='License #:'
+                  value={data.surplusLinesLicenseNum}
+                />
               )}
               {data.surplusLinesLicenseState && (
-                <KeyValItem title='Issuing St.:' value={data.surplusLinesLicenseState} />
+                <KeyValItem
+                  title='Issuing St.:'
+                  value={data.surplusLinesLicenseState}
+                />
               )}
               {data.surplusLinesLicensePhone ? (
-                <KeyValItem title='Phone:' value={data.surplusLinesLicensePhone} />
+                <KeyValItem
+                  title='Phone:'
+                  value={data.surplusLinesLicensePhone}
+                />
               ) : null}
             </View>
           </View>
         </View>
         <Text
           style={[styles.pageNumbers, styles.textSecondary]}
-          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+          render={({ pageNumber, totalPages }) =>
+            `${pageNumber} / ${totalPages}`
+          }
           fixed
         />
       </Page>
@@ -262,15 +303,26 @@ const DecPagePDF = ({ data }: PDFProps) => {
         size='A4'
         orientation='landscape'
         wrap={true}
-        style={{ ...styles.page, paddingHorizontal: 20, backgroundColor: '#ffffff' }}
+        style={{
+          ...styles.page,
+          paddingHorizontal: 20,
+          backgroundColor: '#ffffff',
+        }}
       >
         <View style={{ paddingBottom: 20 }}>
-          <Text style={[styles.heading2, styles.textCenter]}>Insured Locations</Text>
+          <Text style={[styles.heading2, styles.textCenter]}>
+            Insured Locations
+          </Text>
           <LocationsTable data={data.locationData} />
         </View>
         {data.locationInterests?.length > 0 ? (
-          <View style={{ paddingTop: 10, paddingBottom: 20 }} break={shouldBreakInterests}>
-            <Text style={[styles.heading2, styles.textCenter]}>Additional Interests</Text>
+          <View
+            style={{ paddingTop: 10, paddingBottom: 20 }}
+            break={shouldBreakInterests}
+          >
+            <Text style={[styles.heading2, styles.textCenter]}>
+              Additional Interests
+            </Text>
             {/* <AdditionalInterestsTable data={[...data.locationInterests, ...ADDL_INSUREDS_DATA]} /> */}
             <AdditionalInterestsTable data={data.locationInterests} />
           </View>
@@ -279,12 +331,16 @@ const DecPagePDF = ({ data }: PDFProps) => {
           style={{ paddingTop: 10, paddingBottom: 20 }}
           break={shouldBreakInterests || shouldBreakPremium}
         >
-          <Text style={[styles.heading2, styles.textCenter]}>Premium, Taxes & Fees</Text>
+          <Text style={[styles.heading2, styles.textCenter]}>
+            Premium, Taxes & Fees
+          </Text>
           <PremiumTable data={data.premiumTable} />
         </View>
         <Text
           style={[styles.pageNumbers, styles.textSecondary]}
-          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+          render={({ pageNumber, totalPages }) =>
+            `${pageNumber} / ${totalPages}`
+          }
           fixed
         />
       </Page>
@@ -292,7 +348,9 @@ const DecPagePDF = ({ data }: PDFProps) => {
         {data.docsAttached?.length > 0 && (
           <>
             <View style={[styles.headerContainer]}>
-              <Text style={[styles.tableHeader, styles.textSecondary]}>Attached Documents</Text>
+              <Text style={[styles.tableHeader, styles.textSecondary]}>
+                Attached Documents
+              </Text>
             </View>
             {data.docsAttached.map((d, i) => (
               <View
@@ -311,23 +369,32 @@ const DecPagePDF = ({ data }: PDFProps) => {
         )}
         <View style={styles.section}>
           <Text style={[styles.textPrimary, styles.paragraph]}>
-            This Policy Declaration updates and replaces any previously issued Policy Declarations.
+            This Policy Declaration updates and replaces any previously issued
+            Policy Declarations.
           </Text>
         </View>
         <View style={[styles.section]}>
           <View style={[styles.signatureBox]}>
-            <Text style={[styles.textPrimary, styles.signature]}>Ronald Carlson</Text>
+            <Text style={[styles.textPrimary, styles.signature]}>
+              Ronald Carlson
+            </Text>
           </View>
           <View style={{ paddingHorizontal: 4 }}>
             <Text style={[styles.paragraph]}>Ronald Carlson</Text>
             <Text style={[styles.textSecondary, styles.body2]}>CEO</Text>
-            <Text style={[styles.textSecondary, styles.body2]}>iDemand Insurance Agency, Inc.</Text>
-            <Text style={[styles.textSecondary, styles.body2]}>Program Administrator</Text>
+            <Text style={[styles.textSecondary, styles.body2]}>
+              iDemand Insurance Agency, Inc.
+            </Text>
+            <Text style={[styles.textSecondary, styles.body2]}>
+              Program Administrator
+            </Text>
           </View>
         </View>
         <Text
           style={[styles.pageNumbers, styles.textSecondary]}
-          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+          render={({ pageNumber, totalPages }) =>
+            `${pageNumber} / ${totalPages}`
+          }
           fixed
         />
       </Page>
@@ -340,8 +407,13 @@ const DecPagePDF = ({ data }: PDFProps) => {
   );
 };
 
+// ReactPDF.renderToStream returns nodeJS ReadableStream
+// emulators are fine with that b/c they use NodeJS HTTP server
+// Cloud Functions v2 runs on Cloud Run, which doesn't support streaming responses vis .pipe()
+// => need to replace ReactPDF.renderToStream() with ReactPDF.renderToBuffer => returns Promise<Buffer> which can be passed directly to res.send()
 export const generatePolicyDecPDF = async (data: DecPageTemplateData) => {
-  return await ReactPDF.renderToStream(<DecPagePDF {...{ data }} />);
+  // return await renderToBuffer(<DecPagePDF {...{ data }} />);
+  return await renderToStream(<DecPagePDF {...{ data }} />);
 };
 
 function BlockTitle({ title }: any) {

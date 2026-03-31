@@ -1,8 +1,10 @@
 import { DecodedIdToken } from 'firebase-admin/auth';
-import { AuthData } from 'firebase-functions/lib/common/providers/https.js';
+// import { AuthData } from 'firebase-functions/lib/common/providers/https.js';
+// import type { AuthData } from 'firebase-functions/lib/common/providers/https.js';
 import { HttpsError } from 'firebase-functions/v1/auth';
 
 import { AgencyDetails, AgentDetails, NamedInsured } from '@idemand/common';
+import type { AuthData } from 'firebase-functions/tasks';
 import { Claim, Optional } from '../../common/index.js';
 
 export const hasClaim = (token: DecodedIdToken | undefined, claim: Claim) =>
@@ -12,17 +14,19 @@ export const isIDemandAdmin = (token: DecodedIdToken | undefined) =>
   hasClaim(token, 'iDemandAdmin');
 // token ? token[CLAIMS.IDEMAND_ADMIN] || false : false;
 
-export const isAgent = (token: DecodedIdToken | undefined) => hasClaim(token, 'agent'); // token ? token[CLAIMS.AGENT] || false : false;
+export const isAgent = (token: DecodedIdToken | undefined) =>
+  hasClaim(token, 'agent'); // token ? token[CLAIMS.AGENT] || false : false;
 
-export const isOrgAdmin = (token: DecodedIdToken | undefined) => hasClaim(token, 'orgAdmin');
+export const isOrgAdmin = (token: DecodedIdToken | undefined) =>
+  hasClaim(token, 'orgAdmin');
 // token ? token[CLAIMS.ORG_ADMIN] || false : false;
 
 export function requireIDemandAdminClaims(
   token: DecodedIdToken | undefined,
-  errMsg?: string
+  errMsg?: string,
 ): asserts token is DecodedIdToken {
   if (!isIDemandAdmin(token)) {
-    let msg = errMsg || 'Admin permissions required';
+    const msg = errMsg || 'Admin permissions required';
 
     throw new HttpsError('permission-denied', msg);
   }
@@ -30,7 +34,9 @@ export function requireIDemandAdminClaims(
   return;
 }
 
-export function requireAuth(auth: AuthData | undefined): asserts auth is AuthData {
+export function requireAuth(
+  auth: AuthData | undefined,
+): asserts auth is AuthData {
   if (!auth?.uid) throw new HttpsError('unauthenticated', 'must be signed in');
   return;
 }
@@ -45,7 +51,7 @@ export type AgentAndAgencyDoc = {
 export function requireOwnerAgentAdmin<T extends AgentAndAgencyDoc>(
   auth: AuthData | undefined,
   doc: T,
-  errMsg: string = 'unauthorized'
+  errMsg: string = 'unauthorized',
 ): asserts auth is AuthData {
   requireAuth(auth);
   const uid = auth.uid;
@@ -54,10 +60,19 @@ export function requireOwnerAgentAdmin<T extends AgentAndAgencyDoc>(
   const userIsOwner = uid === doc?.userId;
   const userIsNamedInsured = uid === doc?.namedInsured?.userId;
   const userIsAgent = isAgent(auth?.token) && uid === doc?.agent?.userId;
-  const userIsOrgAdmin = isOrgAdmin(auth?.token) && tenantId === doc?.agency?.orgId;
+  const userIsOrgAdmin =
+    isOrgAdmin(auth?.token) && tenantId === doc?.agency?.orgId;
   const userIsIDemandAdmin = isIDemandAdmin(auth?.token);
 
-  if (!(userIsOwner || userIsNamedInsured || userIsAgent || userIsOrgAdmin || userIsIDemandAdmin))
+  if (
+    !(
+      userIsOwner ||
+      userIsNamedInsured ||
+      userIsAgent ||
+      userIsOrgAdmin ||
+      userIsIDemandAdmin
+    )
+  )
     throw new HttpsError('permission-denied', errMsg);
 
   return;

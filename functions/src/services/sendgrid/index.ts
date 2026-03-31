@@ -104,7 +104,7 @@ const EmailType = z.enum([
 //   };
 // };
 
-// type CustomArgs = { emailType: EmailTemplates } & Record<string, any>;
+// type CustomArgs = { emailType: EmailTemplate } & Record<string, any>;
 export type ExtraSendGridArgs = Omit<
   CreateMsgContentProps,
   'to' | 'from' | 'subject' | 'html' | 'attachments'

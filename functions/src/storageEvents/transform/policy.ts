@@ -18,6 +18,7 @@ import {
   TaxItem,
   TaxItemName,
   ValueByRiskType,
+  type CarrierDetails,
 } from '@idemand/common';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { lowerCase, upperCase } from 'lodash-es';
@@ -26,8 +27,8 @@ import { createDocId } from '../../modules/db/utils.js';
 import { getRCVs } from '../../modules/rating/index.js';
 import { dateWithTimeZone } from '../../modules/storage/index.js';
 import { capitalizeFirst } from '../../utils/index.js';
-import { NullablePolicyRow } from '../models/ParsedPolicyRow.js';
 import { CSVPolicyRow, CSVQuoteRow, ParsedPolicyRow } from '../models/index.js';
+import { NullablePolicyRow } from '../models/ParsedPolicyRow.js';
 
 const billingEntitiesMap = new Map();
 
@@ -48,7 +49,8 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
 
   const RCVs = getRCVs(extractNumber(row.replacementCost || '0'), limits);
 
-  const displayName = row.displayName ?? `${row.firstName || ''} ${row.lastName || ''}`.trim();
+  const displayName =
+    row.displayName ?? `${row.firstName || ''} ${row.lastName || ''}`.trim();
 
   const namedInsured: any = {
     displayName,
@@ -90,16 +92,34 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     },
   };
 
+  // TODO: look up carrier in DB
+  const carrier: CarrierDetails = {
+    name: row.carrierName,
+    orgId: row.carrierOrgId,
+    stripeAccountId: row.carrierStripeAccountId,
+    address: {
+      addressLine1: row.carrierAddressLine1,
+      addressLine2: row.carrierAddressLine2,
+      city: row.carrierCity,
+      state: row.carrierState,
+      postal: row.carrierPostal,
+    },
+  };
+
   const ratingPropertyData: RatingPropertyData = {
     CBRSDesignation: row.cbrsDesignation
       ? (upperCase(row.cbrsDesignation) as CBRSDesignation)
       : ('' as CBRSDesignation),
     basement: row.basement ? (lowerCase(row.basement) as Basement) : 'unknown',
-    distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : 0,
+    distToCoastFeet: row.distToCoastFeet
+      ? extractNumber(row.distToCoastFeet)
+      : 0,
     floodZone: (row.floodZone ? upperCase(row.floodZone) : '') as FloodZone,
     numStories: row.numStories ? extractNumber(row.numStories) : 0,
     propertyCode: row.propertyCode || '',
-    replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : 0,
+    replacementCost: row.replacementCost
+      ? extractNumber(row.replacementCost)
+      : 0,
     sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : 0,
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : 0,
     priorLossCount: (row.priorLossCount as PriorLossCount) ?? '0',
@@ -110,40 +130,53 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
 
   const latitude = row.latitude ? extractNumberNeg(row.latitude) : null;
   const longitude = row.longitude ? extractNumberNeg(row.longitude) : null;
-  const coordinates = latitude && longitude ? new GeoPoint(latitude, longitude) : null;
+  const coordinates =
+    latitude && longitude ? new GeoPoint(latitude, longitude) : null;
 
   const price = row.policyPrice ? extractNumber(row.policyPrice) : null;
 
   const fees = getFormattedFees(row);
   const taxes = getFormattedTaxes(row);
 
-  const mgaCommissionPct = row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null;
+  const mgaCommissionPct = row.mgaCommissionPct
+    ? extractNumber(row.mgaCommissionPct)
+    : null;
 
   const AALs = {
     inland: row.aalInland
       ? extractNumber(row.aalInland)
       : row.aalInland === 'null'
-      ? null
-      : undefined,
-    surge: row.aalSurge ? extractNumber(row.aalSurge) : row.aalSurge === 'null' ? null : undefined,
+        ? null
+        : undefined,
+    surge: row.aalSurge
+      ? extractNumber(row.aalSurge)
+      : row.aalSurge === 'null'
+        ? null
+        : undefined,
     tsunami: row.aalTsunami
       ? extractNumber(row.aalTsunami)
       : row.aalTsunami === 'null'
-      ? null
-      : undefined,
+        ? null
+        : undefined,
   } as Nullable<ValueByRiskType>;
 
   const techPremium = {
     inland: row.techPremiumInland ? extractNumber(row.techPremiumInland) : null,
     surge: row.techPremiumSurge ? extractNumber(row.techPremiumSurge) : null,
-    tsunami: row.techPremiumTsunami ? extractNumber(row.techPremiumTsunami) : null,
+    tsunami: row.techPremiumTsunami
+      ? extractNumber(row.techPremiumTsunami)
+      : null,
   };
 
-  let additionalInsureds: ParsedPolicyRow['additionalInsureds'] = getAdditionalInsureds(row);
-  let mortgageeInterest: ParsedPolicyRow['mortgageeInterest'] = getMortgagee(row);
+  const additionalInsureds: ParsedPolicyRow['additionalInsureds'] =
+    getAdditionalInsureds(row);
+  const mortgageeInterest: ParsedPolicyRow['mortgageeInterest'] =
+    getMortgagee(row);
 
   const billingEntityName = row.displayName || 'unknown';
-  let billingEntityId = billingEntityName ? billingEntitiesMap.get(billingEntityName) : null;
+  let billingEntityId = billingEntityName
+    ? billingEntitiesMap.get(billingEntityName)
+    : null;
 
   if (!billingEntityId) {
     billingEntityId = createDocId(5);
@@ -187,6 +220,7 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     userId: row.userId || null,
     agent,
     agency,
+    carrier,
     ratingPropertyData,
     ratingDocId: row.ratingDocId || null,
     product: row.product ? row.product.toLowerCase() : 'flood',
@@ -227,9 +261,11 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     rate: row.tax1Rate
       ? extractNumber(row.tax1Rate)
       : row.tax1Value
-      ? extractNumber(row.tax1Value)
-      : 0,
-    subjectBase: row.tax1SubjectBase ? (row.tax1SubjectBase.split(',') as SubjectBaseItem[]) : [],
+        ? extractNumber(row.tax1Value)
+        : 0,
+    subjectBase: row.tax1SubjectBase
+      ? (row.tax1SubjectBase.split(',') as SubjectBaseItem[])
+      : [],
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',
@@ -256,9 +292,11 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     rate: row.tax2Rate
       ? extractNumber(row.tax2Rate)
       : row.tax2Value
-      ? extractNumber(row.tax2Value)
-      : 0,
-    subjectBase: row.tax2SubjectBase ? (row.tax2SubjectBase.split(',') as SubjectBaseItem[]) : [],
+        ? extractNumber(row.tax2Value)
+        : 0,
+    subjectBase: row.tax2SubjectBase
+      ? (row.tax2SubjectBase.split(',') as SubjectBaseItem[])
+      : [],
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',
@@ -286,7 +324,7 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
 }
 
 function getAdditionalInsureds(row: CSVPolicyRow) {
-  let additionalInsureds: AdditionalInsured[] = [
+  const additionalInsureds: AdditionalInsured[] = [
     {
       name: row.additionalInsured1Name,
       email: row.additionalInsured1Email,

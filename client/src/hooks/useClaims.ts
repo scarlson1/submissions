@@ -1,4 +1,4 @@
-import { CLAIMS } from 'common';
+import { CLAIMS, env } from 'common';
 import { useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
@@ -18,7 +18,7 @@ export const useClaims = () => {
   // use id token result hook instead ??
 
   let orgId = orgAdminResult.user?.tenantId || null;
-  if (iDAdminResult.user?.email?.endsWith('@idemandinsurance.com'))
+  if (iDAdminResult.user?.email?.endsWith(env.VITE_MGA_DOMAIN))
     orgId = import.meta.env.VITE_IDEMAND_ORG_ID;
 
   return useMemo(

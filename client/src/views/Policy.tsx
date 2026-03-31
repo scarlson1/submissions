@@ -49,13 +49,13 @@ import {
   ChangeRequestsDialog,
   useViewChangeRequestsDialogProps,
 } from 'elements/ChangeRequestDialog';
-import { SuspenseDialog } from 'elements/SuspenseDialog';
 import { ContactList } from 'elements/forms';
 import {
   LocationsGrid,
   PolicyVersionsGrid,
   TransactionsGrid,
 } from 'elements/grids';
+import { SuspenseDialog } from 'elements/SuspenseDialog';
 import {
   DataViewType,
   TDataViewType,
@@ -76,10 +76,11 @@ import {
   formatPhoneNumber,
   stringAvatar,
 } from 'modules/utils';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 // TODO: should locations grid be passed location IDs explicitly ?? instead if querying locations collection
 // would require new grid component (Can't do it with ServerDataGrid)
+// REQUIRED TO FIX LOCATION GRID - currently pulls in staged docs (not deduped)
 
 // TODO: make location card flip on hover to show additional details ??
 

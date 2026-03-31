@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+// import * as functions from 'firebase-functions';
 import { onRequest } from 'firebase-functions/v2/https';
 
 import {
@@ -21,11 +21,18 @@ export const stripe = onRequest(
   },
 );
 
-export const authRequests = functions
-  .runWith({ secrets: [emailVerificationKey, firebaseHashConfig] })
-  .https.onRequest(async (request, response) => {
+// export const authRequests = functions
+//   .runWith({ secrets: [emailVerificationKey, firebaseHashConfig] })
+//   .https.onRequest(async (request, response) => {
+//     await (await import('./authRequests.js')).default(request, response);
+//   });
+
+export const authrequests = onRequest(
+  { secrets: [emailVerificationKey, firebaseHashConfig] },
+  async (request, response) => {
     await (await import('./authRequests.js')).default(request, response);
-  });
+  },
+);
 
 export const authrequeststest = onRequest(
   { secrets: [resendKey] },
@@ -34,11 +41,14 @@ export const authrequeststest = onRequest(
   },
 );
 
-export const copytaxes = functions.https.onRequest(
-  async (request, response) => {
-    await (await import('./copyTaxes.js')).default(request, response);
-  },
-);
+// export const copytaxes = functions.https.onRequest(
+//   async (request, response) => {
+//     await (await import('./copyTaxes.js')).default(request, response);
+//   },
+// );
+export const copytaxes = onRequest(async (request, response) => {
+  await (await import('./copyTaxes.js')).default(request, response);
+});
 
 export const generatepdf = onRequest(
   { secrets: [exportSDKKey] },
@@ -61,14 +71,22 @@ export const resend = onRequest(
   },
 );
 
-export const pubsubhelper = functions.https.onRequest(
-  async (request, response) => {
-    await (await import('./pubSubHelper.js')).default(request, response);
-  },
-);
+export const pubsubhelper = onRequest(async (request, response) => {
+  await (await import('./pubSubHelper.js')).default(request, response);
+});
 
-export const typesensesetup = functions.https.onRequest(
-  async (request, response) => {
-    await (await import('./typesenseSetup.js')).default(request, response);
-  },
-);
+export const typesensesetup = onRequest(async (request, response) => {
+  await (await import('./typesenseSetup.js')).default(request, response);
+});
+
+// export const pubsubhelper = functions.https.onRequest(
+//   async (request, response) => {
+//     await (await import('./pubSubHelper.js')).default(request, response);
+//   },
+// );
+
+// export const typesensesetup = functions.https.onRequest(
+//   async (request, response) => {
+//     await (await import('./typesenseSetup.js')).default(request, response);
+//   },
+// );

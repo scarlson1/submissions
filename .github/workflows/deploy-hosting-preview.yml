@@ -23,19 +23,23 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build common
+        run: pnpm --filter @idemand/common build
+
       - name: Build client
         run: pnpm --filter client build:channel:dev
         # env:
-        # Add any env vars your Vite build needs, e.g.:
         # VITE_API_URL: ${{ vars.VITE_API_URL }}
 
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - name: Deploy hosting preview
+        id: deploy_preview
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.GCP_SA_KEY_DEV }}
@@ -43,3 +47,83 @@ jobs:
           #   target: client
           entryPoint: . # directory containing firebase.json
           channelId: staging
+
+      # install firebase cli and update api key restrictions with channel hosting url?
+      - name: Authenticate Google Cloud CLI
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_DEV }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Allow preview URL on Geo Key Staging
+        env:
+          PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID_DEV }}
+          API_KEY_DISPLAY_NAME: 'Geo Key Staging'
+          PREVIEW_URL: ${{ steps.deploy_preview.outputs.details_url }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${PREVIEW_URL}" ]; then
+            echo 'Missing preview URL from Firebase deploy step output'
+            exit 1
+          fi
+
+          preview_host="${PREVIEW_URL#https://}"
+          preview_host="${preview_host#http://}"
+          preview_host="${preview_host%/}"
+
+          key_json="$(
+            gcloud services api-keys list \
+              --project="${PROJECT_ID}" \
+              --format='json' \
+            | jq -c --arg display_name "${API_KEY_DISPLAY_NAME}" '
+                map(select(.displayName == $display_name))
+              '
+          )"
+
+          key_count="$(echo "${key_json}" | jq 'length')"
+          if [ "${key_count}" -ne 1 ]; then
+            echo "Expected exactly 1 key named ${API_KEY_DISPLAY_NAME}, found ${key_count}"
+            exit 1
+          fi
+
+          key_name="$(echo "${key_json}" | jq -r '.[0].name')"
+          key_id="${key_name##*/}"
+
+          existing_referrers="$(
+            gcloud services api-keys describe "${key_id}" \
+              --project="${PROJECT_ID}" \
+              --format='json' \
+            | jq -r '
+                .restrictions.browserKeyRestrictions.allowedReferrers // []
+                | .[]
+              '
+          )"
+
+          merged_referrers="$(
+            {
+              printf '%s\n' "${existing_referrers}"
+              printf '%s\n' "${preview_host}"
+              printf '%s\n' "${preview_host}/*"
+            } \
+            | sed '/^$/d' \
+            | sort -u \
+            | paste -sd, -
+          )"
+
+          echo "Updating ${API_KEY_DISPLAY_NAME} with referrers: ${merged_referrers}"
+
+          gcloud services api-keys update "${key_id}" \
+            --project="${PROJECT_ID}" \
+            --allowed-referrers="${merged_referrers}"
+
+      # KEY_ID=$(gcloud services api-keys list --project=${{ vars.FIREBASE_PROJECT_ID_DEV }} --format="json" | jq -r '.[] | select(.displayName == "Geo Key Staging") | .name')
+      # # The output format for .name will be in the format: projects/PROJECT_NUMBER/locations/global/keys/KEY_ID
+      # # Extract just the KEY_ID part:
+      # KEY_ID_ONLY=$(basename $KEY_ID)
+
+      # gcloud services api-keys update $KEY_ID_ONLY \
+      #   --add-browser-key-restrictions=NEW_URL \
+      #   --project=YOUR_PROJECT_ID

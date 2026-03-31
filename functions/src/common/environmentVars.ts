@@ -79,6 +79,12 @@ export const typesenseProtocol = defineString('TYPESENSE_PROTOCOL', {
 export const typesenseCollectionPrefix = defineString(
   'TYPESENSE_COLLECTION_PREFIX',
 );
+export const mgaDomain = defineString('MGA_DOMAIN', {
+  default: '@s-carlson.com',
+});
+export const fipsUrl = defineString('FIPS_URL', {
+  default: 'https://scarlson1.github.io/data/fips_small.json',
+});
 
 export const typesensePort = defineInt('TYPESENSE_PORT', { default: 443 });
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });

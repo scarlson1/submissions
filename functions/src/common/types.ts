@@ -734,7 +734,7 @@ export interface Note {
 export const MGACommissionPct = z
   .number()
   .min(0.05, 'Commission must be >= 0.05')
-  .max(0.2, 'Commission must be <= 20%');
+  .max(0.201, 'Commission must be <= 20%');
 export type MGACommissionPct = z.infer<typeof MGACommissionPct>;
 
 export type LcnWithTermPrem = PartialRequired<

@@ -114,7 +114,8 @@ export default async (event: StorageEvent) => {
       const trxRef = await importStagingCol.add(data);
 
       trxIds.push(trxRef.id);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      console.log('ERROR: ', err);
       error('Error saving transaction doc', { err: err || null });
       importErrors.push(t);
     }
@@ -139,7 +140,7 @@ export default async (event: StorageEvent) => {
       },
     });
     info(`Saved import summary to doc ${importSummaryRef.id}`);
-  } catch (err: any) {
+  } catch (err: unknown) {
     reportErr('Error saving import summary', { filename }, err);
   }
 
@@ -149,7 +150,7 @@ export default async (event: StorageEvent) => {
 
     if (audience.value() !== 'LOCAL HUMANS') {
       to.push('noreply@s-carlson.com');
-      link = `${hostingBaseURL.value}/admin/config/imports/${importSummaryRef.id}`;
+      link = `${hostingBaseURL.value()}/admin/config/imports/${importSummaryRef.id}`;
     }
 
     await sendAdminPolicyImportNotification(
@@ -161,14 +162,14 @@ export default async (event: StorageEvent) => {
       filename,
       link,
       undefined,
-      {
-        customArgs: {
-          firebaseEventId: event.id,
-          emailType: 'trx_import',
-        },
-      },
+      // {
+      //   customArgs: {
+      //     firebaseEventId: event.id,
+      //     emailType: 'trx_import',
+      //   },
+      // },
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     reportErr(
       'Error sending transaction import summary admin notification',
       {},

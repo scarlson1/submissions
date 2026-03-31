@@ -1,4 +1,4 @@
-import { DescriptionRounded } from '@mui/icons-material';
+import { DescriptionRounded, PaymentsRounded } from '@mui/icons-material';
 import { Box, Tooltip } from '@mui/material';
 import {
   GridActionsCellItem,
@@ -57,15 +57,6 @@ export const PoliciesGrid = ({
         : params.id.toString(),
   );
 
-  // const viewPolicyDoc = useCallback(
-  //   (params: GridRowParams) => () => {
-  //     const docObj = params.row.documents?.[0];
-  //     if (!docObj || !docObj.downloadUrl) toast.error('no document found');
-
-  //     window.open(docObj.downloadUrl, '_blank');
-  //   },
-  //   [],
-  // );
   const { downloadPDF: downloadPolicy, loading } =
     useGeneratePDF('generateDecPDF');
   const viewPolicyDoc = useCallback(
@@ -93,9 +84,23 @@ export const PoliciesGrid = ({
             onClick={viewPolicyDoc(params)}
             label='View Policy'
             disabled={loading}
-            // disabled={
-            //   !(params.row.documents && params.row.documents[0]?.downloadUrl)
-            // }
+          />,
+          <GridActionsCellItem
+            icon={
+              <Tooltip placement='top' title='invoices'>
+                <PaymentsRounded />
+              </Tooltip>
+            }
+            onClick={() =>
+              navigate(
+                createPath({
+                  path: ROUTES.POLICY_RECEIVABLES,
+                  params: { policyId: params.id.toString() },
+                }),
+              )
+            }
+            label='View Payments/Invoices'
+            disabled={loading}
           />,
           ...renderShowJson(params),
         ],

@@ -1,0 +1,93 @@
+# API GATEWAY CONFIG
+
+# https://stackoverflow.com/questions/66577449/why-is-the-cloud-run-url-still-accessible-after-api-gateway-applied
+
+swagger: '2.0'
+info:
+  title: "Submissions Gateway" "submissions-api"
+  description: iDemand API for quoting process
+  version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
+x-google-backend:
+  address: https://idemand-submissions-api-pfld5ftheq-uc.a.run.app
+paths:
+  '/state-tax':
+    post:
+      summary: get tax line item calculations for quote
+      operationId: state-tax
+      perameters:
+        - name: quoteNumber
+          in: body
+          required: false
+          type: string
+        - name: effectiveDate
+          in: body
+          required: false
+          type: string
+          description: Effective date use the check effective and expiration date of tax. Defaults to current date.
+        - name: lineOfBusiness
+          in: body
+          required: false
+          type: string
+          default: residential
+          description: residential or commercial
+        - name: state
+          in: body
+          required: true
+          type: string
+          description: Two letter abbreviation for home state of policy
+        - name: transactionType
+          in: body
+          required: true
+          type: string
+          description: new, renewal, endorsement, or cancellation
+        - name: homeStatePremium
+          in: body
+          required: true
+          type: number
+          description: for multilocation, the premium amt considered to be counted as within the home state.
+        - name: outStatePremium
+          in: body
+          required: true
+          type: number
+          description: for multilocation, the premium amt considered to be counted as outside of the state.
+        - name: premium
+          in: body
+          required: true
+          type: number
+          description: Total premium for the policy.
+        - name: mgaFees
+          in: body
+          required: true
+          type: number
+          description: Managing general agency fees. Set to 0 if none.
+        - name: inspectionFees
+          in: body
+          required: true
+          type: number
+          description: inspection fees, if any. Set to 0 if none.
+      responses:
+        '200':
+          description: A successful response
+          schema:
+            type: object
+        500:
+          description: Internal server error or failed to connect to database
+  # /assets/{asset}:
+  #   get:
+  #     parameters:
+  #       - in: path
+  #         name: asset
+  #         type: string
+  #         required: true
+  #         description: Name of the asset.
+  #     summary: Assets
+  #     operationId: getAsset
+  #     responses:
+  #       '200':
+  #         description: A successful response
+  #         schema:
+  #           type: string

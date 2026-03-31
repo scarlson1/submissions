@@ -3,6 +3,7 @@ export * from './createStripeConnectAccount.js';
 export * from './customDeepMerge.js';
 export { EDITOR_EXTENSION_DEFAULTS } from './editorExtensions.js';
 export * from './errorHelpers.js';
+export * from './fips.js';
 export * from './flattenObj.js';
 export * from './getDifference.js';
 export * from './getZodObjPaths.js';

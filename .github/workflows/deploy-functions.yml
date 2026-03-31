@@ -7,7 +7,9 @@ on:
     paths:
       - 'functions/**'
       - '.github/workflows/deploy-functions.yml'
-  workflow_dispatch: # adds a "Run workflow" button in the Actions tab
+      - 'firestore.rules'
+      - 'storage.rules'
+  workflow_dispatch: # "Run workflow" button in the Actions tab
 
 jobs:
   detect-changes:
@@ -24,6 +26,7 @@ jobs:
       cron: ${{ steps.filter.outputs.cron }}
       storage: ${{ steps.filter.outputs.storage }}
       shared: ${{ steps.filter.outputs.shared }}
+      rules: ${{ steps.filter.outpus.rules }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,6 +60,9 @@ jobs:
               - 'functions/src/services/**'
               - 'functions/src/utils/**'
               - 'functions/package.json'
+            rules:
+              - 'firestore.rules'
+              - 'storage.rules'
 
   build-and-deploy:
     needs: detect-changes
@@ -71,7 +77,8 @@ jobs:
       needs.detect-changes.outputs.request == 'true' ||
       needs.detect-changes.outputs.cron == 'true' ||
       needs.detect-changes.outputs.storage == 'true' ||
-      needs.detect-changes.outputs.shared == 'true'
+      needs.detect-changes.outputs.shared == 'true' ||
+      needs.detect-changes.outputs.rules == 'true'
     runs-on: ubuntu-latest
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY_DEV }}
@@ -151,6 +158,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --filter . --frozen-lockfile && pnpm install --filter functions --frozen-lockfile
 
+      - name: Build common
+        run: pnpm --filter @idemand/common build
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -214,7 +224,7 @@ jobs:
         run: pnpm exec firebase deploy --only functions:call
 
       - name: Deploy firestore functions
-        if: needs.detect-changes.outputs.firestore == 'true' || needs.detect-changes.outputs.shared == 'true'
+        if: needs.detect-changes.outputs.firestore == 'true' || needs.detect-changes.outputs.shared == 'true' || 'true' == 'true'
         run: pnpm exec firebase deploy --only functions:firestore
 
       - name: Deploy search sync functions
@@ -235,7 +245,7 @@ jobs:
 
       - name: Deploy onRequest functions
         if: needs.detect-changes.outputs.request == 'true' || needs.detect-changes.outputs.shared == 'true'
-        run: pnpm exec firebase deploy --only functions:authRequests,functions:authrequeststest,functions:copytaxes,functions:generatepdf,functions:stripe,functions:resend
+        run: pnpm exec firebase deploy --only functions:authrequests,functions:authrequeststest,functions:copytaxes,functions:generatepdf,functions:stripe,functions:resend
 
       - name: Deploy scheduled functions
         if: needs.detect-changes.outputs.cron == 'true' || needs.detect-changes.outputs.shared == 'true'
@@ -244,3 +254,11 @@ jobs:
       - name: Deploy storage functions
         if: needs.detect-changes.outputs.storage == 'true' || needs.detect-changes.outputs.shared == 'true'
         run: pnpm exec firebase deploy --only functions:storage
+
+      - name: Deploy firestore rules
+        if: needs.detect-changes.outputs.rules == 'true'
+        run: pnpm exec firebase deploy --only firestore:rules
+
+      - name: Deploy storage rules
+        if: needs.detect-changes.outputs.rules == 'true'
+        run: pnpm exec firebase deploy --only storage

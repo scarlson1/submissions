@@ -1,0 +1,11 @@
+node_modules/
+
+dist/
+logs/
+
+.env.local
+
+.kpt-pipeline/
+
+.DS_Store
+src/.DS_Store

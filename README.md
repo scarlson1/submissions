@@ -12,6 +12,10 @@
 
 - [BULK_IMPORTS.md](docs/BULK_IMPORTS.md)
 
+- [CLOUD_RUN_API_DEPLOY.md](docs/CLOUD_RUN_API_DEPLOY.md)
+
+- [COMMON_PACKAGE.md](docs/COMMON_PACKAGE.md)
+
 ## Development
 
 ```bash
@@ -79,7 +83,15 @@ stripe listen --load-from-webhooks-api --forward-to localhost:5001/<PROJECT_ID>/
 
 ## Deployment
 
-[firebase-tools-with-isolate](https://github.com/0x80/firebase-tools-with-isolate) is used to support pnpm (firebase only supports pnpm for client/hosting). It's added as a dev dependency at the project root.
+[firebase-tools-with-isolate](https://github.com/0x80/firebase-tools-with-isolate) is added as a dev dependency at the project root to support pnpm (firebase only supports pnpm for client/hosting).
+
+### Github Actions
+
+- [deploy-functions.yml](.github/workflows//deploy-functions.yml) - deploys function groups if there was a change to any `*.ts` file in their directory
+- [deploy-hosting-dev.yml](.github/workflows//deploy-hosting-dev.yml) - deploys to firebase hosting when pull request is merged into `main`
+- [deploy-hosting-preview.yml](.github/workflows//deploy-hosting-preview.yml) - deploys to firebase hosting preview for open pull requests to `main`
+
+### Manual Deployment
 
 ### Functions deployment
 
@@ -112,6 +124,17 @@ pnpm build:dev # or build:prod or vite build --mode [MODE]
 
 pnpm deploy:dev # or deploy:prod or deploy:channel:dev or deploy:channel:prod
 # if deploying to channel, may need to update restricted api keys to generated url (maps, etc.)
+```
+
+### Firestore & storage rules
+
+Storage and Firestore rules are deployed in the functions github action.
+To manually deploy:
+
+```bash
+pnpm deploy:rules:firestore # firebase deploy --only firestore:rules
+
+pnpm deploy:rules:storage # firebase deploy --only storage
 ```
 
 <!-- ## Firestore / DB Structure
@@ -193,7 +216,7 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 
 <!-- ### HTTPS Triggered
 
-- `authRequests` - used to verify idemand email addresses. Link in verification email calls this endpoint. Returns "example@email.com has been verified, if successful. (weird bug with blocking function prevents using the Firebase SDK email verification method) -->
+- `authrequests` - used to verify idemand email addresses. Link in verification email calls this endpoint. Returns "example@email.com has been verified, if successful. (weird bug with blocking function prevents using the Firebase SDK email verification method) -->
 
 <!-- ### Pub/Sub
 
@@ -271,3 +294,4 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 - Fix update Quote / create account in bind quote form
 - /user/{userId} route queries (query by agent/org depending on claims)
 - update firestore rules
+- quote form agent / agency search - filter by org if agent selected

@@ -12,7 +12,7 @@ export interface SendNewQuoteProps extends BaseTemplateProps {
 export async function sendNewQuote(sgKey: string, args: SendNewQuoteProps) {
   try {
     throw new Error('not implemented yet');
-  } catch (err: any) {
+  } catch (err: unknown) {
     reportErr('error sending new quote notification', { ...args }, err);
 
     throw new HttpsError('unimplemented', 'send quote function not set up yet');

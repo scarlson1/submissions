@@ -1,11 +1,13 @@
+import fs from 'fs';
+import { tmpdir } from 'os';
+import path from 'path';
+
 import { File } from '@google-cloud/storage';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { StorageEvent } from 'firebase-functions/v2/storage';
-import fs from 'fs';
 import { find } from 'lodash-es';
-import { tmpdir } from 'os';
-import path from 'path';
+
 import { counties20mURL } from '../common/index.js';
 import {
   countiesJson,
@@ -21,7 +23,10 @@ import {
 import { unlinkFile } from '../utils/storage.js';
 
 type CSVInput = Record<string, string>;
-type TCSVInput = Record<string, string> & { latitude: string; longitude: string };
+type TCSVInput = Record<string, string> & {
+  latitude: string;
+  longitude: string;
+};
 
 const UPLOAD_FOLDER = 'portfolioFips';
 
@@ -37,7 +42,9 @@ export default async (event: StorageEvent) => {
     try {
       await loadCountiesGeoJson();
     } catch (err) {
-      error(`ERROR GETTING COUNTRY DATA FROM ${counties20mURL.value()}. RETURNING EARLY`);
+      error(
+        `ERROR GETTING COUNTRY DATA FROM ${counties20mURL.value()}. RETURNING EARLY`,
+      );
       return;
     }
   }
@@ -58,18 +65,20 @@ export default async (event: StorageEvent) => {
       stream,
       { headers: transformHeadersSnakeCase }, // TODO: use camelCase
       transformRow,
-      validateRow
+      validateRow,
     );
 
     dataArray = [...parsed.dataArr];
     // invalidRows = [...parsed.invalidRows];
 
-    info(`${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`);
+    info(
+      `${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`,
+    );
     if (!dataArray.length) throw new Error('No valid rows');
 
     await unlinkFile(tempFilePath);
-  } catch (err: any) {
-    error(`ERROR PARSING CSV. RETURNING EARLY`, { err });
+  } catch (err: unknown) {
+    error('ERROR PARSING CSV. RETURNING EARLY', { err });
 
     await unlinkFile(tempFilePath);
     // TODO: report error to sentry or send email to admin
@@ -79,12 +88,14 @@ export default async (event: StorageEvent) => {
   try {
     const dataWithCounties = await getCountyData(dataArray);
 
-    const storageFile = bucket.file(`${UPLOAD_FOLDER}/processed_${fileName}`) as unknown as File;
+    const storageFile = bucket.file(
+      `${UPLOAD_FOLDER}/processed_${fileName}`,
+    ) as unknown as File;
 
     await writeToStorage(storageFile, dataWithCounties, { headers: true });
     info(`Finished writing fips data to ${storageFile.name}`);
-  } catch (err: any) {
-    error(`Error getting fips from parsed data`, { err });
+  } catch (err: unknown) {
+    error('Error getting fips from parsed data', { err });
     // TODO: clean up storageFile required ??
   }
   return;
@@ -106,20 +117,20 @@ function transformRow(data: any) {
 
 function validateRow(data: any) {
   if (!(data.longitude && data.latitude)) {
-    warn(`INVALID ROW - missing latitude or longitude`, { data });
+    warn('INVALID ROW - missing latitude or longitude', { data });
     return false;
   }
   return true;
 }
 
 async function getCountyData(data: any[]) {
-  let dataWithCounties: any[] = [];
-  for (let r of data) {
+  const dataWithCounties: any[] = [];
+  for (const r of data) {
     let county_name = '';
     let fips = '';
-    let matchProperties = await getCountyFromGeoJson(
+    const matchProperties = await getCountyFromGeoJson(
       parseFloat(r.latitude),
-      parseFloat(r.longitude)
+      parseFloat(r.longitude),
     );
 
     if (matchProperties) {

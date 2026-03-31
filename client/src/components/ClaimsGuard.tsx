@@ -59,7 +59,6 @@ export const ClaimsGuard = ({
   const { status, data } = useSigninCheck({ ...checkProps });
 
   // TODO: use suspense
-  console.log('has claims: ', data.hasRequiredClaims);
   if (status === 'loading') return null;
   if (!data.hasRequiredClaims) return null;
 

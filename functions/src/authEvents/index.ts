@@ -1,10 +1,11 @@
-import * as functions from 'firebase-functions';
 import { projectID } from 'firebase-functions/params';
+// import * as functions from 'firebase-functions/v1';
 import {
   beforeUserCreated,
   beforeUserSignedIn,
 } from 'firebase-functions/v2/identity';
 
+import { auth } from 'firebase-functions/v1';
 import { emailVerificationKey, resendKey } from '../common/index.js';
 
 const minInstancesAuth = projectID.equals('PRODUCTION').thenElse(1, 0);
@@ -30,19 +31,19 @@ export const beforecreate = beforeUserCreated(
   },
 );
 
-export const createFirestoreUser = functions.auth
+export const createFirestoreUser = auth // functions.auth
   .user()
   .onCreate(async (user, context) => {
     await (await import('./createFirestoreUser.js')).default(user, context);
   });
 
-export const setClaimsFromInvite = functions.auth
+export const setClaimsFromInvite = auth
   .user()
   .onCreate(async (user, context) => {
     await (await import('./setClaimsFromInvite.js')).default(user, context);
   });
 
-export const setUidByEmailOnCreate = functions.auth
+export const setUidByEmailOnCreate = auth
   .user()
   .onCreate(async (user, context) => {
     await (await import('./setUidByEmailOnCreate.js')).default(user, context);

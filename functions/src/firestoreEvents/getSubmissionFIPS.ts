@@ -15,7 +15,8 @@ import { error, info, warn } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { Submission } from '@idemand/common';
-import { counties20mURL, FIPS } from '../common/index.js';
+import { counties20mURL } from '../common/index.js';
+import { fipsData } from '../utils/fips.js';
 
 export interface CountyJsonProperties {
   STATEFP: string;
@@ -65,7 +66,7 @@ export default async (
     let fips;
     let newCountyName = countyName;
     if (state && countyName) {
-      fips = getFIPS(countyName, state);
+      fips = await getFIPS(countyName, state);
     }
 
     if (!fips && coordinates && coordinates.latitude && coordinates.longitude) {
@@ -96,8 +97,10 @@ export default async (
   return {};
 };
 
-export function getFIPS(countyName: string, state: string) {
+export async function getFIPS(countyName: string, state: string) {
   if (!countyName || !state) return '';
+
+  const FIPS = await fipsData();
 
   const details = FIPS.find(
     (e) =>
@@ -125,7 +128,7 @@ export async function getCountyFromGeoJson(
 
   featureEach(countiesJson, function (currentFeature, featureIndex) {
     if (currentFeature.geometry.type === 'Polygon') {
-      let poly = polygon(currentFeature.geometry.coordinates);
+      const poly = polygon(currentFeature.geometry.coordinates);
       if (booleanPointInPolygon(p, poly)) {
         matchProperties = currentFeature.properties;
       }

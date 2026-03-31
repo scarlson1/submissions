@@ -5,20 +5,25 @@ import {
   CardActionArea,
   CardMedia,
   Divider,
+  IconButton,
+  Stack,
   Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 import { noop } from 'lodash';
 
-import { Policy, WithId, fallbackImages } from 'common';
+import { DescriptionRounded, PaymentsRounded } from '@mui/icons-material';
+import { fallbackImages, Policy, WithId } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
 import { FlexCardContentWrapper } from 'components/FlexCard';
+import { useGeneratePDF } from 'hooks';
 import { formatFirestoreTimestamp } from 'modules/utils';
+import { useNavigate } from 'react-router-dom';
+import { createPath, ROUTES } from 'router';
 import { Item } from './Item';
 
 // TODO: replace items with TIV, etc. ?? instead of agency
-// TODO: generate / use policy image
 
 const currentMS = new Date().getTime();
 
@@ -28,15 +33,20 @@ export interface PolicyCardProps {
   i: number; // TODO: delete - temp for fallback img
 }
 export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
+  const navigate = useNavigate();
   const theme = useTheme();
   const location = Object.values(policy.locations || {})[0];
 
   const activeLocationCount = Object.entries(policy.locations || {}).filter(
     ([id, lcn]) =>
-      !lcn.cancelEffDate || (lcn.cancelEffDate && lcn.cancelEffDate.toMillis() > currentMS)
+      !lcn.cancelEffDate ||
+      (lcn.cancelEffDate && lcn.cancelEffDate.toMillis() > currentMS),
   ).length;
 
   const moreCount = activeLocationCount > 1 ? activeLocationCount - 1 : 0;
+
+  const { downloadPDF: downloadPolicy, loading } =
+    useGeneratePDF('generateDecPDF');
 
   return (
     <FlexCard
@@ -55,13 +65,18 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
         <CardMedia
           sx={{ height: 140 }}
           image={
-            (theme.palette.mode === 'dark' ? policy.imageURLs?.dark : policy.imageURLs?.light) ||
+            (theme.palette.mode === 'dark'
+              ? policy.imageURLs?.dark
+              : policy.imageURLs?.light) ||
             fallbackImages[i] ||
             fallbackImages[0]
           }
           title={`policy cover image`}
         />
-        <CardActionArea onClick={() => onClick(policy.id)} sx={{ flex: '1 0 auto' }}>
+        <CardActionArea
+          onClick={() => onClick(policy.id)}
+          sx={{ flex: '1 0 auto' }}
+        >
           <FlexCardContent sx={{ p: 5, height: '100%' }}>
             <Box
               sx={{
@@ -71,7 +86,13 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
                 height: '100%',
               }}
             >
-              <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'nowrap',
+                  alignItems: 'center',
+                }}
+              >
                 {/* TODO: overflow ellipses */}
                 <Typography
                   fontWeight={900}
@@ -87,42 +108,97 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
                   {location?.address?.s1 || ''}
                 </Typography>
                 {moreCount > 0 ? (
-                  <Typography color='text.tertiary' variant='subtitle2' sx={{ flex: '0 0 auto' }}>
+                  <Typography
+                    color='text.tertiary'
+                    variant='subtitle2'
+                    sx={{ flex: '0 0 auto' }}
+                  >
                     {`+${moreCount} more`}
                   </Typography>
                 ) : null}
               </Box>
               <Box sx={{ flex: '1 0 auto' }}>
-                <Item label='Named Insured' value={`${policy.namedInsured?.displayName}`} />
+                <Item
+                  label='Named Insured'
+                  value={`${policy.namedInsured?.displayName}`}
+                />
                 <Item label='Agent' value={policy.agent?.name ?? 'iDemand'} />
                 <Item
                   label='Agency'
-                  value={policy.agency?.name ?? 'iDemand Insurance Agency, Inc.'}
+                  value={
+                    policy.agency?.name ?? 'iDemand Insurance Agency, Inc.'
+                  }
                 />
                 <Item
                   label='Effective'
                   value={`${formatFirestoreTimestamp(
                     policy.effectiveDate,
-                    'date'
+                    'date',
                   )} - ${formatFirestoreTimestamp(policy.expirationDate, 'date')}`}
                 />
                 <Item label='# locations' value={`${activeLocationCount}`} />
               </Box>
               <Divider light sx={{ my: { xs: 3, md: 4 } }} />
-              <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
-                {policy.namedInsured ? (
-                  <Tooltip
-                    title={`${policy.namedInsured.displayName}`}
-                    key={policy.namedInsured.email}
-                  >
-                    {/* <Avatar src={f.img} alt={policy.namedInsured.firstName} /> */}
-                    <Avatar
-                      alt={`${policy.namedInsured.displayName}`}
-                      sx={{ width: { xs: 30, md: 36 }, height: { xs: 30, md: 36 } }}
-                    />
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
+                  {policy.namedInsured ? (
+                    <Tooltip
+                      title={`${policy.namedInsured.displayName}`}
+                      key={policy.namedInsured.email}
+                    >
+                      {/* <Avatar src={f.img} alt={policy.namedInsured.firstName} /> */}
+                      <Avatar
+                        alt={`${policy.namedInsured.displayName}`}
+                        sx={{
+                          width: { xs: 30, md: 36 },
+                          height: { xs: 30, md: 36 },
+                        }}
+                      />
+                    </Tooltip>
+                  ) : null}
+                </AvatarGroup>
+                <Stack direction='row' spacing={1}>
+                  <Tooltip placement='top' title='view policy'>
+                    <IconButton
+                      aria-label='download policy'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        downloadPolicy(policy.id);
+                      }}
+                      size='small'
+                      disabled={loading}
+                      // loading={loading} TODO: enable for mui v7
+                    >
+                      <DescriptionRounded fontSize='inherit' />
+                    </IconButton>
                   </Tooltip>
-                ) : null}
-              </AvatarGroup>
+                  <Tooltip placement='top' title='invoices'>
+                    <IconButton
+                      aria-label='invoices'
+                      size='small'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate(
+                          createPath({
+                            path: ROUTES.POLICY_RECEIVABLES,
+                            params: { policyId: policy.id },
+                          }),
+                        );
+                      }}
+                    >
+                      <PaymentsRounded fontSize='inherit' />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </Box>
             </Box>
           </FlexCardContent>
         </CardActionArea>
