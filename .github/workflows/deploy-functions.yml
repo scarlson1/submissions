@@ -26,7 +26,7 @@ jobs:
       cron: ${{ steps.filter.outputs.cron }}
       storage: ${{ steps.filter.outputs.storage }}
       shared: ${{ steps.filter.outputs.shared }}
-      rules: ${{ steps.filter.outpus.rules }}
+      rules: ${{ steps.filter.outputs.rules }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -156,7 +156,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --filter . --frozen-lockfile && pnpm install --filter functions --frozen-lockfile
+        run: pnpm install --filter . --frozen-lockfile && pnpm install --filter @idemand/common --frozen-lockfile && pnpm install --filter functions --frozen-lockfile
 
       - name: Build common
         run: pnpm --filter @idemand/common build
