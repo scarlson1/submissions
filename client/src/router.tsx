@@ -53,6 +53,7 @@ import {
   SubmissionNew,
   SubmissionNewPortfolio,
   Submissions,
+  SubmissionView,
   UserDetails,
   ViewQuote,
 } from 'views';
@@ -83,7 +84,6 @@ import {
   SLTaxEdit,
   SLTaxes,
   SLTaxNew,
-  SubmissionView,
   Transactions,
   Users,
 } from 'views/admin';
@@ -121,6 +121,7 @@ export enum ROUTES {
   SUBMISSION_NEW = '/new/:productId', // TODO: update hard coded link on website and change this route to /submissions/new/:productId
   SUBMISSION_SUBMITTED = '/submissions/:submissionId/submitted',
   SUBMISSIONS = '/submissions',
+  SUBMISSION_VIEW = '/submissions/:submissionId',
   SUBMISSIONS_NEW_PORTFOLIO = '/submissions/new/:productId/portfolio',
   QUOTES = '/quotes',
   QUOTE_VIEW = '/quotes/:quoteId',
@@ -147,8 +148,6 @@ export enum ROUTES {
 }
 
 export enum ADMIN_ROUTES {
-  // SUBMISSIONS = '/admin/submissions',
-  SUBMISSION_VIEW = '/admin/submissions/:submissionId',
   QUOTES = '/admin/quotes',
   QUOTE_NEW_BLANK = '/admin/quotes/:productId/new',
   QUOTE_NEW = '/admin/quotes/:productId/new/:submissionId',
@@ -209,6 +208,7 @@ type TArgs =
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.SUBMISSIONS_NEW_PORTFOLIO }
   | { path: ROUTES.SUBMISSIONS }
+  | { path: ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   | { path: ROUTES.QUOTES }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
@@ -237,7 +237,6 @@ type TArgs =
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
   | { path: ROUTES.USER; params: { userId: string } } // TODO: move users route from admin so can be used for agents (users grid) -- what would query look like ??
-  | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: TProduct } }
   | {
       path: ADMIN_ROUTES.QUOTE_NEW;
@@ -456,6 +455,24 @@ export const router = sentryCreateBrowserRouter([
                   link: createPath({
                     path: ROUTES.SUBMISSIONS,
                   }),
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.SUBMISSION_VIEW,
+            element: <SubmissionView />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Submissions',
+                  link: createPath({
+                    path: ROUTES.SUBMISSIONS,
+                  }),
+                },
+                {
+                  label: `${match?.params?.submissionId || ''}`,
                 },
               ],
             },
@@ -1316,32 +1333,6 @@ export const router = sentryCreateBrowserRouter([
           //   ),
           // },
           {
-            path: ADMIN_ROUTES.SUBMISSION_VIEW,
-            element: (
-              <RequireAuthReactFire
-                signInCheckProps={{
-                  requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
-                }}
-              >
-                <SubmissionView />
-              </RequireAuthReactFire>
-            ),
-            errorElement: <RouterErrorBoundary />,
-            handle: {
-              crumb: (match: CrumbMatch) => [
-                {
-                  label: 'Submissions',
-                  link: createPath({
-                    path: ROUTES.SUBMISSIONS,
-                  }),
-                },
-                {
-                  label: `${match?.params?.submissionId || ''}`,
-                },
-              ],
-            },
-          },
-          {
             path: ADMIN_ROUTES.QUOTE_NEW_BLANK,
             element: (
               <RequireAuthReactFire
@@ -1397,7 +1388,7 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: `Sub ${match?.params?.submissionId}`,
                   link: createPath({
-                    path: ADMIN_ROUTES.SUBMISSION_VIEW,
+                    path: ROUTES.SUBMISSION_VIEW,
                     params: { submissionId: `${match?.params?.submissionId}` },
                   }),
                 },

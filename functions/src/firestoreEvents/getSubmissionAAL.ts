@@ -1,10 +1,17 @@
-import type { QueryDocumentSnapshot, UpdateData } from 'firebase-admin/firestore';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import type {
+  QueryDocumentSnapshot,
+  UpdateData,
+} from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { info, warn } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import invariant from 'tiny-invariant';
 
-import { PriorLossCount, Submission, swissReResCollection } from '@idemand/common';
+import {
+  PriorLossCount,
+  Submission,
+  swissReResCollection,
+} from '@idemand/common';
 import {
   defaultFloodZone,
   getReportErrorFn,
@@ -16,8 +23,8 @@ import {
 } from '../common/index.js';
 import {
   GetAALRes,
-  GetAALsProps,
   getAALs,
+  GetAALsProps,
   getComm,
   getPremium,
   validateGetAALsProps,
@@ -34,7 +41,7 @@ export default async (
     {
       submissionId: string;
     }
-  >
+  >,
 ) => {
   const snap = event.data;
   if (!snap) {
@@ -44,7 +51,12 @@ export default async (
   const sub = snap.data() as Submission;
   const db = getFirestore();
 
-  const commData = await getComm(sub.commSource, sub.agency?.orgId, sub.agent?.userId, sub.product);
+  const commData = await getComm(
+    sub.commSource,
+    sub.agency?.orgId,
+    sub.agent?.userId,
+    sub.product,
+  );
   const commissionPct = commData.subproducerCommissionPct;
 
   const srClientId = swissReClientId.value();
@@ -59,7 +71,10 @@ export default async (
     const rcv = sub.ratingPropertyData.replacementCost;
     invariant(rcv && typeof rcv === 'number', 'rcv must be a number');
 
-    const srVals: Omit<GetAALsProps, 'srClientId' | 'srClientSecret' | 'srSubKey'> = {
+    const srVals: Omit<
+      GetAALsProps,
+      'srClientId' | 'srClientSecret' | 'srSubKey'
+    > = {
       coordinates: sub.coordinates,
       limits: sub.limits,
       deductible: sub.deductible,
@@ -100,7 +115,7 @@ export default async (
       `SWISS RE DOC SAVED: ${swissReRef.id} - AALs =>  inland: ${AALsRes.AALs.inland}; surge: ${AALsRes.AALs.surge}; tsunami: ${AALsRes.AALs.tsunami}`,
       {
         ...AALsRes,
-      }
+      },
     );
 
     // TODO: need to store separately (use rxjs for quote form ??)
@@ -114,7 +129,7 @@ export default async (
       'metadata.updated': Timestamp.now(),
     };
     await snap.ref.update(updates);
-  } catch (err: any) {
+  } catch (err: unknown) {
     warn('ERROR FETCHING SR AALs DATA', { err });
     return;
   }
@@ -122,7 +137,10 @@ export default async (
   try {
     invariant(typeof AALsRes?.AALs?.inland === 'number', 'Missing inland AALs');
     invariant(typeof AALsRes?.AALs?.surge === 'number', 'Missing surge AALs');
-    invariant(typeof AALsRes?.AALs?.tsunami === 'number', 'Missing tsunami AALs');
+    invariant(
+      typeof AALsRes?.AALs?.tsunami === 'number',
+      'Missing tsunami AALs',
+    );
 
     const result = getPremium({
       AALs: {
@@ -148,7 +166,7 @@ export default async (
     const ratingColRef = ratingDataCollection(db);
 
     const ratingDocRef = await ratingColRef.add({
-      submissionId: event.data?.id || null, //: snap.ref.id, // snap.id,
+      submissionId: event.data?.id || null, // : snap.ref.id, // snap.id,
       deductible: sub.deductible,
       limits: {
         limitA: sub.limits?.limitA,
@@ -212,9 +230,12 @@ export default async (
       'metadata.updated': Timestamp.now(),
     });
 
-    info(`UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.annualPremium}`, {
-      ...result,
-    });
+    info(
+      `UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.annualPremium}`,
+      {
+        ...result,
+      },
+    );
   } catch (err: any) {
     let msg = 'Error calculating submission AALs / premium';
     if (err?.message) msg += ` (${err.message})`;

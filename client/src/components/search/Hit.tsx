@@ -2,7 +2,7 @@ import { Box, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
 import { Collection, InternalDocSearchHit, StoredDocSearchHit } from 'common';
-import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
+import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 
 interface HitProps {
   hit: InternalDocSearchHit | StoredDocSearchHit;
@@ -34,21 +34,30 @@ export function getURLByType(item: any) {
   //   url = `/user/${item.objectID}`;
   // }
   if (item.collectionName === Collection.Enum.quotes) {
-    url = createPath({ path: ROUTES.QUOTE_VIEW, params: { quoteId: item.objectID } });
+    url = createPath({
+      path: ROUTES.QUOTE_VIEW,
+      params: { quoteId: item.objectID },
+    });
   }
   if (item.collectionName === Collection.Enum.organizations) {
-    url = createPath({ path: ADMIN_ROUTES.ORGANIZATION, params: { orgId: item.objectID } });
+    url = createPath({
+      path: ADMIN_ROUTES.ORGANIZATION,
+      params: { orgId: item.objectID },
+    });
   }
   // TODO: need to create user submission view
   if (item.collectionName === Collection.Enum.submissions) {
     url = createPath({
-      path: ADMIN_ROUTES.SUBMISSION_VIEW,
+      path: ROUTES.SUBMISSION_VIEW,
       params: { submissionId: item.objectID },
     });
   }
   // TODO: standardize routes
   if (item.collectionName === Collection.Enum.policies) {
-    url = createPath({ path: ROUTES.POLICY, params: { policyId: item.objectID } });
+    url = createPath({
+      path: ROUTES.POLICY,
+      params: { policyId: item.objectID },
+    });
   }
   if (item.collectionName === Collection.Enum.users) {
     // TODO: create user route

@@ -216,7 +216,7 @@ const CANCEL_REASONS = [
 ];
 const LICENSE_STATES = ['FL', 'TX', 'CA', 'NY', 'LA', 'GA', 'SC', 'NC', 'VA'];
 const DISC_STATES = ['FL', 'TX', 'CA', 'NY', 'LA', 'NC', 'SC'];
-const CARRIERS = ['Rockingham Insurance Company', 'Rockingham Specialty, Inc.'];
+const CARRIERS = ['Acme Carrier, LLC', 'Huxley Specialty, Inc.'];
 const TRX_TYPES_ALL = [
   'new',
   'endorsement',

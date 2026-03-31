@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 
-import { Address, Optional } from 'common';
-import { useAsyncToast } from './useAsyncToast';
 import { getRiskFactorId } from 'api';
+import { Address, Optional } from 'common';
 import { popUpWasBlocked } from 'modules/utils';
+import { useAsyncToast } from './useAsyncToast';
 
 function firstStreetFormat(str: string) {
   return str.toLowerCase().replaceAll(' ', '-');
@@ -47,21 +47,22 @@ export const useFloodFactor = (onError?: (msg: string) => void) => {
       }
 
       if (fsid) {
-        let floodStreetUrl = `https://riskfactor.com/property/${firstStreetFormat(
-          addressLine1
+        let floodStreetUrl = `https://firststreet.org/property/${firstStreetFormat(
+          addressLine1,
         )}-${firstStreetFormat(city)}-${firstStreetFormat(state)}-${firstStreetFormat(
-          postal
-        )}/${fsid}_fsid/flood`;
+          postal,
+        )}/${fsid}_fsid/0#flood`;
 
         toast.success(`opening in new tab (FSID: ${fsid})`);
         const w = window.open(floodStreetUrl, '_blank');
 
-        if (popUpWasBlocked(w)) toast.error('Please allow the new window to view risk factor');
+        if (popUpWasBlocked(w))
+          toast.error('Please allow the new window to view risk factor');
       } else {
         toast.error('Unable to get location ID');
       }
     },
-    [functions, toast, onError]
+    [functions, toast, onError],
   );
 
   return openFloodFactor;
