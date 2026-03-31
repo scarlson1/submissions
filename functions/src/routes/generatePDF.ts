@@ -255,13 +255,30 @@ app.post(
     }
 
     try {
-      const pdfBuffer = await generatePolicyDecPDF(templateData);
+      // const pdfBuffer = await generatePolicyDecPDF(templateData);
+
+      // res.setHeader('Content-Type', 'application/pdf');
+      // res.setHeader('Content-Disposition', `attachment; filename=policy_${policyId}.pdf`);
+
+      // res.send(pdfBuffer);
+
+      const result = await generatePolicyDecPDF(templateData);
+
+      // const chunks: Buffer[] = []
+      // for await (const chunk of stream) {
+      //   chunks.push(chunk as Buffer);
+      // }
+      // const pdfBuffer = Buffer.concat(chunks);
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=export.pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=policy_${policyId}.pdf`,
+      );
 
-      // result.pipe(res); // cloud run doesn't allow result.pipe()
-      res.send(pdfBuffer);
+      // res.send(pdfBuffer);
+
+      result.pipe(res); // cloud run doesn't allow result.pipe() ??
     } catch (err: unknown) {
       error('Error generating PDF from react-pdf template', err);
       res.status(500).send('Error generating pdf');

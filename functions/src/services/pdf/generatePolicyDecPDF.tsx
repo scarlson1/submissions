@@ -2,7 +2,7 @@ import {
   Document,
   Image,
   Page,
-  renderToBuffer,
+  renderToStream,
   Text,
   View,
 } from '@react-pdf/renderer';
@@ -412,8 +412,8 @@ const DecPagePDF = ({ data }: PDFProps) => {
 // Cloud Functions v2 runs on Cloud Run, which doesn't support streaming responses vis .pipe()
 // => need to replace ReactPDF.renderToStream() with ReactPDF.renderToBuffer => returns Promise<Buffer> which can be passed directly to res.send()
 export const generatePolicyDecPDF = async (data: DecPageTemplateData) => {
-  return await renderToBuffer(<DecPagePDF {...{ data }} />);
-  // return await ReactPDF.renderToStream(<DecPagePDF {...{ data }} />);
+  // return await renderToBuffer(<DecPagePDF {...{ data }} />);
+  return await renderToStream(<DecPagePDF {...{ data }} />);
 };
 
 function BlockTitle({ title }: any) {
