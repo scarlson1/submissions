@@ -4,7 +4,7 @@ import {
   DeepNullable,
   extractNumber,
   extractNumberNeg,
-  iDemandOrgId,
+  mgaOrgId,
 } from '../../common/index.js';
 import {
   RatePortfolioInputRow,
@@ -118,6 +118,6 @@ export function getSRVarsZod(row: TransformedRatePortfolioRow) {
     limitD: row.limits?.limitD,
     deductible: row.deductible,
     numStories: row.numStories || '1',
-    externalRef: row.locationId || iDemandOrgId.value(),
+    externalRef: row.locationId || mgaOrgId.value(),
   };
 }

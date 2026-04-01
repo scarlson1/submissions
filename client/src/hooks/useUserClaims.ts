@@ -46,7 +46,7 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
 
       let orgId = user.tenantId ?? null;
       if (!orgId && user.email?.endsWith(env.VITE_MGA_DOMAIN))
-        orgId = import.meta.env.VITE_IDEMAND_ORG_ID;
+        orgId = import.meta.env.VITE_MGA_ORG_ID;
 
       // if no org, return user without orgId or claims
       if (!orgId) return of(getResult(user, null, null));

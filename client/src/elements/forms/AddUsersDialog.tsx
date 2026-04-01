@@ -87,8 +87,7 @@ export const AddUsersDialog = ({
   const handleSubmit = useCallback(
     async (values: AddUserValues, helpers: FormikHelpers<AddUserValues>) => {
       console.log('values => ', values);
-      let tenantId =
-        orgId === import.meta.env.VITE_IDEMAND_ORG_ID ? null : orgId;
+      let tenantId = orgId === import.meta.env.VITE_MGA_ORG_ID ? null : orgId;
 
       await inviteUsers(values.users, tenantId, orgId);
       helpers.setSubmitting(false);

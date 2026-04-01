@@ -5,8 +5,8 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
   CLAIMS,
-  iDemandOrgId,
   mgaDomain,
+  mgaOrgId,
   // Quote,
   orgsCollection,
   quotesCollection,
@@ -48,7 +48,7 @@ const assignQuote = async ({
     let updates: Partial<Quote> = {};
     if (isAgent) {
       const orgId = token.email?.endsWith(mgaDomain.value())
-        ? iDemandOrgId.value()
+        ? mgaOrgId.value()
         : token?.firebase.tenant;
       if (!orgId) {
         throw new HttpsError('internal', 'Missing tenant ID for Agent');

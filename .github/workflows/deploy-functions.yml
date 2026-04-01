@@ -61,7 +61,7 @@ jobs:
               - 'functions/src/utils/**'
               - 'functions/package.json'
             rules:
-              - 'firestore.rules'
+              - 'firestore.rules.template'
               - 'storage.rules'
 
   build-and-deploy:
@@ -115,7 +115,7 @@ jobs:
       MAPBOX_PUBLIC_TOKEN: ${{ vars.MAPBOX_PUBLIC_TOKEN }}
       COUNTIES_URL: ${{ vars.COUNTIES_URL }}
       DEFAULT_FLOOD_ZONE: ${{ vars.DEFAULT_FLOOD_ZONE }}
-      IDEMAND_ORG_ID: ${{ vars.IDEMAND_ORG_ID }}
+      MGA_ORG_ID: ${{ vars.IDEMAND_ORG_ID }}
       STORAGE_BASE_URL: ${{ vars.STORAGE_BASE_URL }}
       SUBMISSIONS_API_BASE_URL: ${{ vars.SUBMISSIONS_API_BASE_URL }}
       ENV: ${{ vars.ENV }}
@@ -178,7 +178,7 @@ jobs:
           MAPBOX_PUBLIC_TOKEN=${{ vars.MAPBOX_PUBLIC_TOKEN }}
           COUNTIES_URL=${{ vars.COUNTIES_URL }}
           DEFAULT_FLOOD_ZONE=${{ vars.DEFAULT_FLOOD_ZONE }}
-          IDEMAND_ORG_ID=${{ vars.IDEMAND_ORG_ID }}
+          MGA_ORG_ID=${{ vars.IDEMAND_ORG_ID }}
           STORAGE_BASE_URL=${{ vars.STORAGE_BASE_URL }}
           SUBMISSIONS_API_BASE_URL=${{ vars.SUBMISSIONS_API_BASE_URL }}
           ENV=${{ vars.ENV }}
@@ -254,6 +254,13 @@ jobs:
       - name: Deploy storage functions
         if: needs.detect-changes.outputs.storage == 'true' || needs.detect-changes.outputs.shared == 'true'
         run: pnpm exec firebase deploy --only functions:storage
+
+      - name: Inject Domain with Fallback
+        env:
+          TARGET_DOMAIN: ${{ vars.MGA_DOMAIN || 's-carlson[.]com' }}
+        run: |
+          # Inyect the domain into the rules file
+          sed -i "s|REPLACE_ME_DOMAIN|${TARGET_DOMAIN}|g" firestore.rules.template > firestore.rules
 
       - name: Deploy firestore rules
         if: needs.detect-changes.outputs.rules == 'true'

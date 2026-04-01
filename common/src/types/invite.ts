@@ -40,7 +40,7 @@ export type Invite = z.infer<typeof Invite>;
 export interface InviteClassInterface extends Invite {
   getLink: () => string;
   hostingUrl: string;
-  iDemandOrgId: string;
+  mgaOrgId: string;
 }
 
 export class InviteClass implements InviteClassInterface {
@@ -64,9 +64,9 @@ export class InviteClass implements InviteClassInterface {
   public metadata: BaseMetadata;
 
   public hostingUrl: string;
-  public iDemandOrgId: string;
+  public mgaOrgId: string;
 
-  constructor(inviteInfo: Invite, hostingUrl: string, iDemandOrgId: string) {
+  constructor(inviteInfo: Invite, hostingUrl: string, mgaOrgId: string) {
     this.email = inviteInfo.email;
     this.displayName = inviteInfo.displayName;
     this.firstName = inviteInfo.firstName;
@@ -82,16 +82,16 @@ export class InviteClass implements InviteClassInterface {
     this.invitedBy = inviteInfo.invitedBy;
     this.metadata = inviteInfo.metadata;
 
-    (this.hostingUrl = hostingUrl), (this.iDemandOrgId = iDemandOrgId);
+    ((this.hostingUrl = hostingUrl), (this.mgaOrgId = mgaOrgId));
   }
 
   getLink() {
-    let tenantURL = this.orgId === this.iDemandOrgId ? '' : `/${this.orgId}`;
+    let tenantURL = this.orgId === this.mgaOrgId ? '' : `/${this.orgId}`;
 
     return `${this.hostingUrl}/auth/create-account${tenantURL}?email=${encodeURIComponent(
-      this.email
+      this.email,
     )}&firstName=${encodeURIComponent(this.firstName ?? '')}&lastName=${encodeURIComponent(
-      this.lastName ?? ''
+      this.lastName ?? '',
     )}`;
   }
 }

@@ -18,16 +18,13 @@ import {
 
 export default async (event: AuthBlockingEvent) => {
   const user = event.data;
-  // REQUIRE EMAIL VERIFICATION BEFORE CREATING ACCOUNT IF @idemandinsurance.com DOMAIN
-  if (user.email && user.email?.toLowerCase().endsWith(mgaDomain.value())) {
+  // REQUIRE EMAIL VERIFICATION BEFORE CREATING ACCOUNT IF MGA DOMAIN
+  if (user.email?.toLowerCase().endsWith(mgaDomain.value())) {
     if (!user.emailVerified) {
       try {
-        const verificationKey = emailVerificationKey.value();
-        const key = resendKey.value();
-
         await sendAdminVerificationEmail(
-          verificationKey,
-          key,
+          emailVerificationKey.value(),
+          resendKey.value(),
           user.uid,
           user.email,
           user.tenantId,

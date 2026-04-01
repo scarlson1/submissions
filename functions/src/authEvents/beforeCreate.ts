@@ -10,9 +10,9 @@ import {
   CLAIMS,
   emailVerificationKey,
   functionsBaseURL,
-  iDemandOrgId,
   invitesCollection,
   mgaDomain,
+  mgaOrgId,
   orgsCollection,
   resendKey,
   userClaimsCollection,
@@ -53,7 +53,7 @@ export default async (event: AuthBlockingEvent) => {
     if (!inviteSnap.empty) {
       const invite: InviteClass = inviteSnap.docs[0]?.data(); // .map((snap) => snap.data());
       // const invite = inviteData[0];
-      if (invite && invite?.orgId !== iDemandOrgId.value()) {
+      if (invite && invite?.orgId !== mgaOrgId.value()) {
         try {
           const to = invite.email;
           const sgKey = resendKey.value();
@@ -76,7 +76,7 @@ export default async (event: AuthBlockingEvent) => {
           });
         }
       }
-      if (invite?.orgId !== iDemandOrgId.value()) {
+      if (invite?.orgId !== mgaOrgId.value()) {
         throw new HttpsError(
           'failed-precondition',
           `Email matched invite from ${invite?.orgName} (ID: ${invite?.orgId}). Add orgId to end of auth url to accept (/auth/create-account/{orgId})`,
@@ -197,13 +197,15 @@ export default async (event: AuthBlockingEvent) => {
 
   // use invite to set permissions ??
   // TODO: delete ?? using invites & userClaims collections
-  if (user.email && user.email?.toLowerCase().endsWith(mgaDomain.value())) {
-    const claimsColRef = userClaimsCollection(db, iDemandOrgId.value());
+  if (user.email?.toLowerCase().endsWith(mgaDomain.value())) {
+    const claimsColRef = userClaimsCollection(db, mgaOrgId.value());
+
+    const claims = {
+      [CLAIMS.IDEMAND_ADMIN]: true, // TODO: decide whether to set as admin by default
+      [CLAIMS.IDEMAND_USER]: true,
+    };
     try {
-      await claimsColRef.doc(user.uid).set({
-        // [CLAIMS.IDEMAND_ADMIN]: true, // TODO: decide whether to set as admin by default
-        [CLAIMS.IDEMAND_USER]: true,
-      });
+      await claimsColRef.doc(user.uid).set(claims);
     } catch (err) {
       error('Error creating custom user claims doc for idemand user', {
         userId: user.uid,
@@ -211,7 +213,7 @@ export default async (event: AuthBlockingEvent) => {
     }
 
     return {
-      customClaims: { iDemandAdmin: true },
+      customClaims: claims,
     };
   }
 

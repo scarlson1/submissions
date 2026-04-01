@@ -5,12 +5,7 @@ import { info } from 'firebase-functions/logger';
 import { EventContext } from 'firebase-functions/v1';
 import { isEmpty } from 'lodash-es';
 
-import {
-  iDemandOrgId,
-  mgaDomain,
-  User,
-  usersCollection,
-} from '../common/index.js';
+import { mgaDomain, mgaOrgId, User, usersCollection } from '../common/index.js';
 
 // TODO: change to onWrite ?? (will pass change when onCreate or onUpdate trigger)
 
@@ -45,7 +40,7 @@ export default async (
       updates.orgId = user.tenantId;
     }
     if (user.email?.endsWith(mgaDomain.value())) {
-      updates.orgId = iDemandOrgId.value();
+      updates.orgId = mgaOrgId.value();
     }
 
     if (!isEmpty(updates)) {
@@ -59,11 +54,13 @@ export default async (
     return;
   }
 
+  const fsUser = userSnap.data();
+
   const userProperties: Partial<User> = {
-    displayName: user.displayName,
+    displayName: user.displayName || fsUser.displayName || '',
     email: user.email,
-    phone: user.phoneNumber,
-    photoURL: user.photoURL,
+    phone: user.phoneNumber || fsUser.phone,
+    photoURL: user.photoURL || fsUser.photoURL,
     tenantId: user.tenantId ?? null,
     initialAnonymous: user.providerData.length === 0 ? true : false,
     metadata: {
@@ -73,7 +70,7 @@ export default async (
   };
   if (user.tenantId) userProperties.orgId = user.tenantId;
   if (user.email?.endsWith(mgaDomain.value())) {
-    userProperties.orgId = iDemandOrgId.value();
+    userProperties.orgId = mgaOrgId.value();
   }
 
   info(`creating firebase user doc... [uid: ${user.uid}]`, userProperties);

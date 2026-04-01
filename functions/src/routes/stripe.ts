@@ -12,8 +12,8 @@ import {
   functionsBaseURL,
   getReportErrorFn,
   hostingBaseURL,
-  iDemandOrgId,
   mgaDomain,
+  mgaOrgId,
   orgsCollection,
   RequestUserAuth,
   stripeEndpointSecret,
@@ -573,7 +573,7 @@ function extractUserOrg(req: RequestUserAuth) {
     req.user?.email?.endsWith(mgaDomain.value()) &&
     req.user?.email_verified
   ) {
-    orgId = iDemandOrgId.value();
+    orgId = mgaOrgId.value();
   }
   if (!orgId) throw new Error('Tenant required');
   return orgId;

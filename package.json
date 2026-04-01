@@ -7,7 +7,7 @@
     "client:dev": "pnpm --filter client dev",
     "client:live": "pnpm --filter client start",
     "functions:build": "pnpm --filter functions dev",
-    "emulators:dev": "firebase emulators:start --only functions,auth,firestore,storage,pubsub,eventarc --import ./emulator-data",
+    "emulators:dev": "sed 's|REPLACE_ME_DOMAIN|s-carlson[.]com|g' firestore.rules.template > firestore.rules && firebase emulators:start --only functions,auth,firestore,storage,pubsub,eventarc --import ./emulator-data",
     "emulators:save": "firebase emulators:export ./emulator-data",
     "use:dev": "firebase use dev",
     "use:prod": "firebase use prod",

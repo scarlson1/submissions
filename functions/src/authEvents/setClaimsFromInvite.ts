@@ -4,9 +4,9 @@ import { error, info } from 'firebase-functions/logger';
 import { EventContext } from 'firebase-functions/v1';
 
 import {
-  iDemandOrgId,
   invitesCollection,
   mgaDomain,
+  mgaOrgId,
   userClaimsCollection,
 } from '../common/index.js';
 
@@ -47,9 +47,7 @@ export default async (
   if (user.email?.endsWith(mgaDomain.value())) {
     try {
       info(`Fetching invite for user idemand user: ${user.email}`);
-      const inviteRef = invitesCollection(db, iDemandOrgId.value()).doc(
-        user.email,
-      );
+      const inviteRef = invitesCollection(db, mgaOrgId.value()).doc(user.email);
       const inviteSnap = await inviteRef.get();
       if (!inviteSnap.exists) return;
 
@@ -57,7 +55,7 @@ export default async (
       const claims = inviteData?.customClaims || {};
 
       info(`updating user claims for ${user.email}: ${JSON.stringify(claims)}`);
-      await userClaimsCollection(db, iDemandOrgId.value())
+      await userClaimsCollection(db, mgaOrgId.value())
         .doc(user.uid)
         .set({ ...claims }, { merge: true });
 
