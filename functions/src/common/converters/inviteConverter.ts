@@ -3,7 +3,7 @@ import {
   QueryDocumentSnapshot,
   type FirestoreDataConverter,
 } from 'firebase-admin/firestore';
-import { hostingBaseURL, iDemandOrgId } from '../environmentVars.js';
+import { hostingBaseURL, mgaOrgId } from '../environmentVars.js';
 
 export const inviteConverter: FirestoreDataConverter<InviteClass, Invite> = {
   // toFirestore(invite: InviteClass): DocumentData {
@@ -33,7 +33,7 @@ export const inviteConverter: FirestoreDataConverter<InviteClass, Invite> = {
     return new InviteClass(
       { ...data },
       hostingBaseURL.value(),
-      iDemandOrgId.value(),
+      mgaOrgId.value(),
     );
   },
 };
@@ -68,7 +68,7 @@ export const inviteConverter: FirestoreDataConverter<InviteClass, Invite> = {
 //     return new InviteClass(
 //       { ...data },
 //       hostingBaseURL.value(),
-//       iDemandOrgId.value(),
+//       mgaOrgId.value(),
 //     );
 //   }
 

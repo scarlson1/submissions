@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import {
@@ -22,8 +21,8 @@ import {
 const app = express();
 
 app.use(cors({ origin: true }));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 interface JwtPayload {
   uid: string;

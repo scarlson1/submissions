@@ -391,7 +391,7 @@ service cloud.firestore {
     }
 
     function isIDemandUser() {
-      return isSignedIn() && request.auth.token.email.matches('.*@s-carlson[.]com');
+      return isSignedIn() && request.auth.token.email.matches('.*@REPLACE_ME_DOMAIN');
       // return isSignedIn() && request.auth.token.email.matches('.*@idemandinsurance[.]com')
     }
 

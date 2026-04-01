@@ -7,9 +7,9 @@ import { inviteConverter } from '../common/converters/index.js';
 import {
   CLAIMS,
   hostingBaseURL,
-  iDemandOrgId,
   INVITE_STATUS,
   invitesCollection,
+  mgaOrgId,
   orgsCollection,
 } from '../common/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
@@ -71,7 +71,7 @@ const inviteUsers = async ({
   const userTenantId = auth?.token.firebase.tenant;
   let { users, tenantId, orgId } = data;
 
-  if (orgId !== iDemandOrgId.value()) {
+  if (orgId !== mgaOrgId.value()) {
     if (!tenantId) tenantId = userTenantId;
     if (!orgId) orgId = tenantId;
 
@@ -157,7 +157,7 @@ const inviteUsers = async ({
           },
         },
         hostingBaseURL.value(),
-        iDemandOrgId.value(),
+        mgaOrgId.value(),
       );
 
       batch.set(inviteDocRef, newInvite);

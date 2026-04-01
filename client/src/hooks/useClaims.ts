@@ -19,7 +19,7 @@ export const useClaims = () => {
 
   let orgId = orgAdminResult.user?.tenantId || null;
   if (iDAdminResult.user?.email?.endsWith(env.VITE_MGA_DOMAIN))
-    orgId = import.meta.env.VITE_IDEMAND_ORG_ID;
+    orgId = import.meta.env.VITE_MGA_ORG_ID;
 
   return useMemo(
     () => ({

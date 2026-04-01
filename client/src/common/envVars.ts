@@ -25,7 +25,7 @@ const envSchema = z
     VITE_TYPESENSE_PORT: z.string(),
     VITE_TYPESENSE_PROTOCOL: z.string(),
     VITE_TYPESENSE_COLLECTION_PREFIX: z.string(),
-    VITE_IDEMAND_ORG_ID: z.string().default('idemand'),
+    VITE_MGA_ORG_ID: z.string().default('idemand'),
     VITE_MGA_DOMAIN: z.string().default('@s-carlson.com'),
   })
   .passthrough();

@@ -26,7 +26,7 @@ interface ImportMetaEnv {
   readonly VITE_TYPESENSE_PORT: string;
   readonly VITE_TYPESENSE_PROTOCOL: string;
   readonly VITE_TYPESENSE_COLLECTION_PREFIX: string;
-  readonly VITE_IDEMAND_ORG_ID: string;
+  readonly VITE_MGA_ORG_ID: string;
   readonly VITE_MGA_DOMAIN: string;
 }
 
