@@ -56,17 +56,18 @@ export default async (
 
   const fsUser = userSnap.data();
 
-  const userProperties: Partial<User> = {
+  const userProperties: Partial<User> & { 'metadata.updated': Timestamp } = {
     displayName: user.displayName || fsUser.displayName || '',
     email: user.email,
     phone: user.phoneNumber || fsUser.phone,
     photoURL: user.photoURL || fsUser.photoURL,
     tenantId: user.tenantId ?? null,
     initialAnonymous: user.providerData.length === 0 ? true : false,
-    metadata: {
-      created: Timestamp.now(),
-      updated: Timestamp.now(),
-    },
+    'metadata.updated': Timestamp.now(),
+    // metadata: {
+    //   created: Timestamp.now(),
+    //   updated: Timestamp.now(),
+    // },
   };
   if (user.tenantId) userProperties.orgId = user.tenantId;
   if (user.email?.endsWith(mgaDomain.value())) {
