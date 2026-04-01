@@ -1,4 +1,4 @@
-name: Deploy Firebase Codebases Conditionally
+name: Deploy Firebase Function Codebases Conditionally
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     paths:
       - 'functions/**'
       - '.github/workflows/deploy-functions.yml'
+      - 'firestore.rules.template'
       - 'firestore.rules'
       - 'storage.rules'
   workflow_dispatch: # "Run workflow" button in the Actions tab
@@ -62,6 +63,7 @@ jobs:
               - 'functions/package.json'
             rules:
               - 'firestore.rules.template'
+              - 'firestore.rules'
               - 'storage.rules'
 
   build-and-deploy:
@@ -112,10 +114,12 @@ jobs:
       EPAY_HOSTING_BASE_URL: ${{ vars.EPAY_HOSTING_BASE_URL }}
       EPAY_BASE_URL: ${{ vars.EPAY_BASE_URL }}
       ATTOM_BASE_URL: ${{ vars.ATTOM_BASE_URL }}
+      FIPS_URL: ${{ vars.FIPS_URL }}
       MAPBOX_PUBLIC_TOKEN: ${{ vars.MAPBOX_PUBLIC_TOKEN }}
       COUNTIES_URL: ${{ vars.COUNTIES_URL }}
       DEFAULT_FLOOD_ZONE: ${{ vars.DEFAULT_FLOOD_ZONE }}
-      MGA_ORG_ID: ${{ vars.IDEMAND_ORG_ID }}
+      MGA_ORG_ID: ${{ vars.MGA_ORG_ID }}
+      MGA_DOMAIN: ${{ vars.MGA_DOMAIN }}
       STORAGE_BASE_URL: ${{ vars.STORAGE_BASE_URL }}
       SUBMISSIONS_API_BASE_URL: ${{ vars.SUBMISSIONS_API_BASE_URL }}
       ENV: ${{ vars.ENV }}
@@ -175,10 +179,12 @@ jobs:
           EPAY_HOSTING_BASE_URL=${{ vars.EPAY_HOSTING_BASE_URL }}
           EPAY_BASE_URL=${{ vars.EPAY_BASE_URL }}
           ATTOM_BASE_URL=${{ vars.ATTOM_BASE_URL }}
+          FIPS_URL=${{ vars.FIPS_URL }}
           MAPBOX_PUBLIC_TOKEN=${{ vars.MAPBOX_PUBLIC_TOKEN }}
           COUNTIES_URL=${{ vars.COUNTIES_URL }}
           DEFAULT_FLOOD_ZONE=${{ vars.DEFAULT_FLOOD_ZONE }}
-          MGA_ORG_ID=${{ vars.IDEMAND_ORG_ID }}
+          MGA_ORG_ID=${{ vars.MGA_ORG_ID }}
+          MGA_DOMAIN=${{ vars.MGA_DOMAIN }}
           STORAGE_BASE_URL=${{ vars.STORAGE_BASE_URL }}
           SUBMISSIONS_API_BASE_URL=${{ vars.SUBMISSIONS_API_BASE_URL }}
           ENV=${{ vars.ENV }}
