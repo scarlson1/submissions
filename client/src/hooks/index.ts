@@ -64,6 +64,7 @@ export { useSendPasswordReset } from './useSendPasswordReset';
 export { useSendQuoteNotification } from './useSendQuoteNotification';
 export { useShowJson } from './useShowJson';
 export { useSocialAuth } from './useSocialAuth';
+export { useStripeAccount } from './useStripeAccount';
 export { useStripeConnectInstance } from './useStripeConnectInstance';
 export { EDITOR_EXTENSION_DEFAULTS, useTextEditor } from './useTextEditor';
 export { useUpdateClaims } from './useUpdateClaims';

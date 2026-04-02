@@ -9,13 +9,13 @@ import {
 } from '../../common/environmentVars.js';
 import { getTypesenseClient } from './client.js';
 import {
+  // claimsSchema,
   financialTrxSchema,
   locationsSchema,
   orgsSchema,
   policiesSchema,
   quotesSchema,
   submissionsSchema,
-  userClaimsSchema,
   usersSchema,
 } from './schema.js';
 
@@ -72,7 +72,7 @@ async function ensureCollection(schema: CollectionCreateSchema): Promise<void> {
 
 const schemas = [
   usersSchema,
-  userClaimsSchema,
+  // claimsSchema,
   policiesSchema,
   quotesSchema,
   submissionsSchema,

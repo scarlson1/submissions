@@ -18,6 +18,11 @@ import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 
 // TODO: Use this component to display user profile at the top, with an outlet for the tabs nav
+// https://github.com/scarlson1/scarlson1.github.io/blob/main/data/counties_20m.json
+const LIGHT_BG_IMG =
+  'https://github.com/scarlson1/scarlson1.github.io/blob/main/data/mountains_1_unsplash.jpg';
+const DARK_BG_IMG =
+  'https://github.com/scarlson1/scarlson1.github.io/blob/main/data/ocean_1_unsplash.jpg';
 
 export const AccountDetailsNew = () => {
   const { data: user } = useUser();
@@ -38,11 +43,11 @@ export const AccountDetailsNew = () => {
                     theme.palette.primaryDark[700],
                     0.8,
                   )}),
-                url(https://storage.cloud.google.com/idemand-dev.appspot.com/common/dock_sunset.jpg)`
+                url(${DARK_BG_IMG})`
                 : `linear-gradient(${alpha(theme.palette.grey[100], 0.1)}, ${alpha(
                     theme.palette.common.white,
                     0.9,
-                  )}), url(https://storage.cloud.google.com/idemand-dev.appspot.com/common/beach_sunset.jpg)`,
+                  )}), url(${LIGHT_BG_IMG})`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             backgroundSize: 'cover',
