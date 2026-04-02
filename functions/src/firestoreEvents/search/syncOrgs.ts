@@ -80,8 +80,8 @@ export default async (
             : null,
           metadata: {
             ...(newValue.metadata || {}),
-            created: newValue.metadata?.created?.toMillis() || null,
-            updated: newValue.metadata?.updated?.toMillis() || null,
+            created: newValue.metadata?.created?.toMillis() || Date.now(),
+            updated: newValue.metadata?.updated?.toMillis() || Date.now(),
             // createdTimestamp: newValue.metadata?.created?.toMillis() || null,
             // updatedTimestamp: newValue.metadata?.updated?.toMillis() || null,
           },

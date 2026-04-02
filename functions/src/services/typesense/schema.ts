@@ -73,6 +73,12 @@ export const usersSchema: CollectionCreateSchema<unknown> = {
       optional: true,
     },
     {
+      name: 'address.state',
+      type: 'string',
+      facet: true,
+      optional: true,
+    },
+    {
       name: '_geopoint',
       type: 'geopoint',
       facet: true,
