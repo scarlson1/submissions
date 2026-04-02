@@ -1,15 +1,16 @@
-import { PersonAddRounded } from '@mui/icons-material';
+import { ArrowCircleRightRounded, PersonAddRounded } from '@mui/icons-material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { Box, Tab, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Tab, Typography } from '@mui/material';
 import { where } from 'firebase/firestore';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useParams, useSearchParams } from 'react-router-dom';
 
+import { useMutation } from '@tanstack/react-query';
+import { functionsInstance } from 'api';
 import { Organization as Org } from 'common';
 import { ClaimsGuard, ErrorFallback, PageMeta } from 'components';
 import { LoadingComponent } from 'components/layout';
-import { StripeConnectViewsLocalTabs } from 'elements/StripeConnectViewsLayout';
 import { AddUsersDialog } from 'elements/forms';
 import {
   InvitesGrid,
@@ -18,10 +19,49 @@ import {
   SubmissionsGrid,
   UserClaimsGrid,
 } from 'elements/grids';
-import { useDocData } from 'hooks';
+import { StripeConnectViewsLocalTabs } from 'elements/StripeConnectViewsLayout';
+import { useAsyncToast, useDocData } from 'hooks';
 
 // TODO: org details tab (address, default commissions, etc.)
 // TODO: payments, payouts, etc.
+
+function TypesenseSetup() {
+  const toast = useAsyncToast();
+  const { mutate, isPending } = useMutation({
+    mutationFn: () => functionsInstance.post('/typesense/setup'),
+    onMutate: () => {
+      toast.loading('setting up typesense...');
+    },
+    onSuccess: () => {
+      toast.success('Typesense setup successful');
+    },
+    onError: () => {
+      toast.error('Typesense setup failed');
+    },
+  });
+
+  return (
+    <Box>
+      <Button
+        onClick={() => {
+          mutate();
+        }}
+        disabled={isPending}
+        startIcon={
+          isPending ? (
+            <CircularProgress size={18} />
+          ) : (
+            <ArrowCircleRightRounded fontSize='inherit' />
+          )
+        }
+        // loading={isPending}
+        // startIcon={<TypesenseRoundedIco />}
+      >
+        Typesense Setup
+      </Button>
+    </Box>
+  );
+}
 
 const MIN_TAB_HEIGHT = 40;
 
@@ -81,17 +121,23 @@ export const Organization = () => {
             </Box>
             <TabPanel value='policies'>
               <Suspense fallback={<LoadingComponent />}>
-                <PoliciesGrid constraints={[where('agency.orgId', '==', orgId)]} />
+                <PoliciesGrid
+                  constraints={[where('agency.orgId', '==', orgId)]}
+                />
               </Suspense>
             </TabPanel>
             <TabPanel value='quotes'>
               <Suspense fallback={<LoadingComponent />}>
-                <QuotesGrid constraints={[where('agency.orgId', '==', orgId)]} />
+                <QuotesGrid
+                  constraints={[where('agency.orgId', '==', orgId)]}
+                />
               </Suspense>
             </TabPanel>
             <TabPanel value='submissions'>
               <Suspense fallback={<LoadingComponent />}>
-                <SubmissionsGrid constraints={[where('agency.orgId', '==', orgId)]} />
+                <SubmissionsGrid
+                  constraints={[where('agency.orgId', '==', orgId)]}
+                />
               </Suspense>
             </TabPanel>
             {/* TODO: use rxjs observable (like useUsers hook) */}
@@ -124,11 +170,19 @@ export const Organization = () => {
 
             <TabPanel value='invites'>
               <>
-                <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[tabValue]}>
+                <ErrorBoundary
+                  FallbackComponent={ErrorFallback}
+                  resetKeys={[tabValue]}
+                >
                   <Suspense fallback={<LoadingComponent />}>
                     <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']}>
                       <Box
-                        sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', pb: 2 }}
+                        sx={{
+                          width: '100%',
+                          display: 'flex',
+                          justifyContent: 'flex-end',
+                          pb: 2,
+                        }}
                       >
                         <AddUsersDialog
                           orgId={orgId}
@@ -141,13 +195,18 @@ export const Organization = () => {
                         />
                       </Box>
                     </ClaimsGuard>
-                    {orgId && <InvitesGrid queryConstraints={[]} orgId={orgId} />}
+                    {orgId && (
+                      <InvitesGrid queryConstraints={[]} orgId={orgId} />
+                    )}
                   </Suspense>
                 </ErrorBoundary>
               </>
             </TabPanel>
             <TabPanel value='stripe'>
-              <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[tabValue]}>
+              <ErrorBoundary
+                FallbackComponent={ErrorFallback}
+                resetKeys={[tabValue]}
+              >
                 <Suspense fallback={<LoadingComponent />}>
                   <ClaimsGuard requiredClaims={['orgAdmin', 'iDemandAdmin']}>
                     <StripeConnectViewsLocalTabs orgId={orgId} />
@@ -158,6 +217,10 @@ export const Organization = () => {
           </TabContext>
         </Box>
       </Box>
+
+      <ClaimsGuard requiredClaims={['iDemandAdmin']}>
+        <TypesenseSetup />
+      </ClaimsGuard>
     </>
   );
 };
