@@ -1,5 +1,5 @@
 // import { encode } from 'blurhash';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getDownloadURL, getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { storageBucket } from 'firebase-functions/params';
@@ -11,7 +11,12 @@ import path from 'path';
 // import sharp from 'sharp';
 
 import { LocationImageTypes } from '@idemand/common';
-import { StorageFolder, getReportErrorFn, mapboxPublicToken } from '../common/index.js';
+import { AxiosError } from 'axios';
+import {
+  getReportErrorFn,
+  mapboxToken,
+  StorageFolder,
+} from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
 import { clearTempFiles, randomFileName, verify } from '../utils/index.js';
@@ -22,9 +27,17 @@ import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
-export const MAPBOX_STYLES: { name: LocationImageTypes; style: string; zoom: number }[] = [
+export const MAPBOX_STYLES: {
+  name: LocationImageTypes;
+  style: string;
+  zoom: number;
+}[] = [
   { name: 'light', style: 'mapbox/light-v11', zoom: 13 },
-  { name: 'dark', style: 'spencer-carlson/clkrsmyib01wz01qwdbujb4da', zoom: 13 },
+  {
+    name: 'dark',
+    style: 'spencer-carlson/clkrsmyib01wz01qwdbujb4da',
+    zoom: 13,
+  },
   { name: 'satellite', style: 'mapbox/satellite-v9', zoom: 17 },
   {
     name: 'satelliteStreets',
@@ -59,7 +72,9 @@ function getMS(startMS: number) {
 
 // TODO: check if images already exist in doc before fetching new ones ??
 
-export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesPayload>>) => {
+export default async (
+  event: CloudEvent<MessagePublishedData<GetStaticMapImagesPayload>>,
+) => {
   info('GET LOCATION STATIC MAP IMAGE EVENT - MSG JSON: ', {
     ...(event.data?.message?.json || {}),
   });
@@ -80,7 +95,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
   const { collection, docPath, locationPath } = extractPubSubPayload(
     event,
     ['collection', 'docPath', 'locationPath'],
-    true
+    true,
   );
 
   const cleanUpTempPaths = [];
@@ -109,7 +124,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
 
     const bucket = getStorage().bucket(storageBucket.value());
 
-    let docUpdates: Record<string, string> = {};
+    const docUpdates: Record<string, string> = {};
 
     for (const styleType of MAPBOX_STYLES) {
       // TODO: axios instance ??
@@ -117,7 +132,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         styleType.style
       }/static/${longitude},${latitude},${
         styleType.zoom
-      },0,40/1200x720@2x?access_token=${mapboxPublicToken.value()}&logo=false`;
+      },0,40/1200x720@2x?access_token=${mapboxToken.value()}&logo=false`;
 
       const tempFilePath = path.join(tmpdir(), randomFileName('file.jpeg'));
       cleanUpTempPaths.push(tempFilePath);
@@ -195,14 +210,15 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         set(docUpdates, ['imagePaths', styleType.name], destinationPath);
         set(docUpdates, ['imageURLs', styleType.name], downloadURL);
         // if (blurhash) set(docUpdates, ['blurHash', styleType.name], blurhash);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (cleanUpTempPaths.length > 0) {
           await clearTempFiles(cleanUpTempPaths);
         }
-        error(`Error downloading map images`, {
-          errMsg: err?.message || null,
-          status: err?.response?.status || null,
-          responseData: err?.response?.data || null,
+        const errMsg = err instanceof Error ? err.message : null;
+        error('Error downloading map images', {
+          errMsg: errMsg,
+          status: err instanceof AxiosError ? err?.response?.status : null,
+          responseData: err instanceof AxiosError ? err?.response?.data : null,
           styleType: styleType.name,
           docId: docRef.id,
         });
@@ -224,12 +240,12 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         ...updates,
         metadata: { updated: Timestamp.now() },
       },
-      { merge: true }
+      { merge: true },
     );
     console.log(`Images saved - ${docRef.id} [${getMS(startMS)}ms]`);
-  } catch (err: any) {
-    let msg = `Error getting static images`;
-    if (err?.message) msg += ` (${err.message})`;
+  } catch (err: unknown) {
+    let msg = 'Error getting static images';
+    if (err instanceof Error) msg += ` (${err.message})`;
     reportErr(msg, { ...event }, err);
   }
 

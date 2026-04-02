@@ -21,8 +21,10 @@ import {
 const app = express();
 
 app.use(cors({ origin: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+app.get('/health', (_, res: Response) => {
+  res.send({ status: 'healthy' });
+});
 
 interface JwtPayload {
   uid: string;
@@ -56,8 +58,8 @@ app.get('/verify-email/:token', async (req: Request, res: Response) => {
 
     // res.send(`${email} has been verified!`);
     let url = hostingBaseURL.value();
-    if (url.startsWith('http://')) url.replace('http://', '//');
-    if (url.startsWith('https://')) url.replace('https://', '//');
+    if (url.startsWith('http://')) url = url.replace('http://', '//');
+    if (url.startsWith('https://')) url = url.replace('https://', '//');
 
     res.redirect(`${url}/auth/email-verified?email=${email}`);
   } catch (err: any) {
@@ -201,7 +203,7 @@ async function verifyInviteValid(
 
   if (inviteSnap.data()?.status === 'revoked')
     throw new Error(
-      `Invite has been revoked. If you believe this was by mistake, please contact the org admin.`,
+      'Invite has been revoked. If you believe this was by mistake, please contact the org admin.',
     );
 }
 

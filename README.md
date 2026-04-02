@@ -281,11 +281,7 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 
 ### TODOs
 
-- include types module & switch to pnpm workspace (cloud run api, @idemand/common types, client, functions, etc.)
-  - configure [firebase-tools-with-isolate](https://github.com/0x80/firebase-tools-with-isolate)
-  - group functions into codebases [monorepo](https://firebase.google.com/docs/functions/organize-functions#managing_multiple_source_packages_monorepo_2) / [group functions](https://firebase.google.com/docs/functions/organize-functions#group_functions) (grouped function will result in prefix before function name)
-    - codebases approach skips unchanged functions, grouped does not
-- deploy via github workflow (& validate secrets, variables, etc.). Only deploy functions with changes
+- fix tenant auth redirect (email/user found --> redirect to auth/:tenantId or attempt signin with tenant auth - not working)
 - documentation
   - agency management (onboarding, permissions)
   - admin - moratorium, active states, licenses, etc.

@@ -15,20 +15,14 @@ import {
 // TODO: upgrade to v2 onRequest (need to get hosting rewrite to work b/c v2 uses cloud run & creates new url every deploy)
 
 export const stripe = onRequest(
-  { secrets: [stripeSecretKey] },
+  { secrets: [stripeSecretKey], invoker: 'public' },
   async (request, response) => {
     await (await import('./stripe.js')).default(request, response);
   },
 );
 
-// export const authRequests = functions
-//   .runWith({ secrets: [emailVerificationKey, firebaseHashConfig] })
-//   .https.onRequest(async (request, response) => {
-//     await (await import('./authRequests.js')).default(request, response);
-//   });
-
 export const authrequests = onRequest(
-  { secrets: [emailVerificationKey, firebaseHashConfig] },
+  { secrets: [emailVerificationKey, firebaseHashConfig], invoker: 'public' },
   async (request, response) => {
     await (await import('./authRequests.js')).default(request, response);
   },
@@ -41,17 +35,12 @@ export const authrequeststest = onRequest(
   },
 );
 
-// export const copytaxes = functions.https.onRequest(
-//   async (request, response) => {
-//     await (await import('./copyTaxes.js')).default(request, response);
-//   },
-// );
 export const copytaxes = onRequest(async (request, response) => {
   await (await import('./copyTaxes.js')).default(request, response);
 });
 
 export const generatepdf = onRequest(
-  { secrets: [exportSDKKey] },
+  { secrets: [exportSDKKey], invoker: 'public' },
   async (request, response) => {
     await (await import('./generatePDF.js')).default(request, response);
   },
@@ -65,7 +54,7 @@ export const quickbooks = onRequest(
 );
 
 export const resend = onRequest(
-  { secrets: [resendKey, resendSecret] },
+  { secrets: [resendKey, resendSecret], invoker: 'public' },
   async (request, response) => {
     await (await import('./resend.js')).default(request, response);
   },

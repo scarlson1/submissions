@@ -1,5 +1,4 @@
 import { taxesCollection } from '@idemand/common';
-// import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -27,7 +26,7 @@ app.get('/', async (req: Request, res: Response) => {
     await batch.commit();
     res.status(201).send({ status: 'success' });
     return;
-  } catch (err: any) {
+  } catch (err: unknown) {
     error('error moving taxes to "taxes" collection');
     res.status(500).send({ status: 'error' });
     return;

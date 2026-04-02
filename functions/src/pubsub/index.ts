@@ -1,6 +1,7 @@
 import { onMessagePublished } from 'firebase-functions/v2/pubsub';
 
 import {
+  mapboxToken,
   MiscPubSubTopics,
   PmtPubSubTopics,
   PUB_SUB_TOPICS,
@@ -32,6 +33,7 @@ export const getstaticmapimages = onMessagePublished(
     concurrency: 10,
     timeoutSeconds: 300,
     memory: '1GiB',
+    secrets: [mapboxToken],
   }, // PUB_SUB_TOPICS.LOCATION_IMG
   async (event) => {
     await (await import('./getStaticMapImages.js')).default(event);
@@ -44,6 +46,7 @@ export const getstaticpolicymapimages = onMessagePublished(
     concurrency: 10,
     timeoutSeconds: 300,
     memory: '1GiB',
+    secrets: [mapboxToken],
   }, // PUB_SUB_TOPICS.LOCATION_IMG
   async (event) => {
     await (await import('./getStaticPolicyMapImages.js')).default(event);

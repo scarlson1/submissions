@@ -42,6 +42,7 @@ export const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 export const stripeEndpointSecret = defineSecret('STRIPE_ENDPOINT_SECRET');
 export const quickbooksClientSecret = defineSecret('QUICKBOOKS_CLIENT_SECRET');
 export const rentcastKey = defineSecret('RENTCAST_KEY');
+export const mapboxToken = defineSecret('MAPBOX_TOKEN');
 
 export const audience = defineString('AUDIENCE');
 export const hostingBaseURL = defineString('HOSTING_BASE_URL');
@@ -49,7 +50,7 @@ export const functionsBaseURL = defineString('FUNCTIONS_BASE_URL');
 export const ePayBaseHostingURL = defineString('EPAY_HOSTING_BASE_URL');
 export const ePayBaseURL = defineString('EPAY_BASE_URL');
 export const attomBaseURL = defineString('ATTOM_BASE_URL');
-export const mapboxPublicToken = defineString('MAPBOX_PUBLIC_TOKEN');
+
 export const counties20mURL = defineString('COUNTIES_URL');
 // export const algoliaIndex = defineString('ALGOLIA_INDEX');
 // export const algoliaAppId = defineString('ALGOLIA_APP_ID');

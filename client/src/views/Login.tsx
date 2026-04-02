@@ -93,6 +93,7 @@ export const Login = () => {
     } catch (err) {
       if (err instanceof FirebaseError) {
         try {
+          console.log('Auth Error: ', err);
           await handleError(err as AuthError, values);
 
           navigate(getRedirectPath(location), { replace: true });
