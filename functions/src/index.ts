@@ -220,6 +220,7 @@ import {
   // quickbooks,
   resend,
   stripe,
+  typesensesetup,
 } from './routes/index.js';
 
 // export const request = {
@@ -236,6 +237,7 @@ export {
   generatepdf,
   resend,
   stripe,
+  typesensesetup,
 };
 
 import {

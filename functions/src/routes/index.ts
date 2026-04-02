@@ -10,6 +10,7 @@ import {
   resendKey,
   resendSecret,
   stripeSecretKey,
+  typesenseAdminKey,
 } from '../common/index.js';
 
 // TODO: upgrade to v2 onRequest (need to get hosting rewrite to work b/c v2 uses cloud run & creates new url every deploy)
@@ -64,9 +65,12 @@ export const pubsubhelper = onRequest(async (request, response) => {
   await (await import('./pubSubHelper.js')).default(request, response);
 });
 
-export const typesensesetup = onRequest(async (request, response) => {
-  await (await import('./typesenseSetup.js')).default(request, response);
-});
+export const typesensesetup = onRequest(
+  { secrets: [typesenseAdminKey], invoker: 'public', cors: true },
+  async (request, response) => {
+    await (await import('./typesenseSetup.js')).default(request, response);
+  },
+);
 
 // export const pubsubhelper = functions.https.onRequest(
 //   async (request, response) => {

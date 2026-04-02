@@ -1,7 +1,30 @@
-// functions/src/index.ts (additions)
+import { error, info } from 'firebase-functions/logger';
+import { ensureCollections } from '../services/typesense/index.js';
 
-import { onRequest } from 'firebase-functions/v2/https';
-import { ensureCollections } from '../services/typesense';
+type TypesenseSetupRequest = {
+  method: string;
+  get(name: string): string | undefined;
+};
+
+type TypesenseSetupResponse = {
+  json(body: unknown): void;
+};
+
+function getErrorContext(err: unknown) {
+  if (err instanceof Error) {
+    return {
+      message: err.message,
+      code: 'code' in err ? err.code : null,
+      httpStatus: 'httpStatus' in err ? err.httpStatus : null,
+    };
+  }
+
+  return {
+    message: 'unknown error',
+    code: null,
+    httpStatus: null,
+  };
+}
 
 /**
  * Call this once after each deploy that includes schema changes:
@@ -10,17 +33,28 @@ import { ensureCollections } from '../services/typesense';
  *
  * The sync functions also call ensureCollections() on cold start as a
  * safety net, but migrations only run when this endpoint is called.
+ * @param {TypesenseSetupRequest} req - Incoming HTTPS request
+ * @param {TypesenseSetupResponse} res - Outgoing HTTPS response
+ * @returns {Promise<void>} Resolves after Typesense collections are ensured
  */
-const typesensesetup = onRequest(
-  { invoker: 'private' }, // only callable with a valid GCP identity token
-  async (req, res) => {
+export default async function typesensesetup(
+  req: TypesenseSetupRequest,
+  res: TypesenseSetupResponse,
+): Promise<void> {
+  info('Received Typesense setup request', {
+    method: req.method,
+    origin: req.get('origin') ?? null,
+  });
+
+  try {
     await ensureCollections();
     // await runMigrations();
     res.json({ ok: true });
-  },
-);
-
-export default typesensesetup;
+  } catch (err: unknown) {
+    error('Typesense setup failed', getErrorContext(err));
+    throw err;
+  }
+}
 
 // ```
 

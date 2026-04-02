@@ -23,44 +23,6 @@ import { useDocData } from 'hooks';
 // TODO: org details tab (address, default commissions, etc.)
 // TODO: payments, payouts, etc.
 
-// function TypesenseSetup() {
-//   const toast = useAsyncToast();
-//   const { mutate, isPending } = useMutation({
-//     mutationFn: () => functionsInstance.post('/typesense/setup'),
-//     onMutate: () => {
-//       toast.loading('setting up typesense...');
-//     },
-//     onSuccess: () => {
-//       toast.success('Typesense setup successful');
-//     },
-//     onError: () => {
-//       toast.error('Typesense setup failed');
-//     },
-//   });
-
-//   return (
-//     <Box>
-//       <Button
-//         onClick={() => {
-//           mutate();
-//         }}
-//         disabled={isPending}
-//         startIcon={
-//           isPending ? (
-//             <CircularProgress size={18} />
-//           ) : (
-//             <ArrowCircleRightRounded fontSize='inherit' />
-//           )
-//         }
-//         // loading={isPending}
-//         // startIcon={<TypesenseRoundedIco />}
-//       >
-//         Typesense Setup
-//       </Button>
-//     </Box>
-//   );
-// }
-
 const MIN_TAB_HEIGHT = 40;
 
 export const Organization = () => {
