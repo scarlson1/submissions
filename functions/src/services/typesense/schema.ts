@@ -106,18 +106,19 @@ export const usersSchema: CollectionCreateSchema<unknown> = {
   ],
 };
 
-export const userClaimsSchema: CollectionCreateSchema<unknown> = {
-  name: typesenseColName(Collection.enum.userClaims),
-  fields: [
-    {
-      name: 'visibleBy',
-      type: 'string[]',
-      facet: true,
-      optional: true,
-    },
-    { name: '.*', type: 'auto' },
-  ],
-};
+// TODO: sync claims firebase function
+// export const claimsSchema: CollectionCreateSchema<unknown> = {
+//   name: typesenseColName(Collection.enum.claims),
+//   fields: [
+//     {
+//       name: 'visibleBy',
+//       type: 'string[]',
+//       facet: true,
+//       optional: true,
+//     },
+//     { name: '.*', type: 'auto' },
+//   ],
+// };
 
 export const policiesSchema: CollectionCreateSchema<unknown> = {
   name: typesenseColName(Collection.enum.policies),
