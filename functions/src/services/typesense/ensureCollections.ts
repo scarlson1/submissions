@@ -1,7 +1,12 @@
 // functions/src/typesense/ensureCollections.ts
 
-import { info } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import type { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
+import {
+  typesenseHost,
+  typesensePort,
+  typesenseProtocol,
+} from '../../common/environmentVars.js';
 import { getTypesenseClient } from './client.js';
 import {
   financialTrxSchema,
@@ -10,8 +15,25 @@ import {
   policiesSchema,
   quotesSchema,
   submissionsSchema,
+  userClaimsSchema,
   usersSchema,
 } from './schema.js';
+
+function getErrorContext(err: unknown) {
+  if (err instanceof Error) {
+    return {
+      message: err.message,
+      code: 'code' in err ? err.code : null,
+      httpStatus: 'httpStatus' in err ? err.httpStatus : null,
+    };
+  }
+
+  return {
+    message: 'unknown error',
+    code: null,
+    httpStatus: null,
+  };
+}
 
 /**
  * Creates a Typesense collection if it does not already exist.
@@ -26,11 +48,22 @@ async function ensureCollection(schema: CollectionCreateSchema): Promise<void> {
   try {
     await client.collections(schema.name).retrieve();
     info(`Typesense collection "${schema.name}" already exists — skipping`);
-  } catch (err: any) {
-    if (err?.httpStatus === 404) {
+  } catch (err: unknown) {
+    if (
+      typeof err === 'object' &&
+      err !== null &&
+      'httpStatus' in err &&
+      err.httpStatus === 404
+    ) {
       await client.collections().create(schema);
       info(`Typesense collection "${schema.name}" created`);
     } else {
+      error(`Typesense collection "${schema.name}" ensure failed`, {
+        ...getErrorContext(err),
+        host: typesenseHost.value(),
+        port: typesensePort.value(),
+        protocol: typesenseProtocol.value(),
+      });
       // Unexpected error (auth failure, network, etc.) — let it surface
       throw err;
     }
@@ -39,6 +72,7 @@ async function ensureCollection(schema: CollectionCreateSchema): Promise<void> {
 
 const schemas = [
   usersSchema,
+  userClaimsSchema,
   policiesSchema,
   quotesSchema,
   submissionsSchema,
@@ -57,6 +91,13 @@ let _initialized = false;
  */
 export async function ensureCollections(): Promise<void> {
   if (_initialized) return;
+
+  info('Ensuring Typesense collections', {
+    host: typesenseHost.value(),
+    port: typesensePort.value(),
+    protocol: typesenseProtocol.value(),
+    collectionCount: schemas.length,
+  });
 
   await Promise.all(schemas.map(ensureCollection));
   _initialized = true;
