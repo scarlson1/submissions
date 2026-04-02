@@ -168,8 +168,8 @@ export default async (
           cancelEffDate: newData.cancelEffDate?.toMillis() || null,
           metadata: {
             ...(newData.metadata || {}),
-            created: newData.metadata?.created?.toMillis() || null,
-            updated: newData.metadata?.updated?.toMillis() || null,
+            created: newData.metadata?.created?.toMillis() || Date.now(),
+            updated: newData.metadata?.updated?.toMillis() || Date.now(),
             // createdTimestamp: newData.metadata?.created?.toMillis() || null,
             // updatedTimestamp: newData.metadata?.updated?.toMillis() || null,
           },
