@@ -761,9 +761,6 @@ export const router = sentryCreateBrowserRouter([
               crumb: (match: CrumbMatch) => [
                 {
                   label: 'Agencies',
-                  // link: createPath({
-                  //   path: ROUTES.ORGANIZATIONS,
-                  // }),
                 },
                 {
                   label: `New`,
@@ -993,11 +990,6 @@ export const router = sentryCreateBrowserRouter([
                         <CurrentUserOrgStripeConnectOnboarding />
                       </RequireAuth>
                     ),
-                    // element: (
-                    //   <RequireAuthReactFire requiredClaims>
-                    //     <OrgStripeConnectOnboarding />
-                    //   </RequireAuthReactFire>
-                    // ),
                   },
                 ],
               },

@@ -4,7 +4,7 @@ import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { object } from 'yup';
 
-import { User, phoneVal } from 'common';
+import { phoneVal, User } from 'common';
 import { FormikMaskField, IMask, phoneMaskProps } from 'components/forms';
 import { useAsyncToast, useDocData, useUpdateDoc } from 'hooks';
 
@@ -29,7 +29,7 @@ export const UpdateUserPhone = ({ userId }: { userId: string }) => {
   const { update: updateUserDoc } = useUpdateDoc<User>(
     'users',
     () => toast.success('phone updated!'),
-    () => toast.error('error updating user record')
+    () => toast.error('error updating user record'),
   );
 
   // const updateUser = useUpdateUserDoc(
@@ -76,13 +76,13 @@ export const UpdateUserPhone = ({ userId }: { userId: string }) => {
       // return updateUser({ phone });
       await updateUserDoc(userId, { phone });
     },
-    [updateUserDoc, userId]
+    [updateUserDoc, userId],
   );
 
   return (
     <Formik
       onSubmit={onSubmit}
-      initialValues={{ phone: user.phone || '' }}
+      initialValues={{ phone: user?.phone || '' }}
       validationSchema={validation}
       enableReinitialize
     >

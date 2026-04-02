@@ -1,5 +1,6 @@
 import { usersCollection } from '@idemand/common';
 import axios from 'axios';
+import cors from 'cors';
 import express, { Response } from 'express';
 import 'express-async-errors';
 import { param } from 'express-validator';
@@ -501,9 +502,13 @@ app.post(
   },
 );
 
-app.use(express.json());
+app.use(cors({ origin: true }));
 app.use(currentUser);
 app.use(requireAuth);
+
+app.get('/health', (_, res: Response) => {
+  res.send({ status: 'healthy' });
+});
 
 // get Stripe client secret for embedded components (account onboarding, payments, payouts, etc.)
 // ACCEPT ORG ID INSTEAD ??
@@ -556,12 +561,16 @@ app.post(
         clientSecret: accountSession.client_secret,
       });
       return;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(
         'An error occurred when calling the Stripe API to create an account session',
         err,
       );
-      res.status(500).send({ error: err.message });
+      res
+        .status(500)
+        .send({
+          error: err instanceof Error ? err.message : 'An error occurred',
+        });
       return;
     }
   },
@@ -702,7 +711,7 @@ app.get(
 
       res.send({ ...account });
       return;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       res.status(500).send({ error: 'an error occurred' });
       return;

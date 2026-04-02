@@ -54,13 +54,11 @@ export default async (
     return;
   }
 
-  const fsUser = userSnap.data();
-
   const userProperties: Partial<User> & { 'metadata.updated': Timestamp } = {
-    displayName: user.displayName || fsUser.displayName || '',
+    displayName: user.displayName || null,
     email: user.email,
-    phone: user.phoneNumber || fsUser.phone,
-    photoURL: user.photoURL || fsUser.photoURL,
+    phone: user.phoneNumber || null,
+    photoURL: user.photoURL || null,
     tenantId: user.tenantId ?? null,
     initialAnonymous: user.providerData.length === 0 ? true : false,
     'metadata.updated': Timestamp.now(),

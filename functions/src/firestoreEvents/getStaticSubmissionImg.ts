@@ -88,7 +88,7 @@ export default async (
 //       styleType.style
 //     }/static/${longitude},${latitude},${
 //       styleType.zoom
-//     },0,40/1200x720@2x?access_token=${mapboxPublicToken.value()}&logo=false`;
+//     },0,40/1200x720@2x?access_token=${mapboxToken.value()}&logo=false`;
 
 //     const tempFilePath = path.join(os.tmpdir(), `temp_mapbox_${styleType.name}.jpeg`);
 //     cleanUpTempPaths.push(tempFilePath);

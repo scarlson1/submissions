@@ -1,5 +1,5 @@
 import { Coords } from '@idemand/common';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getDownloadURL, getStorage } from 'firebase-admin/storage';
 import { info } from 'firebase-functions/logger';
 import { storageBucket } from 'firebase-functions/params';
@@ -9,14 +9,19 @@ import { set } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
 import {
-  StorageFolder,
   getReportErrorFn,
-  mapboxPublicToken,
+  mapboxToken,
   policiesCollection,
+  StorageFolder,
 } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
-import { clearTempFiles, getBoundingBox, randomFileName, verify } from '../utils/index.js';
+import {
+  clearTempFiles,
+  getBoundingBox,
+  randomFileName,
+  verify,
+} from '../utils/index.js';
 import { MAPBOX_STYLES } from './getStaticMapImages.js';
 import { extractPubSubPayload } from './utils/index.js';
 
@@ -28,8 +33,12 @@ const reportErr = getReportErrorFn('getStaticPolicyMapImages');
 
 export type GetStaticPolicyMapImagesPayload = { policyId: string };
 
-export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapImagesPayload>>) => {
-  info(`Get static policy map images`, { ...(event.data?.message?.json || {}) });
+export default async (
+  event: CloudEvent<MessagePublishedData<GetStaticPolicyMapImagesPayload>>,
+) => {
+  info('Get static policy map images', {
+    ...(event.data?.message?.json || {}),
+  });
 
   // let policyId = null;
   // try {
@@ -40,7 +49,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
   const { policyId } = extractPubSubPayload<GetStaticPolicyMapImagesPayload>(
     event,
     ['policyId'],
-    true
+    true,
   );
 
   const cleanUpTempPaths: string[] = [];
@@ -60,7 +69,8 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
     const coordsArr = Object.values(data.locations || {})
       .filter((lcn) => Coords.safeParse(lcn.coords).success)
       .map(({ coords }) => [coords.latitude || 0, coords?.longitude || 0]);
-    if (!coordsArr.length) throw new Error(`Policy locations - no valid coordinates`);
+    if (!coordsArr.length)
+      throw new Error('Policy locations - no valid coordinates');
     // const coordsGeoJson = multiPoint(coordsArr);
     // turf returns bbox in different order than mapbox
     // const boundingBox = bbox(coordsGeoJson); // [lon(min),lat(min),lon(max),lat(max)]
@@ -87,12 +97,12 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
     //   },
     // };
 
-    let docUpdates: Record<string, string> = {};
+    const docUpdates: Record<string, string> = {};
 
     for (const styleType of MAPBOX_STYLES) {
       // const url = `https://api.mapbox.com/styles/v1/${styleType.style}/static/[${bbox[0]},${
       //   bbox[1]
-      // },${bbox[2]},${bbox[3]}]/1200x720@2x?access_token=${mapboxPublicToken.value()}&logo=false`;
+      // },${bbox[2]},${bbox[3]}]/1200x720@2x?access_token=${mapboxToken.value()}&logo=false`;
 
       const viewParams =
         markers.length > 1
@@ -102,7 +112,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
 
       // marker encoding
       const url = `https://api.mapbox.com/styles/v1/${styleType.style}/static/${markers.join(
-        ','
+        ',',
       )}/${viewParams}/1200x720@2x`;
 
       // geojson encoding
@@ -110,14 +120,14 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
       //   styleType.style
       // }/static/geojson(${encodeURIComponent(JSON.stringify(markerJson))})/[${bbox[0]},${bbox[1]},${
       //   bbox[2]
-      // },${bbox[3]}]/1200x720@2x?access_token=${mapboxPublicToken.value()}&logo=false`;
+      // },${bbox[3]}]/1200x720@2x?access_token=${mapboxToken.value()}&logo=false`;
 
       const tempFilePath = path.join(tmpdir(), randomFileName('file.jpeg'));
       cleanUpTempPaths.push(tempFilePath);
 
       try {
-        let params: Record<string, any> = {
-          access_token: mapboxPublicToken.value(),
+        const params: Record<string, any> = {
+          access_token: mapboxToken.value(),
           logo: false,
         };
         if (markers.length > 1) params['padding'] = 100;
@@ -150,38 +160,49 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticPolicyMapI
         info(`Static img download URL: ${downloadURL}`);
         set(docUpdates, ['imagePaths', styleType.name], destinationPath);
         set(docUpdates, ['imageURLs', styleType.name], downloadURL);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (cleanUpTempPaths.length > 0) {
           try {
             await clearTempFiles(cleanUpTempPaths);
-          } catch (err: any) {}
+          } catch (err: unknown) {
+            console.log('error unlinking file: ', err);
+          }
         }
-        reportErr(`Error downloading map images`, { errMsg: err?.message || null }, err);
+        reportErr(
+          'Error downloading map images',
+          { errMsg: err instanceof Error ? err.message : 'Unknown error' },
+          err,
+        );
         return;
       }
     }
 
     // save to policy
-    info(`updating doc with static images (Doc ID: ${policyRef.id})`, { docUpdates });
+    info(`updating doc with static images (Doc ID: ${policyRef.id})`, {
+      docUpdates,
+    });
     // console.log(`Saving images to doc - ${docRef.id} [${getMS(startMS)}ms]`);
     await policyRef.set(
       {
         ...docUpdates,
         metadata: { updated: Timestamp.now() },
       },
-      { merge: true }
+      { merge: true },
     );
-  } catch (err: any) {
-    let msg = `Error getting static images`;
-    if (err?.message) msg += ` (${err.message})`;
+  } catch (err: unknown) {
+    let msg = 'Error getting static images';
+    if (err instanceof Error) msg += ` (${err.message})`;
     reportErr(msg, { ...event }, err);
   }
 
   if (cleanUpTempPaths.length > 0) {
     try {
       await clearTempFiles(cleanUpTempPaths);
-    } catch (err: any) {
-      console.log('error unlinking file: ', err);
+    } catch (err: unknown) {
+      console.log(
+        'error unlinking file: ',
+        err instanceof Error ? err.message : err,
+      );
     }
   }
 
