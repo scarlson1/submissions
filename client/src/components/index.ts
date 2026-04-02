@@ -41,6 +41,7 @@ export * from './RenderGridCellHelpers';
 export { RequireAuth } from './RequireAuth';
 export { default as RouterErrorBoundary } from './RouterErrorBoundary';
 export { ServerDataGrid } from './ServerDataGrid';
+export { StripeConnectActionRequired } from './StripeConnectActionRequired';
 export { SvgIcon } from './SvgIcon';
 export { Toaster } from './Toaster';
 

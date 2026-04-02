@@ -3,7 +3,11 @@ import { Suspense } from 'react';
 import { Box, Container, ContainerProps, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
+import { ClaimsGuard } from 'components/ClaimsGuard';
+import { StripeConnectActionRequired } from 'components/StripeConnectActionRequired';
+import { useAuth } from 'context';
 import { DevWarningBanner } from 'elements';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Breadcrumbs, Footer, Header, LoadingComponent } from './';
 // import { useConcurrentLocation } from 'hooks';
 // import ProgressBar from './ProgressBar';
@@ -24,6 +28,7 @@ const Layout = ({
   withBreadcrumbs = false,
 }: LayoutProps) => {
   // const { isPending } = useConcurrentLocation();
+  const { orgId } = useAuth();
 
   // console.log('isPending: ', isPending);
 
@@ -51,6 +56,17 @@ const Layout = ({
         {import.meta.env.VITE_FB_PROJECT_ID === 'idemand-submissions-dev' ? (
           <DevWarningBanner />
         ) : null}
+
+        {Boolean(orgId) ? (
+          <ErrorBoundary fallback={null}>
+            <Suspense fallback={null}>
+              <ClaimsGuard requiredClaims={['orgAdmin']}>
+                <StripeConnectActionRequired orgId={orgId as string} />
+              </ClaimsGuard>
+            </Suspense>
+          </ErrorBoundary>
+        ) : null}
+
         <Header />
         <Container {...containerProps}>
           <Box

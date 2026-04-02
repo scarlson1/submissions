@@ -566,11 +566,9 @@ app.post(
         'An error occurred when calling the Stripe API to create an account session',
         err,
       );
-      res
-        .status(500)
-        .send({
-          error: err instanceof Error ? err.message : 'An error occurred',
-        });
+      res.status(500).send({
+        error: err instanceof Error ? err.message : 'An error occurred',
+      });
       return;
     }
   },
@@ -706,7 +704,8 @@ app.get(
       console.log(accountId);
 
       const stripe = getStripe(stripeSecretKey.value());
-      const account = await stripe.accounts.retrieve(accountId);
+      const account: Stripe.Response<Stripe.Account> =
+        await stripe.accounts.retrieve(accountId);
       // TODO: check if we need to remove any sensitive info ??
 
       res.send({ ...account });

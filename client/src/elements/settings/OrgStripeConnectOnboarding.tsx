@@ -16,14 +16,14 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material';
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { ReactNode, Suspense } from 'react';
 
 import { functionsInstance } from 'api';
 import { AxiosResponse } from 'axios';
 import { Copy, LoadingSpinner } from 'components';
 import { FormattedAddress } from 'elements/FormattedAddress';
-import { useClaims } from 'hooks';
+import { useClaims, useStripeAccount } from 'hooks';
 
 // pass orgId as param, prop or from user tenantId ?? switch to param/prop so idemand admin can fill out form ??
 
@@ -52,18 +52,6 @@ function ConnectItem({ title, value }: { title: string; value: ReactNode }) {
     </Box>
   );
 }
-
-const fetchStripeAccount = async (orgId: string) => {
-  const { data } = await functionsInstance.get(`/stripe/account/${orgId}`);
-  return data;
-};
-
-const useStripeAccount = (orgId: string) => {
-  return useSuspenseQuery({
-    queryKey: ['stripe', orgId, 'accountDetails'],
-    queryFn: () => fetchStripeAccount(orgId),
-  });
-};
 
 // TODO: rename component
 export const OrgStripeConnectOnboarding = ({ orgId }: { orgId: string }) => {
