@@ -2,17 +2,22 @@ import {
   alpha,
   Box,
   Button,
+  CircularProgress,
   Container,
   Paper,
+  Stack,
   Typography,
   useTheme,
 } from '@mui/material';
 import { useFunctions, useUser } from 'reactfire';
 
-import { initializeFipsDb } from 'api';
+import { ArrowCircleRightRounded } from '@mui/icons-material';
+import { useMutation } from '@tanstack/react-query';
+import { functionsInstance, initializeFipsDb } from 'api';
 import { ClaimsGuard } from 'components';
 import { AccountNavTabsLayout } from 'components/layout';
 import { UpdateProfileImg } from 'elements';
+import { useAsyncToast } from 'hooks';
 import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 
@@ -88,9 +93,10 @@ export const AccountDetailsNew = () => {
       </Paper>
 
       <ClaimsGuard requiredClaims={['iDemandAdmin']}>
-        <Box sx={{ p: 1 }}>
+        <Stack direction='row' spacing={2}>
           <InitializeFIPS />
-        </Box>
+          <TypesenseSetup />
+        </Stack>
       </ClaimsGuard>
     </Container>
   );
@@ -126,4 +132,42 @@ function InitializeFIPS() {
   }, [functions]);
 
   return <Button onClick={initFIPS}>Initialize FIPS data</Button>;
+}
+
+function TypesenseSetup() {
+  const toast = useAsyncToast();
+  const { mutate, isPending } = useMutation({
+    mutationFn: () => functionsInstance.post('/typesense/setup'),
+    onMutate: () => {
+      toast.loading('setting up typesense...');
+    },
+    onSuccess: () => {
+      toast.success('Typesense setup successful');
+    },
+    onError: () => {
+      toast.error('Typesense setup failed');
+    },
+  });
+
+  return (
+    <Box>
+      <Button
+        onClick={() => {
+          mutate();
+        }}
+        disabled={isPending}
+        startIcon={
+          isPending ? (
+            <CircularProgress size={18} />
+          ) : (
+            <ArrowCircleRightRounded fontSize='inherit' />
+          )
+        }
+        // loading={isPending}
+        // startIcon={<TypesenseRoundedIco />}
+      >
+        Typesense Setup
+      </Button>
+    </Box>
+  );
 }
