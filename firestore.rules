@@ -100,7 +100,7 @@ service cloud.firestore {
       }
     }
 
-    // temp - userId not set property yet from quote ??
+    // temp - userId not set property yet from quote ?
     function isNamedInsured() {
       return isUser(existingData().get(['namedInsured', 'userId'], null))
     }
