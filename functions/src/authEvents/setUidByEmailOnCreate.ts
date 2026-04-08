@@ -27,7 +27,7 @@ const reportErr = getReportErrorFn('setUidByEmailOnCreate');
 
 export default async (
   user: UserRecord,
-  context: EventContext<Record<string, string>>,
+  _: EventContext<Record<string, string>>,
 ) => {
   info(`New user detected: ${user.email} (${user.uid})`);
   const db = getFirestore();

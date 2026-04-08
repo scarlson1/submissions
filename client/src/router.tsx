@@ -546,12 +546,11 @@ export const router = sentryCreateBrowserRouter([
               ],
             },
           },
+          // not used ??
           {
             path: ROUTES.QUOTE_STRIPE_CHECKOUT,
             element: (
-              <RequireAuthReactFire
-              // signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
-              >
+              <RequireAuthReactFire>
                 <StripeCheckout />
               </RequireAuthReactFire>
             ),
@@ -579,11 +578,7 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ROUTES.QUOTE_BIND_SUCCESS_STRIPE,
             element: (
-              <RequireAuthReactFire
-              // signInCheckProps={{
-              //   requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
-              // }}
-              >
+              <RequireAuthReactFire>
                 <StripePaymentSuccess />
               </RequireAuthReactFire>
             ),

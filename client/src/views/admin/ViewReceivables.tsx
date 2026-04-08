@@ -1,4 +1,4 @@
-import { DataObjectRounded, LaunchRounded } from '@mui/icons-material';
+import { LaunchRounded } from '@mui/icons-material';
 import {
   Avatar,
   Box,
@@ -9,14 +9,13 @@ import {
   CardContent,
   CardHeader,
   Unstable_Grid2 as Grid,
-  IconButton,
   Typography,
 } from '@mui/material';
 import { where } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 import { Receivable, WithId } from 'common';
-import { useCollectionData, useSafeParams, useShowJson } from 'hooks';
+import { useCollectionData, useSafeParams } from 'hooks';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
 import { createPath, ROUTES } from 'router';
 
@@ -68,7 +67,7 @@ interface ReceivableCardProps {
 
 const ReceivableCard = ({ data }: ReceivableCardProps) => {
   const navigate = useNavigate();
-  const showJson = useShowJson('receivables'); // PRE_DEPLOY: delete (for dev testing)
+  // const showJson = useShowJson('receivables'); // PRE_DEPLOY: delete (for dev testing)
 
   return (
     <Card sx={{ maxWidth: 400 }}>
@@ -124,9 +123,9 @@ const ReceivableCard = ({ data }: ReceivableCardProps) => {
       >
         {/* TODO: expand more button (show line items) */}
         {/* TODO: download invoice icon button */}
-        <IconButton size='small' onClick={() => showJson(data.id)}>
+        {/* <IconButton size='small' onClick={() => showJson(data.id)}>
           <DataObjectRounded fontSize='inherit' />
-        </IconButton>
+        </IconButton> */}
         {data.paymentIntentId ? (
           <Button
             onClick={() =>

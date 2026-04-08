@@ -9,6 +9,7 @@ import {
   // sendGridWebhookVerificationKey,
   resendKey,
   resendSecret,
+  stripeEndpointSecret,
   stripeSecretKey,
   typesenseAdminKey,
 } from '../common/index.js';
@@ -16,7 +17,7 @@ import {
 // TODO: upgrade to v2 onRequest (need to get hosting rewrite to work b/c v2 uses cloud run & creates new url every deploy)
 
 export const stripe = onRequest(
-  { secrets: [stripeSecretKey], invoker: 'public' },
+  { secrets: [stripeSecretKey, stripeEndpointSecret], invoker: 'public' },
   async (request, response) => {
     await (await import('./stripe.js')).default(request, response);
   },

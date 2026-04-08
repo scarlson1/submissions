@@ -20,9 +20,8 @@ import toast from 'react-hot-toast';
 // TODO: Use this component to display user profile at the top, with an outlet for the tabs nav
 // https://github.com/scarlson1/scarlson1.github.io/blob/main/data/counties_20m.json
 const LIGHT_BG_IMG =
-  'https://github.com/scarlson1/scarlson1.github.io/blob/main/data/mountains_1_unsplash.jpg';
-const DARK_BG_IMG =
-  'https://github.com/scarlson1/scarlson1.github.io/blob/main/data/ocean_1_unsplash.jpg';
+  'https://scarlson1.github.io/data/mountains_1_unsplash.jpg';
+const DARK_BG_IMG = 'https://scarlson1.github.io/data/ocean_1_unsplash.jpg';
 
 export const AccountDetailsNew = () => {
   const { data: user } = useUser();

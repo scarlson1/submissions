@@ -287,7 +287,11 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
   - admin - moratorium, active states, licenses, etc.
   - quote flow
   - environment variables
+  - gh actions
 - Fix update Quote / create account in bind quote form
+  - userId / agent userId passing along from submission -> quote (allow override in stripe bind if account created ??)
+  - don't set userId on quote if created from admin or anonymous submission ??
 - /user/{userId} route queries (query by agent/org depending on claims)
 - update firestore rules
 - quote form agent / agency search - filter by org if agent selected
+- submission annual premium not being set/updated. Check for errors in logs (firestore trigger)
