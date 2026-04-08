@@ -265,8 +265,9 @@ jobs:
         env:
           TARGET_DOMAIN: ${{ vars.MGA_DOMAIN || 's-carlson[.]com' }}
         run: |
-          # Inyect the domain into the rules file
-          sed -i "s|REPLACE_ME_DOMAIN|${TARGET_DOMAIN}|g" firestore.rules.template > firestore.rules
+          # Generate the deployable rules file from the template.
+          sed "s|REPLACE_ME_DOMAIN|${TARGET_DOMAIN}|g" firestore.rules.template > firestore.rules
+          test -s firestore.rules
 
       - name: Deploy firestore rules
         if: needs.detect-changes.outputs.rules == 'true'
