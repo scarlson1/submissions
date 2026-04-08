@@ -23,28 +23,40 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import invariant from 'tiny-invariant';
 
-import { Collection, POLICY_IMPORT_REQUIRED_HEADERS, StorageFolder, VIEW_QUERY_KEY } from 'common';
+import {
+  Collection,
+  POLICY_IMPORT_REQUIRED_HEADERS,
+  StorageFolder,
+  VIEW_QUERY_KEY,
+} from 'common';
 import { DownloadStorageFileButton } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { ToggleViewLayout, ToggleViewLayoutProps } from 'components/toggleView';
 import { ToggleViewPanel } from 'components/toggleView/ToggleViewPanel';
 import { CSVUploadDialog } from 'elements';
-import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PolicyCards } from 'elements/cards';
+import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PoliciesGrid } from 'elements/grids';
 import { PoliciesMap } from 'elements/maps';
 import { DataViewType, TDataViewType, useAsyncToast, useClaims } from 'hooks';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
 // TODO: make sure component is wrapped in must be authed wrapper in router
 
 // TODO: add a tab to view change requests
 
-function getLayoutProps(claims: { iDemandAdmin: boolean; orgAdmin: boolean; agent: boolean }) {
-  let props: Pick<ToggleViewLayoutProps<TDataViewType>, 'defaultOption' | 'actions'> = {
+function getLayoutProps(claims: {
+  iDemandAdmin: boolean;
+  orgAdmin: boolean;
+  agent: boolean;
+}) {
+  let props: Pick<
+    ToggleViewLayoutProps<TDataViewType>,
+    'defaultOption' | 'actions'
+  > = {
     defaultOption: 'cards',
   };
   if (claims?.iDemandAdmin) {
@@ -85,9 +97,11 @@ function getQueryProps(
     iDemandAdmin: boolean;
     orgAdmin: boolean;
     agent: boolean;
-  }
+  },
 ): { constraints: QueryFieldFilterConstraint[] } {
-  let props: { constraints: QueryFieldFilterConstraint[] } = { constraints: [] };
+  let props: { constraints: QueryFieldFilterConstraint[] } = {
+    constraints: [],
+  };
   if (claims?.iDemandAdmin) {
     props = {
       constraints: [],
@@ -103,6 +117,7 @@ function getQueryProps(
   } else {
     props = {
       constraints: [where('namedInsured.userId', '==', user.uid)],
+      // constraints: [where('userId', '==', user.uid)],
     };
   }
   return props;
@@ -120,7 +135,7 @@ export const Policies = () => {
     (policyId: string) => {
       navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }));
     },
-    [navigate]
+    [navigate],
   );
 
   return (
@@ -134,7 +149,9 @@ export const Policies = () => {
           grid: <TableRowsRounded />,
           map: <MapRounded />,
         }}
-        isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.policies}`] }}
+        isFetchingOptions={{
+          queryKey: [`infinite-${Collection.Enum.policies}`],
+        }}
         headerContainerSx={{ pb: { xs: 2, sm: 3, lg: 4 } }}
         {...layoutProps}
       >
@@ -142,7 +159,10 @@ export const Policies = () => {
           <PolicyCards {...queryProps} onClick={handleViewPolicy} />
         </ToggleViewPanel>
         <ToggleViewPanel value={DataViewType.Enum.grid}>
-          <PoliciesGrid {...queryProps} checkboxSelection={claims?.iDemandAdmin} />
+          <PoliciesGrid
+            {...queryProps}
+            checkboxSelection={claims?.iDemandAdmin}
+          />
         </ToggleViewPanel>
         <ToggleViewPanel value={DataViewType.Enum.map}>
           <PoliciesMap {...queryProps} />
@@ -165,17 +185,21 @@ function AdminPoliciesActionMenu() {
     setOpen(null);
   }, []);
 
-  const checkForDuplicates = useCallback((headers: string[], formatFn: (str: string) => string) => {
-    let formatted = headers.map((h) => formatFn(h));
-    setDupHeaders(getDuplicates(formatted));
-  }, []);
+  const checkForDuplicates = useCallback(
+    (headers: string[], formatFn: (str: string) => string) => {
+      let formatted = headers.map((h) => formatFn(h));
+      setDupHeaders(getDuplicates(formatted));
+    },
+    [],
+  );
 
   const handleHeaderStatus = useCallback(
-    (requiredHeaders: string[], formatFn: (str: string) => string) => (headers: string[]) => {
-      checkForDuplicates(headers, formatFn);
-      return getCsvHeaderStatus(headers, requiredHeaders, formatFn);
-    },
-    [checkForDuplicates]
+    (requiredHeaders: string[], formatFn: (str: string) => string) =>
+      (headers: string[]) => {
+        checkForDuplicates(headers, formatFn);
+        return getCsvHeaderStatus(headers, requiredHeaders, formatFn);
+      },
+    [checkForDuplicates],
   );
 
   const onSuccess = useCallback(
@@ -188,22 +212,33 @@ function AdminPoliciesActionMenu() {
       });
       setDupHeaders([]);
     },
-    [toast]
+    [toast],
   );
 
   return (
     <Box>
       <IconMenu>
-        <MenuItem onClick={handleOpen('importPolicies')}>Import Policies</MenuItem>
+        <MenuItem onClick={handleOpen('importPolicies')}>
+          Import Policies
+        </MenuItem>
       </IconMenu>
       <CSVUploadDialog
         open={open === 'importPolicies'}
         onClose={handleClose}
         destinationFolder={StorageFolder.enum.importPolicies} // TODO: folders enum
-        getCsvHeaderStatus={handleHeaderStatus(POLICY_IMPORT_REQUIRED_HEADERS, camelCase)}
+        getCsvHeaderStatus={handleHeaderStatus(
+          POLICY_IMPORT_REQUIRED_HEADERS,
+          camelCase,
+        )}
         onSuccess={onSuccess}
         title={
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <Typography variant='h6'>Import Policies</Typography>
             <DownloadStorageFileButton filePath='public/policyImportTemplate.csv'>
               Download template
@@ -213,7 +248,11 @@ function AdminPoliciesActionMenu() {
       >
         <Typography variant='body2' color='text.secondary' component='div'>
           Headers will be transformed to{' '}
-          <Link href='https://lodash.com/docs/4.17.15#camelCase' target='_blank' rel='noopener'>
+          <Link
+            href='https://lodash.com/docs/4.17.15#camelCase'
+            target='_blank'
+            rel='noopener'
+          >
             camel case <OpenInNewRounded sx={{ fontSize: 16 }} />
           </Link>
           {`. (ex: "CovA limit" → "cov_a_limit")`}

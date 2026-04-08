@@ -65,6 +65,7 @@ service cloud.firestore {
         (
           isDocUser() 
           || isDocAgent()
+          || (isDocUserNotSet() && existingData().get('status', null) == 'awaiting:user')
         ) 
           && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'ratingPropertyData.replacementCost', 'product', 'paymentStatus', 'statusTransitions']))
         ) 
@@ -73,7 +74,7 @@ service cloud.firestore {
     }
 
     match /policies/{policyId} {
-      allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
+      allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin() || isNamedInsured()
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
@@ -97,6 +98,11 @@ service cloud.firestore {
         allow write: if isSignedIn() && isIDemandAdmin()
         allow delete: if false;
       }
+    }
+
+    // temp - userId not set property yet from quote ??
+    function isNamedInsured() {
+      return isUser(existingData().get(['namedInsured', 'userId'], null))
     }
 
     // TODO: use isUserOrAgentOrAdminOfDocData instead ??
@@ -243,7 +249,7 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.firebase.tenant in arr
     }
     
-
+    // remove ?? epay ??
     match /users/{userId}/paymentMethods/{pmtMethodId} {
       allow create, update, read, delete: if isUser(userId) || (isIDemandAdmin() && emailVerified())
     }
@@ -447,6 +453,10 @@ service cloud.firestore {
 
     function isUserOrAgentOrAdminOfDocData(docData) {
       return isSignedIn() && (isDocUserOfData(docData) || isDocAgentOfData(docData) || isDocOrgAdminOfData(docData))
+    }
+
+    function isDocUserNotSet() {
+      return existingData().get('userId', null) == null
     }
 
     // // Fetch a user from Firestore

@@ -85,6 +85,15 @@ module.exports = {
       'warn',
       { ignoreParameters: true, ignoreProperties: true },
     ],
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+      },
+    ],
     'import/order': [
       'warn', // 'off', //
       {
