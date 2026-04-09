@@ -35,8 +35,9 @@ COPY api/ ./api/
 
 # RUN pnpm build
 # Build common first, then api
-RUN pnpm --filter @idemand/common build
-RUN pnpm --filter api build
+# RUN pnpm --filter @idemand/common build
+# RUN pnpm --filter api build
+RUN pnpm turbo run build --filter=api
 
 
 # STAGE 2: BUILD PRODUCTION

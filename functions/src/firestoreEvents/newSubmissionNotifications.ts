@@ -58,7 +58,7 @@ export default async (
 
   try {
     // TODO: validate email ??
-    const link = `${hostingBaseURL.value()}/admin/submissions/${submissionId}`;
+    const link = `${hostingBaseURL.value()}/submissions/${submissionId}`;
     console.log(`submission link: ${link}`);
 
     const adminRecipients = ['spencer@s-carlson.com'];

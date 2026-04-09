@@ -22,6 +22,9 @@ importers:
       firebase-tools-with-isolate:
         specifier: ^14.16.0
         version: 14.16.0(patch_hash=a73f4da3cc3685e1d0172dce93969261725ff5c7340b94d6d5597bee4558cca3)(@types/node@22.19.15)
+      turbo:
+        specifier: ^2.9.5
+        version: 2.9.5
 
   api:
     dependencies:
@@ -770,6 +773,9 @@ importers:
       eslint-config-google:
         specifier: ^0.14.0
         version: 0.14.0(eslint@8.57.1)
+      eslint-config-turbo:
+        specifier: ^2.9.5
+        version: 2.9.5(eslint@8.57.1)(turbo@2.9.5)
       eslint-plugin-import:
         specifier: ^2.25.4
         version: 2.32.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)
@@ -3546,6 +3552,36 @@ packages:
     resolution: {integrity: sha512-Y8cK9aggNRsqJVaKUlEYs4s7CvQ1b1ta2DVPyAimb0I2qhzjNk+A+mxvll/klL0RlfuIUei8BF7YWiua4kQqww==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
+  '@turbo/darwin-64@2.9.5':
+    resolution: {integrity: sha512-qPxhKsLMQP+9+dsmPgAGidi5uNifD4AoAOnEnljab3Qgn0QZRR31Hp+/CgW3Ia5AanWj6JuLLTBYvuQj4mqTWg==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@turbo/darwin-arm64@2.9.5':
+    resolution: {integrity: sha512-vkF/9F/l3aWd4bHxTui5Hh0F5xrTZ4e3rbBsc57zA6O8gNbmHN3B6eZ5psAIP2CnJRZ8ZxRjV3WZHeNXMXkPBw==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@turbo/linux-64@2.9.5':
+    resolution: {integrity: sha512-z/Get5NUaUxm5HSGFqVMICDRjFNsCUhSc4wnFa/PP1QD0NXCjr7bu9a2EM6md/KMCBW0Qe393Ac+UM7/ryDDTw==}
+    cpu: [x64]
+    os: [linux]
+
+  '@turbo/linux-arm64@2.9.5':
+    resolution: {integrity: sha512-jyBifaNoI5/NheyswomiZXJvjdAdvT7hDRYzQ4meP0DKGvpXUjnqsD+4/J2YSDQ34OHxFkL30FnSCUIVOh2PHw==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@turbo/windows-64@2.9.5':
+    resolution: {integrity: sha512-ph24K5uPtvo7UfuyDXnBiB/8XvrO+RQWbbw5zkA/bVNoy9HDiNoIJJj3s62MxT9tjEb6DnPje5PXSz1UR7QAyg==}
+    cpu: [x64]
+    os: [win32]
+
+  '@turbo/windows-arm64@2.9.5':
+    resolution: {integrity: sha512-6c5RccT/+iR39SdT1G5HyZaD2n57W77o+l0TTfxG/cVlhV94Acyg2gTQW7zUOhW1BeQpBjHzu9x8yVBZwrHh7g==}
+    cpu: [arm64]
+    os: [win32]
+
   '@turf/along@6.5.0':
     resolution: {integrity: sha512-LLyWQ0AARqJCmMcIEAXF4GEu8usmd4Kbz3qk1Oy5HoRNpZX47+i5exQtmIWKdqJ1MMhW26fCTXgpsEs5zgJ5gw==}
 
@@ -5751,6 +5787,10 @@ packages:
     resolution: {integrity: sha512-QM8q3zDe58hqUqjraQOmzZ1LIH9SWQJTlEKCH4kJ2oQvLZk7RbQXvtDM2XEq3fwkV9CCvvH4LA0AV+ogFsBM2Q==}
     engines: {node: '>=8'}
 
+  dotenv@16.0.3:
+    resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
+    engines: {node: '>=12'}
+
   draco3d@1.5.7:
     resolution: {integrity: sha512-m6WCKt/erDXcw+70IJXnG7M3awwQPAsZvJGX5zY7beBqpELw6RDGkYVU0W43AFxye4pDZ5i2Lbyc/NNGqwjUVQ==}
 
@@ -5928,6 +5968,12 @@ packages:
     peerDependencies:
       eslint: '>=5.16.0'
 
+  eslint-config-turbo@2.9.5:
+    resolution: {integrity: sha512-MwAmBEge6WOONTll4BAI1ZbbtD4PrhEaumcu6MNIdrwygMXw2Ne2eV8wxVpj6cnPgyUNE6iS6WdOoi/vPI4YFg==}
+    peerDependencies:
+      eslint: '>6.6.0'
+      turbo: '>2.0.0'
+
   eslint-import-resolver-node@0.3.9:
     resolution: {integrity: sha512-WFj2isz22JahUv+B788TlO3N6zL3nNJGU8CcZbPZvVEkBPaJdCV4vy5wyghty5ROFbCRnm132v8BScu5/1BQ8g==}
 
@@ -5966,6 +6012,12 @@ packages:
     resolution: {integrity: sha512-1RETEylht2O6FM/MvgnyvT+8K21wLqDNg4qD51Zj3guhjt433XbnnkVttHMyaVyAFD03QSV4LPS5iE3VQmO7XQ==}
     peerDependencies:
       eslint: '>=8.40'
+
+  eslint-plugin-turbo@2.9.5:
+    resolution: {integrity: sha512-mwsR2dVy35crMS39TKSKG1xMxfn9M9t/sHXg70GAVqJxoFhsmM1XOcVGQ5w2z7GFUuMP70xUcpSendFzyuuSlQ==}
+    peerDependencies:
+      eslint: '>6.6.0'
+      turbo: '>2.0.0'
 
   eslint-scope@5.1.1:
     resolution: {integrity: sha512-2NxwbF/hZ0KpepYN0cNbo+FN6XoK7GaHlQhgx/hIZl6Va0bF45RQOOwhLIy8lQDbuCiadSLCBnH2CFYquit5bw==}
@@ -9917,6 +9969,10 @@ packages:
 
   tunnel-agent@0.6.0:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
+
+  turbo@2.9.5:
+    resolution: {integrity: sha512-JXNkRe6H6MjSlk5UQRTjyoKX5YN2zlc2632xcSlSFBao5yvbMWTpv9SNolOZlZmUlcDOHuszPLItbKrvcXnnZA==}
+    hasBin: true
 
   turf-jsts@1.2.3:
     resolution: {integrity: sha512-Ja03QIJlPuHt4IQ2FfGex4F4JAr8m3jpaHbFbQrgwr7s7L6U8ocrHiF3J1+wf9jzhGKxvDeaCAnGDot8OjGFyA==}
@@ -13985,6 +14041,24 @@ snapshots:
       '@tufjs/canonical-json': 2.0.0
       minimatch: 10.2.4
 
+  '@turbo/darwin-64@2.9.5':
+    optional: true
+
+  '@turbo/darwin-arm64@2.9.5':
+    optional: true
+
+  '@turbo/linux-64@2.9.5':
+    optional: true
+
+  '@turbo/linux-arm64@2.9.5':
+    optional: true
+
+  '@turbo/windows-64@2.9.5':
+    optional: true
+
+  '@turbo/windows-arm64@2.9.5':
+    optional: true
+
   '@turf/along@6.5.0':
     dependencies:
       '@turf/bearing': 6.5.0
@@ -16955,6 +17029,8 @@ snapshots:
     dependencies:
       is-obj: 2.0.0
 
+  dotenv@16.0.3: {}
+
   draco3d@1.5.7: {}
 
   dunder-proto@1.0.1:
@@ -17214,6 +17290,12 @@ snapshots:
     dependencies:
       eslint: 8.57.1
 
+  eslint-config-turbo@2.9.5(eslint@8.57.1)(turbo@2.9.5):
+    dependencies:
+      eslint: 8.57.1
+      eslint-plugin-turbo: 2.9.5(eslint@8.57.1)(turbo@2.9.5)
+      turbo: 2.9.5
+
   eslint-import-resolver-node@0.3.9:
     dependencies:
       debug: 3.2.7(supports-color@5.5.0)
@@ -17264,6 +17346,12 @@ snapshots:
   eslint-plugin-react-refresh@0.4.26(eslint@8.57.1):
     dependencies:
       eslint: 8.57.1
+
+  eslint-plugin-turbo@2.9.5(eslint@8.57.1)(turbo@2.9.5):
+    dependencies:
+      dotenv: 16.0.3
+      eslint: 8.57.1
+      turbo: 2.9.5
 
   eslint-scope@5.1.1:
     dependencies:
@@ -22096,6 +22184,15 @@ snapshots:
   tunnel-agent@0.6.0:
     dependencies:
       safe-buffer: 5.2.1
+
+  turbo@2.9.5:
+    optionalDependencies:
+      '@turbo/darwin-64': 2.9.5
+      '@turbo/darwin-arm64': 2.9.5
+      '@turbo/linux-64': 2.9.5
+      '@turbo/linux-arm64': 2.9.5
+      '@turbo/windows-64': 2.9.5
+      '@turbo/windows-arm64': 2.9.5
 
   turf-jsts@1.2.3: {}
 

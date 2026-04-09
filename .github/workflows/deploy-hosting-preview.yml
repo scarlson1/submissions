@@ -18,7 +18,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.18.3
           run_install: false
 
       - uses: actions/setup-node@v4
@@ -29,13 +29,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build common
-        run: pnpm --filter @idemand/common build
-
       - name: Build client
-        run: pnpm --filter client build:channel:dev
-        # env:
-        # VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: pnpm turbo run build:channel:dev --filter=client
+
+      # - name: Build common
+      #   run: pnpm --filter @idemand/common build
+
+      # - name: Build client
+      #   run: pnpm --filter client build:channel:dev
+      #   # env:
+      #   # VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - name: Deploy hosting preview
         id: deploy_preview

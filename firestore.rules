@@ -100,7 +100,7 @@ service cloud.firestore {
       }
     }
 
-    // temp - userId not set property yet from quote ?
+    // temp - userId not set property yet from quote ??
     function isNamedInsured() {
       return isUser(existingData().get(['namedInsured', 'userId'], null))
     }
@@ -112,6 +112,7 @@ service cloud.firestore {
 
       return (
       	isUser(policyData.get('userId', null)) 
+        || isUser(policyData.get(['namedInsured', 'userId'], null)) 
         || isUser(policyData.get(['agency', 'userId'], null)) 
         || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId'], null)))
       )
@@ -249,7 +250,7 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.firebase.tenant in arr
     }
     
-    // remove ?? epay ??
+
     match /users/{userId}/paymentMethods/{pmtMethodId} {
       allow create, update, read, delete: if isUser(userId) || (isIDemandAdmin() && emailVerified())
     }
@@ -446,6 +447,10 @@ service cloud.firestore {
       // return isOrgAdmin() && isTenantUser(existingData().get(['agency','orgId'], null))
     }
 
+    function isDocUserNotSet() {
+      return existingData().get('userId', null) == null
+    }
+
     // TODO: separate out iDemand admin ??
     function isDocUserOrAgentOrOrgAdminOrIDemandAdmin() {
       return isSignedIn() && (isDocUser() || isDocAgent() || isDocOrgAdmin() || isIDemandAdmin())
@@ -453,10 +458,6 @@ service cloud.firestore {
 
     function isUserOrAgentOrAdminOfDocData(docData) {
       return isSignedIn() && (isDocUserOfData(docData) || isDocAgentOfData(docData) || isDocOrgAdminOfData(docData))
-    }
-
-    function isDocUserNotSet() {
-      return existingData().get('userId', null) == null
     }
 
     // // Fetch a user from Firestore

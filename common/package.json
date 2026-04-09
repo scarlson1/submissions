@@ -9,8 +9,10 @@
     "dist/**/*"
   ],
   "scripts": {
+    "dev": "tsc --watch",
     "clean": "del ./dist/*",
-    "build": "pnpm run clean && tsc",
+    "build": "pnpm clean && tsc",
+    "typecheck": "tsc --noEmit",
     "pub:do:not:use:for:reference": "git add . && git commit -m \"Updates\" && npm version patch && npm run build && npm publish"
   },
   "keywords": [],

@@ -14,6 +14,7 @@
     "build": "rimraf ./dist && tsc",
     "build:dev": "env-cmd -e common,dev pnpm build",
     "build:prod": "env-cmd -e common,prod pnpm build",
+    "typecheck": "tsc --noEmit",
     "use:dev": "gcloud config set project idemand-submissions-dev",
     "use:prod": "gcloud config set project idemand-submissions",
     "deploy:dev": "gcloud config set project idemand-submissions-dev && gcloud run deploy idemand-submissions-api --source ../.. --env-vars-file=\"./env-dev.yaml\"",

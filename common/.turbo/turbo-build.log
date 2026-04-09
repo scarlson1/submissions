@@ -1,0 +1,10 @@
+
+
+> @idemand/common@1.0.33 build /Users/spencercarlson/Documents/dev/submissions/common
+> pnpm clean && tsc
+
+../functions                             | [43m[30m WARN [39m[49m Unsupported engine: wanted: {"node":"22"} (current: {"node":"v24.11.0","pnpm":"10.18.3"})
+
+> @idemand/common@1.0.33 clean /Users/spencercarlson/Documents/dev/submissions/common
+> del ./dist/*
+

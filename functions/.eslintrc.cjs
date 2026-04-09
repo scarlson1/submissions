@@ -1,3 +1,5 @@
+// import turboConfig from "eslint-config-turbo/flat";
+
 module.exports = {
   root: true,
   env: {
@@ -11,6 +13,7 @@ module.exports = {
     'plugin:import/typescript',
     'google',
     'plugin:@typescript-eslint/recommended',
+    'turboConfig',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
