@@ -159,11 +159,14 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --filter . --frozen-lockfile && pnpm install --filter @idemand/common --frozen-lockfile && pnpm install --filter functions --frozen-lockfile
+      # - name: Install dependencies
+      #   run: pnpm install --filter . --frozen-lockfile && pnpm install --filter @idemand/common --frozen-lockfile && pnpm install --filter functions --frozen-lockfile
 
-      - name: Build common
-        run: pnpm --filter @idemand/common build
+      # - name: Build common
+      #   run: pnpm --filter @idemand/common build
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -215,11 +218,13 @@ jobs:
         run: pnpm exec firebase use ${{ vars.FIREBASE_PROJECT_ID_DEV }} --non-interactive
 
       - name: Typecheck Functions
-        run: pnpm --filter functions typecheck
+        # run: pnpm --filter functions typecheck
+        run: pnpm turbo run typecheck --filter=functions
 
       # already handled by predeploy build config ??
       - name: Build Functions
-        run: pnpm --filter functions build
+        # run: pnpm --filter functions build
+        run: pnpm turbo run build --filter=functions
 
       - name: Deploy auth
         if: needs.detect-changes.outputs.auth == 'true' || needs.detect-changes.outputs.shared == 'true'

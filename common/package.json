@@ -9,6 +9,7 @@
     "dist/**/*"
   ],
   "scripts": {
+    "dev": "tsc --watch",
     "clean": "del ./dist/*",
     "build": "pnpm clean && tsc",
     "typecheck": "tsc --noEmit",

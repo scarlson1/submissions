@@ -28,14 +28,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build common
-        run: pnpm --filter @idemand/common build
-
       - name: Build client
-        run: pnpm --filter client build:dev
-        # env:
-        # Add any env vars your Vite build needs, e.g.:
-        # VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: pnpm turbo run build:dev --filter=client
+
+      # - name: Build common
+      #   run: pnpm --filter @idemand/common build
+
+      # - name: Build client
+      #   run: pnpm --filter client build:dev
+      #   # env:
+      #   # Add any env vars the Vite build needs, e.g.:
+      #   # VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         id: deploy
