@@ -32,7 +32,6 @@
     "build:prodOld": "env-cmd -e common,prod npm run build"
   },
   "dependencies": {
-    "@idemand/common": "workspace:*",
     "@algolia/autocomplete-core": "^1.19.7",
     "@algolia/autocomplete-js": "^1.9.2",
     "@algolia/autocomplete-plugin-query-suggestions": "^1.9.2",
@@ -52,6 +51,7 @@
     "@fontsource/public-sans": "^5.0.15",
     "@fontsource/roboto": "^5.0.8",
     "@hookform/resolvers": "^3.1.0",
+    "@idemand/common": "workspace:*",
     "@microlink/react-json-view": "^1.22.2",
     "@mui/icons-material": "^5.11.0",
     "@mui/lab": "^5.0.0-alpha.115",
@@ -95,6 +95,7 @@
     "axios": "^1.2.2",
     "blurhash": "^2.0.5",
     "clsx": "^2.0.0",
+    "cobe": "^2.0.1",
     "date-fns": "^4.1.0",
     "deck.gl": "^9.2.11",
     "deepmerge-ts": "^5.1.0",

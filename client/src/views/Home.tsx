@@ -24,6 +24,7 @@ import {
   Typography,
 } from '@mui/material';
 import { keyframes, lighten, useTheme } from '@mui/material/styles';
+import { Globe } from 'components/Globe';
 import { useAuth } from 'context/AuthContext';
 import { useClaims, useDocData } from 'hooks';
 import { useMemo } from 'react';
@@ -174,6 +175,7 @@ function MetricCard({
             boxShadow: '0 8px 28px rgba(0,0,0,0.22)',
           },
         }),
+        zIndex: 4,
       }}
     >
       <Typography
@@ -616,7 +618,7 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
           }}
         />
 
-        <Container maxWidth='lg' sx={{ position: 'relative' }}>
+        <Container maxWidth='lg' sx={{ position: 'relative', zIndex: 2 }}>
           <Box sx={{ mb: 4, animation: `${fadeUp} 0.4s ease both` }}>
             <Chip
               color='primary'
@@ -766,6 +768,21 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
             </Button>
           </Stack>
         </Container>
+
+        <Box
+          sx={{
+            position: 'absolute',
+            right: '0',
+            top: '0',
+            height: '100%',
+            width: { xs: 300, sm: 360, md: 450, lg: 600, xl: 680 },
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Globe markers={[]} autoRotate={true} />
+        </Box>
       </FullBleed>
 
       {/* Stats strip */}
@@ -1141,7 +1158,7 @@ export function AuthenticatedHome() {
           mt: { xs: -2, sm: -3, md: -4, lg: -6 },
           borderBottom: (theme) => `1px solid ${theme.palette.divider}`, // '1px solid rgba(0,127,255,0.1)',
           position: 'relative',
-          overflow: 'hidden',
+          // overflow: 'hidden',
         }}
       >
         <Box
@@ -1270,12 +1287,57 @@ export function AuthenticatedHome() {
                 '&:hover': {
                   background: 'linear-gradient(135deg, #3399FF, #007FFF)',
                 },
+                zIndex: 2,
               }}
             >
               New quote
             </Button>
           </Stack>
         </Container>
+        {/* TODO: uncomment once user's locations are fetched -> pass as markers */}
+        {/* <Box
+          sx={{
+            height: { xs: 240, sm: 320, md: 400 },
+            width: { xs: 240, sm: 320, md: 400 },
+            ml: 'auto',
+            position: 'absolute',
+            right: 0,
+            top: '40px',
+            zIndex: 1,
+          }}
+        >
+          <Globe
+            // height={400}
+            // width={400}
+            // autoRotate={true}
+            markers={[
+              {
+                id: 'pulse-1',
+                location: [51.51, -0.13] as [number, number],
+                size: 2,
+                delay: 0,
+              },
+              {
+                id: 'pulse-2',
+                location: [40.71, -74.01] as [number, number],
+                size: 2,
+                delay: 0.5,
+              },
+              {
+                id: 'pulse-3',
+                location: [35.68, 139.65] as [number, number],
+                size: 2,
+                delay: 1,
+              },
+              {
+                id: 'pulse-4',
+                location: [-33.87, 151.21] as [number, number],
+                size: 2,
+                delay: 1.5,
+              },
+            ]}
+          />
+        </Box> */}
       </FullBleed>
 
       {/* Metrics row */}
@@ -1322,7 +1384,7 @@ export function AuthenticatedHome() {
       </Grid>
 
       {/* Main content */}
-      <Grid container spacing={3} sx={{ mb: { xs: 5, md: 6 } }}>
+      <Grid container spacing={3} sx={{ mb: { xs: 5, md: 6 }, zIndex: 4 }}>
         {/* Renewals panel */}
         <Grid xs={12} md={isPowerUser ? 7 : 12}>
           <SectionHeader
@@ -1350,6 +1412,7 @@ export function AuthenticatedHome() {
                 border: '1px solid rgba(99,179,255,0.1)',
                 background: 'rgba(255,255,255,0.02)',
                 mb: isAdmin ? 3 : 0,
+                zIndex: 4,
               }}
             >
               <SectionHeader
