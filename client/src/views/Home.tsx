@@ -239,7 +239,7 @@ function MetricCard({
       {sub && (
         <Typography
           variant='body2'
-          color='text.secondary'
+          color='text.tertiary'
           sx={{
             fontSize: '0.72rem',
             mt: 0.75,
@@ -543,7 +543,7 @@ function QuickAction({
           // color: primary ? '#E7EBF0' : '#CDD2D7',
           color: (theme) =>
             primary
-              ? theme.palette.getContrastText(theme.palette.primary.light)
+              ? theme.palette.text.primary // theme.palette.getContrastText(theme.palette.primary.light)
               : theme.palette.text.tertiary,
           mb: 0.5,
         }}
