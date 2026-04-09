@@ -35,7 +35,7 @@
     "typesense:dev": "docker run -p 8108:8108 -v\"$(pwd)\"/typesense-data:/data typesense/typesense:29.0 --data-dir /data --api-key=xyz --enable-cors",
     "stripe:forward": "stripe listen --forward-to localhost:5001/idemand-submissions-dev/us-central1/stripe/webhook"
   },
-  "packageManager": "pnpm@10.18.3",
+  "packageManager": "pnpm@10",
   "pnpm": {
     "overrides": {
       "@types/node": "22",
