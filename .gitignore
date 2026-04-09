@@ -45,4 +45,4 @@ typesense-data/
 
 # switched to pnpm (ignore npm lock files)
 package-lock.json
- .turbo
+.turbo

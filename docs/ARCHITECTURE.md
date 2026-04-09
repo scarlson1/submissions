@@ -41,24 +41,25 @@ TODO: cloud run api documentation
 
 ## Repository Shape
 
-The repo is organized around two deployable applications:
+The repo is a `pnpm` workspace monorepo orchestrated with TurboRepo.
+
+Primary workspace packages:
 
 - `client/`: Vite + React frontend
 - `functions/`: Firebase Functions backend
+- `api/`: Cloud Run API
+- `common/`: shared domain models, enums, schemas, and Firestore helpers published internally as `@idemand/common`
 
 Supporting infrastructure lives at the root:
 
+- `turbo.json`: TurboRepo task graph for `build`, `dev`, `typecheck`, and `lint`
+- `pnpm-workspace.yaml`: workspace package definitions
 - `firebase.json`: Hosting, rewrites, emulators, Functions runtime
 - `firestore.rules` and `storage.rules`: security boundaries
 - `firestore.indexes.json`: query/index support
 - `docs/`: screenshots and project documentation
 
-The code also depends on shared domain packages that are not defined in this repo:
-
-- client imports from `common`
-- backend imports from [`@idemand/common`](https://github.com/scarlson1/idemand-backend-types) :link:
-
-Those packages appear to provide shared collection names, domain models, enums, and validation/types that keep the client and backend aligned.
+Workspace dependencies are linked with `workspace:*`, and TurboRepo ensures upstream packages such as `common/` are built before dependent packages such as `api/` and `functions/`.
 
 ## Frontend Architecture
 
@@ -661,14 +662,19 @@ The repo includes emulator support for:
 - storage
 - eventarc
 
+TurboRepo manages package-level development processes, but it does not start the Firebase emulators by itself.
+
 ```bash
-# to start react, functions and emulator with concurrently
+# Start all workspace dev processes
 pnpm dev
 
-# to start individually in separate terminal tabs:
-pnpm emulators:dev   # terminal 1
-pnpm client:dev      # terminal 2
-pnpm functions:build # terminal 3
+# Start Firebase emulators in a separate terminal
+pnpm emulators:dev
+
+# Or run individual packages only:
+pnpm dev:client
+pnpm dev:api
+pnpm dev:functions
 
 # start local typesense instance in docker
 pnpm typesense:dev
@@ -698,6 +704,7 @@ stripe trigger payment_intent.succeeded
 
 Several seams are worth knowing before making changes:
 
+- Shared domain models now live in the local `common/` workspace package (`@idemand/common`), so schema changes can be made in-repo and propagated through TurboRepo task dependencies.
 - Search is mid-migration: Typesense is active, but many filenames and some client types still reference Algolia.
 - Routing is centralized in one very large router file, which makes navigation behavior explicit but increases change surface.
 - The client uses both `RequireAuth` and `RequireAuthReactFire`, which suggests two overlapping auth guard patterns.

@@ -23,6 +23,14 @@ pnpm --filter @idemand/common build
 
 ## Building
 
+`common/` is a local workspace package published inside the monorepo as `@idemand/common`. It compiles to `common/dist/` and is consumed by sibling packages via `workspace:*` dependencies:
+
+```json
+"@idemand/common": "workspace:*"
+```
+
+TurboRepo is responsible for building common/ before dependent packages such as api/ and functions. In CI and local development, prefer running root Turbo commands over manual pnpm --filter build sequencing.
+
 ```bash
 # From repo root
 pnpm --filter @idemand/common build
@@ -32,7 +40,15 @@ cd common
 pnpm build
 ```
 
-The build runs `tsc` using `common/tsconfig.json` and outputs to `common/dist/`. The `dist/` directory is gitignored and must be built before other packages can resolve imports.
+`common/` builds with tsc using common/tsconfig.json and writes output to `common/dist/`.
+
+For local development, `common/` also exposes a watch task:
+
+```bash
+pnpm dev
+# or
+pnpm turbo run dev --filter=@idemand/common
+```
 
 ---
 
@@ -195,15 +211,15 @@ These are used throughout all document schemas so that Zod validation works corr
 ## Adding or Changing Types
 
 1. Edit the relevant file in `common/src/types/` or `common/src/enums.ts`.
-2. Export from `common/src/index.ts` if it's a new export.
-3. Run `pnpm --filter @idemand/common build` to compile.
-4. Changes are immediately available to `api/`, `functions/`, and `client/` via the workspace symlink — no version bump needed during development.
+2. Export from `common/src/index.ts` if it is a new export.
+3. Rebuild with `pnpm turbo run build --filter=@idemand/common`, or run `pnpm dev` from the repo root if you want TurboRepo to keep `common/` and its dependents in watch mode.
+4. Run `pnpm typecheck` from the repo root to verify downstream packages still compile.
 
-If the change is a **breaking type change** (renaming a field, tightening a Zod schema), check all consumers before deploying:
+If the change is a breaking type change, check all consumers before deploying:
 
-- `functions/src/` — Cloud Functions
-- `api/src/` — Cloud Run API
-- `client/src/` — React frontend (imports from the `common` package path, not `@idemand/common`)
+- `functions/src/`
+- `api/src/`
+- `client/src/`
 
 ---
 

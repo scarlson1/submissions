@@ -1,5 +1,9 @@
 import { ArrowDropDownRounded } from '@mui/icons-material';
-import { ThemeOptions, alpha, experimental_extendTheme as extendTheme } from '@mui/material/styles';
+import {
+  alpha,
+  experimental_extendTheme as extendTheme,
+  ThemeOptions,
+} from '@mui/material/styles';
 import type {} from '@mui/material/themeCssVarsAugmentation';
 import type {} from '@mui/x-date-pickers/themeAugmentation';
 
@@ -118,7 +122,7 @@ export const blueDark = {
   800: '#141A1F',
   900: '#101418', // #171D24 // #111418
 };
-const grey = {
+export const grey = {
   50: '#F3F6F9',
   100: '#E7EBF0',
   200: '#E0E3E7',
@@ -290,11 +294,11 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
           mode === 'light'
             ? `linear-gradient(to top right, ${alpha(blue[50], 0.3)} 40%, ${alpha(
                 grey[50],
-                0.2
+                0.3,
               )} 100%)`
             : `linear-gradient(to top right, ${alpha(blue[900], 0.1)} 40%, ${alpha(
                 blueDark[800],
-                0.2
+                0.3,
               )} 100%)`,
       },
     },
@@ -304,7 +308,13 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
     spacing: 4,
     typography: {
       fontFamily: ['"IBM Plex Sans"', ...systemFont].join(','),
-      fontFamilyCode: ['Menlo', 'Consolas', 'Monaco', '"Droid Sans Mono"', 'monospace'].join(','),
+      fontFamilyCode: [
+        'Menlo',
+        'Consolas',
+        'Monaco',
+        '"Droid Sans Mono"',
+        'monospace',
+      ].join(','),
       // fontFamilyTagline: ['"PlusJakartaSans-ExtraBold"', ...systemFont].join(','),
       fontFamilyTagline: ['"General Sans"', ...systemFont].join(','),
       fontFamilySystem: systemFont.join(','),
@@ -406,7 +416,7 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
 
     //   return undefined;
     // },
-  } as ThemeOptions);
+  }) as ThemeOptions;
 
 // color: theme.vars.palette.primary.main,
 // // When the mode switches to dark, the attribute selector is attached to
@@ -510,7 +520,7 @@ export function getThemedComponents(): ThemeOptions {
                 borderColor: theme.vars.palette.primaryDark[100],
                 boxShadow: `0px 2px 1px ${alpha(
                   theme.palette.grey[200],
-                  0.3
+                  0.3,
                 )}, inset 0px 2px 3px ${alpha(theme.palette.primaryDark[100], 0.2)}`,
                 '&:hover': {
                   background: theme.vars.palette.primaryDark[50],
@@ -521,7 +531,7 @@ export function getThemedComponents(): ThemeOptions {
                   backgroundColor: theme.vars.palette.primaryDark[700],
                   boxShadow: `0px 2px 1px ${theme.palette.common.black}, inset 0px 2px 3px ${alpha(
                     theme.palette.primaryDark[500],
-                    0.3
+                    0.3,
                   )}`,
                   '&:hover': {
                     backgroundColor: theme.vars.palette.primaryDark[600],
@@ -535,7 +545,7 @@ export function getThemedComponents(): ThemeOptions {
                 borderColor: theme.vars.palette.primary[100],
                 boxShadow: `0px 1px 1px ${alpha(
                   theme.palette.primary[100],
-                  0.5
+                  0.5,
                 )}, inset 0px 4px 2px ${alpha(theme.palette.primary[100], 0.1)}`,
                 '&:hover': {
                   background: theme.vars.palette.primary[50],
@@ -545,7 +555,8 @@ export function getThemedComponents(): ThemeOptions {
                   color: theme.vars.palette.primary[200],
                   borderColor: theme.vars.palette.primary[900],
                   backgroundColor: alpha(theme.palette.primary[900], 0.2),
-                  boxShadow: '0px 2px 2px #0B0D0E, inset 0px 4px 4px rgba(20, 25, 31, 0.3)',
+                  boxShadow:
+                    '0px 2px 2px #0B0D0E, inset 0px 4px 4px rgba(20, 25, 31, 0.3)',
                   '&:hover': {
                     backgroundColor: theme.vars.palette.primary[900],
                     borderColor: theme.vars.palette.primary[700],
@@ -661,7 +672,7 @@ export function getThemedComponents(): ThemeOptions {
               borderColor: theme.vars.palette.grey[200],
               boxShadow: `0px 2px 2px ${alpha(
                 theme.palette.primary[100],
-                0.2
+                0.2,
               )}, inset 0px 4px 4px ${alpha(theme.palette.primary[100], 0.2)}`,
               fontFamily: theme.typography.fontFamilyCode,
               fontWeight: 400,
@@ -689,7 +700,8 @@ export function getThemedComponents(): ThemeOptions {
                 color: theme.vars.palette.grey[500],
                 borderColor: theme.vars.palette.primaryDark[600],
                 backgroundColor: theme.vars.palette.primaryDark[700],
-                boxShadow: '0px 2px 2px #0B0D0E, inset 0px 4px 4px rgba(20, 25, 31, 0.3)',
+                boxShadow:
+                  '0px 2px 2px #0B0D0E, inset 0px 4px 4px rgba(20, 25, 31, 0.3)',
                 '& .MuiButton-endIcon': {
                   color: theme.vars.palette.grey[400],
                 },
@@ -754,7 +766,7 @@ export function getThemedComponents(): ThemeOptions {
               borderRadius: theme.shape.borderRadius,
               boxShadow: `inset 0 1px 2px ${theme.vars.palette.grey[50]}, 0 1px 0.5px ${alpha(
                 theme.palette.grey[100],
-                0.6
+                0.6,
               )}`,
               '&:hover': {
                 borderColor: theme.vars.palette.grey[300],
@@ -782,7 +794,7 @@ export function getThemedComponents(): ThemeOptions {
               borderRadius: theme.shape.borderRadius,
               boxShadow: `inset 0 1px 2px ${theme.vars.palette.grey[50]}, 0 1px 0.5px ${alpha(
                 theme.palette.grey[100],
-                0.6
+                0.6,
               )}`,
               '&:hover': {
                 color: theme.vars.palette.primary.main,
@@ -1133,7 +1145,7 @@ export function getThemedComponents(): ThemeOptions {
       MuiAppBar: {
         styleOverrides: {
           root: (
-            { ownerState: { color, variant, size }, theme } // [
+            { ownerState: { color, variant, size }, theme }, // [
           ) => ({
             backgroundColor: 'rgba(255,255,255,0.65)',
             '[data-mui-color-scheme="dark"] &': {
@@ -1164,7 +1176,7 @@ export function getThemedComponents(): ThemeOptions {
         },
         styleOverrides: {
           root: (
-            { theme, ownerState } // [
+            { theme, ownerState }, // [
           ) => ({
             backgroundImage: 'none',
             backgroundColor: '#fff',
@@ -1190,7 +1202,7 @@ export function getThemedComponents(): ThemeOptions {
                 textDecorationLine: 'none',
                 boxShadow: `inset 0 1px 2px ${theme.vars.palette.grey[50]}, 0 1px 0.5px ${alpha(
                   theme.palette.grey[100],
-                  0.6
+                  0.6,
                 )}`,
                 '[data-mui-color-scheme="dark"] &': {
                   textDecorationLine: 'none',
@@ -1334,7 +1346,7 @@ export function getThemedComponents(): ThemeOptions {
       MuiPaginationItem: {
         styleOverrides: {
           root: (
-            { theme } // [
+            { theme }, // [
           ) => ({
             textTransform: 'none',
             fontWeight: 700,
@@ -1392,9 +1404,10 @@ export function getThemedComponents(): ThemeOptions {
             '.MuiDataGrid-columnSeparator': {
               color: theme.vars.palette.grey[100],
             },
-            '.MuiDataGrid-columnHeaders, .MuiDataGrid-cell, .MuiDataGrid-footerContainer': {
-              borderColor: theme.vars.palette.grey[100],
-            },
+            '.MuiDataGrid-columnHeaders, .MuiDataGrid-cell, .MuiDataGrid-footerContainer':
+              {
+                borderColor: theme.vars.palette.grey[100],
+              },
             ...(ownerState?.variant === 'outlined' && {
               display: 'block',
               borderColor: theme.vars.palette.grey[200],
@@ -1409,9 +1422,10 @@ export function getThemedComponents(): ThemeOptions {
               '.MuiDataGrid-columnSeparator': {
                 color: alpha(theme.palette.primary[100], 0.08),
               },
-              '.MuiDataGrid-columnHeaders, .MuiDataGrid-cell, .MuiDataGrid-footerContainer': {
-                borderColor: alpha(theme.palette.primary[100], 0.08),
-              },
+              '.MuiDataGrid-columnHeaders, .MuiDataGrid-cell, .MuiDataGrid-footerContainer':
+                {
+                  borderColor: alpha(theme.palette.primary[100], 0.08),
+                },
               ...(ownerState?.variant === 'outlined' && {
                 borderColor: theme.vars.palette.primaryDark[500],
                 backgroundColor: theme.vars.palette.primaryDark[700],
