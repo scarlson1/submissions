@@ -125,7 +125,7 @@ export const blueDark = {
   800: '#141A1F',
   900: '#101418', // #171D24 // #111418
 };
-const grey = {
+export const grey = {
   50: '#F3F6F9',
   100: '#E7EBF0',
   200: '#E0E3E7',
@@ -269,11 +269,11 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
           mode === 'light'
             ? `linear-gradient(to top right, ${alpha(blue[50], 0.3)} 40%, ${alpha(
                 grey[50],
-                0.2,
+                0.3,
               )} 100%)`
             : `linear-gradient(to top right, ${alpha(blue[900], 0.1)} 40%, ${alpha(
                 blueDark[800],
-                0.2,
+                0.3,
               )} 100%)`,
       },
     },

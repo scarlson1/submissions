@@ -7,7 +7,8 @@ import {
 } from 'react-router-dom';
 
 import { CLAIMS, TProduct } from 'common';
-import { PageMeta, RequireAuth } from 'components';
+import { PageMeta } from 'components/PageMeta';
+import { RequireAuth } from 'components/RequireAuth';
 import RouterErrorBoundary from 'components/RouterErrorBoundary';
 // import { StripePmtIntentWrapper } from 'components/forms/StripeCheckout/StripeElementsWrapper';
 import { ConnectPayments, ConnectPayouts } from '@stripe/react-connect-js';

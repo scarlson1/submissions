@@ -23,7 +23,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { keyframes } from '@mui/material/styles';
+import { keyframes, lighten, useTheme } from '@mui/material/styles';
 import { useAuth } from 'context/AuthContext';
 import { useClaims, useDocData } from 'hooks';
 import { useMemo } from 'react';
@@ -92,11 +92,11 @@ function SectionHeader({
       }}
     >
       <Typography
+        color='text.tertiary'
         sx={{
           fontFamily: '"Syne", sans-serif',
           fontWeight: 700,
           fontSize: '0.9rem',
-          color: '#CDD2D7',
           letterSpacing: '0.025em',
           textTransform: 'uppercase',
         }}
@@ -111,7 +111,7 @@ function SectionHeader({
           }
           onClick={action.onClick}
           sx={{
-            color: '#66B2FF',
+            color: (theme) => theme.palette.info.light, // '#66B2FF',
             fontSize: '0.72rem',
             fontWeight: 600,
             px: 1.5,
@@ -177,12 +177,13 @@ function MetricCard({
       }}
     >
       <Typography
+        variant='overline'
+        color='text.tertiary'
         sx={{
           fontSize: '0.65rem',
           fontWeight: 600,
           letterSpacing: '0.09em',
           textTransform: 'uppercase',
-          color: 'rgba(160,170,180,0.65)',
           mb: 1.5,
         }}
       >
@@ -195,7 +196,11 @@ function MetricCard({
             fontWeight: 800,
             fontSize: { xs: '1.75rem', md: '2rem' },
             lineHeight: 1,
-            background: 'linear-gradient(135deg, #E7EBF0 30%, #99CCF3 100%)',
+            // background: 'linear-gradient(135deg, #E7EBF0 30%, #99CCF3 100%)',
+            background: (theme) =>
+              theme.palette.mode === 'light'
+                ? 'linear-gradient(rgba(0 0 0 / 0.1), rgba(0 0 0 / 0.1)), linear-gradient(254.86deg, rgba(0, 58, 117, 0.18) 0%, rgba(11, 13, 14, 0.3) 49.98%, rgba(0, 76, 153, 0.21) 100.95%)'
+                : 'linear-gradient(rgba(255 255 255 / 0.3), rgba(255 255 255 / 0.3)), linear-gradient(254.86deg, rgba(194, 224, 255, 0.12) 0%, rgba(194, 224, 255, 0.12) 0%, rgba(255, 255, 255, 0.3) 49.98%, rgba(240, 247, 255, 0.3) 100.95%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}
@@ -207,7 +212,11 @@ function MetricCard({
             <TrendingUpRounded
               sx={{
                 fontSize: '0.85rem',
-                color: trend.up ? '#3EE07F' : '#FF505F',
+                // color: trend.up ? '#3EE07F' : '#FF505F',
+                color: (theme) =>
+                  trend.up
+                    ? theme.palette.success.light
+                    : theme.palette.error.light,
                 transform: trend.up ? 'none' : 'scaleY(-1)',
               }}
             />
@@ -215,7 +224,11 @@ function MetricCard({
               sx={{
                 fontSize: '0.7rem',
                 fontWeight: 700,
-                color: trend.up ? '#3EE07F' : '#FF505F',
+                // color: trend.up ? '#3EE07F' : '#FF505F',
+                color: (theme) =>
+                  trend.up
+                    ? theme.palette.success.light
+                    : theme.palette.error.light,
               }}
             >
               {trend.value}
@@ -225,7 +238,12 @@ function MetricCard({
       </Stack>
       {sub && (
         <Typography
-          sx={{ fontSize: '0.72rem', color: 'rgba(160,170,180,0.5)', mt: 0.75 }}
+          variant='body2'
+          color='text.secondary'
+          sx={{
+            fontSize: '0.72rem',
+            mt: 0.75,
+          }}
         >
           {sub}
         </Typography>
@@ -286,10 +304,11 @@ function RenewalRow({
               />
             )}
             <Typography
+              color='text.secondary'
               sx={{
                 fontSize: '0.83rem',
                 fontWeight: 600,
-                color: '#CDD2D7',
+                // color: '#CDD2D7',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -299,7 +318,12 @@ function RenewalRow({
             </Typography>
           </Stack>
           <Typography
-            sx={{ fontSize: '0.72rem', color: 'rgba(160,170,180,0.5)' }}
+            variant='body2'
+            color='text.tertiary'
+            sx={{
+              fontSize: '0.72rem',
+              // color: 'rgba(160,170,180,0.5)'
+            }}
           >
             {insured}
           </Typography>
@@ -323,14 +347,17 @@ function RenewalRow({
             sx={{
               fontSize: '0.8rem',
               fontWeight: 700,
-              color: urgent ? '#FF7A86' : '#99CCF3',
+              color: (theme) =>
+                urgent ? theme.palette.error.light : theme.palette.info.light,
               mb: 0.5,
             }}
           >
             {daysLeft}d left
           </Typography>
           <Typography
-            sx={{ fontSize: '0.7rem', color: 'rgba(160,170,180,0.45)' }}
+            variant='body2'
+            color='text.tertiary'
+            sx={{ fontSize: '0.7rem' }}
           >
             {premium}
           </Typography>
@@ -351,11 +378,12 @@ function ActivityItem({
   type: 'quote' | 'policy' | 'submission' | 'renewal';
   delay?: number;
 }) {
+  const theme = useTheme();
   const colors: Record<string, string> = {
-    quote: '#66B2FF',
-    policy: '#3EE07F',
-    submission: '#FFDC48',
-    renewal: '#FF7A86',
+    quote: theme.palette.info.light, // '#66B2FF',
+    policy: theme.palette.success.light, // '#3EE07F',
+    submission: theme.palette.warning.light, // '#FFDC48',
+    renewal: theme.palette.error.light, // '#FF7A86',
   };
   const labels: Record<string, string> = {
     quote: 'Quote',
@@ -388,9 +416,10 @@ function ActivityItem({
       />
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography
+          color='text.secondary'
           sx={{
             fontSize: '0.8rem',
-            color: '#B2BAC2',
+            // color: '#B2BAC2',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -398,9 +427,7 @@ function ActivityItem({
         >
           {label}
         </Typography>
-        <Typography
-          sx={{ fontSize: '0.68rem', color: 'rgba(160,170,180,0.45)' }}
-        >
+        <Typography color='text.tertiary' sx={{ fontSize: '0.68rem' }}>
           {meta}
         </Typography>
       </Box>
@@ -443,7 +470,8 @@ function QuickAction({
         p: { xs: 3, md: 3.5 },
         borderRadius: '14px',
         border: '1px solid',
-        borderColor: primary ? 'rgba(0,127,255,0.42)' : 'rgba(99,179,255,0.1)',
+        borderColor: (theme) =>
+          primary ? 'rgba(0,127,255,0.42)' : theme.palette.divider, // primary ? 'rgba(0,127,255,0.42)' : 'rgba(99,179,255,0.1)',
         background: primary
           ? 'linear-gradient(135deg, rgba(0,127,255,0.15) 0%, rgba(0,57,117,0.08) 100%)'
           : 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%)',
@@ -474,13 +502,21 @@ function QuickAction({
             width: 40,
             height: 40,
             borderRadius: '10px',
-            background: primary
-              ? 'linear-gradient(135deg, #007FFF, #0059B2)'
-              : 'rgba(0,127,255,0.1)',
+            // background: primary
+            //   ? 'linear-gradient(135deg, #007FFF, #0059B2)'
+            //   : 'rgba(0,127,255,0.1)',
+            background: (theme) =>
+              primary
+                ? `linear-gradient(135deg, ${theme.palette.primary[400]}, ${theme.palette.primary[900]})`
+                : 'rgba(0,127,255,0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: primary ? '#fff' : '#66B2FF',
+            // color: primary ? '#fff' : '#66B2FF',
+            color: (theme) =>
+              primary
+                ? theme.palette.common.white
+                : theme.palette.primary.light,
           }}
         >
           {icon}
@@ -489,7 +525,11 @@ function QuickAction({
           className='qa-arrow'
           sx={{
             fontSize: '1rem',
-            color: primary ? '#66B2FF' : 'rgba(99,179,255,0.32)',
+            // color: primary ? '#66B2FF' : 'rgba(99,179,255,0.32)',
+            color: (theme) =>
+              primary
+                ? theme.palette.primary.light
+                : theme.palette.primary[200],
             opacity: 0.5,
             transition: 'all 0.2s ease',
           }}
@@ -500,16 +540,20 @@ function QuickAction({
           fontFamily: '"Syne", sans-serif',
           fontWeight: 700,
           fontSize: '0.92rem',
-          color: primary ? '#E7EBF0' : '#CDD2D7',
+          // color: primary ? '#E7EBF0' : '#CDD2D7',
+          color: (theme) =>
+            primary
+              ? theme.palette.getContrastText(theme.palette.primary.light)
+              : theme.palette.text.tertiary,
           mb: 0.5,
         }}
       >
         {label}
       </Typography>
       <Typography
+        color='text.tertiary'
         sx={{
           fontSize: '0.74rem',
-          color: 'rgba(160,170,180,0.58)',
           lineHeight: 1.55,
         }}
       >
@@ -528,7 +572,6 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
     if (!data) return 0;
     return Object.values(data).filter(Boolean).length;
   }, [data]);
-  console.log('active: ', activeStateCount, data);
 
   return (
     <>
@@ -537,8 +580,9 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
       {/* Hero — full bleed dark */}
       <FullBleed
         sx={{
-          background:
-            'linear-gradient(180deg, #060e1a 0%, #0a1929 55%, #0d2240 100%)',
+          // background:
+          //   'linear-gradient(180deg, #060e1a 0%, #0a1929 55%, #0d2240 100%)',
+          background: (theme) => theme.palette.gradients.linearSubtle,
           pt: { xs: 14, md: 20 },
           pb: { xs: 12, md: 18 },
           mt: { xs: -2, sm: -3, md: -4, lg: -6 }, // undo Layout top padding
@@ -575,19 +619,26 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
         <Container maxWidth='lg' sx={{ position: 'relative' }}>
           <Box sx={{ mb: 4, animation: `${fadeUp} 0.4s ease both` }}>
             <Chip
+              color='primary'
+              variant='outlined'
               icon={
                 <VerifiedRounded
+                  // color='info'
                   sx={{
                     fontSize: '0.82rem !important',
-                    color: '#66B2FF !important',
+                    // color: '#66B2FF !important',
+                    // color: (theme) =>
+                    //   `${theme.palette.primary.light} !important`,
                   }}
                 />
               }
               label={`Licensed Surplus Lines ${activeStateCount ? `· ${activeStateCount} States` : ''}`}
               sx={{
                 background: 'rgba(0,127,255,0.1)',
-                border: '1px solid rgba(0,127,255,0.26)',
-                color: '#99CCF3',
+                // border: '1px solid rgba(0,127,255,0.26)',
+                // border: (theme) => `1px solid ${theme.palette.primary.light}`,
+                // color: (theme) => theme.palette.primary.light,
+                // color: '#99CCF3',
                 fontWeight: 600,
                 fontSize: '0.7rem',
                 letterSpacing: '0.03em',
@@ -616,7 +667,8 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
               component='span'
               sx={{
                 display: 'block',
-                color: '#E7EBF0',
+                // color: '#E7EBF0',
+                color: (theme) => lighten(theme.palette.text.tertiary, 0.2),
                 animation: `${fadeUp} 0.5s ease both`,
                 animationDelay: '60ms',
               }}
@@ -641,11 +693,13 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
           </Typography>
 
           <Typography
+            variant='subtitle1'
             sx={{
-              color: 'rgba(178,186,194,0.72)',
-              fontSize: { xs: '1rem', md: '1.2rem' },
+              // color: 'rgba(178,186,194,0.72)',
+              color: (theme) => theme.palette.text.tertiary,
+              // fontSize: { xs: '1rem', md: '1.2rem' },
               maxWidth: 500,
-              lineHeight: 1.72,
+              lineHeight: 1.6,
               mb: 6,
               animation: `${fadeUp} 0.5s ease both`,
               animationDelay: '180ms',
@@ -683,7 +737,7 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
                 fontSize: '1rem',
                 px: 5,
                 py: 1.75,
-                borderRadius: '10px',
+
                 boxShadow: '0 8px 28px rgba(0,127,255,0.3)',
                 border: '1px solid rgba(102,178,255,0.14)',
                 transition: 'all 0.22s ease',
@@ -697,21 +751,15 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
               Get a free quote
             </Button>
             <Button
+              variant='outlined'
               size='large'
               onClick={() => navigate(createPath({ path: ROUTES.AGENCY_NEW }))}
               sx={{
-                border: '1px solid rgba(99,179,255,0.27)',
-                color: '#99CCF3',
                 fontFamily: '"Syne", sans-serif',
                 fontWeight: 600,
                 fontSize: '1rem',
                 px: 5,
                 py: 1.75,
-                borderRadius: '10px',
-                '&:hover': {
-                  borderColor: 'rgba(99,179,255,0.52)',
-                  background: 'rgba(0,127,255,0.05)',
-                },
               }}
             >
               Partner with us
@@ -723,9 +771,12 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
       {/* Stats strip */}
       <FullBleed
         sx={{
-          background: '#0a1929',
-          borderTop: '1px solid rgba(0,127,255,0.1)',
-          borderBottom: '1px solid rgba(0,127,255,0.1)',
+          // background: '#0a1929',
+          background: (theme) => theme.palette.background.paper,
+          // borderTop: '1px solid rgba(0,127,255,0.1)',
+          // borderBottom: '1px solid rgba(0,127,255,0.1)',
+          borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           py: { xs: 6, md: 8 },
         }}
       >
@@ -782,14 +833,22 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
       </FullBleed>
 
       {/* Features section */}
-      <FullBleed sx={{ background: '#07101e', py: { xs: 10, md: 14 } }}>
+      <FullBleed
+        sx={{
+          // background: '#07101e',
+          background: (theme) => theme.palette.background.default,
+          py: { xs: 10, md: 14 },
+        }}
+      >
         <Container maxWidth='lg'>
           <Box sx={{ textAlign: 'center', mb: { xs: 7, md: 10 } }}>
             <Typography
+              variant='h3'
+              color='text.secondary'
               sx={{
                 fontFamily: '"Syne", sans-serif',
                 fontWeight: 800,
-                color: '#E7EBF0',
+                // color: '#E7EBF0',
                 mb: 2,
                 fontSize: { xs: '1.8rem', md: '2.4rem' },
                 animation: `${fadeUp} 0.5s ease both`,
@@ -798,7 +857,8 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
               Everything in one platform
             </Typography>
             <Typography
-              color='text.secondary'
+              color='text.tertiary'
+              variant='subtitle1'
               sx={{
                 maxWidth: 460,
                 mx: 'auto',
@@ -855,8 +915,9 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
                 <Box
                   sx={{
                     p: 4,
-                    borderRadius: '14px',
-                    border: '1px solid rgba(99,179,255,0.1)',
+                    borderRadius: 2, // '14px',
+                    // border: '1px solid rgba(99,179,255,0.1)',
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
                     background: 'rgba(255,255,255,0.02)',
                     height: '100%',
                     animation: `${fadeUp} 0.5s ease both`,
@@ -885,22 +946,17 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
                     {f.icon}
                   </Box>
                   <Typography
+                    color='text.tertiary'
                     sx={{
                       fontFamily: '"Syne", sans-serif',
                       fontWeight: 700,
-                      color: '#CDD2D7',
+                      // color: '#CDD2D7',
                       mb: 1,
                     }}
                   >
                     {f.title}
                   </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '0.83rem',
-                      color: 'rgba(160,170,180,0.58)',
-                      lineHeight: 1.65,
-                    }}
-                  >
+                  <Typography variant='body2' color='text.tertiary'>
                     {f.desc}
                   </Typography>
                 </Box>
@@ -916,6 +972,7 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
           background: 'linear-gradient(180deg, #07101e 0%, #050c18 100%)',
           borderTop: '1px solid rgba(0,127,255,0.09)',
           py: { xs: 10, md: 14 },
+          borderRadius: 2,
         }}
       >
         <Container maxWidth='lg'>
@@ -1073,7 +1130,7 @@ export function AuthenticatedHome() {
         sx={{
           // background:
           // 'linear-gradient(160deg, #060e1a 0%, #0a1929 65%, #0d2240 100%)',
-          // background: (theme) => theme.palette.gradients.linearSubtle,
+          background: (theme) => theme.palette.gradients.linearSubtle,
           // background: (theme) =>
           //   theme.palette.mode === 'dark'
           //     ? `linear-gradient(160deg, ${theme.palette.primaryDark[900]} 0%,${theme.palette.primaryDark[800]} 65%, ${theme.palette.primaryDark[700]} 100%)`
@@ -1129,12 +1186,12 @@ export function AuthenticatedHome() {
                     width: 7,
                     height: 7,
                     borderRadius: '50%',
-                    bgcolor: 'success.main', // '#3EE07F',
+                    bgcolor: 'success.light', // '#3EE07F',
                     animation: `${pulseGlow} 2.5s ease-in-out infinite`,
                   }}
                 />
                 <Typography
-                  color='success.main'
+                  color='success.light'
                   sx={{
                     fontSize: '0.67rem',
                     fontWeight: 600,
