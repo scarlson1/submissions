@@ -225,8 +225,11 @@ export const Header = (props: HeaderProps) => {
       sx={{
         backdropFilter: 'blur(20px)',
         webkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
+        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+        borderLeft: 'none',
+        borderRight: 'none',
+        borderTop: 'none',
+        // borderColor: 'divider',
       }}
     >
       <Container maxWidth='xl'>
