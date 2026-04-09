@@ -1,4 +1,9 @@
-import { collection, CollectionReference, DocumentData, Firestore } from 'firebase/firestore';
+import {
+  collection,
+  CollectionReference,
+  DocumentData,
+  Firestore,
+} from 'firebase/firestore';
 
 import { Collection, TCollection } from './enums';
 import {
@@ -14,7 +19,6 @@ import {
   Moratorium,
   NotifyRegistration,
   Organization,
-  Payable,
   PaymentMethod,
   Policy,
   PolicyClaim,
@@ -29,9 +33,13 @@ import {
   User,
   UserAccess,
   UserClaims,
+  type Receivable,
 } from './types';
 
-export const createCollection = <T = DocumentData, U extends DocumentData = DocumentData>(
+export const createCollection = <
+  T = DocumentData,
+  U extends DocumentData = DocumentData,
+>(
   db: Firestore,
   collectionName: TCollection,
   ...rest: string[]
@@ -43,13 +51,17 @@ export const submissionsCollection = (db: Firestore) =>
   createCollection<Submission, Submission>(db, 'submissions');
 
 export const portfolioSubmissionsCollection = (db: Firestore) =>
-  createCollection<PortfolioSubmission, PortfolioSubmission>(db, 'portfolioSubmissions');
+  createCollection<PortfolioSubmission, PortfolioSubmission>(
+    db,
+    'portfolioSubmissions',
+  );
 
 export const locationsCollection = (db: Firestore) =>
   createCollection<ILocation, ILocation>(db, 'locations');
 
 // TODO: change to quotes instead of submission quotes
-export const quotesCollection = (db: Firestore) => createCollection<Quote>(db, 'quotes');
+export const quotesCollection = (db: Firestore) =>
+  createCollection<Quote>(db, 'quotes');
 
 export const ratingCollection = (db: Firestore) =>
   createCollection<RatingData, RatingData>(db, 'ratingData');
@@ -63,18 +75,23 @@ export const orgsCollection = (db: Firestore) =>
 export const policiesCollection = (db: Firestore) =>
   createCollection<Policy, Policy>(db, 'policies');
 
-export const payablesCollection = (db: Firestore) =>
-  createCollection<Payable, Payable>(db, 'payables');
+export const receivablesCollection = (db: Firestore) =>
+  createCollection<Receivable, Receivable>(db, 'receivables');
 
-export const usersCollection = (db: Firestore) => createCollection<User, User>(db, 'users');
+export const usersCollection = (db: Firestore) =>
+  createCollection<User, User>(db, 'users');
 
 export const licensesCollection = (db: Firestore) =>
   createCollection<License, License>(db, 'licenses');
 
 export const notifyRegistration = (db: Firestore) =>
-  createCollection<NotifyRegistration, NotifyRegistration>(db, 'notifyRegistration');
+  createCollection<NotifyRegistration, NotifyRegistration>(
+    db,
+    'notifyRegistration',
+  );
 
-export const taxesCollection = (db: Firestore) => createCollection<TTax, TTax>(db, 'taxes');
+export const taxesCollection = (db: Firestore) =>
+  createCollection<TTax, TTax>(db, 'taxes');
 
 export const statesCollection = (db: Firestore) =>
   createCollection<ActiveStates, ActiveStates>(db, 'states');
@@ -83,7 +100,10 @@ export const moratoriumsCollection = (db: Firestore) =>
   createCollection<Moratorium, Moratorium>(db, 'moratoriums');
 
 export const agencyAppCollection = (db: Firestore) =>
-  createCollection<AgencyApplication, AgencyApplication>(db, 'agencySubmissions');
+  createCollection<AgencyApplication, AgencyApplication>(
+    db,
+    'agencySubmissions',
+  );
 
 export const taxTransactionsCollection = (db: Firestore) =>
   createCollection<TaxTransaction>(db, Collection.Enum.taxTransactions);
@@ -99,62 +119,88 @@ export const importSummaryCollection = (db: Firestore) =>
 // ) => createCollection<T, U>(db, 'secure');
 
 // SUB COLLECTIONS
-export const userClaimsCollection = (db: Firestore, orgId: string, ...rest: string[]) =>
+export const userClaimsCollection = (
+  db: Firestore,
+  orgId: string,
+  ...rest: string[]
+) =>
   createCollection<UserClaims, UserClaims>(
     db,
     'organizations',
     orgId,
     Collection.Enum.userClaims,
-    ...rest
+    ...rest,
   );
 
-export const invitesCollection = (db: Firestore, orgId: string, ...rest: string[]) =>
+export const invitesCollection = (
+  db: Firestore,
+  orgId: string,
+  ...rest: string[]
+) =>
   createCollection<Invite, Invite>(
     db,
     'organizations',
     orgId,
     Collection.Enum.invitations,
-    ...rest
+    ...rest,
   );
 
-export const paymentMethodsCollection = (db: Firestore, userId: string, ...rest: string[]) =>
+export const paymentMethodsCollection = (
+  db: Firestore,
+  userId: string,
+  ...rest: string[]
+) =>
   createCollection<PaymentMethod, PaymentMethod>(
     db,
     'users',
     userId,
     Collection.Enum.paymentMethods,
-    ...rest
+    ...rest,
   );
 
-export const changeRequestsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
+export const changeRequestsCollection = (
+  db: Firestore,
+  policyId: string,
+  ...rest: string[]
+) =>
   createCollection<ChangeRequest, ChangeRequest>(
     db,
     'policies',
     policyId,
     Collection.Enum.changeRequests,
-    ...rest
+    ...rest,
   );
 
-export const policyClaimsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
-  createCollection<PolicyClaim & DraftPolicyClaim, PolicyClaim & DraftPolicyClaim>(
-    db,
-    'policies',
-    policyId,
-    Collection.Enum.claims,
-    ...rest
-  );
+export const policyClaimsCollection = (
+  db: Firestore,
+  policyId: string,
+  ...rest: string[]
+) =>
+  createCollection<
+    PolicyClaim & DraftPolicyClaim,
+    PolicyClaim & DraftPolicyClaim
+  >(db, 'policies', policyId, Collection.Enum.claims, ...rest);
 
-export const stagedImportsCollection = (db: Firestore, importId: string, ...rest: string[]) =>
+export const stagedImportsCollection = (
+  db: Firestore,
+  importId: string,
+  ...rest: string[]
+) =>
   createCollection<StageImportRecord, StageImportRecord>(
     db,
     'dataImports',
     importId,
     Collection.Enum.stagedDocs,
-    ...rest
+    ...rest,
   );
 
 export const userAccessCollection = (db: Firestore, userId: string) =>
-  createCollection<UserAccess, UserAccess>(db, 'users', userId, Collection.Enum.permissions);
+  createCollection<UserAccess, UserAccess>(
+    db,
+    'users',
+    userId,
+    Collection.Enum.permissions,
+  );
 
 // export const securePolicyCollection = <T = DocumentData, U extends DocumentData = DocumentData>(
 //   db: Firestore,

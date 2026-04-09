@@ -154,14 +154,23 @@ The API previously relied on running `gcloud` or Docker directly. Now that it's 
 # From repo root
 pnpm install
 
-# Build common first (api depends on it)
-pnpm --filter @idemand/common build
+# Run all local package dev processes
+pnpm dev
 
-# Start the API with hot reload (uses tsx watch)
-pnpm --filter api dev
+# Or run only the API
+pnpm dev:api
+
+#If you are developing against Firebase emulators, run them separately:
+pnpm emulators:dev
 ```
 
 The `dev` script in `api/package.json` uses `env-cmd` to load `.env.local` and the `common,emulators,dev` env config from `.env-cmdrc`.
+
+For one-off API builds, use:
+
+```bash
+pnpm build:api
+```
 
 ---
 

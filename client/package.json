@@ -32,6 +32,7 @@
     "build:prodOld": "env-cmd -e common,prod npm run build"
   },
   "dependencies": {
+    "@idemand/common": "workspace:*",
     "@algolia/autocomplete-core": "^1.19.7",
     "@algolia/autocomplete-js": "^1.9.2",
     "@algolia/autocomplete-plugin-query-suggestions": "^1.9.2",

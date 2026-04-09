@@ -51,6 +51,11 @@ declare module '@mui/material/styles/createPalette' {
 
   interface Palette {
     primaryDark: PaletteColor;
+    gradients: {
+      lightGrayRadio: string;
+      stylizedRadio: string;
+      linearSubtle: string;
+    };
   }
 
   interface TypeText {

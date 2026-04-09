@@ -20,15 +20,16 @@
 
 ```bash
 git clone git@github.com:scarlson1/submissions.git
+cd submissions
 
 pnpm install
-cd client && pnpm install
-cd functions && pnpm install
 ```
+
+This repo uses pnpm workspaces plus TurboRepo. Install dependencies once at the repo root.
 
 TODO: env files, service account permissions, etc.
 
-Add the following secrets in GCP secret manager (or `functions/.secret.local` for local development).
+Add the following secrets in GCP secret manager (or functions/.secret.local for local development).
 
 ```env
 EMAIL_VERIFICATION_KEY=
@@ -43,18 +44,22 @@ TYPESENSE_USER_SEARCH_KEY=
 
 Update Values in `.env.dev` and `.env.prod`.
 
-Sign into firebase/gcloud cli (download service account and update path in package.json)
+Sign into the Firebase and gcloud CLIs, and download the required service account credentials referenced by local scripts.
 
 ### Run services locally
 
 ```bash
-# to start react, functions and emulator with concurrently
+# Start all workspace dev processes managed by TurboRepo.
+# This runs the package-level dev scripts for client, api, functions, and common.
 pnpm dev
 
+# When working against the Firebase emulators, run them in a separate terminal:
+pnpm emulators:dev
+
 # to start individually in separate terminal tabs:
-pnpm emulators:dev   # terminal 1
-pnpm client:dev      # terminal 2
-pnpm functions:build # terminal 3
+pnpm dev:client
+pnpm dev:functions
+pnpm dev:api
 
 # start local typesense instance in docker
 pnpm typesense:dev
@@ -101,28 +106,39 @@ npx firebase login
 cd functions
 
 # set target project in firebase cli
-pnpm use:dev # or use:prod or firebase use [alias]
+pnpm exec firebase use dev --non-interactive
+# or:
+pnpm exec firebase use prod --non-interactive
 
-# build (rm -rf ./dist/ && tsc)
-pnpm build
+# build functions and any workspace dependencies
+pnpm functions:build
 
-# deploy (firebase deploy --only functions)
-# pnpm deploy:dev [old command]
-npx firebase deploy --only functions:[FUNCTION_NAME]
+
+# deploy a specific function group
+pnpm exec firebase deploy --only functions:[FUNCTION_NAME]
 ```
 
 ### Hosting deployment (client)
 
 ```bash
-cd client
-
 # set target project in firebase cli
-pnpm use:dev # or use:prod or firebase use [alias]
+pnpm exec firebase use dev --non-interactive
+# or:
+pnpm exec firebase use prod --non-interactive
 
-# build  - vite "mode" flag determines env file to include
-pnpm build:dev # or build:prod or vite build --mode [MODE]
+# build the client from the repo root
+pnpm build:client:dev
+# or:
+pnpm build:client:prod
+pnpm build:client:channel:dev # build  - vite "mode" flag determines env file to include
 
-pnpm deploy:dev # or deploy:prod or deploy:channel:dev or deploy:channel:prod
+# deploy from client/
+cd client
+pnpm deploy:dev
+# or:
+pnpm deploy:prod
+pnpm deploy:channel:dev
+pnpm deploy:channel:prod
 # if deploying to channel, may need to update restricted api keys to generated url (maps, etc.)
 ```
 
