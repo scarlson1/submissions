@@ -1,10 +1,15 @@
-import { Box, Container, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import {
+  Box,
+  Container,
+  Unstable_Grid2 as Grid,
+  Typography,
+} from '@mui/material';
 import { Navigate } from 'react-router-dom';
 
 import { useAuth } from 'context/AuthContext';
 import { createPath, ROUTES } from 'router';
 
-// TODO: add UI state to authContext (admin, user, authedUser)
+// TODO: add UI state to authContext (admin, user, authedUser) ??
 
 export const Home = () => {
   const {
@@ -17,11 +22,16 @@ export const Home = () => {
   //   return <Navigate to={createPath({ path: ADMIN_ROUTES.SUBMISSIONS })} replace={true} />;
 
   if (isSignedIn && !isAnonymous)
-    return <Navigate to={createPath({ path: ROUTES.SUBMISSIONS })} replace={true} />;
+    return (
+      <Navigate to={createPath({ path: ROUTES.SUBMISSIONS })} replace={true} />
+    );
 
   return (
     <Navigate
-      to={createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })}
+      to={createPath({
+        path: ROUTES.SUBMISSION_NEW,
+        params: { productId: 'flood' },
+      })}
       replace={true}
     />
   );
@@ -42,9 +52,10 @@ export const HomeInProgress = () => {
                 High-quality coverage for your home
               </Typography>
               <Typography variant='subtitle1' color='text.secondary'>
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dicta, illum, praesentium
-                tenetur exercitationem voluptatem vero cum non provident iste repellendus pariatur
-                necessitatibus, consequuntur aliquid doloribus numquam.
+                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dicta,
+                illum, praesentium tenetur exercitationem voluptatem vero cum
+                non provident iste repellendus pariatur necessitatibus,
+                consequuntur aliquid doloribus numquam.
               </Typography>
             </Box>
           </Grid>

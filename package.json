@@ -23,6 +23,7 @@
     "typesense:dev": "docker run -p 8108:8108 -v\"$(pwd)\"/typesense-data:/data typesense/typesense:29.0 --data-dir /data --api-key=xyz --enable-cors",
     "stripe:forward": "stripe listen --forward-to localhost:5001/idemand-submissions-dev/us-central1/stripe/webhook"
   },
+  "packageManager": "pnpm@10.18.3",
   "pnpm": {
     "overrides": {
       "@types/node": "22",
@@ -45,6 +46,7 @@
   },
   "homepage": "https://github.com/scarlson1/submissions#readme",
   "devDependencies": {
-    "firebase-tools-with-isolate": "^14.16.0"
+    "firebase-tools-with-isolate": "^14.16.0",
+    "turbo": "^2.9.5"
   }
 }

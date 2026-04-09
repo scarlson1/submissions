@@ -5,11 +5,6 @@ dist/
 lib/
 isolate/
 
-<<<<<<< HEAD
-=======
-functions/dist/
->>>>>>> 335e3374eed965dc58480569856aac8170a152d7
-
 # Compiled JavaScript files
 lib/**/*.js
 lib/**/*.js.map
@@ -50,3 +45,4 @@ typesense-data/
 
 # switched to pnpm (ignore npm lock files)
 package-lock.json
+ .turbo

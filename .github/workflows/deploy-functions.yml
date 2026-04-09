@@ -230,7 +230,7 @@ jobs:
         run: pnpm exec firebase deploy --only functions:call
 
       - name: Deploy firestore functions
-        if: needs.detect-changes.outputs.firestore == 'true' || needs.detect-changes.outputs.shared == 'true' || 'true' == 'true'
+        if: needs.detect-changes.outputs.firestore == 'true' || needs.detect-changes.outputs.shared == 'true'
         run: pnpm exec firebase deploy --only functions:firestore
 
       - name: Deploy search sync functions
