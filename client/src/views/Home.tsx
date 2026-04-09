@@ -1387,8 +1387,16 @@ export function AuthenticatedHome() {
                       path: createPath({ path: ADMIN_ROUTES.AGENCY_APPS }),
                     },
                     {
-                      label: 'Configure taxes & licenses',
+                      label: 'Configure taxes',
                       path: createPath({ path: ADMIN_ROUTES.SL_TAXES }),
+                    },
+                    {
+                      label: 'Update licenses',
+                      path: createPath({ path: ADMIN_ROUTES.SL_LICENSES }),
+                    },
+                    {
+                      label: 'Manage moratoriums',
+                      path: createPath({ path: ADMIN_ROUTES.MORATORIUMS }),
                     },
                     {
                       label: 'View transactions',
@@ -1421,9 +1429,10 @@ export function AuthenticatedHome() {
                       }}
                     >
                       <Typography
+                        color='text.tertiary'
                         sx={{
                           fontSize: '0.8rem',
-                          color: '#A0AAB4',
+                          // color: '#A0AAB4',
                           fontWeight: 500,
                         }}
                       >
