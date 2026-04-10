@@ -1,15 +1,16 @@
 // https://stackoverflow.com/a/70388625/10887890
 import {
-  CollectionReference,
-  DocumentData,
-  Firestore,
   collection,
+  CollectionReference,
   doc,
+  DocumentData,
   documentId,
+  Firestore,
   getDoc,
   getDocs,
   query,
   where,
+  type DocumentSnapshot,
 } from 'firebase/firestore';
 
 import { TCollection } from 'common';
@@ -19,7 +20,7 @@ import { TCollection } from 'common';
 export async function getAll<T extends DocumentData>(
   db: Firestore,
   colName: TCollection,
-  docIds: string[]
+  docIds: string[],
 ) {
   const colRef = collection(db, colName) as CollectionReference<T>;
   const q = query(colRef, where(documentId(), 'in', docIds));
@@ -37,10 +38,10 @@ export async function getAll<T extends DocumentData>(
 export async function getAllById<T extends DocumentData>(
   db: Firestore,
   colName: TCollection,
-  docIds: string[]
+  docIds: string[],
 ) {
   const colRef = collection(db, colName) as CollectionReference<T>;
-  const promises = [];
+  const promises: Promise<DocumentSnapshot<T>>[] = [];
   for (let id of docIds) {
     promises.push(getDoc(doc(colRef, id)));
   }

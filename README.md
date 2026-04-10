@@ -271,6 +271,10 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 
 ![policy details](docs/policy-details.png)
 
+![home](docs/home.png)
+
+![home authed](docs/home-authed.png)
+
 ![taxes](docs/taxes.png)
 
 ![disclosures](docs/disclosures.png)

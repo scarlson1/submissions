@@ -1,4 +1,4 @@
-import type { Product } from '@idemand/common';
+import type { Policy, Product } from '@idemand/common';
 import {
   ArrowForwardRounded,
   AutorenewRounded,
@@ -24,11 +24,16 @@ import {
   Typography,
 } from '@mui/material';
 import { keyframes, lighten, useTheme } from '@mui/material/styles';
+import type { Marker } from 'cobe';
+import { Globe } from 'components/Globe';
 import { useAuth } from 'context/AuthContext';
-import { useClaims, useDocData } from 'hooks';
-import { useMemo } from 'react';
+import { useClaims, useCollectionData, useDocData } from 'hooks';
+import { getPoliciesQueryProps } from 'modules/db/query';
+import { Suspense, useMemo } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
+import invariant from 'tiny-invariant';
 
 // ─── Keyframes ────────────────────────────────────────────────────────────────
 const fadeUp = keyframes`
@@ -149,8 +154,11 @@ function MetricCard({
         p: { xs: 3, md: 3.5 },
         borderRadius: '14px',
         border: '1px solid rgba(99,179,255,0.13)',
+        // background:
+        //   'linear-gradient(135deg, rgba(0,127,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
         background:
-          'linear-gradient(135deg, rgba(0,127,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+          'linear-gradient(135deg, rgba(0, 128, 255, 0.02) 0%, rgba(255, 255, 255, 0.02) 100%)',
+        backdropFilter: 'blur(10px)',
         animation: `${fadeUp} 0.55s ease both`,
         animationDelay: `${delay}ms`,
         cursor: onClick ? 'pointer' : 'default',
@@ -174,6 +182,7 @@ function MetricCard({
             boxShadow: '0 8px 28px rgba(0,0,0,0.22)',
           },
         }),
+        zIndex: 4,
       }}
     >
       <Typography
@@ -616,7 +625,7 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
           }}
         />
 
-        <Container maxWidth='lg' sx={{ position: 'relative' }}>
+        <Container maxWidth='lg' sx={{ position: 'relative', zIndex: 2 }}>
           <Box sx={{ mb: 4, animation: `${fadeUp} 0.4s ease both` }}>
             <Chip
               color='primary'
@@ -766,6 +775,21 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
             </Button>
           </Stack>
         </Container>
+
+        <Box
+          sx={{
+            position: 'absolute',
+            right: '0',
+            top: '0',
+            height: '100%',
+            width: { xs: 300, sm: 360, md: 450, lg: 600, xl: 680 },
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Globe markers={[]} autoRotate={true} />
+        </Box>
       </FullBleed>
 
       {/* Stats strip */}
@@ -946,7 +970,7 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
                     {f.icon}
                   </Box>
                   <Typography
-                    color='text.tertiary'
+                    color='text.secondary'
                     sx={{
                       fontFamily: '"Syne", sans-serif',
                       fontWeight: 700,
@@ -1033,6 +1057,40 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
       </FullBleed>
     </>
   );
+}
+
+function LocationsGlobe({ autoRotate }: { autoRotate?: boolean }) {
+  const { claims, user } = useClaims();
+  invariant(user);
+
+  const { constraints } = useMemo(
+    () => getPoliciesQueryProps(user, claims),
+    [user, claims],
+  );
+
+  const { data: policies } = useCollectionData<Policy>('policies', [
+    ...constraints,
+  ]);
+
+  const markers = useMemo(() => {
+    let m: (Marker & { delay?: number })[] = [];
+    policies.forEach((p) => {
+      Object.entries(p.locations).forEach(([lcnId, lcn], i) => {
+        m.push({
+          id: lcnId,
+          location: [lcn.coords.latitude, lcn.coords.longitude] as [
+            number,
+            number,
+          ],
+          size: 0.04,
+          delay: (i % 4) / 2,
+        });
+      });
+    });
+    return m;
+  }, [policies]);
+
+  return <Globe markers={markers} autoRotate={autoRotate} />;
 }
 
 // ─── AUTHENTICATED DASHBOARD ──────────────────────────────────────────────────
@@ -1141,7 +1199,7 @@ export function AuthenticatedHome() {
           mt: { xs: -2, sm: -3, md: -4, lg: -6 },
           borderBottom: (theme) => `1px solid ${theme.palette.divider}`, // '1px solid rgba(0,127,255,0.1)',
           position: 'relative',
-          overflow: 'hidden',
+          // overflow: 'hidden',
         }}
       >
         <Box
@@ -1215,6 +1273,7 @@ export function AuthenticatedHome() {
                   lineHeight: 1.1,
                   animation: `${fadeUp} 0.42s ease both`,
                   animationDelay: '50ms',
+                  zIndex: 4,
                 }}
               >
                 {firstName},{' '}
@@ -1270,12 +1329,45 @@ export function AuthenticatedHome() {
                 '&:hover': {
                   background: 'linear-gradient(135deg, #3399FF, #007FFF)',
                 },
+                zIndex: 2,
               }}
             >
               New quote
             </Button>
           </Stack>
         </Container>
+        {/* TODO: uncomment once user's locations are fetched -> pass as markers */}
+        <ErrorBoundary fallback={null}>
+          <Suspense fallback={null}>
+            <Box
+              sx={{
+                // height: { xs: 240, sm: 320, md: 400 },
+                // width: { xs: 240, sm: 320, md: 400 },
+                // ml: 'auto',
+                // position: 'absolute',
+                // right: 0,
+                // top: '40px',
+                // zIndex: 1,
+                position: 'absolute',
+                right: '0',
+                top: {
+                  xs: '40px',
+                  sm: '60px',
+                  md: '100px',
+                  lg: '160px',
+                  xl: '200px',
+                },
+                height: '100%',
+                width: { xs: 300, sm: 360, md: 450, lg: 600, xl: 680 },
+                zIndex: 1,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <LocationsGlobe autoRotate={true} />
+            </Box>
+          </Suspense>
+        </ErrorBoundary>
       </FullBleed>
 
       {/* Metrics row */}
@@ -1322,7 +1414,7 @@ export function AuthenticatedHome() {
       </Grid>
 
       {/* Main content */}
-      <Grid container spacing={3} sx={{ mb: { xs: 5, md: 6 } }}>
+      <Grid container spacing={3} sx={{ mb: { xs: 5, md: 6 }, zIndex: 4 }}>
         {/* Renewals panel */}
         <Grid xs={12} md={isPowerUser ? 7 : 12}>
           <SectionHeader
@@ -1349,7 +1441,9 @@ export function AuthenticatedHome() {
                 borderRadius: '14px',
                 border: '1px solid rgba(99,179,255,0.1)',
                 background: 'rgba(255,255,255,0.02)',
+                backdropFilter: 'blur(10px)',
                 mb: isAdmin ? 3 : 0,
+                zIndex: 4,
               }}
             >
               <SectionHeader
@@ -1517,73 +1611,3 @@ export const Home = () => {
   if (isSignedIn && !isAnonymous) return <AuthenticatedHome />;
   return <UnauthenticatedHome productId='flood' />;
 };
-
-// import {
-//   Box,
-//   Container,
-//   Unstable_Grid2 as Grid,
-//   Typography,
-// } from '@mui/material';
-// import { Navigate } from 'react-router-dom';
-
-// import { useAuth } from 'context/AuthContext';
-// import { createPath, ROUTES } from 'router';
-
-// // TODO: add UI state to authContext (admin, user, authedUser) ??
-
-// export const Home = () => {
-//   const {
-//     // claims,
-//     isSignedIn,
-//     isAnonymous,
-//   } = useAuth();
-
-//   // if (!!claims?.iDemandAdmin)
-//   //   return <Navigate to={createPath({ path: ADMIN_ROUTES.SUBMISSIONS })} replace={true} />;
-
-//   if (isSignedIn && !isAnonymous)
-//     return (
-//       <Navigate to={createPath({ path: ROUTES.SUBMISSIONS })} replace={true} />
-//     );
-
-//   return (
-//     <Navigate
-//       to={createPath({
-//         path: ROUTES.SUBMISSION_NEW,
-//         params: { productId: 'flood' },
-//       })}
-//       replace={true}
-//     />
-//   );
-// };
-
-// // TODO: have home layout stretch entire screen
-
-// export const HomeInProgress = () => {
-//   return (
-//     <Box>
-//       <Container maxWidth='lg'>
-//         <Grid container spacing={4}>
-//           <Grid xs={12} sm={6}>
-//             <Box>
-//               {/* TODO: react-spring text animation:
-//           https://themeisle.com/illustrations/?utm_source=themeisle&utm_medium=themeisle_blog&utm_campaign=free-illustrations */}
-//               <Typography variant='h2' gutterBottom>
-//                 High-quality coverage for your home
-//               </Typography>
-//               <Typography variant='subtitle1' color='text.secondary'>
-//                 Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dicta,
-//                 illum, praesentium tenetur exercitationem voluptatem vero cum
-//                 non provident iste repellendus pariatur necessitatibus,
-//                 consequuntur aliquid doloribus numquam.
-//               </Typography>
-//             </Box>
-//           </Grid>
-//           <Grid xs={12} sm={6}>
-//             {/* TODO: image */}
-//           </Grid>
-//         </Grid>
-//       </Container>
-//     </Box>
-//   );
-// };
