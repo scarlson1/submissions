@@ -1,6 +1,6 @@
 'use client';
 
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import createGlobe, { type Marker } from 'cobe';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -22,6 +22,7 @@ export function Globe({
   autoRotate?: boolean;
   markers?: (Marker & { delay?: number })[];
 }) {
+  const theme = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const globeRef = useRef<ReturnType<typeof createGlobe> | null>(null);
   const pointerInteracting = useRef<{ x: number; y: number } | null>(null);
@@ -30,7 +31,9 @@ export function Globe({
   const thetaOffsetRef = useRef(0);
   const [phi, setPhi] = useState(0);
   const [theta, setTheta] = useState(0.2);
-  const [dark, setDark] = useState(0);
+  const [dark, setDark] = useState(() =>
+    theme.palette.mode == 'dark' ? 1 : 0,
+  );
   const [diffuse, setDiffuse] = useState(1.2);
   const [mapSamples, setMapSamples] = useState(16000);
   const [mapBrightness, setMapBrightness] = useState(6);
@@ -44,6 +47,29 @@ export function Globe({
   const [arcHeight, setArcHeight] = useState(0.25);
   const [arcWidth, setArcWidth] = useState(0.4);
   const [autoRotate, setAutoRotate] = useState(() => autoRotateInit);
+  const [baseColor, setBaseColor] = useState<[number, number, number]>(() =>
+    theme.palette.mode == 'dark' ? [0.3, 0.3, 0.3] : [1, 1, 1],
+  );
+  const [markerColor, setMarkerColor] = useState<[number, number, number]>(
+    () => (theme.palette.mode == 'dark' ? [1, 0.5, 1] : [0.3, 0.5, 1]),
+  );
+  const [glowColor, setGlowColor] = useState<[number, number, number]>(() =>
+    theme.palette.mode == 'dark' ? [0.1, 0.1, 0.1] : [1, 1, 1],
+  );
+
+  useEffect(() => {
+    if (theme.palette.mode === 'dark') {
+      setDark(1);
+      setBaseColor([0.3, 0.3, 0.3]);
+      setMarkerColor([1, 0.5, 1]);
+      setGlowColor([0.1, 0.1, 0.1]);
+    } else {
+      setDark(0);
+      setBaseColor([1, 1, 1]);
+      setMarkerColor([0.3, 0.5, 1]);
+      setGlowColor([1, 1, 1]);
+    }
+  }, [theme.palette.mode]);
 
   const stateRef = useRef({
     phi,
@@ -62,11 +88,11 @@ export function Globe({
     arcHeight,
     arcWidth,
     autoRotate,
-    baseColor: [1, 1, 1] as [number, number, number], // playgroundPresets.default.baseColor,
-    markerColor: [0.3, 0.5, 1] as [number, number, number], // playgroundPresets.default.markerColor,
+    baseColor, // [1, 1, 1] as [number, number, number], // playgroundPresets.default.baseColor,
+    markerColor, // : [0.3, 0.5, 1] as [number, number, number], // playgroundPresets.default.markerColor,
     markers: markers, // markerPresets['World Cities'].markers,
     arcs: [], // markerPresets['World Cities'].arcs,
-    glowColor: [1, 1, 1] as [number, number, number], // playgroundPresets.default.glowColor,
+    glowColor, // : [1, 1, 1] as [number, number, number], // playgroundPresets.default.glowColor,
   });
 
   useEffect(() => {
@@ -87,9 +113,9 @@ export function Globe({
       arcHeight,
       arcWidth,
       autoRotate,
-      baseColor: [1, 1, 1] as [number, number, number], // playgroundPresets[preset].baseColor,
-      markerColor: [0.3, 0.5, 1] as [number, number, number], // playgroundPresets[preset].markerColor,
-      glowColor: [1, 1, 1] as [number, number, number], // playgroundPresets[preset].glowColor,
+      baseColor, // : [1, 1, 1] as [number, number, number], // playgroundPresets[preset].baseColor,
+      markerColor, // : [0.3, 0.5, 1] as [number, number, number], // playgroundPresets[preset].markerColor,
+      glowColor, // : [1, 1, 1] as [number, number, number], // playgroundPresets[preset].glowColor,
       markers: markers, // markerPresets[markerPreset].markers,
       arcs: [], // markerPresets[markerPreset].arcs,
     };
@@ -110,6 +136,9 @@ export function Globe({
     arcHeight,
     arcWidth,
     autoRotate,
+    baseColor,
+    markerColor,
+    glowColor,
   ]);
 
   useEffect(() => {
