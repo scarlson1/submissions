@@ -229,6 +229,7 @@ export const Header = (props: HeaderProps) => {
         borderLeft: 'none',
         borderRight: 'none',
         borderTop: 'none',
+        zIndex: (theme) => theme.zIndex.appBar,
         // borderColor: 'divider',
       }}
     >

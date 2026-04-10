@@ -1073,9 +1073,9 @@ function LocationsGlobe({ autoRotate }: { autoRotate?: boolean }) {
   ]);
 
   const markers = useMemo(() => {
-    let m: Marker[] = [];
+    let m: (Marker & { delay?: number })[] = [];
     policies.forEach((p) => {
-      Object.entries(p.locations).forEach(([lcnId, lcn]) => {
+      Object.entries(p.locations).forEach(([lcnId, lcn], i) => {
         m.push({
           id: lcnId,
           location: [lcn.coords.latitude, lcn.coords.longitude] as [
@@ -1083,6 +1083,7 @@ function LocationsGlobe({ autoRotate }: { autoRotate?: boolean }) {
             number,
           ],
           size: 0.04,
+          delay: (i % 4) / 2,
         });
       });
     });
