@@ -227,8 +227,8 @@ export const usePreviewChangeRequest = (
         }
 
         for (let [lcnId, lcn] of Object.entries(lcns)) {
-          // @ts-ignore
           let endorsementChanges = get(
+            // @ts-ignore
             request.endorsementChanges || {},
             `${lcnId}`,
             {},
