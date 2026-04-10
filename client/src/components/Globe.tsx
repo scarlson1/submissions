@@ -20,7 +20,7 @@ export function Globe({
   //   height: number;
   //   width: number;
   autoRotate?: boolean;
-  markers?: (Marker & { delay: number })[];
+  markers?: (Marker & { delay?: number })[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const globeRef = useRef<ReturnType<typeof createGlobe> | null>(null);
@@ -28,8 +28,6 @@ export function Globe({
   const dragOffset = useRef({ phi: 0, theta: 0 });
   const phiRef = useRef(0);
   const thetaOffsetRef = useRef(0);
-  const [preset, setPreset] = useState<string>('default'); // keyof typeof playgroundPresets
-  const [markerPreset, setMarkerPreset] = useState<string>('World Cities'); // keyof typeof markerPresets
   const [phi, setPhi] = useState(0);
   const [theta, setTheta] = useState(0.2);
   const [dark, setDark] = useState(0);
@@ -112,8 +110,6 @@ export function Globe({
     arcHeight,
     arcWidth,
     autoRotate,
-    preset,
-    markerPreset,
   ]);
 
   useEffect(() => {

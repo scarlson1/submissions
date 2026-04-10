@@ -15,8 +15,6 @@ import {
   MenuItem,
   Typography,
 } from '@mui/material';
-import { User } from 'firebase/auth';
-import { QueryFieldFilterConstraint, where } from 'firebase/firestore';
 import { UploadResult } from 'firebase/storage';
 import { camelCase } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
@@ -39,6 +37,7 @@ import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PoliciesGrid } from 'elements/grids';
 import { PoliciesMap } from 'elements/maps';
 import { DataViewType, TDataViewType, useAsyncToast, useClaims } from 'hooks';
+import { getPoliciesQueryProps } from 'modules/db/query';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { createPath, ROUTES } from 'router';
@@ -91,45 +90,16 @@ function getLayoutProps(claims: {
   return props;
 }
 
-function getQueryProps(
-  user: User,
-  claims: {
-    iDemandAdmin: boolean;
-    orgAdmin: boolean;
-    agent: boolean;
-  },
-): { constraints: QueryFieldFilterConstraint[] } {
-  let props: { constraints: QueryFieldFilterConstraint[] } = {
-    constraints: [],
-  };
-  if (claims?.iDemandAdmin) {
-    props = {
-      constraints: [],
-    };
-  } else if (claims?.orgAdmin && user.tenantId) {
-    props = {
-      constraints: [where('agency.orgId', '==', `${user.tenantId}`)],
-    };
-  } else if (claims?.agent) {
-    props = {
-      constraints: [where('agent.userId', '==', user.uid)],
-    };
-  } else {
-    props = {
-      constraints: [where('namedInsured.userId', '==', user.uid)],
-      // constraints: [where('userId', '==', user.uid)],
-    };
-  }
-  return props;
-}
-
 export const Policies = () => {
   const navigate = useNavigate();
   const { claims, user } = useClaims();
   invariant(user);
 
   const layoutProps = useMemo(() => getLayoutProps(claims), [claims]);
-  const queryProps = useMemo(() => getQueryProps(user, claims), [user, claims]);
+  const queryProps = useMemo(
+    () => getPoliciesQueryProps(user, claims),
+    [user, claims],
+  );
 
   const handleViewPolicy = useCallback(
     (policyId: string) => {
