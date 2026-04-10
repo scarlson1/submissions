@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 
-import { Editor } from '@tiptap/react';
-import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import { RedoRounded, UndoRounded } from '@mui/icons-material';
+import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
+import { Editor } from '@tiptap/react';
 
 import { toggleButtonGroupStyle } from './common';
 
@@ -12,9 +12,11 @@ export interface HistoryToolbarProps {
 
 export const HistoryToolbar = ({ editor }: HistoryToolbarProps) => {
   const handleUndo = useCallback(() => {
+    // @ts-expect-error
     editor?.chain().focus().undo().run();
   }, [editor]);
   const handleRedo = useCallback(() => {
+    // @ts-expect-error
     editor?.chain().focus().redo().run();
   }, [editor]);
 
@@ -36,6 +38,7 @@ export const HistoryToolbar = ({ editor }: HistoryToolbarProps) => {
           border: 'none !important',
         }}
         onClick={handleUndo}
+        // @ts-expect-error
         disabled={!editor.can().chain().focus().undo().run()}
         // TooltipProps={{ title: 'undo' }}
       >
@@ -52,6 +55,7 @@ export const HistoryToolbar = ({ editor }: HistoryToolbarProps) => {
           border: 'none !important',
         }}
         onClick={handleRedo}
+        // @ts-expect-error
         disabled={!editor.can().chain().focus().redo().run()}
         // TooltipProps={{ title: 'redo' }}
       >

@@ -6,7 +6,9 @@ import { useDebounce } from 'hooks/utils';
 import { BaseHit, SearchResults } from './SearchResults';
 
 // filter users ex: filters: 'collectionName:users',
-type SearchProps = Omit<SearchOptions, 'query'> & { onSelect: (item: Hit<BaseHit>) => void };
+type SearchProps = Omit<SearchOptions, 'query'> & {
+  onSelect: (item: Hit<BaseHit>) => void;
+};
 
 export default function Search(props: SearchProps) {
   const [query, setQuery] = useState('');
@@ -19,9 +21,17 @@ export default function Search(props: SearchProps) {
 
   return (
     <div>
-      <TextField onChange={handleOnChange} value={query} placeholder='Search records' />
+      <TextField
+        onChange={handleOnChange}
+        value={query}
+        placeholder='Search records'
+      />
       <Suspense fallback={(() => 'loading...')()}>
-        <SearchResults query={debouncedQuery} {...props} />
+        <SearchResults
+          query={debouncedQuery}
+          {...props}
+          indexName='do_not_use__use_typesense_instead'
+        />
       </Suspense>
     </div>
   );

@@ -1,7 +1,12 @@
-import { Basement, FloodZone, PriorLossCount, State } from '@idemand/common';
+import {
+  Basement,
+  FloodZone,
+  PriorLossCount,
+  State,
+  type DeepNullable,
+} from '@idemand/common';
 import { toLower, toUpper } from 'lodash-es';
 import {
-  DeepNullable,
   extractNumber,
   extractNumberNeg,
   mgaOrgId,

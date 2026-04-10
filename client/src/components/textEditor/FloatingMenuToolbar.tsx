@@ -1,5 +1,5 @@
-import { FloatingMenu, Editor } from '@tiptap/react';
 import { Button } from '@mui/material';
+import { Editor, FloatingMenu } from '@tiptap/react';
 
 const buttonProps = {
   m: 0.25,
@@ -25,6 +25,7 @@ export const FloatingMenuToolbar = ({ editor }: FloatingMenuToolbarProps) => {
       <Button
         size='small'
         variant='outlined'
+        // @ts-expect-error
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         // selected={editor.isActive('heading', { level: 1 })}
         sx={{ ...buttonProps }}
@@ -34,6 +35,7 @@ export const FloatingMenuToolbar = ({ editor }: FloatingMenuToolbarProps) => {
       <Button
         size='small'
         variant='outlined'
+        // @ts-expect-error
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         // selected={editor.isActive('heading', { level: 2 })}
         sx={{ ...buttonProps }}
@@ -43,6 +45,7 @@ export const FloatingMenuToolbar = ({ editor }: FloatingMenuToolbarProps) => {
       <Button
         size='small'
         variant='outlined'
+        // @ts-expect-error
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         // selected={editor.isActive('heading', { level: 2 })}
         sx={{ ...buttonProps }}

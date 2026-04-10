@@ -31,8 +31,14 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import {
+import type {
   Address,
+  Coords,
+  Nullable,
+  Optional,
+  WithId,
+} from '@idemand/common';
+import {
   AgencyDetails,
   AgentDetails,
   Basement,
@@ -40,12 +46,9 @@ import {
   CBRSDesignation,
   Collection,
   CommSource,
-  Coordinates,
   FloodZone,
   Limits,
   NamedInsuredDetails,
-  Nullable,
-  Optional,
   Organization,
   orgsCollection,
   PriorLossCount,
@@ -59,7 +62,6 @@ import {
   typesenseIndexName,
   User,
   ValueByRiskType,
-  type WithId,
 } from 'common';
 import { ErrorFallback, IconButtonMenu } from 'components';
 import {
@@ -124,7 +126,7 @@ import { getQuoteValidation } from './validation';
 
 export interface QuoteValues {
   address: Address;
-  coordinates: Nullable<Coordinates>;
+  coordinates: Nullable<Coords>;
   homeState: string;
   limits: Limits;
   deductible: number;

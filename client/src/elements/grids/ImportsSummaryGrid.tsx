@@ -4,14 +4,16 @@ import { capitalize } from 'lodash';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { CLAIMS, ImportSummary, ServerDataGridCollectionProps, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { CLAIMS, ImportSummary, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
 import { importSummaryCols } from 'modules/muiGrid';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
 
-export type ImportSummaryGridProps = ServerDataGridCollectionProps<ImportSummary>;
+export type ImportSummaryGridProps =
+  ServerDataGridCollectionProps<ImportSummary>;
 
 export const ImportsSummaryGrid = ({
   renderActions = () => [],
@@ -22,7 +24,7 @@ export const ImportsSummaryGrid = ({
     'dataImports',
     { showInMenu: false },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
-    getImportSummaryTitle
+    getImportSummaryTitle,
   );
 
   const importColumns = useMemo(
@@ -39,7 +41,7 @@ export const ImportsSummaryGrid = ({
       },
       ...importSummaryCols,
     ],
-    [renderActions, renderShowJson]
+    [renderActions, renderShowJson],
   );
 
   return (
@@ -64,7 +66,7 @@ export const ImportsSummaryGrid = ({
             createPath({
               path: ADMIN_ROUTES.IMPORT_REVIEW,
               params: { importId: params.id.toString() },
-            })
+            }),
           )
         }
         {...props}
@@ -75,6 +77,8 @@ export const ImportsSummaryGrid = ({
 
 function getImportSummaryTitle(data: WithId<ImportSummary>) {
   return `${capitalize(data.targetCollection)} import ${
-    data.metadata?.created ? formatFirestoreTimestamp(data.metadata?.created, 'date') : ''
+    data.metadata?.created
+      ? formatFirestoreTimestamp(data.metadata?.created, 'date')
+      : ''
   }`.trim();
 }

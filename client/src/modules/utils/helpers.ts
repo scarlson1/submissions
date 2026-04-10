@@ -5,8 +5,8 @@ import {
   GridValueGetterParams,
 } from '@mui/x-data-grid';
 import {
-  Duration,
   add,
+  Duration,
   endOfToday,
   format,
   formatDistance,
@@ -18,7 +18,7 @@ import type { AuthError } from 'firebase/auth';
 import {
   FirestoreError,
   GeoPoint,
-  Timestamp,
+  // Timestamp,
   WhereFilterOp,
 } from 'firebase/firestore';
 import { geohashForLocation } from 'geofire-common';
@@ -39,8 +39,8 @@ import numeral from 'numeral';
 import { toast } from 'react-hot-toast';
 import { Location } from 'react-router-dom';
 
+import type { Address, Timestamp } from '@idemand/common';
 import {
-  Address,
   CompressedAddress,
   FlattenObjectKeys,
   Path,
@@ -234,7 +234,7 @@ export const formatDate = (date: Date, options: string = 'MMM dd, yyyy') => {
  * @return {string} date string (5 hours ago or Oct. 6, 1995)
  */
 export const formatFirestoreTimestamp = (
-  ts?: Timestamp | null | undefined,
+  ts?: Timestamp | null | undefined, // Timestamp | null | undefined,
   formatType: 'date' | 'relative' = 'relative',
 ) => {
   if (!ts) return '';
@@ -915,7 +915,7 @@ export const logDev = (...props: any[]) => {
  * @returns {Array} return array of arrays of "size" length
  */
 export function splitChunks<T = any>(data: T[], size: number) {
-  let chunks = [];
+  let chunks: T[][] = [];
   // for (let i = 0; i < data.length; i += size) chunks.push(data.slice(i, i + size));
   if (size < 1)
     throw new Error('splitChunks array size must be a positive number');

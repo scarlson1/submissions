@@ -6,14 +6,14 @@ import { useClaims, useDocDataOnce, useWizard } from 'hooks';
 import { useCallback, useMemo } from 'react';
 import { date, number, object, string } from 'yup';
 
+import type { Nullable } from '@idemand/common';
 import {
   AllowString,
   Basement,
-  Nullable,
   Policy,
   PriorLossCount,
-  RatingPropertyData,
   priorLossVal,
+  RatingPropertyData,
 } from 'common';
 import {
   FormikDatePicker,
@@ -33,16 +33,29 @@ import { BaseStepProps } from './AddLocationWizard';
 
 const currentYear = new Date().getFullYear();
 const addLocationRatingPropertyVal = object().shape({
-  effectiveDate: date().typeError('effective date required').required('effective date required'), // BUG: causing error ("effectiveDate must be a `date` type, but the final value was: `Invalid Date`.")
+  effectiveDate: date()
+    .typeError('effective date required')
+    .required('effective date required'), // BUG: causing error ("effectiveDate must be a `date` type, but the final value was: `Invalid Date`.")
   ratingPropertyData: object().shape({
-    basement: string().typeError('basement required').required('basement required'),
+    basement: string()
+      .typeError('basement required')
+      .required('basement required'),
     priorLossCount: priorLossVal
       .typeError('prior loss count required')
       .required('prior loss history required'),
-    numStories: number().typeError('# stories required').required('# stories required'),
-    replacementCost: number().min(100000).typeError('replacement cost est. required').required(),
+    numStories: number()
+      .typeError('# stories required')
+      .required('# stories required'),
+    replacementCost: number()
+      .min(100000)
+      .typeError('replacement cost est. required')
+      .required(),
     sqFootage: number().min(500).typeError('sq. footage required').required(),
-    yearBuilt: number().min(1900).max(currentYear).typeError('year built required').required(),
+    yearBuilt: number()
+      .min(1900)
+      .max(currentYear)
+      .typeError('year built required')
+      .required(),
   }),
 });
 
@@ -51,7 +64,12 @@ export interface RatingDataValues {
   ratingPropertyData: AllowString<
     Pick<
       Nullable<RatingPropertyData>,
-      'basement' | 'replacementCost' | 'sqFootage' | 'yearBuilt' | 'priorLossCount' | 'numStories'
+      | 'basement'
+      | 'replacementCost'
+      | 'sqFootage'
+      | 'yearBuilt'
+      | 'priorLossCount'
+      | 'numStories'
     >
   >;
 }
@@ -74,7 +92,10 @@ export function PropertyRatingDataStep({
   const { data: policy } = useDocDataOnce<Policy>('policies', policyId);
 
   const handleStepSubmit = useCallback(
-    async (values: RatingDataValues, { setSubmitting }: FormikHelpers<RatingDataValues>) => {
+    async (
+      values: RatingDataValues,
+      { setSubmitting }: FormikHelpers<RatingDataValues>,
+    ) => {
       try {
         if (!values.effectiveDate) throw new Error('effective date required');
         setSubmitting(true);
@@ -98,13 +119,16 @@ export function PropertyRatingDataStep({
         setSubmitting(false);
       }
     },
-    [saveChangeRequest, calcChanges, onError, nextStep]
+    [saveChangeRequest, calcChanges, onError, nextStep],
   );
 
   const { minEffDate, maxEffDate } = useMemo(() => {
     const minEffDate = claims?.iDemandAdmin
       ? policy.effectiveDate?.toDate()
-      : max([add(startOfDay(new Date()), { days: 15 }), policy.effectiveDate.toDate()]);
+      : max([
+          add(startOfDay(new Date()), { days: 15 }),
+          policy.effectiveDate.toDate(),
+        ]);
 
     const maxEffDate = startOfDay(policy.expirationDate.toDate());
 
@@ -122,14 +146,19 @@ export function PropertyRatingDataStep({
       {({ handleSubmit, submitForm }) => (
         <Form onSubmit={handleSubmit}>
           <Box sx={{ py: 5 }}>
-            <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 4, sm: 6, md: 7 }}>
+            <Grid
+              container
+              rowSpacing={{ xs: 3, sm: 4 }}
+              columnSpacing={{ xs: 4, sm: 6, md: 7 }}
+            >
               <Grid xs={12} sx={{ mb: 3 }}>
                 <Typography color='text.secondary' gutterBottom>
                   Please confirm/complete a few details about your property.
                 </Typography>
                 <Typography color='text.secondary' gutterBottom>
-                  The <i>Location Effective Date</i> is the date you would like coverage to begin
-                  for this location. The expiration date will be inherited from the existing policy.
+                  The <i>Location Effective Date</i> is the date you would like
+                  coverage to begin for this location. The expiration date will
+                  be inherited from the existing policy.
                 </Typography>
               </Grid>
               <Grid xs={6} sm={4} md={3}>
@@ -203,7 +232,12 @@ export function PropertyRatingDataStep({
                   required
                   maskComponent={IMask}
                   inputProps={{
-                    maskProps: { mask: Number, max: 9999, thousandsSeparator: ',', unmask: true },
+                    maskProps: {
+                      mask: Number,
+                      max: 9999,
+                      thousandsSeparator: ',',
+                      unmask: true,
+                    },
                   }}
                 />
               </Grid>

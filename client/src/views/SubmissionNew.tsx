@@ -1,5 +1,5 @@
 import { Box, Container, Tooltip, Typography } from '@mui/material';
-import { GeoPoint, Timestamp, addDoc, doc, getDoc } from 'firebase/firestore';
+import { addDoc, doc, GeoPoint, getDoc, Timestamp } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { ceil, isEqual } from 'lodash';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -17,33 +17,36 @@ import {
   PriorFloodLossStep,
   ReviewStep,
 } from 'elements/forms';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 // import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
+import type { Address, Coords, Nullable, Organization } from '@idemand/common';
 import {
-  Address,
-  Coordinates,
-  ElevationResult,
-  Limits,
-  NamedInsuredDetails,
-  Nullable,
-  RatingPropertyData,
-  SUBMISSION_STATUS,
-  TBasement,
-  TPriorLossCount,
   addressValidationActiveStatesNested,
   buildingDetailsValidation,
   contactValidationNested,
   deductibleValidation,
+  ElevationResult,
   exclusionsValidation,
+  Limits,
   limitsValidationNested,
+  NamedInsuredDetails,
   orgsCollection,
   priorLossValidation,
+  RatingPropertyData,
   reviewValidation,
+  SUBMISSION_STATUS,
   submissionsCollection,
+  TBasement,
+  TPriorLossCount,
 } from 'common';
 import { ErrorFallback } from 'components';
 import { useAuth } from 'context/AuthContext';
-import { useAsyncToast, useClaims, useDocData, usePropertyDetailsAttom } from 'hooks';
+import {
+  useAsyncToast,
+  useClaims,
+  useDocData,
+  usePropertyDetailsAttom,
+} from 'hooks';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { sumArr } from 'modules/utils';
 
@@ -66,7 +69,7 @@ const gridProps = {
 
 function useCreateSubmission(
   onSuccess?: (docId: string) => void,
-  onError?: (msg: string, err: any) => void
+  onError?: (msg: string, err: any) => void,
 ) {
   const firestore = useFirestore();
   const { user, claims, orgId } = useClaims();
@@ -87,7 +90,7 @@ function useCreateSubmission(
         rcvSourceUser: number | null;
         initRatingValues: InitRatingValues;
         elevationData: ElevationResult | null;
-      }
+      },
     ) => {
       try {
         if (!(values.coordinates.latitude && values.coordinates.longitude))
@@ -95,7 +98,7 @@ function useCreateSubmission(
         setLoading(true);
         // TODO: get org data from useClaims hook? or create useOrg hook
         // or add to use context
-        let org = null;
+        let org: Organization | null = null;
         if (orgId) {
           let snap = await getDoc(doc(orgsCollection(firestore), orgId));
           org = snap.exists() ? snap.data() : null;
@@ -105,7 +108,10 @@ function useCreateSubmission(
         const docRef = await addDoc(submissionsCollection(firestore), {
           ...values,
           product: 'flood',
-          coordinates: new GeoPoint(values.coordinates.latitude, values.coordinates.longitude),
+          coordinates: new GeoPoint(
+            values.coordinates.latitude,
+            values.coordinates.longitude,
+          ),
           status: SUBMISSION_STATUS.SUBMITTED,
           userId: user?.uid ?? null,
           agent: {
@@ -145,7 +151,7 @@ function useCreateSubmission(
         setLoading(false);
       }
     },
-    [firestore, user, claims, orgId, onSuccess, onError]
+    [firestore, user, claims, orgId, onSuccess, onError],
   );
 
   return { createSubmission, loading };
@@ -153,7 +159,7 @@ function useCreateSubmission(
 
 export interface FloodValues {
   address: Address;
-  coordinates: Nullable<Coordinates>;
+  coordinates: Nullable<Coords>;
   limits: Limits;
   deductible: number;
   exclusionsExist: boolean | null;
@@ -223,9 +229,14 @@ export const SubmissionNew = () => {
   const { createSubmission } = useCreateSubmission(
     (docId: string) => {
       // toast.success('saved!', { duration: 1000 });
-      navigate(createPath({ path: ROUTES.SUBMISSION_SUBMITTED, params: { submissionId: docId } }));
+      navigate(
+        createPath({
+          path: ROUTES.SUBMISSION_SUBMITTED,
+          params: { submissionId: docId },
+        }),
+      );
     },
-    (msg: string) => toast.error(msg)
+    (msg: string) => toast.error(msg),
   );
 
   const handleFetchProperty = useCallback(
@@ -251,7 +262,8 @@ export const SubmissionNew = () => {
           ...values,
           coordinates: {
             latitude: values.coordinates?.latitude ?? res.coordinates?.latitude,
-            longitude: values.coordinates?.longitude ?? res.coordinates?.longitude,
+            longitude:
+              values.coordinates?.longitude ?? res.coordinates?.longitude,
           },
           limits: {
             limitA: res.limitA ?? '250000',
@@ -270,7 +282,7 @@ export const SubmissionNew = () => {
         return values;
       }
     },
-    [fetchPropertyData]
+    [fetchPropertyData],
   );
 
   const handleOnToDeductible = useCallback(
@@ -279,11 +291,14 @@ export const SubmissionNew = () => {
       if (!initValues) return values;
 
       const initLimitNums = Object.values(initValues.limits).map((l) =>
-        typeof l === 'string' ? parseInt(l) : l
+        typeof l === 'string' ? parseInt(l) : l,
       );
       const initSum = sumArr([...initLimitNums]);
 
-      const defaultDeductible = ceil(initSum * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), -3);
+      const defaultDeductible = ceil(
+        initSum * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE),
+        -3,
+      );
 
       const userChangedDeductible = defaultDeductible !== values.deductible;
       if (userChangedDeductible) return values;
@@ -291,15 +306,21 @@ export const SubmissionNew = () => {
       const { limits } = values;
       const sumLimits = sumArr(Object.values(limits));
 
-      const newDeductible = ceil(sumLimits * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), -3);
+      const newDeductible = ceil(
+        sumLimits * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE),
+        -3,
+      );
 
       return { ...values, deductible: newDeductible };
     },
-    []
+    [],
   );
 
   const handleSubmit = useCallback(
-    async (values: FloodValues, { setSubmitting }: FormikHelpers<FloodValues>) => {
+    async (
+      values: FloodValues,
+      { setSubmitting }: FormikHelpers<FloodValues>,
+    ) => {
       await createSubmission(values, {
         propertyDetails,
         propertyDataDocId,
@@ -317,12 +338,12 @@ export const SubmissionNew = () => {
       propertyDataDocId,
       rcvSourceUser,
       elevationData,
-    ]
+    ],
   );
 
   const addressValidationSchema = useMemo(
     () => addressValidationActiveStatesNested(activeStates || {}),
-    [activeStates]
+    [activeStates],
   );
 
   // const handleErrorReset = useCallback((...details: unknown[]) => {
@@ -343,7 +364,9 @@ export const SubmissionNew = () => {
             initialValues={{
               ...initialValues,
               contact: {
-                firstName: user?.displayName ? `${user?.displayName.split(' ')[0]}`.trim() : '',
+                firstName: user?.displayName
+                  ? `${user?.displayName.split(' ')[0]}`.trim()
+                  : '',
                 lastName:
                   user?.displayName && user?.displayName.split(' ').length > 1
                     ? `${user?.displayName.split(' ')[1]}`.trim()
@@ -477,8 +500,8 @@ export const SubmissionNew = () => {
                 }}
               >
                 <Typography variant='body1' color='text.secondary' gutterBottom>
-                  How many losses has the property had in the past 10 years that were caused by
-                  flooding?
+                  How many losses has the property had in the past 10 years that
+                  were caused by flooding?
                 </Typography>
                 <Box sx={{ mx: 'auto', pt: 3 }}>
                   <PriorFloodLossStep />
@@ -492,7 +515,12 @@ export const SubmissionNew = () => {
                   title={`This can be any valid email to which you have access. It is only used to deliver the quote. It does not need to be the policy holder or agent.`}
                   placement='top-end'
                 >
-                  <Typography variant='h6' gutterBottom align='center' sx={{ my: 3 }}>
+                  <Typography
+                    variant='h6'
+                    gutterBottom
+                    align='center'
+                    sx={{ my: 3 }}
+                  >
                     Where should we send the quote?
                   </Typography>
                 </Tooltip>

@@ -12,14 +12,14 @@ import {
   Quote,
   RatingPropertyData,
   State,
+  type DeepNullable,
+  type Nullable,
 } from '@idemand/common';
 import {
-  DeepNullable,
-  Nullable,
-  QUOTE_STATUS,
   extractNumber,
   extractNumberNeg,
   getCardFee,
+  QUOTE_STATUS,
 } from '../../common/index.js';
 import { createDocId } from '../../modules/db/utils.js';
 import { CSVQuoteRow, CSVTransformedQuote } from '../models/index.js';
@@ -30,7 +30,9 @@ import { getFormattedFees } from './policy.js';
  * @param {CSVQuoteRow} row csv row after headers converted (if header transform provided)
  * @returns {CSVTransformedQuote} values shaped as quote, null if not provided
  */
-export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformedQuote> {
+export function transformQuoteRow(
+  row: CSVQuoteRow,
+): DeepNullable<CSVTransformedQuote> {
   const limits: Quote['limits'] = {
     limitA: row.limitA ? extractNumber(row.limitA) : 0,
     limitB: row.limitB ? extractNumber(row.limitB) : 0,
@@ -59,18 +61,24 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
 
   const latitude = row.latitude ? extractNumberNeg(row.latitude) : null;
   const longitude = row.longitude ? extractNumberNeg(row.longitude) : null;
-  const coordinates = latitude && longitude ? new GeoPoint(latitude, longitude) : null;
+  const coordinates =
+    latitude && longitude ? new GeoPoint(latitude, longitude) : null;
 
-  const geoHash = latitude && longitude ? geohashForLocation([latitude, longitude]) : null;
+  const geoHash =
+    latitude && longitude ? geohashForLocation([latitude, longitude]) : null;
 
   const ratingPropertyData: Nullable<RatingPropertyData> = {
     CBRSDesignation: (row.cbrsDesignation as CBRSDesignation) || null,
     basement: (row.basement as Basement) || null,
-    distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : null,
+    distToCoastFeet: row.distToCoastFeet
+      ? extractNumber(row.distToCoastFeet)
+      : null,
     floodZone: (row.floodZone as FloodZone) || null,
     numStories: row.numStories ? extractNumber(row.numStories) : null,
     propertyCode: row.propertyCode || null,
-    replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : null,
+    replacementCost: row.replacementCost
+      ? extractNumber(row.replacementCost)
+      : null,
     sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : null,
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : null,
     FFH: row.ffh ? extractNumber(row.ffh) : null,
@@ -86,12 +94,18 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
 
   const premCalcData = {
     techPremium: {
-      inland: row.techPremiumInland ? extractNumber(row.techPremiumInland) : null,
+      inland: row.techPremiumInland
+        ? extractNumber(row.techPremiumInland)
+        : null,
       surge: row.techPremiumSurge ? extractNumber(row.techPremiumSurge) : null,
-      tsunami: row.techPremiumTsunami ? extractNumber(row.techPremiumTsunami) : null,
+      tsunami: row.techPremiumTsunami
+        ? extractNumber(row.techPremiumTsunami)
+        : null,
     },
     MGACommission: row.mgaCommission ? extractNumber(row.mgaCommission) : null,
-    MGACommissionPct: row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null,
+    MGACommissionPct: row.mgaCommissionPct
+      ? extractNumber(row.mgaCommissionPct)
+      : null,
     annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : null,
   };
 

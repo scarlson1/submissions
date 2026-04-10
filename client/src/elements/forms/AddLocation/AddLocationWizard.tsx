@@ -1,10 +1,11 @@
-import { DocumentReference, Timestamp, setDoc } from 'firebase/firestore';
+import { DocumentReference, setDoc, Timestamp } from 'firebase/firestore';
 import { FormikConfig } from 'formik';
 import { useCallback, useMemo } from 'react';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
+import type { OptionalKeys } from '@idemand/common';
 import { calcAddLocation } from 'api';
-import { AddLocationRequest, DraftAddLocationRequest, OptionalKeys } from 'common';
+import { AddLocationRequest, DraftAddLocationRequest } from 'common';
 import { Wizard } from 'components/forms';
 import { useAsyncToast } from 'hooks';
 import { createChangeRequest } from 'modules/db';
@@ -12,8 +13,11 @@ import { AddressStep, AddressValues } from './AddressStep';
 import { BillingEntityStep } from './BillingEntityStep';
 import { DeductibleStep, DeductibleValues } from './DeductibleStep';
 import { Header } from './Header';
-import { LimitValues, LimitsStep } from './LimitsStep';
-import { PropertyRatingDataStep, RatingDataValues } from './PropertyRatingDataStep';
+import { LimitsStep, LimitValues } from './LimitsStep';
+import {
+  PropertyRatingDataStep,
+  RatingDataValues,
+} from './PropertyRatingDataStep';
 import { ReviewStep } from './ReviewStep';
 import { SubmittedStep } from './SubmittedStep';
 
@@ -25,10 +29,15 @@ export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
   onError?: (msg: string) => void;
 }
 
-export type AddLocationValues = AddressValues & LimitValues & DeductibleValues & RatingDataValues;
+export type AddLocationValues = AddressValues &
+  LimitValues &
+  DeductibleValues &
+  RatingDataValues;
 
-interface AddLocationFormProps
-  extends OptionalKeys<FormikConfig<AddLocationValues>, 'initialValues' | 'onSubmit'> {
+interface AddLocationFormProps extends OptionalKeys<
+  FormikConfig<AddLocationValues>,
+  'initialValues' | 'onSubmit'
+> {
   // product: Product; // get from policy ??
   policyId: string; // get policyId from resource ??
   // changeRequestId: string;
@@ -46,7 +55,8 @@ export const AddLocationWizard = ({
   const changeRequestRef =
     changeRequestDocResource.read() as DocumentReference<DraftAddLocationRequest>;
 
-  const { data } = useFirestoreDocData<DraftAddLocationRequest>(changeRequestRef);
+  const { data } =
+    useFirestoreDocData<DraftAddLocationRequest>(changeRequestRef);
   const toast = useAsyncToast({ position: 'top-right' });
 
   // TODO: validate status === draft (throw and handle in Error Boundary)
@@ -54,13 +64,15 @@ export const AddLocationWizard = ({
   const serverValues = useMemo(() => data?.formValues || null, [data]);
 
   const saveChangeRequest = useCallback(
-    async (values: AddressValues | LimitValues | DeductibleValues | RatingDataValues) =>
+    async (
+      values: AddressValues | LimitValues | DeductibleValues | RatingDataValues,
+    ) =>
       await setDoc(
         changeRequestRef,
         { formValues: values, metadata: { updated: Timestamp.now() } },
-        { merge: true }
+        { merge: true },
       ),
-    [changeRequestRef]
+    [changeRequestRef],
   );
 
   // After deductible step --> calc rating, location values, policy changes, etc. (complete change request interface) --> onSubmit --> change status to submitted
@@ -85,16 +97,16 @@ export const AddLocationWizard = ({
           },
           metadata: { updated: Timestamp.now() },
         },
-        { merge: true }
+        { merge: true },
       ),
-    [changeRequestRef, user]
+    [changeRequestRef, user],
   );
 
   const handleError = useCallback(
     (msg: string) => {
       toast.error(msg);
     },
-    [toast]
+    [toast],
   );
 
   return (
@@ -125,7 +137,10 @@ export const AddLocationWizard = ({
         onError={handleError}
       />
       <LimitsStep
-        replacementCost={(serverValues?.ratingPropertyData?.replacementCost as number) || undefined}
+        replacementCost={
+          (serverValues?.ratingPropertyData?.replacementCost as number) ||
+          undefined
+        }
         saveChangeRequest={saveChangeRequest}
         initialValues={{
           limits: {
@@ -163,11 +178,15 @@ export const AddLocationWizard = ({
             // floodZone: serverValues?.ratingPropertyData?.floodZone || null,
             numStories: serverValues?.ratingPropertyData?.numStories || '',
             // propertyCode: serverValues?.ratingPropertyData?.propertyCode || null,
-            replacementCost: serverValues?.ratingPropertyData?.replacementCost || '',
-            sqFootage: `${serverValues?.ratingPropertyData?.sqFootage || ''}` as unknown as number,
-            yearBuilt: `${serverValues?.ratingPropertyData?.yearBuilt || ''}` as unknown as number,
+            replacementCost:
+              serverValues?.ratingPropertyData?.replacementCost || '',
+            sqFootage:
+              `${serverValues?.ratingPropertyData?.sqFootage || ''}` as unknown as number,
+            yearBuilt:
+              `${serverValues?.ratingPropertyData?.yearBuilt || ''}` as unknown as number,
             // FFH: serverValues?.ratingPropertyData?.FFH || null,
-            priorLossCount: serverValues?.ratingPropertyData?.priorLossCount || '',
+            priorLossCount:
+              serverValues?.ratingPropertyData?.priorLossCount || '',
           },
         }}
         onError={handleError}

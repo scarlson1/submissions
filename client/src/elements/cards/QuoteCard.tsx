@@ -14,7 +14,8 @@ import {
 import { noop } from 'lodash';
 import { useMemo } from 'react';
 
-import { QUOTE_STATUS, Quote, WithId, fallbackImages } from 'common';
+import type { WithId } from '@idemand/common';
+import { fallbackImages, Quote, QUOTE_STATUS } from 'common';
 import { FlexCard } from 'components';
 import { FlexCardContent, FlexCardContentWrapper } from 'components/FlexCard';
 import { dollarFormat, getQuoteStatus } from 'modules/utils';
@@ -70,12 +71,16 @@ export function QuoteCard({ data, onClick = noop }: QuoteCardProps) {
           sx={{ height: 140, flex: '0 0 auto', position: 'relative' }}
           // TODO: get random fallback img
           image={
-            (theme.palette.mode === 'dark' ? data.imageURLs?.dark : data.imageURLs?.light) ||
-            fallbackImages[0]
+            (theme.palette.mode === 'dark'
+              ? data.imageURLs?.dark
+              : data.imageURLs?.light) || fallbackImages[0]
           }
           title={`${data?.address?.addressLine1} map`}
         />
-        <CardActionArea onClick={() => onClick(data.id)} sx={{ flex: '1 0 auto' }}>
+        <CardActionArea
+          onClick={() => onClick(data.id)}
+          sx={{ flex: '1 0 auto' }}
+        >
           <FlexCardContent sx={{ height: '100%' }}>
             <Box
               sx={{
@@ -89,22 +94,39 @@ export function QuoteCard({ data, onClick = noop }: QuoteCardProps) {
                 <Typography
                   fontWeight={900}
                   fontSize={24}
-                  sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
                   {data?.address?.addressLine1}
                 </Typography>
-                <Item label='Building' value={`${dollarFormat(data?.limits?.limitA || 0)}`} />
+                <Item
+                  label='Building'
+                  value={`${dollarFormat(data?.limits?.limitA || 0)}`}
+                />
                 <Item
                   label="Add'l Structures"
                   value={`${dollarFormat(data?.limits?.limitB || 0)}`}
                 />
-                <Item label='Contents' value={`${dollarFormat(data?.limits?.limitC || 0)}`} />
-                <Item label='BI' value={`${dollarFormat(data?.limits?.limitD || 0)}`} />
+                <Item
+                  label='Contents'
+                  value={`${dollarFormat(data?.limits?.limitC || 0)}`}
+                />
+                <Item
+                  label='BI'
+                  value={`${dollarFormat(data?.limits?.limitD || 0)}`}
+                />
               </Box>
               <Box>
                 <Divider light sx={{ my: { xs: 3, md: 4 } }} />
                 <Box
-                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
                 >
                   <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
                     {data.namedInsured ? (

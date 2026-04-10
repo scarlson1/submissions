@@ -1,14 +1,13 @@
+import type {
+  Address,
+  CompressedAddress,
+  Concrete,
+  Nullable,
+} from '@idemand/common';
 import { randomBytes } from 'crypto';
 import { info } from 'firebase-functions/logger';
 import { capitalize } from 'lodash-es';
 import { extname } from 'path';
-
-import {
-  Address,
-  CompressedAddress,
-  Nullable,
-  type Concrete,
-} from '../common/index.js';
 
 export function getFormattedAddress(addr: Nullable<Address>) {
   let formatted = `${addr?.addressLine1 || ''}`;

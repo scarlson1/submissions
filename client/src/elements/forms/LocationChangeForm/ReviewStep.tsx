@@ -1,4 +1,9 @@
-import { BedRounded, FenceRounded, HouseRounded, WeekendRounded } from '@mui/icons-material';
+import {
+  BedRounded,
+  FenceRounded,
+  HouseRounded,
+  WeekendRounded,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -17,21 +22,25 @@ import { isNumber, merge } from 'lodash';
 import { Fragment, ReactNode, useCallback, useMemo, useState } from 'react';
 import { useFirestore } from 'reactfire';
 
+import type { WithId } from '@idemand/common';
 import {
   AddLocationRequest,
   CancellationRequest,
   Collection,
   DraftAddLocationRequest,
+  fallbackImages,
   ILocation,
   PolicyChangeRequest,
-  WithId,
-  fallbackImages,
 } from 'common';
 import { WizardNavButtons } from 'components/forms';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
 import { useFirstRender } from 'hooks/utils';
 import { getAllById } from 'modules/db';
-import { deepMergeOverwriteArrays, dollarFormat, dollarFormat2 } from 'modules/utils';
+import {
+  deepMergeOverwriteArrays,
+  dollarFormat,
+  dollarFormat2,
+} from 'modules/utils';
 
 // async function getLocations(constraints: QueryConstraint[]) {
 //   const locationsCol = locationsCollection(getFirestore())
@@ -64,9 +73,12 @@ export function useChangeRequestReview(policyId: string, requestId: string) {
     'policies',
     policyId,
     Collection.Enum.changeRequests,
-    requestId
+    requestId,
   );
-  const [reqState, setReqState] = useState<{ loading: boolean; error: string | null }>({
+  const [reqState, setReqState] = useState<{
+    loading: boolean;
+    error: string | null;
+  }>({
     loading: false,
     error: null,
   });
@@ -88,8 +100,8 @@ export function useChangeRequestReview(policyId: string, requestId: string) {
         merge(
           data.endorsementChanges || {},
           data.amendmentChanges || {}, // @ts-ignore
-          data.cancellationChanges || {}
-        )
+          data.cancellationChanges || {},
+        ),
       );
       // let lcns = await getAll<ILocation>(firestore, 'LOCATIONS', lcnIds);
       // let lcnData = lcns.docs.map((l) => ({ id: l.id, ...l.data() }));
@@ -118,11 +130,11 @@ export function useChangeRequestReview(policyId: string, requestId: string) {
     let lcnChangesObj = merge(
       data.endorsementChanges || {},
       data.amendmentChanges || {}, // @ts-ignore
-      data.cancellationChanges || {}
+      data.cancellationChanges || {},
     );
 
     return locationData.map((l) =>
-      deepMergeOverwriteArrays(l, lcnChangesObj[l.id] || {})
+      deepMergeOverwriteArrays(l, lcnChangesObj[l.id] || {}),
     ) as WithId<ILocation>[];
   }, [locationData, data]);
 
@@ -135,8 +147,15 @@ interface ReviewStepProps {
   onSubmit: () => Promise<void>;
 }
 
-export const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) => {
-  const { changeRequest, locations, error } = useChangeRequestReview(policyId, requestId);
+export const ReviewStep = ({
+  policyId,
+  requestId,
+  onSubmit,
+}: ReviewStepProps) => {
+  const { changeRequest, locations, error } = useChangeRequestReview(
+    policyId,
+    requestId,
+  );
 
   // TODO: better loading state indication
   // if (loading)
@@ -155,7 +174,11 @@ export const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) =
     );
 
   return (
-    <ReviewStepComponent changeRequest={changeRequest} locations={locations} onSubmit={onSubmit} />
+    <ReviewStepComponent
+      changeRequest={changeRequest}
+      locations={locations}
+      onSubmit={onSubmit}
+    />
   );
 };
 
@@ -218,7 +241,10 @@ export const ReviewStepComponent = ({
           {isNumber(changeRequest.policyChanges?.termPremium) ? (
             <>
               <Grid xs={8}>
-                <Typography variant='body1' sx={{ pr: 2, display: 'inline-block' }}>
+                <Typography
+                  variant='body1'
+                  sx={{ pr: 2, display: 'inline-block' }}
+                >
                   Policy Term Premium
                 </Typography>
                 <Typography
@@ -232,7 +258,11 @@ export const ReviewStepComponent = ({
                 </Typography>
               </Grid>
               <Grid xs={4}>
-                <Typography variant='body1' fontWeight='fontWeightMedium' align='right'>
+                <Typography
+                  variant='body1'
+                  fontWeight='fontWeightMedium'
+                  align='right'
+                >
                   {dollarFormat2(changeRequest.policyChanges!.termPremium)}
                 </Typography>
               </Grid>
@@ -276,7 +306,11 @@ export const ReviewStepComponent = ({
                 <Typography variant='body1'>Policy Term Total</Typography>
               </Grid>
               <Grid xs={4}>
-                <Typography variant='body1' fontWeight='fontWeightMedium' align='right'>
+                <Typography
+                  variant='body1'
+                  fontWeight='fontWeightMedium'
+                  align='right'
+                >
                   {dollarFormat2(changeRequest.policyChanges.price)}
                 </Typography>
               </Grid>
@@ -336,7 +370,11 @@ export function LocationCard({
                   >
                     Annual Premium
                   </Typography>
-                  <Typography variant='subtitle1' align='right' sx={{ lineHeight: 1.2 }}>
+                  <Typography
+                    variant='subtitle1'
+                    align='right'
+                    sx={{ lineHeight: 1.2 }}
+                  >
                     {dollarFormat(location.annualPremium)}
                   </Typography>
                 </>
@@ -363,7 +401,10 @@ export function LocationCard({
           </Grid>
 
           <Grid xs='auto'>
-            <Tooltip title='Additional Structures Coverage Limit' placement='top'>
+            <Tooltip
+              title='Additional Structures Coverage Limit'
+              placement='top'
+            >
               <Chip
                 icon={<FenceRounded />}
                 label={dollarFormat(location.limits?.limitB)}

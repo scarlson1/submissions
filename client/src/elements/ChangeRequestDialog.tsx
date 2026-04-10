@@ -17,13 +17,19 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { GridActionsCellItem, GridCellParams, GridRowModel, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridCellParams,
+  GridRowModel,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
 import { isEqual } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import { CLAIMS, ChangeRequest, ChangeRequestStatus, Collection, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { ChangeRequest, ChangeRequestStatus, CLAIMS, Collection } from 'common';
 import { ErrorFallback } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';
@@ -44,7 +50,9 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   if (!user?.uid) throw new Error('must be signed in');
 
   const countConstraints = useMemo(() => {
-    let constraints = [where('status', '==', ChangeRequestStatus.enum.under_review)]; // TODO: different status depending on user ??
+    let constraints = [
+      where('status', '==', ChangeRequestStatus.enum.under_review),
+    ]; // TODO: different status depending on user ??
 
     if (policyId) {
       constraints.push(where('policyId', '==', policyId));
@@ -73,7 +81,11 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   //   pathSegments
   // );
 
-  const { data: count } = useDocCount(Collection.Enum.changeRequests, countConstraints, true);
+  const { data: count } = useDocCount(
+    Collection.Enum.changeRequests,
+    countConstraints,
+    true,
+  );
 
   const [open, setOpen] = useState(false);
 
@@ -82,7 +94,7 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
 
   return useMemo(
     () => ({ open, handleOpen, handleClose, count }),
-    [open, handleOpen, handleClose, count]
+    [open, handleOpen, handleClose, count],
   );
 };
 
@@ -94,7 +106,11 @@ interface ChangeRequestsDialogProps {
 
 // TODO: use useConfirmAndUpdate hook ??
 
-export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequestsDialogProps) {
+export function ChangeRequestsDialog({
+  policyId,
+  open,
+  handleClose,
+}: ChangeRequestsDialogProps) {
   const { claims } = useAuth();
   const { isSmall } = useWidth();
   const toast = useAsyncToast({ position: 'top-right' });
@@ -105,54 +121,63 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
     (data) => `Change Request ${data.id}`,
     undefined,
-    (params) => `${params.row?.policyId}/${Collection.Enum.changeRequests}/${params.id.toString()}`
+    (params) =>
+      `${params.row?.policyId}/${Collection.Enum.changeRequests}/${params.id.toString()}`,
   );
 
-  const { approveRequest, denyRequest, cancelRequest, updateChangeRequest, refreshPolicyChanges } =
-    useManageChangeRequest();
+  const {
+    approveRequest,
+    denyRequest,
+    cancelRequest,
+    updateChangeRequest,
+    refreshPolicyChanges,
+  } = useManageChangeRequest();
 
-  const { previewChange: previewChangeFn } = usePreviewChangeRequest((msg) => toast.error(msg));
+  const { previewChange: previewChangeFn } = usePreviewChangeRequest((msg) =>
+    toast.error(msg),
+  );
 
-  const { getEditRowModeActions, getEditModeProps } = useGridEditMode<ChangeRequest>({
-    // @ts-ignore
-    editableCells: ['status', 'requestEffDate', 'underwriterNotes'],
-  });
+  const { getEditRowModeActions, getEditModeProps } =
+    useGridEditMode<ChangeRequest>({
+      // @ts-ignore
+      editableCells: ['status', 'requestEffDate', 'underwriterNotes'],
+    });
 
   const handleApprove = useCallback(
     (params: GridRowParams) => async () =>
       await approveRequest(params.row.policyId, params.id.toString()),
-    [approveRequest]
+    [approveRequest],
   );
 
   const handleDeny = useCallback(
     (params: GridRowParams) => async () =>
       await denyRequest(params.row.policyId, params.id.toString()),
-    [denyRequest]
+    [denyRequest],
   );
 
   const handleCancel = useCallback(
     (params: GridRowParams) => async () =>
       await cancelRequest(params.row.policyId, params.id.toString()),
-    [cancelRequest]
+    [cancelRequest],
   );
 
   const handleRefreshPolicyChanges = useCallback(
     (params: GridRowParams) => async () => {
       await refreshPolicyChanges(params.row.policyId, params.id.toString());
     },
-    [refreshPolicyChanges]
+    [refreshPolicyChanges],
   );
 
   const previewChange = useCallback(
     (params: GridRowParams) => async () =>
       previewChangeFn(params.row?.policyId, params.id.toString()),
-    [previewChangeFn]
+    [previewChangeFn],
   );
 
   const processRowUpdate = useCallback(
     async (
       newRow: GridRowModel<WithId<ChangeRequest>>,
-      oldRow: GridRowModel<WithId<ChangeRequest>>
+      oldRow: GridRowModel<WithId<ChangeRequest>>,
     ) => {
       if (isEqual(newRow, oldRow)) return;
 
@@ -169,7 +194,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
 
       return newRow;
     },
-    [updateChangeRequest]
+    [updateChangeRequest],
   );
 
   const handleProcessRowUpdateError = useCallback((err: Error) => {
@@ -238,9 +263,10 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           label='cancel'
           disabled={
             !claims?.iDemandAdmin ||
-            ![ChangeRequestStatus.enum.submitted, ChangeRequestStatus.enum.under_review].includes(
-              params.row.status
-            )
+            ![
+              ChangeRequestStatus.enum.submitted,
+              ChangeRequestStatus.enum.under_review,
+            ].includes(params.row.status)
           }
           showInMenu
         />,
@@ -253,9 +279,10 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           onClick={handleRefreshPolicyChanges(params)}
           label='Recalc policy changes'
           disabled={
-            ![ChangeRequestStatus.enum.submitted, ChangeRequestStatus.enum.under_review].includes(
-              params.row.status
-            )
+            ![
+              ChangeRequestStatus.enum.submitted,
+              ChangeRequestStatus.enum.under_review,
+            ].includes(params.row.status)
           }
           showInMenu
         />,
@@ -308,8 +335,13 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
 }
 
 // For viewing only one policy (collection query instead of collection group)
-export function ControlledChangeRequestDialog({ policyId }: { policyId?: string }) {
-  const { open, handleOpen, handleClose, count } = useViewChangeRequestsDialogProps(policyId);
+export function ControlledChangeRequestDialog({
+  policyId,
+}: {
+  policyId?: string;
+}) {
+  const { open, handleOpen, handleClose, count } =
+    useViewChangeRequestsDialogProps(policyId);
 
   return (
     <>
@@ -325,7 +357,11 @@ export function ControlledChangeRequestDialog({ policyId }: { policyId?: string 
           </IconButton>
         </Badge>
       </Tooltip>
-      <ChangeRequestsDialog policyId={policyId} handleClose={handleClose} open={open} />
+      <ChangeRequestsDialog
+        policyId={policyId}
+        handleClose={handleClose}
+        open={open}
+      />
     </>
   );
 }

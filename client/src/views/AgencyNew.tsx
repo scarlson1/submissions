@@ -14,32 +14,35 @@ import { useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
+import type { Address, Coords, Nullable } from '@idemand/common';
 import { CheckmarkLottie } from 'assets';
 import {
-  Address,
-  Coordinates,
-  EandOValidation,
-  NamedInsuredDetails,
-  Nullable,
   addressValidationNested,
   agencyContactValidation,
   agentsValidation,
+  EandOValidation,
   feinValidation,
+  NamedInsuredDetails,
   orgNameValidation,
 } from 'common';
 import {
+  feinMaskProps,
   FormikDragDrop,
   FormikMaskField,
   FormikTextField,
   FormikWizard,
   IMask,
-  Step,
-  feinMaskProps,
   phoneMaskProps,
+  Step,
 } from 'components/forms';
-import { AddAgents, AddressStep, AgencyReviewStep, ContactStep } from 'elements/forms';
+import {
+  AddAgents,
+  AddressStep,
+  AgencyReviewStep,
+  ContactStep,
+} from 'elements/forms';
 import { useCreateAgencySubmission } from 'hooks';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 // TODO: validation not being used in AgencyNew form (reuse AddUsersDialog validation ??)
 
@@ -47,7 +50,7 @@ export interface AgencyAppValues {
   // type: string;
   orgName: string;
   address: Address;
-  coordinates: Nullable<Coordinates>;
+  coordinates: Nullable<Coords>;
   contact: NamedInsuredDetails;
   agents: Omit<NamedInsuredDetails, 'userId'>[];
   FEIN: string;
@@ -86,15 +89,20 @@ export const AgencyNew = () => {
     (submissionId) => {
       toast.success('Submission received');
 
-      navigate(createPath({ path: ROUTES.AGENCY_NEW_SUBMITTED, params: { submissionId } }));
+      navigate(
+        createPath({
+          path: ROUTES.AGENCY_NEW_SUBMITTED,
+          params: { submissionId },
+        }),
+      );
     },
-    (msg) => toast.error(msg)
+    (msg) => toast.error(msg),
   );
 
   const handleSubmit = useCallback(
     async (values: AgencyAppValues, bag: FormikHelpers<AgencyAppValues>) =>
       await handleSubmission(values, true),
-    [handleSubmission]
+    [handleSubmission],
   );
 
   const onToAgents = useCallback((values: any, helpers: FormikHelpers<any>) => {
@@ -186,7 +194,11 @@ export const AgencyNew = () => {
             </Grid>
           </ContactStep>
         </Step>
-        <Step label='Agents' validationSchema={agentsValidation} stepperNavLabel='Agents'>
+        <Step
+          label='Agents'
+          validationSchema={agentsValidation}
+          stepperNavLabel='Agents'
+        >
           <Box sx={{ my: 4 }}>
             <AddAgents />
           </Box>
@@ -265,7 +277,9 @@ export function AgencyAppSuccessStep() {
     <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}>
       <Card>
         <CardContent>
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <Box
+            sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}
+          >
             <Lottie
               animationData={CheckmarkLottie}
               loop={false}
@@ -273,15 +287,21 @@ export function AgencyAppSuccessStep() {
             />
           </Box>
 
-          <Typography variant='h5' align='center' sx={{ pb: { xs: 4, sm: 5, lg: 6 } }}>
+          <Typography
+            variant='h5'
+            align='center'
+            sx={{ pb: { xs: 4, sm: 5, lg: 6 } }}
+          >
             Submission received!
           </Typography>
           <Typography variant='body2' color='text.secondary'>
-            Once your org has been set up, you'll receive an email to finish setting up your
-            account.
+            Once your org has been set up, you'll receive an email to finish
+            setting up your account.
           </Typography>
         </CardContent>
-        <CardActions sx={{ borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
+        <CardActions
+          sx={{ borderTop: (theme) => `1px solid ${theme.palette.divider}` }}
+        >
           <Button onClick={() => navigate('/')}>Home</Button>
         </CardActions>
       </Card>

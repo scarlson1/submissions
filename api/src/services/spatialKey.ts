@@ -1,6 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-
-import { getAccessToken } from '../config/spatial-key-auth.js';
+import { getAccessToken } from '../config/spatialKeyAuth.js';
 
 // const spatialKeyTokenURL = `https://idemand.spatialkey.com/SpatialKeyFramework/api/v2/oauth.json?grant_type=${param1}&assertion=${param2}`
 
@@ -35,7 +34,7 @@ spatialKeyInstance.interceptors.request.use(
   (err) => {
     console.log('Axios request interceptor error => ', err);
     return Promise.reject(err);
-  }
+  },
 );
 
 spatialKeyInstance.interceptors.response.use(
@@ -81,5 +80,5 @@ spatialKeyInstance.interceptors.response.use(
     }
 
     return Promise.reject(err);
-  }
+  },
 );

@@ -1,8 +1,11 @@
+import type { Coords, GeoPoint } from '@idemand/common';
 import axios from 'axios';
-import { Coordinates, GeoPoint } from '../common/index.js';
 
 // latitude: number, longitude: number)
-export async function getFEMAFloodZone({ latitude, longitude }: Coordinates | GeoPoint) {
+export async function getFEMAFloodZone({
+  latitude,
+  longitude,
+}: Coords | GeoPoint) {
   let url = `https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query?where=1%3D1&geometry=${longitude}%2C${latitude}&geometryType=esriGeometryPoint&outFields=FLD_ZONE&returnGeometry=false&outSR=4326&f=json`;
 
   let { data } = await axios.get(url);

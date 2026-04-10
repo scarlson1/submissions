@@ -21,7 +21,7 @@ export interface SelectOption {
 //   formikConfig?: Partial<FieldHookConfig<any>>;
 // }
 
-type FormikSelectProps<T> = SelectProps<T> & {
+export type FormikSelectProps<T> = SelectProps<T> & {
   name: string;
   label: string;
   selectOptions: SelectOption[] | string[];

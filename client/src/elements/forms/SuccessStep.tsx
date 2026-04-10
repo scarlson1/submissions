@@ -19,9 +19,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
 
+import type { Address } from '@idemand/common';
 import { CheckmarkLottie } from 'assets';
 import {
-  Address,
   ANALYTICS_EVENTS,
   Charge,
   fallbackImages,
@@ -185,7 +185,9 @@ export const SuccessStep = () => {
                 >
                   Status
                 </Typography>
-                <Typography variant='subtitle2'>{submission.status as string}</Typography>
+                <Typography variant='subtitle2'>
+                  {submission.status as string}
+                </Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
                 <Typography

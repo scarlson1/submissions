@@ -12,6 +12,8 @@ import {
   State,
   TaxItem,
   Totals,
+  type DeepNullable,
+  type Nullable,
   type RCVs,
 } from '@idemand/common';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
@@ -19,10 +21,8 @@ import {
   AmendmentTransaction,
   BaseTransaction,
   CancellationReason,
-  DeepNullable,
   extractNumber,
   extractNumberNeg,
-  Nullable,
   OffsetTransaction,
   OffsetTrxType,
   PremiumTransaction,

@@ -5,9 +5,14 @@ import {
   query,
   QueryConstraint,
 } from 'firebase/firestore';
-import { ReactFireOptions, useFirestore, useFirestoreCollectionData } from 'reactfire';
+import {
+  ReactFireOptions,
+  useFirestore,
+  useFirestoreCollectionData,
+} from 'reactfire';
 
-import { TCollection, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { TCollection } from 'common';
 
 // TODO: use ...pathSegments ??
 
@@ -15,11 +20,15 @@ export const useCollectionData = <T = DocumentData>(
   colName: TCollection,
   constraints: QueryConstraint[] = [],
   options: ReactFireOptions<T> | undefined = {},
-  pathSegments: string[] = []
+  pathSegments: string[] = [],
 ) => {
   const firestore = useFirestore();
 
-  const colRef = collection(firestore, colName, ...pathSegments) as CollectionReference<WithId<T>>;
+  const colRef = collection(
+    firestore,
+    colName,
+    ...pathSegments,
+  ) as CollectionReference<WithId<T>>;
 
   const q = query(colRef, ...constraints);
 

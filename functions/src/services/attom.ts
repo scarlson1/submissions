@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-import { Address, attomBaseURL } from '../common/index.js';
+import type { Address } from '@idemand/common';
+import { attomBaseURL } from '../common/index.js';
 
 export const getAttomInstance = (apiKey?: string) => {
   if (!apiKey) throw new Error('Missing Attom api key');
@@ -20,7 +21,7 @@ export const getAttomInstance = (apiKey?: string) => {
       console.log('ERROR => ', err);
 
       return Promise.reject(err);
-    }
+    },
   );
 
   return attomInstance;
@@ -28,7 +29,7 @@ export const getAttomInstance = (apiKey?: string) => {
 
 export function getAttomProperty(
   apiKey: string,
-  { addressLine1, addressLine2 = '', city, state, postal = '' }: Address
+  { addressLine1, addressLine2 = '', city, state, postal = '' }: Address,
 ) {
   const attomClient = getAttomInstance(apiKey);
 
@@ -40,7 +41,8 @@ export function getAttomProperty(
       },
     })
     .then(({ data }) => {
-      const profile = data?.property && data.property.length > 0 ? data.property[0] : null;
+      const profile =
+        data?.property && data.property.length > 0 ? data.property[0] : null;
 
       return { data, profile };
     });

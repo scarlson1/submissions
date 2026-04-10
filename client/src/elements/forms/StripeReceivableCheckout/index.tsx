@@ -2,8 +2,9 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { getFunctions } from 'firebase/functions';
 import { ErrorBoundary } from 'react-error-boundary';
 
+import type { WithId } from '@idemand/common';
 import { fetchPaymentIntentSecret } from 'api';
-import { Receivable, WithId } from 'common';
+import { Receivable } from 'common';
 import { ErrorFallback } from 'components';
 import { CheckoutForm } from '../StripeCheckout/CheckoutForm';
 import { StripeElementsWrapper } from './StripeElementsWrapper';
@@ -11,7 +12,7 @@ import { StripeElementsWrapper } from './StripeElementsWrapper';
 // need to pass payment options ??
 function fetchStripeSecret(paymentIntentId: string) {
   return fetchPaymentIntentSecret(getFunctions(), { paymentIntentId }).then(
-    ({ data }) => data.clientSecret
+    ({ data }) => data.clientSecret,
   );
 }
 

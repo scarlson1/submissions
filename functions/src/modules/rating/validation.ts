@@ -7,15 +7,11 @@ import {
   PriorLossCount,
   RCVs,
   ValueByRiskType,
+  type DeepNullable,
+  type Optional,
 } from '@idemand/common';
 import { GeoPoint } from 'firebase-admin/firestore';
-import {
-  DeepNullable,
-  maxA,
-  maxBCD,
-  minA,
-  type Optional,
-} from '../../common/index.js';
+import { maxA, maxBCD, minA } from '../../common/index.js';
 import { isValidCoords, isValidEmail, verify } from '../../utils/index.js';
 
 export function validateLimits(

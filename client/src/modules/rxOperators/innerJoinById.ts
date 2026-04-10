@@ -1,6 +1,19 @@
-import { DocumentData, DocumentReference, Firestore, doc as fsDoc } from 'firebase/firestore';
+import {
+  type DocumentData,
+  type DocumentReference,
+  type Firestore,
+  doc as fsDoc,
+} from 'firebase/firestore';
 import { docData } from 'rxfire/firestore';
-import { Observable, combineLatest, defer, map, of, switchMap, tap } from 'rxjs';
+import {
+  combineLatest,
+  defer,
+  map,
+  Observable,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
 
 // REQUIRES SAME DOCUMENT FIELD IN BOTH DOCUMENTS/COLLECTION
 // EXAMPLE
@@ -11,7 +24,9 @@ import { Observable, combineLatest, defer, map, of, switchMap, tap } from 'rxjs'
 type DynamicSegments = string[] | { value: string; fromDoc?: boolean }[];
 
 const getPaths = (segments: DynamicSegments, doc: DocumentData) =>
-  segments.map((s) => (typeof s === 'string' ? s : s.fromDoc ? doc[s.value] : s.value));
+  segments.map((s) =>
+    typeof s === 'string' ? s : s.fromDoc ? doc[s.value] : s.value,
+  );
 
 // function isFish(pet: Fish | Bird): pet is Fish {
 //   return (pet as Fish).swim !== undefined;
@@ -31,10 +46,14 @@ const getPaths = (segments: DynamicSegments, doc: DocumentData) =>
 
 // TODO: USE OBJECT / ARRAY TO ALLOW MULTIPLE POPULATES
 
-export const populateById = <JoinKey extends string, T = DocumentData, K = DocumentData>(
+export const populateById = <
+  JoinKey extends string,
+  T = DocumentData,
+  K = DocumentData,
+>(
   firestore: Firestore,
   docIdField: JoinKey,
-  coll: { root: string; pathSegments?: DynamicSegments }
+  coll: { root: string; pathSegments?: DynamicSegments },
 ) => {
   return (source: Observable<T[]>) =>
     defer(() => {
@@ -62,11 +81,12 @@ export const populateById = <JoinKey extends string, T = DocumentData, K = Docum
                 ? getPaths(coll.pathSegments, doc as DocumentData)
                 : [];
 
+              // @ts-expect-error TODO: fix type
               const joinDocRef = fsDoc(
                 firestore,
                 coll.root,
                 ...segments, // @ts-ignore
-                doc[docIdField]
+                doc[docIdField],
               ) as DocumentReference<K>;
 
               // @ts-ignore TODO: fix type
@@ -101,9 +121,11 @@ export const populateById = <JoinKey extends string, T = DocumentData, K = Docum
           });
         }),
         tap((final) => {
-          console.log(`Queried ${(final as any).length}, joined ${totalJoins} docs`);
+          console.log(
+            `Queried ${(final as any).length}, joined ${totalJoins} docs`,
+          );
           totalJoins = 0;
-        })
+        }),
       );
     });
 };

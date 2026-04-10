@@ -1,6 +1,10 @@
 import { DataObject, FloodRounded, MapRounded } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridActionsCellItemProps, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridActionsCellItemProps,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { DocumentData, FirestoreDataConverter } from 'firebase/firestore';
 import { ReactElement, useCallback } from 'react';
 import {
@@ -10,14 +14,18 @@ import {
   useSigninCheck,
 } from 'reactfire';
 
-import { Submission, TCollection, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { Submission, TCollection } from 'common';
 import { DialogOptions } from 'context';
 import { openGoogleMaps } from 'modules/utils';
 import { useFloodFactor } from './useFloodFactor';
 import { useShowJson } from './useShowJson';
 import { useWidth } from './utils/useWidth';
 
-export type ActionOptions = Omit<Partial<GridActionsCellItemProps>, 'onClick' | 'label' | 'icon'>;
+export type ActionOptions = Omit<
+  Partial<GridActionsCellItemProps>,
+  'onClick' | 'label' | 'icon'
+>;
 
 export const useGridActions = (onError?: (msg: string) => void) => {
   const openFF = useFloodFactor(onError);
@@ -27,21 +35,23 @@ export const useGridActions = (onError?: (msg: string) => void) => {
     (params: GridRowParams<Submission>) => () => {
       const latitude = params.row.coordinates?.latitude;
       const longitude = params.row.coordinates?.longitude;
-      if (!(latitude && longitude)) return onError && onError('Missing coordinates');
+      if (!(latitude && longitude))
+        return onError && onError('Missing coordinates');
 
       openGoogleMaps(latitude, longitude);
     },
-    [onError]
+    [onError],
   );
 
   const openFloodFactor = useCallback(
     (params: GridRowParams<Submission>) => () => {
       const address = params.row.address;
-      if (!(address && address.addressLine1)) return onError && onError('Missing address');
+      if (!(address && address.addressLine1))
+        return onError && onError('Missing address');
 
       openFF(address);
     },
-    [openFF, onError]
+    [openFF, onError],
   );
 
   const googleMapsAction = useCallback(
@@ -59,7 +69,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
         {...(options || {})}
       />
     ),
-    [openMap, isSmall]
+    [openMap, isSmall],
   );
 
   const floodFactorAction = useCallback(
@@ -77,7 +87,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
         {...(options || {})}
       />
     ),
-    [openFloodFactor, isSmall]
+    [openFloodFactor, isSmall],
   );
 
   return { googleMapsAction, floodFactorAction };
@@ -94,17 +104,23 @@ export const useGridShowJson = <T extends DocumentData>(
   getTitle?: null | ((data: WithId<T>) => string),
   converter?: FirestoreDataConverter<T> | null,
   getPath?: ((params: GridRowParams) => string) | null,
-  dialogOptions?: Partial<Omit<DialogOptions, 'onSubmit' | 'content'>>
+  dialogOptions?: Partial<Omit<DialogOptions, 'onSubmit' | 'content'>>,
 ): ((params: GridRowParams) => ReactElement<GridActionsCellItemProps>[]) => {
   const { data } = useSigninCheck(signInCheckOptions);
-  const showJson = useShowJson<T>(colName, [], getTitle, converter, dialogOptions);
+  const showJson = useShowJson<T>(
+    colName,
+    [],
+    getTitle,
+    converter,
+    dialogOptions,
+  );
 
   const handleShowJson = useCallback(
     (params: GridRowParams) => () => {
       let docPath = getPath ? getPath(params) : params.id.toString();
       showJson(docPath);
     },
-    [showJson, getPath]
+    [showJson, getPath],
   );
 
   const renderActions = useCallback(
@@ -121,7 +137,7 @@ export const useGridShowJson = <T extends DocumentData>(
         {...(options || {})}
       />,
     ],
-    [handleShowJson, options]
+    [handleShowJson, options],
   );
 
   if (!data.hasRequiredClaims) return () => [];

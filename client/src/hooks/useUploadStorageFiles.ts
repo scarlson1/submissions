@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { FirebaseError } from 'firebase/app';
 import {
   getStorage,
   ref,
@@ -7,7 +7,7 @@ import {
   UploadMetadata,
   UploadResult,
 } from 'firebase/storage';
-import { FirebaseError } from 'firebase/app';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useAuth } from 'context/AuthContext';
 
@@ -17,7 +17,7 @@ import { useAuth } from 'context/AuthContext';
 export const useUploadStorageFiles = (
   destinationFolder: string,
   onSuccess?: (uploadResults: UploadResult[]) => void,
-  onError?: (err: unknown, msg?: string) => void
+  onError?: (err: unknown, msg?: string) => void,
 ) => {
   const storage = getStorage();
   const [error, setError] = useState<StorageError | null>(null);
@@ -26,12 +26,16 @@ export const useUploadStorageFiles = (
   const { user } = useAuth();
 
   const uploadToStorage = useCallback(
-    async (file: File, uploadMetadata?: UploadMetadata, filenamePrefix?: string) => {
+    async (
+      file: File,
+      uploadMetadata?: UploadMetadata,
+      filenamePrefix?: string,
+    ) => {
       let newFileRef = ref(
         storage,
         `${destinationFolder ? destinationFolder + '/' : ''}${filenamePrefix || ''}${Date.now()}_${
           file.name
-        }`
+        }`,
       );
       console.log('NEW FILE REF: ', newFileRef);
       const metadata = {
@@ -46,17 +50,25 @@ export const useUploadStorageFiles = (
 
       return await uploadBytes(newFileRef, file, metadata);
     },
-    [storage, destinationFolder, user?.uid, user?.tenantId]
+    [storage, destinationFolder, user?.uid, user?.tenantId],
   );
 
   const uploadFiles = useCallback(
-    async (files: File[], uploadMetadata?: UploadMetadata, filenamePrefix?: string) => {
+    async (
+      files: File[],
+      uploadMetadata?: UploadMetadata,
+      filenamePrefix?: string,
+    ) => {
       setError(null);
       setLoading(true);
       try {
-        let uploadResults = [];
+        let uploadResults: UploadResult[] = [];
         for (let file of files) {
-          let result = await uploadToStorage(file, uploadMetadata, filenamePrefix);
+          let result = await uploadToStorage(
+            file,
+            uploadMetadata,
+            filenamePrefix,
+          );
           uploadResults.push(result);
         }
 
@@ -83,7 +95,7 @@ export const useUploadStorageFiles = (
         return Promise.reject(err);
       }
     },
-    [uploadToStorage, onSuccess, onError]
+    [uploadToStorage, onSuccess, onError],
   );
 
   const memoed = useMemo(
@@ -92,7 +104,7 @@ export const useUploadStorageFiles = (
       loading,
       error,
     }),
-    [uploadFiles, loading, error]
+    [uploadFiles, loading, error],
   );
 
   return { ...memoed };

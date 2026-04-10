@@ -2,6 +2,7 @@ import {
   AgencyDetails,
   AgentDetails,
   Basement,
+  BaseMetadata,
   BillingEntity,
   CBRSDesignation,
   ChangeRequestTrxType,
@@ -17,15 +18,19 @@ import {
   Product,
   Quote,
   TaxItem,
+  Timestamp,
   Totals,
   TransactionType,
+  type Address,
+  type Coords,
+  type GeoPoint,
+  type Nullable,
+  type OptionalKeys,
+  type WithRequired,
 } from '@idemand/common';
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
-import {
-  GeoPoint as FirestoreGeoPoint,
-  Timestamp as FirestoreTimestamp,
-} from 'firebase-admin/firestore';
+// import { GeoPoint as FirestoreGeoPoint } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
 import {
@@ -42,23 +47,9 @@ import {
   SubmittedChangeRequestStatus,
 } from './enums.js';
 
-export type WithId<T> = T & { id: string };
-
-export type Nullable<T> = { [K in keyof T]: T[K] | null };
-
-export type DeepNullable<T> = {
-  [K in keyof T]: DeepNullable<T[K]> | null;
-};
-
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
-
-export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
-export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> &
-  Omit<T, K>;
-
-export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
 export type PartialRequired<T, K extends keyof T> = Partial<T> & {
   [P in K]-?: NonNullable<T[P]>;
@@ -66,16 +57,9 @@ export type PartialRequired<T, K extends keyof T> = Partial<T> & {
 
 export type Maybe<T> = T | null | undefined;
 
-export type Concrete<Type> = {
-  [Property in keyof Type]-?: NonNullable<Type[Property]>;
-};
-
-// meant to override DeepPartial, but not working (Timestamp issue)
-export type DeepConcrete<T> = {
-  [K in keyof T]-?: T[K] extends object
-    ? DeepConcrete<T[K]>
-    : NonNullable<T[K]>;
-};
+// export type Concrete<Type> = {
+//   [Property in keyof Type]-?: NonNullable<Type[Property]>;
+// };
 
 export type FlattenObjectKeys<
   T extends Record<string, any>,
@@ -124,15 +108,15 @@ export type Primitive =
   | null
   | undefined;
 
-export const Timestamp = z.instanceof(FirestoreTimestamp);
-export type Timestamp = z.infer<typeof Timestamp>;
+// export const Timestamp = z.instanceof(FirestoreTimestamp);
+// export type Timestamp = z.infer<typeof Timestamp>;
 
-export const BaseMetadata = z.object({
-  created: Timestamp,
-  updated: Timestamp,
-  version: z.number().int().optional(),
-});
-export type BaseMetadata = z.infer<typeof BaseMetadata>;
+// export const BaseMetadata = z.object({
+//   created: Timestamp,
+//   updated: Timestamp,
+//   version: z.number().int().optional(),
+// });
+// export type BaseMetadata = z.infer<typeof BaseMetadata>;
 
 export interface BaseDoc {
   metadata: BaseMetadata;
@@ -422,59 +406,6 @@ export interface EPayGetTransactionRes {
     searchAttributeValues: { [key: string]: any };
   }[];
 }
-
-// export interface Address {
-//   addressLine1: string;
-//   addressLine2: string;
-//   city: string;
-//   state: string;
-//   postal: string;
-//   countyFIPS?: string | null;
-//   countyName?: string | null;
-// }
-
-// export interface MailingAddress extends Address {
-//   name: string;
-// }
-
-export const Address = z.object({
-  addressLine1: z.string(),
-  addressLine2: z.string().default(''),
-  city: z.string(),
-  state: z.string(),
-  postal: z.string().length(5, 'postal must be 5 digits'),
-  countyFIPS: z.string().nullable().optional(),
-  countyName: z.string().nullable().optional(),
-});
-export type Address = z.infer<typeof Address>;
-
-export const MailingAddress = Address.and(
-  z.object({
-    name: z.string(),
-  }),
-);
-export type MailingAddress = z.infer<typeof MailingAddress>;
-
-export const CompressedAddress = z.object({
-  s1: z.string(),
-  s2: z.string().default(''),
-  c: z.string(),
-  st: z.string(),
-  p: z.string(),
-});
-export type CompressedAddress = z.infer<typeof CompressedAddress>;
-
-export const Coords = z.object({
-  latitude: z.number().min(-90, 'invalid latitude').max(90, 'invalid latitude'),
-  longitude: z
-    .number()
-    .min(-180, 'invalid longitude')
-    .max(180, 'invalid longitude'),
-});
-export type Coords = z.infer<typeof Coords>;
-
-export const GeoPoint = z.instanceof(FirestoreGeoPoint);
-export type GeoPoint = z.infer<typeof GeoPoint>;
 
 export interface AgencyApplication extends BaseDoc {
   type: OrgType;
@@ -1286,7 +1217,7 @@ export interface PolicyCancellationRequest extends Omit<
 export interface AddLocationValues {
   externalId?: string;
   address: Address;
-  coordinates: Nullable<Coordinates>;
+  coordinates: Nullable<Coords>;
   limits: Limits;
   deductible: number;
   effectiveDate: Timestamp;
@@ -1557,12 +1488,6 @@ export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
 //   expirationDate?: Timestamp | null;
 //   reason?: string;
 // }
-
-// DELETE ?? USE Coords instead ??
-export interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
 
 // export interface GetAALRequest {
 //   replacementCost: number;

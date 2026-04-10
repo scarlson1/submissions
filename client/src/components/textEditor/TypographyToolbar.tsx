@@ -1,7 +1,13 @@
 import { useCallback, useMemo } from 'react';
 
+import {
+  alpha,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Typography,
+} from '@mui/material';
 import { Editor } from '@tiptap/react';
-import { alpha, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 
 export interface TypographyToolbarProps {
   editor?: Editor;
@@ -24,12 +30,20 @@ export const TypographyToolbar = ({ editor }: TypographyToolbarProps) => {
   const handleTypographyChange = useCallback(
     (event: SelectChangeEvent<unknown>, child: React.ReactNode) => {
       let newVal = event.target.value;
-      if (newVal === 'paragraph') return editor?.chain().focus().setParagraph().run();
-      if (newVal === 'heading1') return editor?.chain().focus().toggleHeading({ level: 1 }).run();
-      if (newVal === 'heading2') return editor?.chain().focus().toggleHeading({ level: 2 }).run();
-      if (newVal === 'heading3') return editor?.chain().focus().toggleHeading({ level: 3 }).run();
+      if (newVal === 'paragraph')
+        // @ts-expect-error
+        return editor?.chain().focus().setParagraph().run();
+      if (newVal === 'heading1')
+        // @ts-expect-error
+        return editor?.chain().focus().toggleHeading({ level: 1 }).run();
+      if (newVal === 'heading2')
+        // @ts-expect-error
+        return editor?.chain().focus().toggleHeading({ level: 2 }).run();
+      if (newVal === 'heading3')
+        // @ts-expect-error
+        return editor?.chain().focus().toggleHeading({ level: 3 }).run();
     },
-    [editor]
+    [editor],
   );
 
   if (!editor) return null;

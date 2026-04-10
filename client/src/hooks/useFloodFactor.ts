@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 
+import type { Address, Optional } from '@idemand/common';
 import { getRiskFactorId } from 'api';
-import { Address, Optional } from 'common';
 import { popUpWasBlocked } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
 

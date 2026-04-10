@@ -1,4 +1,5 @@
-import { Nullable, ValueByRiskType, extractNumberNeg } from '../../common/index.js';
+import type { Nullable } from '@idemand/common';
+import { extractNumberNeg, ValueByRiskType } from '../../common/index.js';
 import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 
 const CONTENTS_RCV_MULT = 1;
@@ -41,7 +42,10 @@ export const getHistoryMultTsunami = (score: number) => {
 
 export const getBasementFactor = (basementValue = 'unknown') => {
   // console.log('basementValue: ', basementValue);
-  const checkVal = typeof basementValue === 'string' ? basementValue.toLowerCase() : basementValue;
+  const checkVal =
+    typeof basementValue === 'string'
+      ? basementValue.toLowerCase()
+      : basementValue;
 
   switch (checkVal) {
     case 'no':
@@ -128,7 +132,11 @@ export const getSecondaryModifiers = ({
   return secondaryModifiers;
 };
 
-export const calcSecondaryMult = (historyMult: number, ffeFactor: number, basementMult: number) => {
+export const calcSecondaryMult = (
+  historyMult: number,
+  ffeFactor: number,
+  basementMult: number,
+) => {
   const mult =
     CONTENTS_RCV_MULT *
     ORDINANCE_MULT *
@@ -166,9 +174,21 @@ export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
     throw new Error('Underwriting violation - prior loss count');
   }
 
-  const inlandSecondaryMult = calcSecondaryMult(history.inland, ffeMult.inland, basementMult);
-  const surgeSecondaryMult = calcSecondaryMult(history.surge, ffeMult.surge, basementMult);
-  const tsunamiSecondaryMult = calcSecondaryMult(history.tsunami, ffeMult.tsunami, basementMult);
+  const inlandSecondaryMult = calcSecondaryMult(
+    history.inland,
+    ffeMult.inland,
+    basementMult,
+  );
+  const surgeSecondaryMult = calcSecondaryMult(
+    history.surge,
+    ffeMult.surge,
+    basementMult,
+  );
+  const tsunamiSecondaryMult = calcSecondaryMult(
+    history.tsunami,
+    ffeMult.tsunami,
+    basementMult,
+  );
 
   return {
     inland: inlandSecondaryMult,

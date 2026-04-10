@@ -9,15 +9,20 @@ import {
   query,
   QueryConstraint,
   startAfter,
+  type Query,
 } from 'firebase/firestore';
 import { useMemo } from 'react';
-import { ReactFireOptions, useFirestore, useFirestoreCollection } from 'reactfire';
+import {
+  ReactFireOptions,
+  useFirestore,
+  useFirestoreCollection,
+} from 'reactfire';
 
 import { TCollection } from 'common';
 
 export function useFetchDocsWithCursor<
   T extends DocumentData = DocumentData,
-  D extends DocumentData = T
+  D extends DocumentData = T,
 >(
   colName: TCollection,
   constraints: QueryConstraint[],
@@ -25,7 +30,7 @@ export function useFetchDocsWithCursor<
   isCollectionGroup: boolean = false,
   pathSegments: string[] = [],
   options?: ReactFireOptions<T[]> | undefined,
-  converter?: FirestoreDataConverter<T, D>
+  converter?: FirestoreDataConverter<T, D>,
 ) {
   const db = useFirestore();
 
@@ -39,11 +44,15 @@ export function useFetchDocsWithCursor<
   if (!!isCollectionGroup) {
     collectionRef = collectionGroup(db, colName) as CollectionReference<T>;
   } else {
-    collectionRef = collection(db, colName, ...pathSegments) as CollectionReference<T>;
+    collectionRef = collection(
+      db,
+      colName,
+      ...pathSegments,
+    ) as CollectionReference<T>;
   }
   if (converter) collectionRef.withConverter(converter);
 
-  let q = query(collectionRef, ...qConstraints);
+  let q: Query<T, DocumentData> = query(collectionRef, ...qConstraints);
 
   // useEffect(() => {
   //   console.log('QUERY: ', q);

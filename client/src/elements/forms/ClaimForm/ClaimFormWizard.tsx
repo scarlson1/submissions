@@ -4,10 +4,10 @@ import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useFirestoreDocData } from 'reactfire';
 
+import type { OptionalKeys } from '@idemand/common';
 import {
   ClaimFormValues,
   DraftPolicyClaim,
-  OptionalKeys,
   PolicyClaim,
   PreferredMethod,
 } from 'common';
@@ -16,12 +16,16 @@ import { createClaim } from 'modules/db';
 import { ContactStep, ContactValues } from './ContactStep';
 import { DateStep, DateValues, FirestoreDateValues } from './DateStep';
 import { DescriptionStep, DescriptionValues } from './DescriptionStep';
-import { ImageValues, ImagesStep } from './ImagesStep';
+import { ImagesStep, ImageValues } from './ImagesStep';
 import { ReviewStep } from './ReviewStep';
 import { SuccessStep } from './SuccessStep';
 
-export type ClaimValues = DateValues & DescriptionValues & ImageValues & ContactValues;
-export type FirestoreClaimsValues = Omit<ClaimValues, 'occurrenceDate'> & FirestoreDateValues;
+export type ClaimValues = DateValues &
+  DescriptionValues &
+  ImageValues &
+  ContactValues;
+export type FirestoreClaimsValues = Omit<ClaimValues, 'occurrenceDate'> &
+  FirestoreDateValues;
 
 export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
   saveFormValues: (values: T) => Promise<void>;
@@ -32,14 +36,18 @@ export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
 // (pass as footer, but need ability to disable if form is invalid)
 
 // remove extends ?? not using anywhere ?? (and will override  most of the important props anyway)
-interface ClaimFormWizardProps
-  extends OptionalKeys<FormikConfig<ClaimValues>, 'initialValues' | 'onSubmit'> {
+interface ClaimFormWizardProps extends OptionalKeys<
+  FormikConfig<ClaimValues>,
+  'initialValues' | 'onSubmit'
+> {
   claimResource: ReturnType<typeof createClaim>;
 }
 
 export const ClaimFormWizard = ({ claimResource }: ClaimFormWizardProps) => {
   const claimRef = claimResource.read();
-  const { data } = useFirestoreDocData<Partial<DraftPolicyClaim>>(claimRef, { idField: 'id' });
+  const { data } = useFirestoreDocData<Partial<DraftPolicyClaim>>(claimRef, {
+    idField: 'id',
+  });
   if (!data.policyId) throw new Error('claim missing policyId');
 
   const saveValues = useCallback(
@@ -48,7 +56,7 @@ export const ClaimFormWizard = ({ claimResource }: ClaimFormWizardProps) => {
       // TODO: save claim form values
       await setDoc(claimRef, values, { merge: true });
     },
-    [claimRef]
+    [claimRef],
   );
 
   const handleError = useCallback((msg: string) => toast.error(msg), []);
@@ -64,7 +72,9 @@ export const ClaimFormWizard = ({ claimResource }: ClaimFormWizardProps) => {
         saveFormValues={saveValues}
         onError={handleError}
         initialValues={{
-          occurrenceDate: data.occurrenceDate ? data.occurrenceDate.toDate() : null,
+          occurrenceDate: data.occurrenceDate
+            ? data.occurrenceDate.toDate()
+            : null,
         }}
       />
       <DescriptionStep
@@ -85,10 +95,18 @@ export const ClaimFormWizard = ({ claimResource }: ClaimFormWizardProps) => {
         initialValues={{
           contact: {
             entityType: data?.contact?.entityType || 'namedInsured',
-            firstName: data?.contact?.entityType === 'other' ? data?.contact?.firstName : '',
-            lastName: data?.contact?.entityType === 'other' ? data?.contact?.lastName : '',
-            email: data?.contact?.entityType === 'other' ? data?.contact?.email : '',
-            phone: data?.contact?.entityType === 'other' ? data?.contact?.phone : '',
+            firstName:
+              data?.contact?.entityType === 'other'
+                ? data?.contact?.firstName
+                : '',
+            lastName:
+              data?.contact?.entityType === 'other'
+                ? data?.contact?.lastName
+                : '',
+            email:
+              data?.contact?.entityType === 'other' ? data?.contact?.email : '',
+            phone:
+              data?.contact?.entityType === 'other' ? data?.contact?.phone : '',
             preferredMethod: (data?.contact?.entityType === 'other'
               ? data?.contact?.preferredMethod
               : '') as PreferredMethod,

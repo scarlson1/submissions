@@ -44,10 +44,10 @@ import { isDate, round, sum, sumBy } from 'lodash';
 import { toast } from 'react-hot-toast';
 import { Link as RouterLink } from 'react-router-dom';
 
+import type { Address, Nullable } from '@idemand/common';
 import { LoadingButton, LoadingButtonProps } from '@mui/lab';
 import {
   AdditionalInsured,
-  Address,
   Basement,
   CancelReason,
   CBRSDesignation,
@@ -59,7 +59,6 @@ import {
   INVITE_STATUS,
   LineOfBusiness,
   Mortgagee,
-  Nullable,
   POLICY_STATUS,
   PolicyLocation,
   PriorLossCount,

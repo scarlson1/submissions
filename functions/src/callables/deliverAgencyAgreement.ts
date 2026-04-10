@@ -1,7 +1,8 @@
 /* eslint-disable */
+import type { Address } from '@idemand/common';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { Address, signNowCreds, signNowUserCreds } from '../common/index.js';
+import { signNowCreds, signNowUserCreds } from '../common/index.js';
 import { getSignNowInstance } from '../services/index.js';
 import { validate } from './utils/index.js';
 
@@ -15,7 +16,10 @@ interface GetAnnualPremiumData {
   companyAddress: Address;
 }
 
-export default async ({ data, auth }: CallableRequest<GetAnnualPremiumData>) => {
+export default async ({
+  data,
+  auth,
+}: CallableRequest<GetAnnualPremiumData>) => {
   if (!auth?.token.iDemandAdmin)
     throw new HttpsError('permission-denied', 'must have admin permissions');
 
@@ -39,12 +43,16 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumData>) => 
   validate(
     accountEmail && accountPW && basicAuthToken,
     'internal',
-    'missing external API credentials'
+    'missing external API credentials',
   );
 
   let signNowInstance;
   try {
-    signNowInstance = getSignNowInstance(basicAuthToken, accountEmail, accountPW);
+    signNowInstance = getSignNowInstance(
+      basicAuthToken,
+      accountEmail,
+      accountPW,
+    );
   } catch (err: any) {
     console.log('ERROR: ', err?.data);
     throw new HttpsError('internal', `Error generating access token`);
@@ -53,9 +61,12 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumData>) => 
   let docId;
   try {
     info(`GENERATING DOC FROM TEMPLATE ${templateId}`);
-    const { data: copyRes } = await signNowInstance.post(`template/${templateId}/copy`, {
-      document_name: `iDemand Agency Agreement - ${companyName}`.trim(),
-    });
+    const { data: copyRes } = await signNowInstance.post(
+      `template/${templateId}/copy`,
+      {
+        document_name: `iDemand Agency Agreement - ${companyName}`.trim(),
+      },
+    );
 
     info('COPY RES: ', copyRes);
     if (copyRes?.id) {
@@ -132,7 +143,8 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumData>) => 
           custom_defined_option: false,
           label: 'Agency Street Address',
           name: 'streetAddress',
-          prefilled_text: `${companyAddress.addressLine1} ${companyAddress.addressLine2}`.trim(),
+          prefilled_text:
+            `${companyAddress.addressLine1} ${companyAddress.addressLine2}`.trim(),
         },
         {
           x: 360, // 400, // 525,
@@ -242,7 +254,9 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumData>) => 
     info('PREFILL RES: ', data);
     prefillRes = data;
   } catch (err: any) {
-    error('ERROR UPDATING DOC WITH COMPANY INFO: ', { responseData: err?.response?.data });
+    error('ERROR UPDATING DOC WITH COMPANY INFO: ', {
+      responseData: err?.response?.data,
+    });
     if (err?.response?.data?.errors?.length) {
       errors = [...err?.response?.data?.errors];
     }

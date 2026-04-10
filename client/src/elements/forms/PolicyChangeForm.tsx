@@ -3,14 +3,15 @@ import { Form, Formik, FormikConfig, FormikProps } from 'formik';
 import { RefObject } from 'react';
 import { date, object, string } from 'yup';
 
-import { Address, NamedInsured, addressValidation, emailVal, phoneVal } from 'common';
+import type { Address } from '@idemand/common';
+import { addressValidation, emailVal, NamedInsured, phoneVal } from 'common';
 import {
   FormikDatePicker,
   FormikMaskField,
   FormikTextField,
   IMask,
-  UpdateDialogSubmitDisabled,
   phoneMaskProps,
+  UpdateDialogSubmitDisabled,
 } from 'components/forms';
 import { FormikAddress } from './FormikAddress';
 
@@ -79,7 +80,11 @@ export const PolicyChangeForm = ({
               />
             </Grid>
             <Grid xs={6} md={4}>
-              <FormikTextField name='namedInsured.email' label='Email' fullWidth />
+              <FormikTextField
+                name='namedInsured.email'
+                label='Email'
+                fullWidth
+              />
             </Grid>
             <Grid xs={6} md={4}>
               <FormikMaskField
@@ -107,7 +112,9 @@ export const PolicyChangeForm = ({
               <Divider />
             </Grid>
             <Grid xs={12} sm={6}>
-              <Typography sx={{ pb: 3 }}>When to you want these changes to take affect?</Typography>
+              <Typography sx={{ pb: 3 }}>
+                When to you want these changes to take affect?
+              </Typography>
               <FormikDatePicker
                 name='requestEffDate'
                 label='Request effective date'

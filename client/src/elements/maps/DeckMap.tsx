@@ -47,7 +47,7 @@ export const DeckMap = ({
           isMobile
             ? {
                 pan: { threshold: 10 },
-                tap: { threshold: 5 },
+                // tap: { threshold: 5 },
               }
             : {}
         }

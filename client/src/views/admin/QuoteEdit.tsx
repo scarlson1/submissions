@@ -1,6 +1,6 @@
 import { Box } from '@mui/material';
 import { endOfToday, isValid, startOfDay } from 'date-fns';
-import { GeoPoint, Timestamp, doc, setDoc } from 'firebase/firestore';
+import { doc, GeoPoint, setDoc, Timestamp } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
 import { round } from 'lodash';
 import { useCallback, useMemo } from 'react';
@@ -8,19 +8,19 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { CLAIMS, QUOTE_STATUS, Quote, quotesCollection } from 'common';
+import { CLAIMS, Quote, QUOTE_STATUS, quotesCollection } from 'common';
 import { QuoteForm, QuoteValues } from 'elements/forms';
 import { useAsyncToast, useDocDataOnce } from 'hooks';
 import { CARD_FEE_RATE } from 'hooks/useCreateQuote';
 import { addToDate, extractNumber } from 'modules/utils';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 // TODO: better validation
 
 const useEditQuote = (
   quoteId: string,
   onSuccess?: () => void,
-  onError?: (msg: string, err: any) => void
+  onError?: (msg: string, err: any) => void,
 ) => {
   const { data: authCheckResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
@@ -31,12 +31,15 @@ const useEditQuote = (
   const editQuote = useCallback(
     async (newValues: QuoteValues) => {
       try {
-        invariant(authCheckResult.hasRequiredClaims, 'missing admin permissions');
+        invariant(
+          authCheckResult.hasRequiredClaims,
+          'missing admin permissions',
+        );
         invariant(newValues.quoteTotal, 'missing quote total');
         invariant(newValues.annualPremium, 'missing annual premium');
         invariant(
           newValues.namedInsured?.email || newValues.agent?.email,
-          'Must have at least one email (insured or agent)'
+          'Must have at least one email (insured or agent)',
         );
         invariant(isValid(newValues.effectiveDate), 'Invalid effective date');
         invariant(typeof newValues.coordinates?.longitude === 'number');
@@ -66,7 +69,7 @@ const useEditQuote = (
           homeState: newValues?.homeState,
           coordinates: new GeoPoint(
             newValues.coordinates.latitude,
-            newValues.coordinates.longitude
+            newValues.coordinates.longitude,
           ),
           limits: newValues?.limits,
           deductible: newValues?.deductible,
@@ -83,7 +86,9 @@ const useEditQuote = (
             ...newValues?.address,
           },
           quotePublishedDate: Timestamp.now(),
-          quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
+          quoteExpirationDate: Timestamp.fromDate(
+            addToDate({ days: 60 }, endOfToday()),
+          ),
           effectiveDate: Timestamp.fromDate(effDateStartOfDay),
           namedInsured: newValues?.namedInsured,
           agent: newValues?.agent,
@@ -98,14 +103,21 @@ const useEditQuote = (
           ratingPropertyData: {
             CBRSDesignation: newValues.ratingPropertyData.CBRSDesignation,
             basement: newValues.ratingPropertyData.basement,
-            distToCoastFeet: extractNumber(`${newValues.ratingPropertyData.distToCoastFeet}`),
+            distToCoastFeet: extractNumber(
+              `${newValues.ratingPropertyData.distToCoastFeet}`,
+            ),
             floodZone: newValues.ratingPropertyData.floodZone,
             numStories: newValues.ratingPropertyData.numStories,
             propertyCode: newValues.ratingPropertyData.propertyCode,
             replacementCost: newValues.ratingPropertyData.replacementCost,
-            sqFootage: extractNumber(`${newValues.ratingPropertyData.sqFootage}`),
-            yearBuilt: extractNumber(`${newValues.ratingPropertyData.yearBuilt}`),
-            priorLossCount: newValues?.ratingPropertyData?.priorLossCount ?? null,
+            sqFootage: extractNumber(
+              `${newValues.ratingPropertyData.sqFootage}`,
+            ),
+            yearBuilt: extractNumber(
+              `${newValues.ratingPropertyData.yearBuilt}`,
+            ),
+            priorLossCount:
+              newValues?.ratingPropertyData?.priorLossCount ?? null,
           },
           ratingDocId: newValues?.ratingDocId || '',
           notes:
@@ -132,7 +144,7 @@ const useEditQuote = (
         if (onError) onError(msg, err);
       }
     },
-    [quoteId, quotesColRef, authCheckResult, onSuccess, onError]
+    [quoteId, quotesColRef, authCheckResult, onSuccess, onError],
   );
 
   return editQuote;
@@ -152,7 +164,7 @@ export const QuoteEdit = () => {
       toast.success('quote saved!');
       navigate(createPath({ path: ROUTES.QUOTES }));
     },
-    (msg: string, err: any) => toast.error(msg)
+    (msg: string, err: any) => toast.error(msg),
   );
 
   // TODO: figure out how to get AALs for initialValues ??
@@ -182,7 +194,8 @@ export const QuoteEdit = () => {
         limitD: quoteData?.limits?.limitD ?? 25000,
       },
       deductible: quoteData?.deductible ?? 1000,
-      effectiveExceptionRequested: quoteData?.effectiveExceptionRequested ?? false,
+      effectiveExceptionRequested:
+        quoteData?.effectiveExceptionRequested ?? false,
       effectiveDate: quoteData?.effectiveDate?.toDate() || null,
       fees:
         quoteData?.fees?.map((f) => ({
@@ -237,7 +250,8 @@ export const QuoteEdit = () => {
       },
       ratingPropertyData: {
         CBRSDesignation: quoteData?.ratingPropertyData?.CBRSDesignation ?? '',
-        basement: `${quoteData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(),
+        basement:
+          `${quoteData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(),
         distToCoastFeet: `${quoteData?.ratingPropertyData?.distToCoastFeet ?? ''}`, // submissionData?.distToCoastFeet ?? null,
         floodZone: quoteData?.ratingPropertyData?.floodZone ?? '',
         numStories: quoteData?.ratingPropertyData?.numStories ?? 1,
@@ -255,7 +269,7 @@ export const QuoteEdit = () => {
       },
       notes: quoteData?.notes?.map((n) => n.note) || [],
     }),
-    [quoteData]
+    [quoteData],
   );
 
   const initialRatingSnap = useMemo(() => {
@@ -264,11 +278,14 @@ export const QuoteEdit = () => {
   }, [quoteData]);
 
   const handleSubmit = useCallback(
-    async (values: QuoteValues, { setSubmitting }: FormikHelpers<QuoteValues>) => {
+    async (
+      values: QuoteValues,
+      { setSubmitting }: FormikHelpers<QuoteValues>,
+    ) => {
       await editQuote(values);
       setSubmitting(false);
     },
-    [editQuote]
+    [editQuote],
   );
 
   if (!quoteData) throw new Error(`Quote not found with ID ${quoteId}`);
@@ -304,7 +321,7 @@ function getRatingInputsFromQuote(data: Partial<Quote> | null) {
     state: data?.address?.state,
     floodZone: data?.ratingPropertyData?.floodZone,
     basement: data?.ratingPropertyData?.basement?.toLowerCase(),
-    commissionPct: data?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from client if idemand admin
+    // commissionPct: data?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from client if idemand admin
     // ratingDocId: data?.ratingDocId || '',
     priorLossCount: data?.ratingPropertyData?.priorLossCount,
     // @ts-ignore

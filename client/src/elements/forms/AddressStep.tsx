@@ -8,14 +8,14 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { toast } from 'react-hot-toast';
 import { Marker } from 'react-map-gl';
 
-import { Address, Coordinates, Nullable } from 'common';
+import type { Address, Coords, Nullable } from '@idemand/common';
 import { useRegisterEmailNotification } from 'hooks';
 import { ActiveStateMap } from '../maps/ActiveStateMap';
 import { FormikAddress, FormikAddressProps } from './FormikAddress';
 
 export interface AddressStepValues {
   address: Address;
-  coordinates: Nullable<Coordinates>;
+  coordinates: Nullable<Coords>;
 }
 
 export interface AddressStepProps extends Omit<

@@ -1,17 +1,17 @@
 import { User } from 'firebase/auth';
-import { Timestamp, addDoc, doc } from 'firebase/firestore';
+import { addDoc, doc, Timestamp } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { pick } from 'lodash';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
 
+import type { WithId } from '@idemand/common';
 import {
   ChangeRequest,
-  Policy,
-  PolicyChangeRequestOld,
-  WithId,
   changeRequestsCollection,
   policiesCollection,
+  Policy,
+  PolicyChangeRequestOld,
 } from 'common';
 import { ChangeRequestStatus } from 'common/enums';
 import { useAuth } from 'context';
@@ -37,7 +37,10 @@ export const useCreatePolicyChangeRequest = () => {
   let initialVals = useRef<PolicyChangeValues>();
 
   const handleSubmit = useCallback(
-    async (values: PolicyChangeValues, bag: FormikHelpers<PolicyChangeValues>) => {
+    async (
+      values: PolicyChangeValues,
+      bag: FormikHelpers<PolicyChangeValues>,
+    ) => {
       console.log('on submit called...', values);
 
       if (!policyId.current || !initialVals.current || !policy.current)
@@ -57,12 +60,15 @@ export const useCreatePolicyChangeRequest = () => {
         { ...policy.current, id: policyId.current },
         null,
         values,
-        user
+        user,
       );
 
       toast.loading('saving...');
-      const changeRequestCol = changeRequestsCollection(firestore, policyId.current);
-      const docIds = [];
+      const changeRequestCol = changeRequestsCollection(
+        firestore,
+        policyId.current,
+      );
+      const docIds: string[] = [];
 
       let amendmentChanges = pick(changes, ['namedInsured', 'mailingAddress']);
       console.log('amendment changes: ', amendmentChanges);
@@ -73,12 +79,14 @@ export const useCreatePolicyChangeRequest = () => {
         policyChanges: amendmentChanges,
       };
 
-      let amendmentDocRef = await addDoc(changeRequestCol, { ...changeRequestJson });
+      let amendmentDocRef = await addDoc(changeRequestCol, {
+        ...changeRequestJson,
+      });
       docIds.push(amendmentDocRef.id);
 
       return { docIds };
     },
-    [firestore, initialVals, policy, policyId, toast, user]
+    [firestore, initialVals, policy, policyId, toast, user],
   );
 
   const dialogForm = useDialogForm<PolicyChangeValues, PolicyChangeFormProps>({
@@ -102,7 +110,10 @@ export const useCreatePolicyChangeRequest = () => {
     onCancel: () => console.log('on cancel'),
     dialogOptions: {
       title: 'Policy change request',
-      slotProps: { dialog: { maxWidth: 'md' }, acceptButton: { variant: 'contained' } },
+      slotProps: {
+        dialog: { maxWidth: 'md' },
+        acceptButton: { variant: 'contained' },
+      },
     },
   });
 
@@ -136,7 +147,7 @@ export const useCreatePolicyChangeRequest = () => {
 
       await dialogForm(initialValues);
     },
-    [dialogForm, firestore]
+    [dialogForm, firestore],
   );
 };
 
@@ -148,14 +159,18 @@ export const useCreatePolicyChangeRequest = () => {
 // }
 export function formatChanges<T>(
   newValues: Omit<T, 'requestEffDate'>,
-  initialValues: Omit<T, 'requestEffDate'>
+  initialValues: Omit<T, 'requestEffDate'>,
 ) {
   return getDifference(initialValues, newValues);
 }
 
 const amendmentKeys = ['namedInsured', 'mailingAddress', 'homeState'];
-function missingAmendmentKeys(changes: PolicyChangeRequestOld['policyChanges']) {
-  return Object.keys(changes || {}).every((k) => amendmentKeys.indexOf(k) === -1);
+function missingAmendmentKeys(
+  changes: PolicyChangeRequestOld['policyChanges'],
+) {
+  return Object.keys(changes || {}).every(
+    (k) => amendmentKeys.indexOf(k) === -1,
+  );
 }
 
 function getCommonTrxJson(
@@ -163,7 +178,7 @@ function getCommonTrxJson(
   policy: WithId<Policy>,
   locationId: string | null, // not used - match location get common trx function (TODO: combine into one function)
   formValues: PolicyChangeValues,
-  user: User | null
+  user: User | null,
 ): Omit<PolicyChangeRequestOld, 'policyChanges' | 'trxType'> {
   return {
     scope: 'policy',

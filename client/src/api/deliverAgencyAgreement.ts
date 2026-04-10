@@ -1,6 +1,5 @@
+import type { Address } from '@idemand/common';
 import { Functions, httpsCallable } from 'firebase/functions';
-
-import { Address } from 'common';
 
 export interface DeliverAgreementRequest {
   templateId?: string;

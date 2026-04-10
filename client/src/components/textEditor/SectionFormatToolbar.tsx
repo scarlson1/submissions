@@ -1,13 +1,13 @@
 import { useCallback, useMemo } from 'react';
 
-import { Editor } from '@tiptap/react';
-import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import {
   CodeRounded,
   FormatListBulletedRounded,
   FormatListNumberedRounded,
   FormatQuoteRounded,
 } from '@mui/icons-material';
+import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
+import { Editor } from '@tiptap/react';
 
 import { toggleButtonGroupStyle } from './common';
 
@@ -30,17 +30,25 @@ export const SectionFormatToolbar = ({ editor }: SectionFormatToolbarProps) => {
         editor?.chain().focus().toggleBulletList().run();
       }
       if (newFormats.includes('blockquote') !== blockquoteActive) {
+        // @ts-expect-error
         editor?.chain().focus().toggleBlockquote().run();
       }
       if (newFormats.includes('codeBlock') !== codeBlockActive) {
+        // @ts-expect-error
         editor?.chain().focus().toggleCodeBlock().run();
       }
     },
-    [editor, orderedListActive, bulletListActive, blockquoteActive, codeBlockActive]
+    [
+      editor,
+      orderedListActive,
+      bulletListActive,
+      blockquoteActive,
+      codeBlockActive,
+    ],
   );
 
   const sectionFormats = useMemo(() => {
-    let activeSectionFormats = [];
+    let activeSectionFormats: string[] = [];
     if (orderedListActive) activeSectionFormats.push('orderedList');
     if (bulletListActive) activeSectionFormats.push('bulletList');
     if (blockquoteActive) activeSectionFormats.push('blockquote');
@@ -93,6 +101,7 @@ export const SectionFormatToolbar = ({ editor }: SectionFormatToolbarProps) => {
         size='small'
         value='codeBlock'
         color='primary'
+        // @ts-expect-error
         disabled={!editor.can().chain().focus().toggleCodeBlock().run()}
         aria-label='code block'
         sx={{
@@ -108,6 +117,7 @@ export const SectionFormatToolbar = ({ editor }: SectionFormatToolbarProps) => {
         size='small'
         value='blockquote'
         color='primary'
+        // @ts-expect-error
         disabled={!editor.can().chain().focus().toggleBlockquote().run()}
         aria-label='block quote'
         sx={{

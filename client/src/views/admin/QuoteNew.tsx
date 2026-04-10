@@ -7,10 +7,20 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { Optional, SUBMISSION_STATUS, Submission, submissionsCollection } from 'common';
-import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/forms';
-import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
-import { ROUTES, createPath } from 'router';
+import type { Optional } from '@idemand/common';
+import { Submission, SUBMISSION_STATUS, submissionsCollection } from 'common';
+import {
+  getRatingInputsFromSubmission,
+  QuoteForm,
+  QuoteValues,
+} from 'elements/forms';
+import {
+  RatingInputsWithAAL,
+  useAsyncToast,
+  useCreateQuote,
+  useDocDataOnce,
+} from 'hooks';
+import { createPath, ROUTES } from 'router';
 
 // TODO: decide whether to pass along submission data ?? refactor to use locations collection & get rating data from rating doc
 // TODO: suspense / throw promise to create new quote doc ??
@@ -43,16 +53,19 @@ export const QuoteNew = ({
       navigate(createPath({ path: ROUTES.QUOTES }), { replace: true });
     },
     (msg: string) => toast.success(msg, { duration: 3000 }),
-    (msg: string, err: any) => toast.error(msg)
+    (msg: string, err: any) => toast.error(msg),
   );
 
   const handleSubmit = useCallback(
-    async (values: QuoteValues, { setSubmitting }: FormikHelpers<QuoteValues>) => {
+    async (
+      values: QuoteValues,
+      { setSubmitting }: FormikHelpers<QuoteValues>,
+    ) => {
       await createQuote(values, submissionId, submissionData);
 
       setSubmitting(false);
     },
-    [createQuote, submissionId, submissionData]
+    [createQuote, submissionId, submissionData],
   );
 
   return (
@@ -70,7 +83,10 @@ export const QuoteNew = ({
 export const QuoteNewFromSub = () => {
   const { submissionId } = useParams();
   invariant(submissionId);
-  const { data: submissionData } = useDocDataOnce<Submission>('submissions', submissionId);
+  const { data: submissionData } = useDocDataOnce<Submission>(
+    'submissions',
+    submissionId,
+  );
 
   // TODO: note if RCV source is from user
   // @ts-ignore TODO: fix types (can't pass null to iMask component)
@@ -129,17 +145,22 @@ export const QuoteNewFromSub = () => {
         address: null,
       },
       ratingPropertyData: {
-        CBRSDesignation: submissionData?.ratingPropertyData?.CBRSDesignation ?? '',
-        basement: `${submissionData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
+        CBRSDesignation:
+          submissionData?.ratingPropertyData?.CBRSDesignation ?? '',
+        basement:
+          `${submissionData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
         distToCoastFeet: `${submissionData?.ratingPropertyData?.distToCoastFeet ?? ''}`, // submissionData?.distToCoastFeet ?? null,
         floodZone: submissionData?.ratingPropertyData?.floodZone ?? '',
         numStories: submissionData?.ratingPropertyData?.numStories ?? 1,
         propertyCode: `${submissionData?.ratingPropertyData?.propertyCode ?? ''}`,
-        replacementCost: submissionData?.ratingPropertyData?.replacementCost ?? null, // @ts-ignore
+        replacementCost:
+          submissionData?.ratingPropertyData?.replacementCost ?? null, // @ts-ignore
         sqFootage: `${submissionData?.ratingPropertyData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
         yearBuilt: `${submissionData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
         priorLossCount:
-          submissionData?.ratingPropertyData?.priorLossCount || submissionData.priorLossCount || '',
+          submissionData?.ratingPropertyData?.priorLossCount ||
+          submissionData.priorLossCount ||
+          '',
       },
       ratingDocId: submissionData.ratingDocId || '',
       AALs: {
@@ -149,7 +170,7 @@ export const QuoteNewFromSub = () => {
       },
       notes: [],
     }),
-    [submissionData]
+    [submissionData],
   );
 
   const initialRatingSnap = useMemo(() => {

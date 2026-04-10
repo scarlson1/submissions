@@ -24,17 +24,21 @@ import { useCallback, useMemo, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import { object, string } from 'yup';
 
+import type { Address } from '@idemand/common';
 import { calcTotalsByBillingEntity } from 'api';
 import {
   AdditionalInterest,
-  Address,
+  additionalInterestsVal,
+  fallbackImages,
   NamedInsuredDetails,
   Quote,
   TCollection,
-  additionalInterestsVal,
-  fallbackImages,
 } from 'common';
-import { FormikFieldArray, FormikNativeSelect, FormikWizardNavButtons } from 'components/forms';
+import {
+  FormikFieldArray,
+  FormikNativeSelect,
+  FormikWizardNavButtons,
+} from 'components/forms';
 import { SelectOption } from 'components/forms/FormikSelect';
 import { ExpandMoreButton } from 'elements/cards/ExpandMoreButton';
 import { useDocData, useWizard } from 'hooks';
@@ -88,7 +92,10 @@ export const LocationBillingStep = ({
   const { data } = useDocData<
     Pick<
       Quote,
-      'namedInsured' | 'billingEntities' | 'defaultBillingEntityId' | 'additionalInterests'
+      | 'namedInsured'
+      | 'billingEntities'
+      | 'defaultBillingEntityId'
+      | 'additionalInterests'
     >
   >(colName, docId);
 
@@ -99,7 +106,7 @@ export const LocationBillingStep = ({
         label: `${details.displayName || ''} (${details.email})`,
         ...details,
       })),
-    [data]
+    [data],
   );
 
   const handleUpdateValues = useCallback(
@@ -116,7 +123,7 @@ export const LocationBillingStep = ({
       });
       console.log('billing entity res: ', data);
     },
-    [nextStep, functions, colName, docId]
+    [nextStep, functions, colName, docId],
   );
 
   // pass to handleUpdateValues b/c formik doesn't handle multiple async functions properly
@@ -132,17 +139,30 @@ export const LocationBillingStep = ({
         // TODO onError
       }
     },
-    [nextStep, handleUpdateValues]
+    [nextStep, handleUpdateValues],
   );
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 3 }}>
-        <Typography variant='h5'>Billing Entity & Additional Insured</Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pb: 3,
+        }}
+      >
+        <Typography variant='h5'>
+          Billing Entity & Additional Insured
+        </Typography>
         <AddBillingEntity
           colName={colName}
           docId={docId}
-          buttonProps={{ variant: 'contained', size: 'small', startIcon: <AddRounded /> }}
+          buttonProps={{
+            variant: 'contained',
+            size: 'small',
+            startIcon: <AddRounded />,
+          }}
         />
       </Box>
       <Formik<BillingEntityStepValues>
@@ -196,8 +216,15 @@ function BillingLocationFormCard({
   img,
   selectOptions,
 }: BillingLocationFormCardProps) {
-  const { values, touched, errors, dirty, setFieldValue, setFieldTouched, setFieldError } =
-    useFormikContext<BillingEntityStepValues>();
+  const {
+    values,
+    touched,
+    errors,
+    dirty,
+    setFieldValue,
+    setFieldTouched,
+    setFieldError,
+  } = useFormikContext<BillingEntityStepValues>();
   const [expanded, setExpanded] = useState(false);
 
   const handleExpandClick = () => {
@@ -210,17 +237,26 @@ function BillingLocationFormCard({
       <Box sx={{ display: { xs: 'block', sm: 'flex' } }}>
         <CardMedia
           component='img'
-          sx={{ width: { xs: '100%', sm: 140 }, height: { xs: 120, sm: 'auto' } }}
+          sx={{
+            width: { xs: '100%', sm: 140 },
+            height: { xs: 120, sm: 'auto' },
+          }}
           image={img || fallbackImages[0]}
           alt={`${address.addressLine1}`}
         />
-        <CardContent sx={{ p: 0, '&.MuiCardContent-root:last-child': { pb: 0 } }}>
+        <CardContent
+          sx={{ p: 0, '&.MuiCardContent-root:last-child': { pb: 0 } }}
+        >
           <Grid container spacing={4} sx={{ px: 4, pt: 4, pb: 2 }}>
             <Grid xs={7}>
               <Typography component='div' variant='h5'>
                 {address?.addressLine1 || 'Missing address'}
               </Typography>
-              <Typography variant='subtitle2' color='text.tertiary' component='div'>
+              <Typography
+                variant='subtitle2'
+                color='text.tertiary'
+                component='div'
+              >
                 {`${address.city}, ${address.state}`}
               </Typography>
             </Grid>
@@ -242,9 +278,16 @@ function BillingLocationFormCard({
               )}
             </Grid>
             <Grid xs={12} sx={{ display: 'flex', alignItems: 'center', pt: 6 }}>
-              <AvatarGroup max={4} spacing='medium' sx={{ justifyContent: 'flex-end' }}>
+              <AvatarGroup
+                max={4}
+                spacing='medium'
+                sx={{ justifyContent: 'flex-end' }}
+              >
                 {namedInsured ? (
-                  <Tooltip title={`${namedInsured.firstName}`} key={namedInsured.email}>
+                  <Tooltip
+                    title={`${namedInsured.firstName}`}
+                    key={namedInsured.email}
+                  >
                     <Avatar
                       src={namedInsured.photoURL || undefined}
                       alt={namedInsured.firstName || 'i d'}
@@ -255,7 +298,10 @@ function BillingLocationFormCard({
                 {dbAdditionalInterests?.length
                   ? dbAdditionalInterests.map((f, i) => (
                       <Tooltip title={`${f?.name}`} key={`${f.email}-${i}`}>
-                        <Avatar alt={`${f.email}-${i}`} sx={{ width: 30, height: 30 }}>
+                        <Avatar
+                          alt={`${f.email}-${i}`}
+                          sx={{ width: 30, height: 30 }}
+                        >
                           {f.type === 'mortgagee' ? (
                             <AccountBalanceRounded fontSize='inherit' />
                           ) : (
@@ -273,7 +319,10 @@ function BillingLocationFormCard({
                 aria-label='edit additional interests'
                 size='small'
                 sx={{ ml: 'auto', height: 28, width: 28 }}
-                disabled={Boolean(errors) && Object.keys(errors).includes('additionalInterests')}
+                disabled={
+                  Boolean(errors) &&
+                  Object.keys(errors).includes('additionalInterests')
+                }
               >
                 <ExpandMoreRounded fontSize='inherit' />
               </ExpandMoreButton>
@@ -286,7 +335,8 @@ function BillingLocationFormCard({
         timeout='auto'
         sx={{
           flexBasis: '100%',
-          borderTop: (theme) => (expanded ? `1px solid ${theme.palette.divider}` : undefined),
+          borderTop: (theme) =>
+            expanded ? `1px solid ${theme.palette.divider}` : undefined,
         }}
       >
         <CardContent>

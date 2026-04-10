@@ -25,9 +25,9 @@ export {
   postalMaskProps,
   routingNumberMaskProps,
 } from './IMask';
+export { RequiredFieldsIndicator } from './RequiredFieldsIndicator';
 export { RHFFieldArray } from './RHFFieldArray';
 export { RHFTextField } from './RHFTextField';
-export { RequiredFieldsIndicator } from './RequiredFieldsIndicator';
 export { RoutingNumberMask } from './RoutingNumberMask';
 export { Step } from './Step';
 export { StepperNav } from './StepperNav';
@@ -35,7 +35,7 @@ export { TooltipToggleButton } from './TooltipToggleButton';
 export { UpdateDialogSubmitDisabled } from './UpdateDialogSubmitDisabled';
 export { VirtualizedAutocomplete } from './VirtualizedAutocomplete';
 export { Wizard } from './Wizard';
-export { WizardNavButtons, FormikWizardNavButtons } from './WizardNavButtons';
+export { FormikWizardNavButtons, WizardNavButtons } from './WizardNavButtons';
 
 export type {
   AddressAutocompleteProps,

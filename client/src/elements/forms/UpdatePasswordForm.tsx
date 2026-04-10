@@ -59,7 +59,7 @@ export function UpdatePasswordForm() {
         toast.error('Error updating email');
       }
     },
-    [toast, updateUserPassword]
+    [toast, updateUserPassword],
   );
 
   return (
@@ -67,12 +67,13 @@ export function UpdatePasswordForm() {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={5}>
           <Grid xs={8} sm={8} md={10}>
-            <RHFPassword
+            <RHFPassword<UpdatePasswordValues, 'password', UpdatePasswordValues>
               control={control}
               rules={{ required: true }}
               label='New Password'
               textFieldProps={{
-                helperText: 'Upper & lower letters, symbol, number, and min. 8 characters',
+                helperText:
+                  'Upper & lower letters, symbol, number, and min. 8 characters',
               }}
             />
             {/* <RHFTextField

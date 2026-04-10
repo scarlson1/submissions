@@ -5,15 +5,24 @@ import {
   GridValidRowModel,
 } from '@mui/x-data-grid';
 import { JSONContent } from '@tiptap/react';
-import {
-  DocumentData,
-  GeoPoint as FirestoreGeoPoint,
-  Timestamp as FirestoreTimestamp,
-  WithFieldValue,
-} from 'firebase/firestore';
+import { DocumentData, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
 import { z } from 'zod';
 
+import type {
+  Address,
+  BaseMetadata,
+  GeoPoint,
+  Nullable,
+  Timestamp,
+  WithRequired,
+} from '@idemand/common';
+import {
+  Address as AddressZ,
+  BaseMetadata as BaseMetadataZ,
+  GeoPoint as GeoPointZ,
+  Timestamp as TimestampZ,
+} from '@idemand/common';
 import { ServerDataGridProps } from 'components';
 import { AddLocationValues } from 'elements/forms';
 import { CancelValues } from 'elements/forms/CancelForm';
@@ -56,49 +65,13 @@ import {
   type TDefaultCommission,
 } from './enums';
 
-// export interface BaseMetadata {
-//   created: Timestamp;
-//   updated: Timestamp;
-//   version?: number;
-// }
-
-export const TimestampZ = z.instanceof(FirestoreTimestamp);
-export type Timestamp = z.infer<typeof TimestampZ>;
-
-export const BaseMetadataZ = z.object({
-  created: TimestampZ,
-  updated: TimestampZ,
-  version: z.number().int().optional(),
-});
-export type BaseMetadata = z.infer<typeof BaseMetadataZ>;
-
-export const GeoPointZ = z.instanceof(FirestoreGeoPoint);
-export type GeoPoint = z.infer<typeof GeoPointZ>;
-
 export interface BaseDoc {
   metadata: BaseMetadata;
 }
 
-export type WithId<T> = T & { id: string };
-
-export type Nullable<T> = { [K in keyof T]: T[K] | null };
-
-export type DeepNullable<T> = {
-  [K in keyof T]: DeepNullable<T[K]> | null;
-};
-
-export type DeepNonNullable<T> = {
-  [K in keyof T]: DeepNonNullable<NonNullable<T[K]>>;
-};
-
-export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-
 // TODO: redo Optional type / rename (MaybeKeys)
 // make optional accept keys that are optional (partial)
-export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
-
-export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> &
-  Omit<T, K>;
+// export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
 // TODO: need DeepPick & DeepOmit ??
 // export type DeepOptionalKeys <T, P extends Path<T>> = Pick<DeepPartial<T>, > &
@@ -262,36 +235,16 @@ export type ValueByRiskType = Record<FloodPerilCategories, number>;
 export const PhoneZ = z.string().min(10).max(12).trim(); // TODO: regex ??
 export type Phone = z.infer<typeof PhoneZ>;
 
-// export interface FirestoreTimestamp {
-//   readonly nanoseconds: number;
-//   readonly seconds: number;
-// }
-
-// export interface BaseMetadata {
-//   created: Timestamp; // FirestoreTimestamp;
-//   updated: Timestamp; // FirestoreTimestamp;
-// }
-
-// export interface Address {
-//   addressLine1: string;
-//   addressLine2: string;
-//   city: string;
-//   state: string;
-//   postal: string;
-//   countyFIPS?: string | null;
-//   countyName?: string | null;
-// }
-
-export const AddressZ = z.object({
-  addressLine1: z.string(),
-  addressLine2: z.string().default(''),
-  city: z.string(),
-  state: z.string(),
-  postal: z.string().length(5, 'postal must be 5 digits'),
-  countyFIPS: z.string().nullable().optional(),
-  countyName: z.string().nullable().optional(),
-});
-export type Address = z.infer<typeof AddressZ>;
+// export const AddressZ = z.object({
+//   addressLine1: z.string(),
+//   addressLine2: z.string().default(''),
+//   city: z.string(),
+//   state: z.string(),
+//   postal: z.string().length(5, 'postal must be 5 digits'),
+//   countyFIPS: z.string().nullable().optional(),
+//   countyName: z.string().nullable().optional(),
+// });
+// export type Address = z.infer<typeof AddressZ>;
 
 export const CompressedAddressZ = z.object({
   s1: z.string(),
@@ -310,16 +263,6 @@ export const MailingAddressZ = AddressZ.and(
 export type MailingAddress = z.infer<typeof MailingAddressZ>;
 
 export interface AddressWithCoords extends Address {
-  latitude: number;
-  longitude: number;
-}
-
-// export interface Coordinates {
-//   lat: number;
-//   lng: number;
-// }
-
-export interface Coordinates {
   latitude: number;
   longitude: number;
 }

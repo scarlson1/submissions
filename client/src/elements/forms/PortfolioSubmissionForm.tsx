@@ -1,20 +1,36 @@
 import { LoadingButton } from '@mui/lab';
-import { Box, Container, Divider, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import {
+  Box,
+  Container,
+  Divider,
+  Unstable_Grid2 as Grid,
+  Typography,
+} from '@mui/material';
 import { Form, Formik, FormikConfig, useFormikContext } from 'formik';
 import { camelCase, isEqual } from 'lodash';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { mixed, object, string } from 'yup';
 
-import { BaseContact, OptionalKeys, emailVal } from 'common';
+import type { OptionalKeys } from '@idemand/common';
+import { BaseContact, emailVal } from 'common';
 import { DownloadStorageFileButton } from 'components';
-import { FormikCheckbox, FormikDragDrop, FormikTextField } from 'components/forms';
+import {
+  FormikCheckbox,
+  FormikDragDrop,
+  FormikTextField,
+} from 'components/forms';
 import { RouterLink } from 'components/layout';
 import { RequiredHeaders } from 'elements';
-import { useDialog, useDisclosure, useGeneralQuoteDisclosure, useParseCSV } from 'hooks';
+import {
+  useDialog,
+  useDisclosure,
+  useGeneralQuoteDisclosure,
+  useParseCSV,
+} from 'hooks';
 import { usePrevious } from 'hooks/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 // const PORTFOLIO_QUOTE_TEMPLATE_URL = '';
 
@@ -78,8 +94,10 @@ const validation = object().shape({
   portfolio: csvValidation,
 });
 
-interface PortfolioSubmissionFormProps
-  extends OptionalKeys<FormikConfig<PortfolioSubmissionValues>, 'initialValues'> {
+interface PortfolioSubmissionFormProps extends OptionalKeys<
+  FormikConfig<PortfolioSubmissionValues>,
+  'initialValues'
+> {
   initialValues?: PortfolioSubmissionValues;
 }
 
@@ -88,7 +106,9 @@ export function PortfolioSubmissionForm({
   ...props
 }: PortfolioSubmissionFormProps) {
   const showDisclosure = useGeneralQuoteDisclosure();
-  const { disclosureHTML } = useDisclosure([['displayName', '==', 'Exempt Commercial Purchaser']]);
+  const { disclosureHTML } = useDisclosure([
+    ['displayName', '==', 'Exempt Commercial Purchaser'],
+  ]);
   const dialog = useDialog();
 
   const showCommercialAck = useCallback(() => {
@@ -109,13 +129,18 @@ export function PortfolioSubmissionForm({
 
   return (
     <Container maxWidth='sm' disableGutters>
-      <Formik initialValues={initialValues} {...props} validationSchema={validation}>
+      <Formik
+        initialValues={initialValues}
+        {...props}
+        validationSchema={validation}
+      >
         {({ handleSubmit, isSubmitting, isValidating, isValid }) => (
           <Form onSubmit={handleSubmit}>
             <Grid container rowSpacing={5} columnSpacing={8}>
               <Grid xs={12}>
                 <Typography variant='body1' component='div' sx={{ pb: 2 }}>
-                  Please upload a CSV containing the locations you would like quoted.{' '}
+                  Please upload a CSV containing the locations you would like
+                  quoted.{' '}
                   <DownloadStorageFileButton
                     filePath='public/floodQuoteTemplate.csv'
                     variant='body1'
@@ -124,17 +149,32 @@ export function PortfolioSubmissionForm({
                     Download template
                   </DownloadStorageFileButton>
                 </Typography>
-                <PortfolioDragDrop requiredHeaders={REQUIRED_HEADERS} formatFn={camelCase} />
+                <PortfolioDragDrop
+                  requiredHeaders={REQUIRED_HEADERS}
+                  formatFn={camelCase}
+                />
               </Grid>
               <Grid xs={12}>
                 <Divider sx={{ mb: 4 }} />
-                <FormikTextField name='orgName' label='Organization name' fullWidth />
+                <FormikTextField
+                  name='orgName'
+                  label='Organization name'
+                  fullWidth
+                />
               </Grid>
               <Grid xs={6}>
-                <FormikTextField name='contact.firstName' label='First name' fullWidth />
+                <FormikTextField
+                  name='contact.firstName'
+                  label='First name'
+                  fullWidth
+                />
               </Grid>
               <Grid xs={6}>
-                <FormikTextField name='contact.lastName' label='Last name' fullWidth />
+                <FormikTextField
+                  name='contact.lastName'
+                  label='Last name'
+                  fullWidth
+                />
               </Grid>
               <Grid xs={12}>
                 <FormikTextField
@@ -148,7 +188,11 @@ export function PortfolioSubmissionForm({
                 <FormikCheckbox
                   name='userAcceptance'
                   label={
-                    <Typography variant='body2' color='text.secondary' component='div'>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      component='div'
+                    >
                       I agree to the{' '}
                       <Typography
                         component='span'
@@ -188,7 +232,10 @@ export function PortfolioSubmissionForm({
                 <Typography variant='body2' color='text.secondary'>
                   Just one location?{' '}
                   <RouterLink
-                    to={createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })}
+                    to={createPath({
+                      path: ROUTES.SUBMISSION_NEW,
+                      params: { productId: 'flood' },
+                    })}
                     sx={{ fontSize: 'inherit' }}
                     underline='none'
                   >
@@ -220,16 +267,21 @@ interface PortfolioDragDropProps {
   formatFn: (str: string) => string;
 }
 
-function PortfolioDragDrop({ requiredHeaders, formatFn }: PortfolioDragDropProps) {
+function PortfolioDragDrop({
+  requiredHeaders,
+  formatFn,
+}: PortfolioDragDropProps) {
   const { values } = useFormikContext<PortfolioSubmissionValues>();
   const prevPortfolio = usePrevious(values.portfolio);
 
   const [headerStatus, setHeaderStatus] = useState(
-    getCsvHeaderStatus([], requiredHeaders, formatFn)
+    getCsvHeaderStatus([], requiredHeaders, formatFn),
   );
 
   const { handleParse } = useParseCSV((state) =>
-    setHeaderStatus(getCsvHeaderStatus(state.headers, requiredHeaders, formatFn))
+    setHeaderStatus(
+      getCsvHeaderStatus(state.headers, requiredHeaders, formatFn),
+    ),
   );
 
   useEffect(() => {

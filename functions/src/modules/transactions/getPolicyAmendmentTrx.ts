@@ -1,16 +1,22 @@
-import { Policy } from '@idemand/common';
+import { Policy, type WithId } from '@idemand/common';
 import { Timestamp } from 'firebase-admin/firestore';
-import { AmendmentTransaction, WithId } from '../../common/index.js';
+import { AmendmentTransaction } from '../../common/index.js';
 import { getBookingDate, getTermDays } from './utils.js';
 
 export const getPolicyAmendmentTrx = (
   policy: WithId<Policy>,
   trxEffDate: Timestamp,
-  eventId: string
+  eventId: string,
 ): AmendmentTransaction => {
-  const bookingDate = getBookingDate(trxEffDate.toMillis(), policy.effectiveDate.toMillis());
+  const bookingDate = getBookingDate(
+    trxEffDate.toMillis(),
+    policy.effectiveDate.toMillis(),
+  );
 
-  const trxDays = getTermDays(bookingDate.toDate(), policy.expirationDate.toDate());
+  const trxDays = getTermDays(
+    bookingDate.toDate(),
+    policy.expirationDate.toDate(),
+  );
 
   return {
     trxType: 'amendment',

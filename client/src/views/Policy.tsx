@@ -35,7 +35,8 @@ import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 
-import { ILocation, Policy as IPolicy, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { ILocation, Policy as IPolicy } from 'common';
 import {
   ClaimsGuard,
   ErrorFallback,

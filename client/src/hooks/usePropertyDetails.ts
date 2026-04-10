@@ -2,13 +2,12 @@ import { round, sum } from 'lodash';
 import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 
+import type { Coords, Nullable } from '@idemand/common';
 import { getPropertyDetailsAttom, GetPropertyDetailsAttomRequest } from 'api';
 import {
-  Coordinates,
   ElevationResult,
   LimitKeys,
   Limits,
-  Nullable,
   RatingPropertyData,
   TBasement,
 } from 'common';
@@ -79,7 +78,9 @@ interface UsePropertyDetailsProps {
 
 export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
   const functions = useFunctions();
-  const [propertyDetails, setPropertyDetails] = useState<Nullable<RatingPropertyData>>({
+  const [propertyDetails, setPropertyDetails] = useState<
+    Nullable<RatingPropertyData>
+  >({
     CBRSDesignation: null,
     basement: null,
     distToCoastFeet: null,
@@ -92,19 +93,24 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
     FFH: null,
     elevation: null,
   });
-  const [elevationData, setElevationData] = useState<ElevationResult | null>(null);
+  const [elevationData, setElevationData] = useState<ElevationResult | null>(
+    null,
+  );
   const [rcvSourceUser, setRcvSourceUser] = useState<null | number>(null);
-  const [initRatingValues, setInitRatingValues] = useState<InitRatingValues>(DEFAULT_INIT_VALUES);
-  const [propertyDataDocId, setPropertyDataDocId] = useState<string | null>(null);
+  const [initRatingValues, setInitRatingValues] =
+    useState<InitRatingValues>(DEFAULT_INIT_VALUES);
+  const [propertyDataDocId, setPropertyDataDocId] = useState<string | null>(
+    null,
+  );
   const promptRCV = usePromptRCV();
 
   const fetchPropertyData = useCallback(
     async (
-      args: GetPropertyDetailsAttomRequest
+      args: GetPropertyDetailsAttomRequest,
     ): Promise<
       InitRatingValues & {
         ratingPropertyData: Partial<RatingPropertyData>;
-        coordinates: Nullable<Coordinates>;
+        coordinates: Nullable<Coords>;
       }
     > => {
       const fetchDetails = getPropertyDetailsAttom(functions);
@@ -188,7 +194,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
         };
       }
     },
-    [functions, promptRCV, props]
+    [functions, promptRCV, props],
   );
 
   return {

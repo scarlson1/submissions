@@ -1,18 +1,13 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import {
-  Address,
-  Coordinates,
-  ElevationResult,
-  Nullable,
-  RatingPropertyData,
-} from 'common/types';
+import type { Address, Coords, Nullable } from '@idemand/common';
+import { ElevationResult, RatingPropertyData } from 'common/types';
 
 export interface GetPropertyDetailsAttomRequest extends Omit<
   Address,
   'addressLine2'
 > {
-  coordinates?: Nullable<Coordinates> | null | undefined;
+  coordinates?: Nullable<Coords> | null | undefined;
 }
 export interface GetPropertyDetailsAttomResponse extends Nullable<RatingPropertyData> {
   initDeductible: number;
@@ -22,7 +17,7 @@ export interface GetPropertyDetailsAttomResponse extends Nullable<RatingProperty
   initLimitD: number;
   maxDeductible: number;
   attomDocId?: string | null;
-  coordinates: Nullable<Coordinates>;
+  coordinates: Nullable<Coords>;
   elevationData: ElevationResult | null;
 }
 

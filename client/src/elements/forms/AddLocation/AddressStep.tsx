@@ -4,16 +4,14 @@ import { useCallback, useMemo } from 'react';
 import { useFunctions } from 'reactfire';
 import { object } from 'yup';
 
+import type { Address, Coords, Nullable } from '@idemand/common';
 import { getPropertyDetailsAttom } from 'api';
 import {
-  Address,
-  Coordinates,
-  DraftAddLocationRequest,
-  NESTED_ADDRESS_FIELD_NAMES,
-  Nullable,
-  TProduct,
   addressValidationActiveStates,
   coordinatesValidation,
+  DraftAddLocationRequest,
+  NESTED_ADDRESS_FIELD_NAMES,
+  TProduct,
 } from 'common';
 import { FormikWizardNavButtons } from 'components/forms';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
@@ -24,7 +22,7 @@ import { BaseStepProps } from './AddLocationWizard';
 
 export interface AddressValues {
   address: Address;
-  coordinates: Nullable<Coordinates>;
+  coordinates: Nullable<Coords>;
 }
 const getAddressVal = (activeStates: Record<string, boolean>) =>
   object().shape({
@@ -58,7 +56,10 @@ export function AddressStep({
   //   });
   // });
 
-  const validation = useMemo(() => getAddressVal(activeStates || {}), [activeStates]);
+  const validation = useMemo(
+    () => getAddressVal(activeStates || {}),
+    [activeStates],
+  );
 
   // fetch property details, calc default limits/deductible --> save to change request doc
   const handleStepSubmit = useCallback(
@@ -69,7 +70,8 @@ export function AddressStep({
         const { coordinates, address } = values;
         const coordsSame =
           values.coordinates?.latitude &&
-          changeRequest.formValues?.coordinates?.latitude === values.coordinates?.latitude;
+          changeRequest.formValues?.coordinates?.latitude ===
+            values.coordinates?.latitude;
         // TODO: better diff comparison. if allowing user to manually enter, need to geo code in backend but above would skip
 
         let updates: Partial<DraftAddLocationRequest['formValues']> = {
@@ -117,7 +119,7 @@ export function AddressStep({
         toast.error('Error saving values');
       }
     },
-    [nextStep, saveChangeRequest, fetchDetails, toast, changeRequest]
+    [nextStep, saveChangeRequest, fetchDetails, toast, changeRequest],
   );
 
   // example: https://github.com/devrnt/react-use-wizard/issues/33#issuecomment-822064093

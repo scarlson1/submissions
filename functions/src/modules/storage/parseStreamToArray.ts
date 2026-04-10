@@ -1,3 +1,4 @@
+import type { DeepNullable } from '@idemand/common';
 import {
   ParserHeaderArray,
   ParserHeaderTransformFunction,
@@ -7,8 +8,6 @@ import {
 import { error, info, warn } from 'firebase-functions/logger';
 import fs from 'fs';
 import { camelCase, snakeCase } from 'lodash-es';
-
-import { DeepNullable } from '../../common/index.js';
 
 export interface InvalidRow {
   rowNum: number;
@@ -25,7 +24,7 @@ export function parseStreamToArray<InitRowType = any, TRowType = any>(
   stream: fs.ReadStream,
   parseOptions: ParserOptionsArgs | undefined = undefined,
   transformFn: (data: InitRowType) => DeepNullable<TRowType>,
-  validateFn?: ((data: any) => boolean) | null | undefined
+  validateFn?: ((data: any) => boolean) | null | undefined,
 ) {
   return new Promise<ParseStreamToArrayRes<TRowType>>((resolve, reject) => {
     const dataArr: TRowType[] = [];
@@ -64,13 +63,13 @@ export function parseStreamToArray<InitRowType = any, TRowType = any>(
 }
 
 export const transformHeadersCamelCase: ParserHeaderTransformFunction = (
-  headers: ParserHeaderArray
+  headers: ParserHeaderArray,
 ) => {
   return headers.map((h) => camelCase(h || ''));
 };
 
 export const transformHeadersSnakeCase: ParserHeaderTransformFunction = (
-  headers: ParserHeaderArray
+  headers: ParserHeaderArray,
 ) => {
   return headers.map((h) => snakeCase(h || ''));
 };

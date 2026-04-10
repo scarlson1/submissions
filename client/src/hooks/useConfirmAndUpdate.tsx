@@ -1,18 +1,23 @@
 import { Typography, useMediaQuery, useTheme } from '@mui/material';
 import { GridRowModel } from '@mui/x-data-grid';
-import { DocumentData, UpdateData, getDoc } from 'firebase/firestore';
+import { DocumentData, getDoc, UpdateData } from 'firebase/firestore';
 import { useCallback } from 'react';
 import invariant from 'tiny-invariant';
 
-import { TCollection, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { TCollection } from 'common';
 import { DialogOptions } from 'context';
 import { flattenObj } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
 import { useDialog } from './useDialog';
 import { useUpdateDoc } from './useUpdateDoc';
 
-function getFlattenedChangeMsgs<T extends DocumentData>(newValues: UpdateData<T>) {
-  return Object.entries(flattenObj(newValues)).map(([key, newValue]) => `"${key}" to ${newValue}`);
+function getFlattenedChangeMsgs<T extends DocumentData>(
+  newValues: UpdateData<T>,
+) {
+  return Object.entries(flattenObj(newValues)).map(
+    ([key, newValue]) => `"${key}" to ${newValue}`,
+  );
 }
 
 export const useConfirmAndUpdate = <T extends DocumentData>(
@@ -20,11 +25,14 @@ export const useConfirmAndUpdate = <T extends DocumentData>(
   // updateFn: (id: string, vals: UpdateData<T>) => Promise<any>,
   getUpdateValues: (newRow: T) => UpdateData<T>,
   getChangeMsg?:
-    | ((oldRow: GridRowModel<WithId<T>>, newRow: GridRowModel<WithId<T>>) => string[] | null)
+    | ((
+        oldRow: GridRowModel<WithId<T>>,
+        newRow: GridRowModel<WithId<T>>,
+      ) => string[] | null)
     | null,
   onSuccess?: (updatedData: WithId<T>) => void,
   onError?: (msg: string, err: any) => void,
-  dialogOptions?: Omit<DialogOptions, 'content'>
+  dialogOptions?: Omit<DialogOptions, 'content'>,
 ) => {
   const dialog = useDialog();
   const toast = useAsyncToast();
@@ -42,11 +50,14 @@ export const useConfirmAndUpdate = <T extends DocumentData>(
       invariant(data);
       return { ...data, id: snap.id };
     },
-    [update]
+    [update],
   );
 
   return useCallback(
-    async (newRow: GridRowModel<WithId<T>>, oldRow: GridRowModel<WithId<T>>) => {
+    async (
+      newRow: GridRowModel<WithId<T>>,
+      oldRow: GridRowModel<WithId<T>>,
+    ) => {
       const updateValues = getUpdateValues(newRow);
       let mutationItems = getChangeMsg
         ? getChangeMsg(oldRow, newRow)
@@ -97,6 +108,14 @@ export const useConfirmAndUpdate = <T extends DocumentData>(
         return oldRow;
       }
     },
-    [dialog, toast, handleUpdateDoc, onSuccess, onError, dialogOptions, fullScreen]
+    [
+      dialog,
+      toast,
+      handleUpdateDoc,
+      onSuccess,
+      onError,
+      dialogOptions,
+      fullScreen,
+    ],
   );
 };
