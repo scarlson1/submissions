@@ -1,7 +1,7 @@
 import { DialogContentText, SxProps } from '@mui/material';
-import { UploadResult, getDownloadURL } from 'firebase/storage';
+import { getDownloadURL, UploadResult } from 'firebase/storage';
 
-import { StorageFolder } from 'common';
+import { StorageFolder } from '@idemand/common';
 import { useAuth } from 'context/AuthContext';
 import { useAsyncToast, useRequireAuth, useUpdateProfile } from 'hooks';
 import { logDev } from 'modules/utils';
@@ -28,7 +28,7 @@ export const UpdateProfileImg = ({ avatarSx }: UpdateProfileImgProps) => {
     },
     (msg: string) => {
       toast.error(msg);
-    }
+    },
   );
 
   // const {
@@ -63,13 +63,13 @@ export const UpdateProfileImg = ({ avatarSx }: UpdateProfileImgProps) => {
         await updateProfile({ photoURL: downloadUrl }); // uploadResult[0].metadata.fullPath
       }
     },
-    [updateProfile]
+    [updateProfile],
   );
   const handleError = useCallback(
     (err: any, msg?: string) => {
       toast.error(msg || 'something went wrong');
     },
-    [toast]
+    [toast],
   );
 
   if (!user) return null;
@@ -89,7 +89,9 @@ export const UpdateProfileImg = ({ avatarSx }: UpdateProfileImgProps) => {
         },
       }}
       title='Update Profile Image'
-      children={<DialogContentText>Select a new profile image.</DialogContentText>}
+      children={
+        <DialogContentText>Select a new profile image.</DialogContentText>
+      }
       openButtonText='Change Profile Image'
       filesDragDropProps={{ multiple: false, maxFileSizeInBytes: 4194304 }} // 4 MB
     />

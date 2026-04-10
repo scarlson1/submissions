@@ -21,14 +21,13 @@ import { useCallback, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
+import { StorageFolder, type TStorageFolder } from '@idemand/common';
 import {
   CLAIMS,
   PORTFOLIO_RATING_REQUIRED_HEADERS,
   Quote,
   QUOTE_IMPORT_REQUIRED_HEADERS,
   QUOTE_STATUS,
-  StorageFolder,
-  TStorageFolder,
 } from 'common';
 import { DownloadStorageFileButton } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';

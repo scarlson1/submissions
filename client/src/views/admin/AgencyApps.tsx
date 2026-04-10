@@ -1,19 +1,32 @@
 import { CheckCircleOutlineRounded, SendRounded } from '@mui/icons-material';
-import { Alert, AlertTitle, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
-import { GridActionsCellItem, GridCellParams, GridRowParams } from '@mui/x-data-grid';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import {
+  GridActionsCellItem,
+  GridCellParams,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { FirebaseError } from 'firebase/app';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { AgencySubmissionStatus, CLAIMS, Collection } from 'common';
+import { Collection } from '@idemand/common';
+import { AgencySubmissionStatus, CLAIMS } from 'common';
 import { IconButtonMenu } from 'components';
 import { useConfirmation } from 'context';
 import { AgencyAppsGrid } from 'elements/grids';
 import { useAsyncToast, useCreateTenant, useWidth } from 'hooks';
 import { useSendAgencyAppNotification } from 'hooks/useCreateTenant';
-import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
+import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 
 // TODO: organize create tenant/org process
 // move more of the logic to hook
@@ -28,8 +41,9 @@ export const AgencyApps = () => {
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
 
-  const { confirmAndSend } = useSendAgencyAppNotification(null, (errMsg: string) =>
-    toast.error(errMsg)
+  const { confirmAndSend } = useSendAgencyAppNotification(
+    null,
+    (errMsg: string) => toast.error(errMsg),
   );
 
   const { createTenant, error: createTenantError } = useCreateTenant();
@@ -37,7 +51,11 @@ export const AgencyApps = () => {
   const handleCellClick = (params: GridCellParams<any>) => {
     const ignoreFieldsContaining = ['email', 'phone', 'EandO'];
 
-    if (ignoreFieldsContaining.some((partialField) => params.field.includes(partialField))) {
+    if (
+      ignoreFieldsContaining.some((partialField) =>
+        params.field.includes(partialField),
+      )
+    ) {
       if (params.value) return;
     } else if (params.field === 'actions') {
       return;
@@ -46,7 +64,7 @@ export const AgencyApps = () => {
         createPath({
           path: ADMIN_ROUTES.AGENCY_APP,
           params: { submissionId: params.id.toString() },
-        })
+        }),
       );
     }
   };
@@ -88,30 +106,35 @@ export const AgencyApps = () => {
 
       await createTenant(params.id.toString());
     },
-    [createTenant, confirm, toast]
+    [createTenant, confirm, toast],
   );
 
   const getTenantIdByOrgName = useCallback(
     async (orgName: string) => {
       const orgQuery = query(
         collection(firestore, Collection.Enum.organizations),
-        where('orgName', '==', orgName)
+        where('orgName', '==', orgName),
       );
 
       const orgSnap = await getDocs(orgQuery);
       if (orgSnap.empty)
-        throw new Error(`No org doc found with orgName ${orgName} (need to accept / create org)`);
+        throw new Error(
+          `No org doc found with orgName ${orgName} (need to accept / create org)`,
+        );
 
       const orgs = orgSnap.docs.map((snap) => snap.data());
       if (orgs.length > 1)
-        console.log(`${orgs.length} orgs found matching orgName = ${orgName}`, orgs);
+        console.log(
+          `${orgs.length} orgs found matching orgName = ${orgName}`,
+          orgs,
+        );
 
       const orgId = orgs[0].tenantId;
       if (!orgId) throw new Error('Org record did not have tenantId property');
 
       return orgId;
     },
-    [firestore]
+    [firestore],
   );
 
   // TODO: add tenantCreated: tenantId to agency app doc
@@ -124,7 +147,8 @@ export const AgencyApps = () => {
 
       try {
         let orgName = params.row.orgName;
-        if (!orgName) return toast.error('missing orgName to search for Org record');
+        if (!orgName)
+          return toast.error('missing orgName to search for Org record');
 
         const orgId = await getTenantIdByOrgName(orgName);
 
@@ -136,12 +160,12 @@ export const AgencyApps = () => {
         toast.error(msg);
       }
     },
-    [confirmAndSend, getTenantIdByOrgName, toast]
+    [confirmAndSend, getTenantIdByOrgName, toast],
   );
 
   const navUserAgencyNew = useCallback(
     () => navigate(createPath({ path: ROUTES.AGENCY_NEW })),
-    [navigate]
+    [navigate],
   );
 
   const renderActions = useCallback(
@@ -166,7 +190,7 @@ export const AgencyApps = () => {
         label='Send invite'
       />,
     ],
-    [handleApprove, handleResendInvite, authCheck?.hasRequiredClaims]
+    [handleApprove, handleResendInvite, authCheck?.hasRequiredClaims],
   );
 
   return (
@@ -177,7 +201,9 @@ export const AgencyApps = () => {
         </Typography>
         <Stack direction='row' spacing={2}>
           <Button
-            onClick={() => navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))}
+            onClick={() =>
+              navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))
+            }
             variant='contained'
             sx={{ maxHeight: 34 }}
           >
@@ -206,7 +232,10 @@ export const AgencyApps = () => {
         </Box>
       )}
 
-      <AgencyAppsGrid renderActions={renderActions} onCellDoubleClick={handleCellClick} />
+      <AgencyAppsGrid
+        renderActions={renderActions}
+        onCellDoubleClick={handleCellClick}
+      />
     </Box>
   );
 };

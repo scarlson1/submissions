@@ -1,12 +1,22 @@
 import { Typography } from '@mui/material';
-import { Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { get, isNumber, set } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { useFirestore, useFunctions, useUser } from 'reactfire';
 
-import { ApproveChangeResponse, approveChangeRequest, calcPolicyChanges } from 'api';
-import { ChangeRequest, ILocation, changeRequestsCollection, policiesCollection } from 'common';
-import { ChangeRequestStatus, Collection } from 'common/enums';
+import { Collection } from '@idemand/common';
+import {
+  approveChangeRequest,
+  ApproveChangeResponse,
+  calcPolicyChanges,
+} from 'api';
+import {
+  ChangeRequest,
+  changeRequestsCollection,
+  ILocation,
+  policiesCollection,
+} from 'common';
+import { ChangeRequestStatus } from 'common/enums';
 import { getAll, getFirebaseDoc } from 'modules/db';
 import { deepMergeOverwriteArrays } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
@@ -14,7 +24,7 @@ import { useCompareJson } from './useCompareJson';
 
 export const useManageChangeRequest = (
   onSuccess?: (res?: ApproveChangeResponse | undefined) => void,
-  onError?: (msg: string, err: any) => void
+  onError?: (msg: string, err: any) => void,
 ) => {
   const functions = useFunctions();
   const firestore = useFirestore();
@@ -40,19 +50,24 @@ export const useManageChangeRequest = (
         if (onError) onError('an error occurred', err);
       }
     },
-    [functions, toast, onSuccess, onError]
+    [functions, toast, onSuccess, onError],
   );
 
   const updateChangeRequest = useCallback(
     async (
       policyId: string,
       requestId: string,
-      values: Partial<Pick<ChangeRequest, 'status' | 'requestEffDate' | 'underwriterNotes'>>
+      values: Partial<
+        Pick<ChangeRequest, 'status' | 'requestEffDate' | 'underwriterNotes'>
+      >,
     ) => {
       try {
         if (!user?.uid) throw new Error('must be signed in');
         // TODO: prompt for uw notes
-        const docRef = doc(changeRequestsCollection(firestore, policyId), requestId);
+        const docRef = doc(
+          changeRequestsCollection(firestore, policyId),
+          requestId,
+        );
 
         toast.loading('updating...');
         await updateDoc(docRef, {
@@ -70,19 +85,23 @@ export const useManageChangeRequest = (
         if (onError) onError('an error occurred', err);
       }
     },
-    [firestore, user, toast, onSuccess, onError]
+    [firestore, user, toast, onSuccess, onError],
   );
 
   const denyRequest = useCallback(
     (policyId: string, requestId: string) =>
-      updateChangeRequest(policyId, requestId, { status: ChangeRequestStatus.enum.denied }),
-    [updateChangeRequest]
+      updateChangeRequest(policyId, requestId, {
+        status: ChangeRequestStatus.enum.denied,
+      }),
+    [updateChangeRequest],
   );
 
   const cancelRequest = useCallback(
     (policyId: string, requestId: string) =>
-      updateChangeRequest(policyId, requestId, { status: ChangeRequestStatus.enum.cancelled }),
-    [updateChangeRequest]
+      updateChangeRequest(policyId, requestId, {
+        status: ChangeRequestStatus.enum.cancelled,
+      }),
+    [updateChangeRequest],
   );
 
   // TODO: add refresh policyCalc method
@@ -105,7 +124,7 @@ export const useManageChangeRequest = (
         if (onError) onError('an error occurred', err);
       }
     },
-    [functions, toast, onError]
+    [functions, toast, onError],
   );
 
   return {
@@ -118,7 +137,9 @@ export const useManageChangeRequest = (
 };
 
 // TODO: use react-query ??
-export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => void) => {
+export const usePreviewChangeRequest = (
+  onError?: (msg: string, err: any) => void,
+) => {
   const firestore = useFirestore();
   const toast = useAsyncToast();
   const [loading, setLoading] = useState(false);
@@ -130,10 +151,14 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
       try {
         toast.loading('preparing comparison...');
         setLoading(true);
-        const reqRef = doc(changeRequestsCollection(firestore, policyId), requestId);
+        const reqRef = doc(
+          changeRequestsCollection(firestore, policyId),
+          requestId,
+        );
 
         const request = await getFirebaseDoc(reqRef); // @ts-ignore
-        const { status, policyChangesCalcVersion, mergedWithPolicyVersion } = request;
+        const { status, policyChangesCalcVersion, mergedWithPolicyVersion } =
+          request;
 
         // if merged, get policy version at marge, otherwise use current
         const policyVersionPath =
@@ -141,7 +166,11 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
             ? [Collection.Enum.versions, `${request.mergedWithPolicyVersion}`]
             : [];
 
-        const policyRef = doc(policiesCollection(firestore), policyId, ...policyVersionPath);
+        const policyRef = doc(
+          policiesCollection(firestore),
+          policyId,
+          ...policyVersionPath,
+        );
         const policyBefore = await getFirebaseDoc(policyRef);
 
         let policyChanges = request.policyChanges || {};
@@ -168,7 +197,7 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
         const policyAfter = deepMergeOverwriteArrays(
           { '@': 'ignore me' },
           policyBefore,
-          policyChanges
+          policyChanges,
         );
 
         after['policy'] = policyAfter;
@@ -187,7 +216,11 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
         // TODO: handle location versions (get from policyBefore)
         // need to update getAll to allow for sub collection
         if (lcnIds.length) {
-          let lcnSnaps = await getAll<ILocation>(firestore, 'locations', lcnIds);
+          let lcnSnaps = await getAll<ILocation>(
+            firestore,
+            'locations',
+            lcnIds,
+          );
           lcnSnaps.forEach((s) => {
             if (s.exists()) lcns[s.id] = { ...s.data() };
           });
@@ -195,11 +228,19 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
 
         for (let [lcnId, lcn] of Object.entries(lcns)) {
           // @ts-ignore
-          let endorsementChanges = get(request.endorsementChanges || {}, `${lcnId}`, {});
+          let endorsementChanges = get(
+            request.endorsementChanges || {},
+            `${lcnId}`,
+            {},
+          );
           // @ts-ignore
           let amendmentChanges = get(request.amendmentChanges, `${lcnId}`, {});
 
-          let lcnMerged = deepMergeOverwriteArrays(lcn, endorsementChanges, amendmentChanges);
+          let lcnMerged = deepMergeOverwriteArrays(
+            lcn,
+            endorsementChanges,
+            amendmentChanges,
+          );
 
           set(before, `location.${lcnId}`, lcn);
           set(after, `location.${lcnId}`, lcnMerged);
@@ -236,11 +277,12 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
           after,
           'Change Request Diff',
           <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
-            Note: If the request status is "accepted," the base record ("before") is the
-            policy/location version at which the request was accepted, otherwise, the current policy
-            / location is used. The "old" side displays the base doc and the "new" side displays the
+            Note: If the request status is "accepted," the base record
+            ("before") is the policy/location version at which the request was
+            accepted, otherwise, the current policy / location is used. The
+            "old" side displays the base doc and the "new" side displays the
             base doc merged with the changes.
-          </Typography>
+          </Typography>,
         );
       } catch (err: any) {
         toast.error('something went wrong');
@@ -250,7 +292,7 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
         setLoading(false);
       }
     },
-    [firestore, onError, compareJson, refreshPolicyChanges, toast]
+    [firestore, onError, compareJson, refreshPolicyChanges, toast],
   );
 
   return useMemo(() => ({ previewChange, loading }), [previewChange, loading]);

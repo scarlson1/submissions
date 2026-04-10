@@ -1,11 +1,17 @@
 import { Box, Typography } from '@mui/material';
-import { CollectionReference, Timestamp, addDoc, collection } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  CollectionReference,
+  Timestamp,
+} from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { Collection, Disclosure, TProduct } from 'common';
+import { Collection } from '@idemand/common';
+import { Disclosure, TProduct } from 'common';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements/forms';
 import { useAsyncToast } from 'hooks';
@@ -19,14 +25,14 @@ export const DisclosureNew = () => {
   const handleSubmit = useCallback(
     async (
       { products, state, displayName, type, content }: DisclosureValues,
-      { setSubmitting }: FormikHelpers<DisclosureValues>
+      { setSubmitting }: FormikHelpers<DisclosureValues>,
     ) => {
       try {
         if (!content) throw new Error('failed to get content');
 
         const disclosuresColl = collection(
           firestore,
-          Collection.Enum.disclosures
+          Collection.Enum.disclosures,
         ) as CollectionReference<Disclosure>;
         toast.loading('Saving...');
 
@@ -51,7 +57,7 @@ export const DisclosureNew = () => {
         setSubmitting(false);
       }
     },
-    [firestore, toast, navigate]
+    [firestore, toast, navigate],
   );
 
   return (

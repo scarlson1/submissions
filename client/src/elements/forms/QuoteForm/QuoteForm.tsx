@@ -38,13 +38,13 @@ import type {
   Optional,
   WithId,
 } from '@idemand/common';
+import { Collection } from '@idemand/common';
 import {
   AgencyDetails,
   AgentDetails,
   Basement,
   CarrierDetails,
   CBRSDesignation,
-  Collection,
   CommSource,
   FloodZone,
   Limits,

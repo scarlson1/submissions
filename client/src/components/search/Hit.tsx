@@ -1,7 +1,8 @@
 import { Box, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
-import { Collection, InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import { Collection } from '@idemand/common';
+import { InternalDocSearchHit, StoredDocSearchHit } from 'common';
 import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 
 interface HitProps {

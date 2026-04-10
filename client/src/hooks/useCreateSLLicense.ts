@@ -12,7 +12,8 @@ import {
 import { useCallback } from 'react';
 import { useFirestore } from 'reactfire';
 
-import { License, licensesCollection, TLicenseOwner, TLicenseType } from 'common';
+import type { LicenseType } from '@idemand/common';
+import { License, licensesCollection, TLicenseOwner } from 'common';
 import { LicenseValues } from 'elements/forms';
 import { readableFirebaseCode } from 'modules/utils/helpers';
 
@@ -21,26 +22,30 @@ export async function checkForSLProducerLicense(
   state: string,
   effectiveDate: Date,
   expirationDate: Date | null,
-  constraints: QueryConstraint[] = []
+  constraints: QueryConstraint[] = [],
 ) {
   const q = query(
     licenseColRef,
     where('state', '==', state),
     where('surplusLinesProducerOfRecord', '==', true),
-    ...constraints
+    ...constraints,
   );
 
   const querySnap = await getDocs(q);
   if (!querySnap.empty) {
     let data = querySnap.docs[0].data();
     let existingEffDateBeforeNewExpDate =
-      expirationDate && data.effectiveDate.toMillis() < expirationDate.getTime();
+      expirationDate &&
+      data.effectiveDate.toMillis() < expirationDate.getTime();
 
     let existingExpDateAfterNewEffDate =
-      !data.expirationDate || data.expirationDate.toMillis() > effectiveDate.getTime();
+      !data.expirationDate ||
+      data.expirationDate.toMillis() > effectiveDate.getTime();
 
     if (existingEffDateBeforeNewExpDate || existingExpDateAfterNewEffDate)
-      throw new Error(`Surplus Lines Producer of Record already exists for ${state}`);
+      throw new Error(
+        `Surplus Lines Producer of Record already exists for ${state}`,
+      );
   }
 }
 
@@ -49,7 +54,10 @@ export interface UseCreateLicenseProps {
   onError?: (err: unknown, msg: string) => void;
 }
 
-export const useCreateSLLicense = ({ onSuccess, onError }: UseCreateLicenseProps) => {
+export const useCreateSLLicense = ({
+  onSuccess,
+  onError,
+}: UseCreateLicenseProps) => {
   const firestore = useFirestore();
 
   const createLicense = useCallback(
@@ -61,15 +69,17 @@ export const useCreateSLLicense = ({ onSuccess, onError }: UseCreateLicenseProps
           licenseColRef,
           values.state,
           values.effectiveDate,
-          values.expirationDate
+          values.expirationDate,
         );
 
         const docRef = await addDoc(licenseColRef, {
           ...values,
           ownerType: values.ownerType as TLicenseOwner,
-          licenseType: values.licenseType as TLicenseType,
+          licenseType: values.licenseType as LicenseType,
           effectiveDate: Timestamp.fromDate(values.effectiveDate),
-          expirationDate: values.expirationDate ? Timestamp.fromDate(values.expirationDate) : null,
+          expirationDate: values.expirationDate
+            ? Timestamp.fromDate(values.expirationDate)
+            : null,
           metadata: {
             created: Timestamp.now(),
             updated: Timestamp.now(),
@@ -87,7 +97,7 @@ export const useCreateSLLicense = ({ onSuccess, onError }: UseCreateLicenseProps
         if (onError) onError(err, msg);
       }
     },
-    [onSuccess, onError, firestore]
+    [onSuccess, onError, firestore],
   );
 
   return createLicense;

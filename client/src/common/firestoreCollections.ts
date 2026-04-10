@@ -5,7 +5,7 @@ import {
   Firestore,
 } from 'firebase/firestore';
 
-import { Collection, TCollection } from './enums';
+import { Collection, type TCollection } from '@idemand/common';
 import {
   ActiveStates,
   AgencyApplication,

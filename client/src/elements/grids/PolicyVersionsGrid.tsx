@@ -1,4 +1,4 @@
-import { Collection } from 'common';
+import { Collection } from '@idemand/common';
 import { POLICY_COLUMN_VISIBILITY } from 'modules/muiGrid';
 import { versionCols, versionIdCol } from 'modules/muiGrid/gridColumnDefs';
 import { PoliciesGrid, PoliciesGridProps } from './PoliciesGrid';
@@ -16,7 +16,10 @@ interface PolicyVersionsGridProps extends PoliciesGridProps {
   policyId: string;
 }
 
-export const PolicyVersionsGrid = ({ policyId, ...props }: PolicyVersionsGridProps) => {
+export const PolicyVersionsGrid = ({
+  policyId,
+  ...props
+}: PolicyVersionsGridProps) => {
   return (
     <PoliciesGrid
       {...props}

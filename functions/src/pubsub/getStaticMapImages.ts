@@ -10,13 +10,9 @@ import { tmpdir } from 'os';
 import path from 'path';
 // import sharp from 'sharp';
 
-import { LocationImageTypes } from '@idemand/common';
+import { LocationImageTypes, StorageFolder } from '@idemand/common';
 import { AxiosError } from 'axios';
-import {
-  getReportErrorFn,
-  mapboxToken,
-  StorageFolder,
-} from '../common/index.js';
+import { getReportErrorFn, mapboxToken } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
 import { clearTempFiles, randomFileName, verify } from '../utils/index.js';

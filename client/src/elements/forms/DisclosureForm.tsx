@@ -1,12 +1,26 @@
 import { LoadingButton } from '@mui/lab';
-import { Box, Chip, Divider, Unstable_Grid2 as Grid, Paper } from '@mui/material';
+import {
+  Box,
+  Chip,
+  Divider,
+  Unstable_Grid2 as Grid,
+  Paper,
+} from '@mui/material';
 import { Content, EditorContent, JSONContent } from '@tiptap/react';
 import { Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { array, object, string } from 'yup';
 
-import { DisclosureType, Product, State, TDisclosureType, TState } from 'common';
-import { FormikNativeSelect, FormikSelect, FormikTextField } from 'components/forms';
+import {
+  DisclosureType,
+  type DisclosureType as TDisclosureType,
+} from '@idemand/common';
+import { Product, State, TState } from 'common';
+import {
+  FormikNativeSelect,
+  FormikSelect,
+  FormikTextField,
+} from 'components/forms';
 import { EditorToolbar } from 'components/textEditor/EditorToolbar';
 import 'components/textEditor/TextEditor.css';
 import { useTextEditor } from 'hooks';
@@ -14,7 +28,8 @@ import { useTextEditor } from 'hooks';
 const disclosureValidation = object().shape({
   products: array().of(string()).min(1),
   state: string().when('type', {
-    is: (type: string | null) => type !== 'general disclosure' && type !== 'other',
+    is: (type: string | null) =>
+      type !== 'general disclosure' && type !== 'other',
     then: (schema) => schema.required(),
     otherwise: (schema) => schema.notRequired().nullable(),
   }),
@@ -30,8 +45,13 @@ export interface DisclosureValues {
   content?: JSONContent | null;
 }
 
-export interface DisclosureFormProps extends Partial<FormikConfig<DisclosureValues>> {
-  onSubmit: (values: DisclosureValues, helpers: FormikHelpers<DisclosureValues>) => void;
+export interface DisclosureFormProps extends Partial<
+  FormikConfig<DisclosureValues>
+> {
+  onSubmit: (
+    values: DisclosureValues,
+    helpers: FormikHelpers<DisclosureValues>,
+  ) => void;
   editorContent?: Content;
   title?: React.ReactNode;
 }
@@ -51,13 +71,14 @@ export const DisclosureForm = ({
   const formikRef = useRef<FormikProps<DisclosureValues>>(null);
   const editor = useTextEditor({ initContent: editorContent });
 
-  const handleRemoveChip = (field: string, fieldVal: any[], removeVal: any) => (e: any) => {
-    e.stopPropagation();
-    formikRef?.current?.setFieldValue(
-      field,
-      fieldVal.filter((v) => v !== removeVal)
-    );
-  };
+  const handleRemoveChip =
+    (field: string, fieldVal: any[], removeVal: any) => (e: any) => {
+      e.stopPropagation();
+      formikRef?.current?.setFieldValue(
+        field,
+        fieldVal.filter((v) => v !== removeVal),
+      );
+    };
 
   const handleSubmit = useCallback(
     (values: DisclosureValues, helpers: FormikHelpers<DisclosureValues>) => {
@@ -65,7 +86,7 @@ export const DisclosureForm = ({
 
       return onSubmit({ ...values, content }, helpers);
     },
-    [editor, onSubmit]
+    [editor, onSubmit],
   );
 
   return (
@@ -106,7 +127,11 @@ export const DisclosureForm = ({
                         key={value}
                         label={value}
                         size='small'
-                        onDelete={handleRemoveChip('products', values.products, value)}
+                        onDelete={handleRemoveChip(
+                          'products',
+                          values.products,
+                          value,
+                        )}
                         onMouseDown={(e) => e.stopPropagation()}
                       />
                     ))}
@@ -115,10 +140,19 @@ export const DisclosureForm = ({
               />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
-              <FormikNativeSelect name='type' label='Type' selectOptions={DisclosureType.options} />
+              <FormikNativeSelect
+                name='type'
+                label='Type'
+                selectOptions={DisclosureType.options}
+              />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
-              <FormikSelect name='state' label='State' selectOptions={State.options} fullWidth />
+              <FormikSelect
+                name='state'
+                label='State'
+                selectOptions={State.options}
+                fullWidth
+              />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
               <FormikTextField

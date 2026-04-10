@@ -1,3 +1,4 @@
+import type { TCollection } from '@idemand/common';
 import {
   collection,
   collectionGroup,
@@ -17,8 +18,6 @@ import {
   useFirestore,
   useFirestoreCollection,
 } from 'reactfire';
-
-import { TCollection } from 'common';
 
 export function useFetchDocsWithCursor<
   T extends DocumentData = DocumentData,

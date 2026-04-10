@@ -13,7 +13,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from 'reactfire';
 
-import { Collection, Moratorium } from 'common';
+import { Collection } from '@idemand/common';
+import { Moratorium } from 'common';
 import { FlexCard, FlexCardContent, IconButtonMenu } from 'components';
 import {
   collection,

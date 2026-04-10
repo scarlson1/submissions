@@ -7,8 +7,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import type { Optional } from '@idemand/common';
-import { Submission, SUBMISSION_STATUS, submissionsCollection } from 'common';
+import { SubmissionStatus, type Optional } from '@idemand/common';
+import { Submission, submissionsCollection } from 'common';
 import {
   getRatingInputsFromSubmission,
   QuoteForm,
@@ -47,7 +47,7 @@ export const QuoteNew = ({
     async () => {
       if (submissionId) {
         await updateDoc(doc(submissionsCollection(firestore), submissionId), {
-          status: SUBMISSION_STATUS.QUOTED,
+          status: SubmissionStatus.enum.quoted,
         });
       }
       navigate(createPath({ path: ROUTES.QUOTES }), { replace: true });

@@ -10,21 +10,33 @@ import { QueryFieldFilterConstraint, where } from 'firebase/firestore';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Collection, VIEW_QUERY_KEY } from 'common';
-import { ToggleViewLayout, ToggleViewLayoutProps, ToggleViewPanel } from 'components/toggleView';
+import { Collection } from '@idemand/common';
+import { VIEW_QUERY_KEY } from 'common';
+import {
+  ToggleViewLayout,
+  ToggleViewLayoutProps,
+  ToggleViewPanel,
+} from 'components/toggleView';
 import { QuoteCards } from 'elements';
 import { QuotesGrid } from 'elements/grids';
 import { QuotesMap } from 'elements/maps';
 import { User } from 'firebase/auth';
 import { DataViewType, TDataViewType, useClaims } from 'hooks';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 import invariant from 'tiny-invariant';
 import { Quotes as AdminQuotes, AdminQuotesActionMenu } from './admin/Quotes';
 
 // TODO: UPDATE NON-ADMIN VIEW TO USE BREADCRUMBS
 
-function getLayoutProps(claims: { iDemandAdmin: boolean; orgAdmin: boolean; agent: boolean }) {
-  let props: Pick<ToggleViewLayoutProps<TDataViewType>, 'defaultOption' | 'actions'> = {
+function getLayoutProps(claims: {
+  iDemandAdmin: boolean;
+  orgAdmin: boolean;
+  agent: boolean;
+}) {
+  let props: Pick<
+    ToggleViewLayoutProps<TDataViewType>,
+    'defaultOption' | 'actions'
+  > = {
     defaultOption: 'cards',
   };
   if (claims?.iDemandAdmin) {
@@ -50,9 +62,11 @@ function getQueryProps(
     iDemandAdmin: boolean;
     orgAdmin: boolean;
     agent: boolean;
-  }
+  },
 ): { constraints: QueryFieldFilterConstraint[] } {
-  let props: { constraints: QueryFieldFilterConstraint[] } = { constraints: [] };
+  let props: { constraints: QueryFieldFilterConstraint[] } = {
+    constraints: [],
+  };
   if (claims?.iDemandAdmin) {
     props = {
       constraints: [],
@@ -90,15 +104,15 @@ export const Quotes = () => {
         createPath({
           path: ROUTES.QUOTE_VIEW,
           params: { quoteId },
-        })
+        }),
       );
     },
-    [navigate]
+    [navigate],
   );
 
   const viewQuote = useCallback(
     (params: GridRowParams) => () => handleViewQuote(params.id.toString()),
-    [handleViewQuote]
+    [handleViewQuote],
   );
 
   const renderActions = useCallback(
@@ -113,7 +127,7 @@ export const Quotes = () => {
         label='Details'
       />,
     ],
-    [viewQuote]
+    [viewQuote],
   );
 
   return (

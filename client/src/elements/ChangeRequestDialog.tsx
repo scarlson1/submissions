@@ -29,7 +29,8 @@ import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import type { WithId } from '@idemand/common';
-import { ChangeRequest, ChangeRequestStatus, CLAIMS, Collection } from 'common';
+import { Collection } from '@idemand/common';
+import { ChangeRequest, ChangeRequestStatus, CLAIMS } from 'common';
 import { ErrorFallback } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';

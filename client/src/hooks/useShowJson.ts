@@ -11,8 +11,7 @@ import { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useFirestore } from 'reactfire';
 
-import type { WithId } from '@idemand/common';
-import { TCollection } from 'common';
+import type { TCollection, WithId } from '@idemand/common';
 import { DialogOptions } from 'context';
 import { useJsonDialog } from './useJsonDialog';
 

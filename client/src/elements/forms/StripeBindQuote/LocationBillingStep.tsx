@@ -24,7 +24,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import { object, string } from 'yup';
 
-import type { Address } from '@idemand/common';
+import type { Address, TCollection } from '@idemand/common';
 import { calcTotalsByBillingEntity } from 'api';
 import {
   AdditionalInterest,
@@ -32,7 +32,6 @@ import {
   fallbackImages,
   NamedInsuredDetails,
   Quote,
-  TCollection,
 } from 'common';
 import {
   FormikFieldArray,

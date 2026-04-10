@@ -9,19 +9,20 @@ import { DocumentData, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
 import { z } from 'zod';
 
-import type {
-  Address,
-  BaseMetadata,
-  GeoPoint,
-  Nullable,
-  Timestamp,
-  WithRequired,
-} from '@idemand/common';
 import {
   Address as AddressZ,
   BaseMetadata as BaseMetadataZ,
   GeoPoint as GeoPointZ,
   Timestamp as TimestampZ,
+  type Address,
+  type BaseMetadata,
+  type GeoPoint,
+  type Nullable,
+  type SubmissionStatus,
+  type DisclosureType as TDisclosureType,
+  type Timestamp,
+  type LicenseType as TLicenseType,
+  type WithRequired,
 } from '@idemand/common';
 import { ServerDataGridProps } from 'components';
 import { AddLocationValues } from 'elements/forms';
@@ -46,17 +47,14 @@ import {
   RoundingType,
   State,
   SubjectBaseItem,
-  SUBMISSION_STATUS,
   TAgencySubmissionStatus,
   TaxItemName,
   TaxRateType,
   TChangeRequestStatus,
   TChangeRequestTrxType,
   TCommSource,
-  TDisclosureType,
   TInviteStatus,
   TLicenseOwner,
-  TLicenseType,
   TProduct,
   TransactionType,
   TState,
@@ -180,7 +178,7 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   submittedById?: string | null;
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
-  status: SUBMISSION_STATUS;
+  status: SubmissionStatus;
   rcvSourceUser?: number | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   elevationData?: ElevationResult | null;

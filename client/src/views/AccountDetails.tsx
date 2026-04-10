@@ -19,7 +19,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useUser } from 'reactfire';
 // import Slider from 'react-slick';
 
-import { Collection } from 'common';
+import { Collection } from '@idemand/common';
 import { Carousel, ClaimsGuard, Copy } from 'components';
 import { UpdateProfileImg, VerifyEmailButton } from 'elements';
 import {

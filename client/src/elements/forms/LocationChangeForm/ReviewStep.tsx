@@ -22,11 +22,10 @@ import { isNumber, merge } from 'lodash';
 import { Fragment, ReactNode, useCallback, useMemo, useState } from 'react';
 import { useFirestore } from 'reactfire';
 
-import type { WithId } from '@idemand/common';
+import { Collection, type WithId } from '@idemand/common';
 import {
   AddLocationRequest,
   CancellationRequest,
-  Collection,
   DraftAddLocationRequest,
   fallbackImages,
   ILocation,

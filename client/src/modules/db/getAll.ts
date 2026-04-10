@@ -1,4 +1,5 @@
 // https://stackoverflow.com/a/70388625/10887890
+import type { TCollection } from '@idemand/common';
 import {
   collection,
   CollectionReference,
@@ -12,8 +13,6 @@ import {
   where,
   type DocumentSnapshot,
 } from 'firebase/firestore';
-
-import { TCollection } from 'common';
 
 // TODO: support sub collections
 // limited to 10 docs

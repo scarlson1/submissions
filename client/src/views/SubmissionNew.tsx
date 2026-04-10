@@ -19,7 +19,13 @@ import {
 } from 'elements/forms';
 import { createPath, ROUTES } from 'router';
 // import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
-import type { Address, Coords, Nullable, Organization } from '@idemand/common';
+import {
+  SubmissionStatus,
+  type Address,
+  type Coords,
+  type Nullable,
+  type Organization,
+} from '@idemand/common';
 import {
   addressValidationActiveStatesNested,
   buildingDetailsValidation,
@@ -34,7 +40,6 @@ import {
   priorLossValidation,
   RatingPropertyData,
   reviewValidation,
-  SUBMISSION_STATUS,
   submissionsCollection,
   TBasement,
   TPriorLossCount,
@@ -112,7 +117,7 @@ function useCreateSubmission(
             values.coordinates.latitude,
             values.coordinates.longitude,
           ),
-          status: SUBMISSION_STATUS.SUBMITTED,
+          status: SubmissionStatus.enum.submitted,
           userId: user?.uid ?? null,
           agent: {
             userId: !!claims?.agent ? user?.uid || null : null,

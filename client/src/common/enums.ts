@@ -1,61 +1,45 @@
 import { z } from 'zod';
 
-export const Collection = z.enum([
-  'submissions',
-  'portfolioSubmissions',
-  'quotes',
-  'locations',
-  'ratingData',
-  'users',
-  'billingEntities',
-  'policies',
-  'changeRequests',
-  'claims',
-  'organizations',
-  'userClaims',
-  'invitations',
-  'quoteHistory',
-  'ratingDataHistory',
-  'propertyDataRes',
-  'swissRe',
-  'paymentMethods',
-  'transactions',
-  'financialTransactions',
-  'taxTransactions',
-  'agencySubmissions',
-  'licenses',
-  'notifications',
-  'notifyRegistration',
-  // 'surplusLinesTaxes',
-  'taxes',
-  'states',
-  'moratoriums',
-  'public',
-  'disclosures',
-  'emailActivity',
-  'dataImports',
-  'stagedDocs',
-  'tasks', // TODO: DELETE
-  'versions',
-  'permissions', // TODO: rename to privliged or secure etc.
-  // 'secure',
-  'receivables',
-]);
-export type TCollection = z.infer<typeof Collection>;
-
-export const StorageFolder = z.enum([
-  'importPolicies',
-  'importTransactions',
-  'ratePortfolio',
-  'importQuotes',
-  'policies',
-  'claims',
-  'users',
-  'profileImages',
-  'locationMapImages',
-  'organizations',
-]);
-export type TStorageFolder = z.infer<typeof StorageFolder>;
+// export const Collection = z.enum([
+//   'submissions',
+//   'portfolioSubmissions',
+//   'quotes',
+//   'locations',
+//   'ratingData',
+//   'users',
+//   'billingEntities',
+//   'policies',
+//   'changeRequests',
+//   'claims',
+//   'organizations',
+//   'userClaims',
+//   'invitations',
+//   'propertyDataRes',
+//   'swissReRes',
+//   'paymentMethods',
+//   'transactions',
+//   'financialTransactions',
+//   'taxTransactions',
+//   'taxCalculations',
+//   'agencySubmissions',
+//   'licenses',
+//   'notifications',
+//   'notifyRegistration',
+//   // 'surplusLinesTaxes',
+//   'taxes',
+//   'states',
+//   'moratoriums',
+//   'public',
+//   'disclosures',
+//   'emailActivity',
+//   'dataImports',
+//   'stagedDocs',
+//   'tasks', // TODO: DELETE
+//   'versions',
+//   'permissions', // TODO: rename to privliged or secure etc.
+//   'receivables',
+// ]);
+// export type TCollection = z.infer<typeof Collection>;
 
 export const CancelReason = z.enum([
   'sold',
@@ -64,17 +48,6 @@ export const CancelReason = z.enum([
   'insured_choice',
 ]);
 export type TCancelReason = z.infer<typeof CancelReason>;
-
-// TODO: separate out submission status and quote status
-export enum SUBMISSION_STATUS {
-  DRAFT = 'draft',
-  SUBMITTED = 'submitted',
-  UNDER_REVIEW = 'under_review',
-  PENDING_INFO = 'pending_info',
-  CANCELLED = 'cancelled',
-  QUOTED = 'quoted',
-  NOT_ELIGIBLE = 'ineligible',
-}
 
 export enum QUOTE_STATUS {
   DRAFT = 'draft',
@@ -91,7 +64,13 @@ export enum POLICY_STATUS {
   CANCELLED = 'cancelled',
 }
 
-export const PolicyStatus = z.enum(['active', 'cancelled', 'cancel:pending', 'expired', 'pending']);
+export const PolicyStatus = z.enum([
+  'active',
+  'cancelled',
+  'cancel:pending',
+  'expired',
+  'pending',
+]);
 export type TPolicyStatus = z.infer<typeof PolicyStatus>;
 
 export const PaymentStatus = z.enum([
@@ -124,8 +103,12 @@ export const ChangeRequestStatus = z.enum([
 ]); // z.nativeEnum(CHANGE_REQUEST_STATUS);
 export type TChangeRequestStatus = z.infer<typeof ChangeRequestStatus>;
 
-export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude(['draft']);
-export type TSubmittedChangeRequestStatus = z.infer<typeof SubmittedChangeRequestStatus>;
+export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude([
+  'draft',
+]);
+export type TSubmittedChangeRequestStatus = z.infer<
+  typeof SubmittedChangeRequestStatus
+>;
 
 export enum INVITE_STATUS {
   ACCEPTED = 'accepted',
@@ -180,10 +163,26 @@ export type TCBRSDesignation = z.infer<typeof CBRSDesignation>;
 export const PriorLossCount = z.enum(['0', '1', '2', '3']);
 export type TPriorLossCount = z.infer<typeof PriorLossCount>;
 
-export const FloodZone = z.enum(['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']);
+export const FloodZone = z.enum([
+  'A',
+  'B',
+  'C',
+  'D',
+  'V',
+  'X',
+  'AE',
+  'AO',
+  'AH',
+  'AR',
+  'VE',
+]);
 export type TFloodZone = z.infer<typeof FloodZone>;
 
-export const FeeItemName = z.enum(['Inspection Fee', 'MGA Fee', 'UW Adjustment']);
+export const FeeItemName = z.enum([
+  'Inspection Fee',
+  'MGA Fee',
+  'UW Adjustment',
+]);
 export type TFeeItemName = z.infer<typeof FeeItemName>;
 
 export const RoundingType = z.enum(['nearest', 'up', 'down']);
@@ -227,22 +226,15 @@ export const ChangeRequestTrxType = z.enum([
 ]);
 export type TChangeRequestTrxType = z.infer<typeof ChangeRequestTrxType>;
 
-export const TransactionType = z.enum([...ChangeRequestTrxType.options, 'new', 'renewal'] as const);
+export const TransactionType = z.enum([
+  ...ChangeRequestTrxType.options,
+  'new',
+  'renewal',
+] as const);
 export type TTransactionType = z.infer<typeof TransactionType>;
 
 export const LicenseOwner = z.enum(['individual', 'organization']);
 export type TLicenseOwner = z.infer<typeof LicenseOwner>;
-
-export const LicenseType = z.enum(['producer', 'surplus lines', 'MGA', 'Tax ID']);
-export type TLicenseType = z.infer<typeof LicenseType>;
-
-export const DisclosureType = z.enum([
-  'state disclosure',
-  'general disclosure',
-  'terms & conditions',
-  'other',
-]);
-export type TDisclosureType = z.infer<typeof DisclosureType>;
 
 export enum DEDUCTIBLE_OPTIONS {
   pct = 'percent',
@@ -256,7 +248,12 @@ export enum CLAIMS {
   AGENT = 'agent',
 }
 
-export const Claim = z.enum(['iDemandAdmin', 'iDemandUser', 'orgAdmin', 'agent']);
+export const Claim = z.enum([
+  'iDemandAdmin',
+  'iDemandUser',
+  'orgAdmin',
+  'agent',
+]);
 export type TClaim = z.infer<typeof Claim>;
 
 export enum LOCAL_STORAGE {

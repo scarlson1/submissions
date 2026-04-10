@@ -1,23 +1,34 @@
 import { CancelRounded, SendRounded } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridColDef,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { QueryFieldFilterConstraint } from 'firebase/firestore';
 import { Functions, httpsCallable } from 'firebase/functions';
 import { useCallback, useMemo } from 'react';
 import { useFunctions, useSigninCheck } from 'reactfire';
 
-import { CLAIMS, Collection, INVITE_STATUS, Invite } from 'common';
+import { Collection } from '@idemand/common';
+import { CLAIMS, Invite, INVITE_STATUS } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useClaims, useUpdateDoc } from 'hooks';
 import { INVITE_COLUMN_VISIBILITY, inviteCols } from 'modules/muiGrid';
 
-const resendInvite = (functions: Functions, args: { orgId: string; inviteId: string }) =>
+const resendInvite = (
+  functions: Functions,
+  args: { orgId: string; inviteId: string },
+) =>
   httpsCallable<{ orgId: string; inviteId: string }, { status: string }>(
     functions,
-    'resendinvite'
+    'resendinvite',
   )(args);
 
-type UpdateInviteValues = Pick<Invite, 'firstName' | 'lastName' | 'status' | 'customClaims'>;
+type UpdateInviteValues = Pick<
+  Invite,
+  'firstName' | 'lastName' | 'status' | 'customClaims'
+>;
 
 interface InvitesGridProps {
   orgId?: string;
@@ -34,7 +45,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const { update: updateInvite } = useUpdateDoc<Invite, UpdateInviteValues>(
     'organizations',
     () => toast.success('invite updated!'),
-    (msg) => toast.error(msg)
+    (msg) => toast.error(msg),
     // pass orgId/invites/docId in fn when orgId from doc
   );
 
@@ -47,7 +58,8 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
         constraints: queryConstraints,
       };
     } else {
-      if (!signInRes.hasRequiredClaims) throw new Error('missing required permissions (or orgId)');
+      if (!signInRes.hasRequiredClaims)
+        throw new Error('missing required permissions (or orgId)');
       return {
         colName: 'invitations',
         isCollectionGroup: true,
@@ -72,7 +84,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
         toast.error('error resending invite');
       }
     },
-    [functions, toast]
+    [functions, toast],
   );
 
   const handleCancel = useCallback(
@@ -85,7 +97,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
           status: 'revoked', // TODO: change to cancelled ??
         });
       },
-    []
+    [],
   );
 
   const inviteColumns: GridColDef[] = useMemo(
@@ -123,7 +135,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
       },
       ...inviteCols,
     ],
-    [handleResendInvite, handleCancel]
+    [handleResendInvite, handleCancel],
   );
 
   return (

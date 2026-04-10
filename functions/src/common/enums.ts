@@ -1,29 +1,5 @@
 import { z } from 'zod';
 
-export const StorageFolder = z.enum([
-  'importPolicies',
-  'importTransactions',
-  'ratePortfolio',
-  'importQuotes',
-  'policies',
-  'claims',
-  'users',
-  'profileImages',
-  'locationMapImages',
-  'organizations',
-]);
-export type TStorageFolder = z.infer<typeof StorageFolder>;
-
-export enum SUBMISSION_STATUS {
-  DRAFT = 'draft',
-  SUBMITTED = 'submitted',
-  UNDER_REVIEW = 'under_review',
-  PENDING_INFO = 'pending_info',
-  CANCELLED = 'cancelled',
-  QUOTED = 'quoted',
-  NOT_ELIGIBLE = 'ineligible',
-}
-
 export enum INVITE_STATUS {
   ACCEPTED = 'accepted',
   PENDING = 'pending',
@@ -72,14 +48,6 @@ export enum FIN_TRANSACTION_STATUS {
   SUCCEEDED = 'succeeded',
   PAYMENT_FAILED = 'payment_failed',
 }
-
-export const DisclosureType = z.enum([
-  'state disclosure',
-  'general disclosure',
-  'terms & conditions',
-  'other',
-]);
-export type DisclosureType = z.infer<typeof DisclosureType>;
 
 export const AgencySubmissionStatus = z.enum([
   'accepted',
@@ -186,6 +154,7 @@ export const PUB_SUB_TOPICS = {
 //   LOCATION_CANCELLATION = 'location.cancellation',
 // }
 
+// TODO: move to common
 export const EmailTemplate = z.enum([
   'contact',
   'policy_doc_delivery',

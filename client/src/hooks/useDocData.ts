@@ -1,8 +1,7 @@
 import { doc, DocumentReference } from 'firebase/firestore';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
 
-import type { WithId } from '@idemand/common';
-import { TCollection } from 'common';
+import type { TCollection, WithId } from '@idemand/common';
 
 export const useDocData = <T = any>(
   colName: TCollection,

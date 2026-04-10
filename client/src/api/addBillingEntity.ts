@@ -1,6 +1,7 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import { TBillingEntity, TCollection } from 'common';
+import type { TCollection } from '@idemand/common';
+import { TBillingEntity } from 'common';
 
 export interface AddBillingEntityRequest {
   collection: TCollection;

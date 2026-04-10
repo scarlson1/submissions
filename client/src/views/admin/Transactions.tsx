@@ -13,7 +13,8 @@ import { camelCase } from 'lodash';
 import { useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { StorageFolder, TRANSACTION_IMPORT_REQUIRED_HEADERS } from 'common';
+import { StorageFolder } from '@idemand/common';
+import { TRANSACTION_IMPORT_REQUIRED_HEADERS } from 'common';
 import { DownloadStorageFileButton } from 'components';
 import { CSVUploadDialog } from 'elements';
 import { TransactionsGrid } from 'elements/grids';

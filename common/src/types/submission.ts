@@ -1,5 +1,5 @@
 // import { Geohash } from 'geofire-common';
-import { CommSource, Product } from '../enums.js';
+import { CommSource, Product, type SubmissionStatus } from '../enums.js';
 import {
   Address,
   AgencyDetails,
@@ -14,7 +14,7 @@ import {
 } from './common.js';
 import { LocationImages } from './location.js';
 
-export interface FloodFormValues {
+export interface FloodValues {
   address: Address;
   coordinates: {
     latitude: number | null;
@@ -34,17 +34,7 @@ export interface InitRatingValues extends Limits {
   maxDeductible: number;
 }
 
-export enum SUBMISSION_STATUS {
-  DRAFT = 'draft',
-  SUBMITTED = 'submitted',
-  UNDER_REVIEW = 'under_review',
-  PENDING_INFO = 'pending_info',
-  CANCELLED = 'cancelled',
-  QUOTED = 'quoted',
-  NOT_ELIGIBLE = 'ineligible',
-}
-
-export interface Submission extends FloodFormValues {
+export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   product: Product;
   coordinates: GeoPoint;
   geoHash?: string | null; // Geohash | null;
@@ -52,7 +42,7 @@ export interface Submission extends FloodFormValues {
   submittedById?: string | null;
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
-  status: SUBMISSION_STATUS;
+  status: SubmissionStatus;
   // rcvSourceUser?: boolean;
   rcvSourceUser?: number | null;
   ratingPropertyData: Nullable<RatingPropertyData>;

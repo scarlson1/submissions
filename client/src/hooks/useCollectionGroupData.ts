@@ -11,8 +11,7 @@ import {
   useFirestoreCollectionData,
 } from 'reactfire';
 
-import type { WithId } from '@idemand/common';
-import { TCollection } from 'common';
+import type { TCollection, WithId } from '@idemand/common';
 
 export const useCollectionGroupData = <T = DocumentData>(
   colName: TCollection,

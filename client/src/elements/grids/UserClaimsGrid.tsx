@@ -6,24 +6,41 @@ import {
   GridRowModel,
   GridRowParams,
 } from '@mui/x-data-grid';
-import { DocumentData, QueryConstraint, query, where } from 'firebase/firestore';
+import {
+  DocumentData,
+  query,
+  QueryConstraint,
+  where,
+} from 'firebase/firestore';
 import { isEqual } from 'lodash';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { CLAIMS, Collection, User, usersCollection } from 'common';
+import { Collection } from '@idemand/common';
+import { CLAIMS, User, usersCollection } from 'common';
 import { BasicDataGrid, GridEditMultiSelectCell } from 'components';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAsyncToast, useGridEditMode, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
-import { idCol, userClaimsCol, userCols, userSummaryCol } from 'modules/muiGrid/gridColumnDefs';
-import { ROUTES, createPath } from 'router';
+import {
+  idCol,
+  userClaimsCol,
+  userCols,
+  userSummaryCol,
+} from 'modules/muiGrid/gridColumnDefs';
+import { createPath, ROUTES } from 'router';
 
-type UserWithClaims = User & { userClaims: Record<string, any> | null; userId: string };
+type UserWithClaims = User & {
+  userClaims: Record<string, any> | null;
+  userId: string;
+};
 
 // TODO: pass actions col def entirely as prop unless
-export interface UserClaimsGridProps extends Omit<DataGridProps, 'rows' | 'columns'> {
+export interface UserClaimsGridProps extends Omit<
+  DataGridProps,
+  'rows' | 'columns'
+> {
   queryConstraints?: QueryConstraint[];
   orgId: string;
   columnVisibilityModel?: { [key: string]: boolean }; //  GridInitialStateCommunity['columns']
@@ -55,18 +72,26 @@ export const UserClaimsGrid = ({
   // getPaths(segments){ segments.map(s => typeof s === 'string' ? s : s.fromDoc ? doc[s.value] : s.value ) }
   // TODO: type hook (both parent and populated doc types)
   // possible to create type that detects like key item in pathSegments (used as key for joined data) ??
-  const { data, status } = useCollectionDataPopulateById<'userId', User, DocumentData>(
+  const { data, status } = useCollectionDataPopulateById<
+    'userId',
+    User,
+    DocumentData
+  >(
     q,
     'userId',
-    { root: Collection.Enum.organizations, pathSegments: [orgId, Collection.Enum.userClaims] },
-    { suspense: true, idField: 'userId', initialData: [] }
+    {
+      root: Collection.Enum.organizations,
+      pathSegments: [orgId, Collection.Enum.userClaims],
+    },
+    { suspense: true, idField: 'userId', initialData: [] },
   );
 
   // console.log('POPULATE RESULT: ', data);
 
-  const { getEditRowModeActions, getEditModeProps } = useGridEditMode<UserWithClaims>({
-    editableCells: ['userClaims'],
-  });
+  const { getEditRowModeActions, getEditModeProps } =
+    useGridEditMode<UserWithClaims>({
+      editableCells: ['userClaims'],
+    });
 
   // TODO: clean up columns
   const userColumns = useMemo(() => {
@@ -95,7 +120,12 @@ export const UserClaimsGrid = ({
         ...userClaimsCol,
         editable: signInResult.hasRequiredClaims,
         valueOptions: iDAdminResult.hasRequiredClaims
-          ? [CLAIMS.AGENT, CLAIMS.ORG_ADMIN, CLAIMS.IDEMAND_ADMIN, 'iDemandUser']
+          ? [
+              CLAIMS.AGENT,
+              CLAIMS.ORG_ADMIN,
+              CLAIMS.IDEMAND_ADMIN,
+              'iDemandUser',
+            ]
           : [CLAIMS.AGENT, CLAIMS.ORG_ADMIN],
         closeOnChange: true,
         renderEditCell: (params: GridRenderEditCellParams) => (
@@ -118,7 +148,7 @@ export const UserClaimsGrid = ({
   const processRowUpdate = useCallback(
     async (
       newRow: GridRowModel<UserWithClaims>, // after processing in valueSetter
-      oldRow: GridRowModel<UserWithClaims>
+      oldRow: GridRowModel<UserWithClaims>,
     ) => {
       let orgId = newRow.orgId;
       let userId = newRow.userId;
@@ -140,7 +170,7 @@ export const UserClaimsGrid = ({
       toast.success('permissions saved!');
       return newRow;
     },
-    [updateClaims, toast]
+    [updateClaims, toast],
   );
 
   const handleProcessRowUpdateError = useCallback(
@@ -150,7 +180,7 @@ export const UserClaimsGrid = ({
       if (err.message) msg = err.message;
       toast.error(msg);
     },
-    [toast]
+    [toast],
   );
 
   // TODO: need way of passing iDField (userId instead of id in this case) or use id instead of userId ??
@@ -163,9 +193,11 @@ export const UserClaimsGrid = ({
 
   const viewUser = useCallback(
     ({ id }: GridRowParams) => {
-      navigate(createPath({ path: ROUTES.USER, params: { userId: id.toString() } }));
+      navigate(
+        createPath({ path: ROUTES.USER, params: { userId: id.toString() } }),
+      );
     },
-    [navigate]
+    [navigate],
   );
 
   return (

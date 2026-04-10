@@ -1,3 +1,8 @@
+import {
+  DataObjectRounded,
+  ThumbDownRounded,
+  ThumbUpRounded,
+} from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Badge,
@@ -18,12 +23,8 @@ import {
 } from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
 
-import {
-  DataObjectRounded,
-  ThumbDownRounded,
-  ThumbUpRounded,
-} from '@mui/icons-material';
-import { Collection, ImportSummary } from 'common';
+import { Collection } from '@idemand/common';
+import { ImportSummary } from 'common';
 import { IconMenu, ServerDataGrid } from 'components';
 import { useAuth } from 'context';
 import {

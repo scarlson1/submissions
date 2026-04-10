@@ -1,12 +1,18 @@
 import { generateHTML } from '@tiptap/react';
-import { CollectionReference, collection, limit, query } from 'firebase/firestore';
+import {
+  collection,
+  CollectionReference,
+  limit,
+  query,
+} from 'firebase/firestore';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFirestore, useFirestoreCollectionData } from 'reactfire';
 
-import { Collection, Disclosure } from 'common';
+import { Collection } from '@idemand/common';
+import { Disclosure } from 'common';
 import { DialogOptions } from 'context';
 import { EDITOR_EXTENSION_DEFAULTS, useDialog } from 'hooks';
-import { QueryArgs, mapWhereConstraints } from 'modules/utils';
+import { mapWhereConstraints, QueryArgs } from 'modules/utils';
 
 // TODO: pass query constraints as array instead of state & product props
 
@@ -17,7 +23,7 @@ export const useDisclosure = (props: DisclosureConstraints = []) => {
   const firestore = useFirestore();
   const disclosuresCol = collection(
     firestore,
-    Collection.Enum.disclosures
+    Collection.Enum.disclosures,
   ) as CollectionReference<Disclosure>;
 
   // const q = useMemo(() => {
@@ -29,10 +35,13 @@ export const useDisclosure = (props: DisclosureConstraints = []) => {
 
   const q = useMemo(
     () => query(disclosuresCol, ...mapWhereConstraints(props), limit(1)),
-    [props, disclosuresCol]
+    [props, disclosuresCol],
   );
 
-  const { status, data } = useFirestoreCollectionData(q, { idField: 'id', suspense: false });
+  const { status, data } = useFirestoreCollectionData(q, {
+    idField: 'id',
+    suspense: false,
+  });
 
   const [disclosureHTML, setDisclosureHTML] = useState<any>(null);
 
@@ -48,13 +57,15 @@ export const useDisclosure = (props: DisclosureConstraints = []) => {
 
   return useMemo(
     () => ({ disclosureHTML, disclosureContent: data, status }),
-    [disclosureHTML, data, status]
+    [disclosureHTML, data, status],
   );
 };
 
 export function useGeneralQuoteDisclosure() {
   const dialog = useDialog();
-  const { disclosureHTML } = useDisclosure([['type', '==', 'general disclosure']]);
+  const { disclosureHTML } = useDisclosure([
+    ['type', '==', 'general disclosure'],
+  ]);
 
   return useCallback(
     async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
@@ -71,15 +82,16 @@ export function useGeneralQuoteDisclosure() {
       };
 
       if (disclosureHTML) {
-        dialogArgs['content'] = <div dangerouslySetInnerHTML={{ __html: disclosureHTML }} />;
+        dialogArgs['content'] = (
+          <div dangerouslySetInnerHTML={{ __html: disclosureHTML }} />
+        );
       } else {
-        dialogArgs[
-          'description'
-        ] = `A request for quote is subject to all state regulations, including, but not limited to, license and due diligence requirements regarding non-admitted insurance. This website is not intended for business in any state not licensed. Any initial premium indication is not a quote until full submission information has been provided and approved including all state disclosure, taxes, and fees.`;
+        dialogArgs['description'] =
+          `A request for quote is subject to all state regulations, including, but not limited to, license and due diligence requirements regarding non-admitted insurance. This website is not intended for business in any state not licensed. Any initial premium indication is not a quote until full submission information has been provided and approved including all state disclosure, taxes, and fees.`;
       }
 
       await dialog.prompt(dialogArgs);
     },
-    [dialog, disclosureHTML]
+    [dialog, disclosureHTML],
   );
 }

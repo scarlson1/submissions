@@ -4,8 +4,7 @@ import { DocumentData, getDoc, UpdateData } from 'firebase/firestore';
 import { useCallback } from 'react';
 import invariant from 'tiny-invariant';
 
-import type { WithId } from '@idemand/common';
-import { TCollection } from 'common';
+import type { TCollection, WithId } from '@idemand/common';
 import { DialogOptions } from 'context';
 import { flattenObj } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';

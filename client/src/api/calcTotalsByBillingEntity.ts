@@ -1,6 +1,7 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import { TCollection, TotalsByBillingEntity } from 'common';
+import type { TCollection } from '@idemand/common';
+import { TotalsByBillingEntity } from 'common';
 
 export interface CalcTotalsByBillingEntityRequest {
   collection: TCollection;

@@ -3,12 +3,25 @@ import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, SUBMISSION_STATUS, ServerDataGridCollectionProps, Submission } from 'common';
+import { SubmissionStatus } from '@idemand/common';
+import { CLAIMS, ServerDataGridCollectionProps, Submission } from 'common';
 import { ServerDataGrid } from 'components';
-import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
-import { SUBMISSION_COLUMN_VISIBILITY, statusCol, submissionCols } from 'modules/muiGrid';
+import {
+  useAsyncToast,
+  useGridActions,
+  useGridShowJson,
+  useWidth,
+} from 'hooks';
+import {
+  statusCol,
+  SUBMISSION_COLUMN_VISIBILITY,
+  submissionCols,
+} from 'modules/muiGrid';
 
-export type SubmissionsGridProps = ServerDataGridCollectionProps<Submission, Submission>;
+export type SubmissionsGridProps = ServerDataGridCollectionProps<
+  Submission,
+  Submission
+>;
 
 export const SubmissionsGrid = ({
   renderActions = () => [],
@@ -22,7 +35,7 @@ export const SubmissionsGrid = ({
   const renderShowJson = useGridShowJson(
     'submissions',
     { showInMenu: true },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
   );
 
   const { data: iDAdminResult } = useSigninCheck({
@@ -46,14 +59,7 @@ export const SubmissionsGrid = ({
       {
         ...statusCol,
         type: 'singleSelect',
-        valueOptions: [
-          SUBMISSION_STATUS.QUOTED,
-          SUBMISSION_STATUS.SUBMITTED,
-          SUBMISSION_STATUS.NOT_ELIGIBLE,
-          SUBMISSION_STATUS.PENDING_INFO,
-          SUBMISSION_STATUS.CANCELLED,
-          SUBMISSION_STATUS.DRAFT,
-        ],
+        valueOptions: SubmissionStatus.options,
         editable: iDAdminResult?.hasRequiredClaims,
         filterable: true,
       },
@@ -68,7 +74,7 @@ export const SubmissionsGrid = ({
       additionalColumns,
       iDAdminResult,
       isSmall,
-    ]
+    ],
   );
 
   return (

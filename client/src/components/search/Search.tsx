@@ -14,7 +14,8 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DocumentSchema, SearchParams } from 'typesense';
 
-import { Collection, typesenseIndexName } from 'common';
+import { Collection } from '@idemand/common';
+import { typesenseIndexName } from 'common';
 import { useDocSearchKeyboardEvents } from 'hooks';
 import { useTypesenseStore } from 'hooks/useAlgoliaStore';
 import { GeoSearch } from './GeoSearch';
