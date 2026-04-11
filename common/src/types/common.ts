@@ -1,4 +1,7 @@
-// import { Timestamp as FirestoreTimestamp } from 'firebase-admin/firestore';
+import type {
+  GeoPoint as FirebaseGeoPoint,
+  Timestamp as FirebaseTimestamp,
+} from 'firebase-admin/firestore';
 import { z } from 'zod';
 import {
   Basement,
@@ -50,15 +53,55 @@ export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> &
 //  When using TypeScript interfaces, a field that uses serverTimestamp() should be typed as FieldValue or Timestamp depending on whether it is being written or rea
 
 // export const Timestamp = z.instanceof(FirestoreTimestamp);
-export const Timestamp = z.object({
-  seconds: z.number(),
-  nanoseconds: z.number(),
-  toDate: z.function().returns(z.instanceof(Date)),
-  toMillis: z.function().returns(z.number()),
-  isEqual: z.function().returns(z.boolean()),
-  valueOf: z.function().returns(z.string()),
-});
-export type Timestamp = z.infer<typeof Timestamp>;
+// export const Timestamp = z.object({
+//   seconds: z.number(),
+//   nanoseconds: z.number(),
+//   toDate: z.function().returns(z.instanceof(Date)),
+//   toMillis: z.function().returns(z.number()),
+//   isEqual: z.function().returns(z.boolean()),
+//   valueOf: z.function().returns(z.string()),
+// });
+
+export const Timestamp = z.custom<FirebaseTimestamp>(
+  (val) =>
+    typeof val === 'object' &&
+    val !== null &&
+    typeof (val as any).seconds === 'number' &&
+    typeof (val as any).nanoseconds === 'number' &&
+    typeof (val as any).toDate === 'function' &&
+    typeof (val as any).toMillis === 'function',
+  { message: 'Invalid Timestamp' },
+);
+export type Timestamp = z.infer<typeof Timestamp>; // resolves to FirebaseTimestamp
+
+export const GeoPoint = z.custom<FirebaseGeoPoint>(
+  (val) =>
+    typeof val === 'object' &&
+    val !== null &&
+    typeof (val as any).latitude === 'number' &&
+    typeof (val as any).longitude === 'number',
+  { message: 'Invalid GeoPoint' },
+);
+export type GeoPoint = z.infer<typeof GeoPoint>; // resolves to FirebaseGeoPoint
+
+// // export const GeoPoint = z.instanceof(FirestoreGeoPoint);
+// export const GeoPoint = z.object({
+//   latitude: z.number(),
+//   longitude: z.number(),
+//   // isEqual: z.function().args(z.lazy(() => GeoPoint)).returns(z.boolean())
+//   isEqual: z
+//     .function()
+//     .args(
+//       z.object({
+//         latitude: z.number(),
+//         longitude: z.number(),
+//         // isEqual: z.function().args(z.lazy(() => GeoPoint)).returns(z.boolean())
+//         isEqual: z.function().args(z.any()).returns(z.boolean()),
+//       }),
+//     )
+//     .returns(z.boolean()),
+// });
+// export type GeoPoint = z.infer<typeof GeoPoint>;
 
 export const BaseMetadata = z.object({
   created: Timestamp,
@@ -104,25 +147,6 @@ export const Coords = z.object({
     .max(180, 'invalid longitude'),
 });
 export type Coords = z.infer<typeof Coords>;
-
-// export const GeoPoint = z.instanceof(FirestoreGeoPoint);
-export const GeoPoint = z.object({
-  latitude: z.number(),
-  longitude: z.number(),
-  // isEqual: z.function().args(z.lazy(() => GeoPoint)).returns(z.boolean())
-  isEqual: z
-    .function()
-    .args(
-      z.object({
-        latitude: z.number(),
-        longitude: z.number(),
-        // isEqual: z.function().args(z.lazy(() => GeoPoint)).returns(z.boolean())
-        isEqual: z.function().args(z.any()).returns(z.boolean()),
-      }),
-    )
-    .returns(z.boolean()),
-});
-export type GeoPoint = z.infer<typeof GeoPoint>;
 
 export const Phone = z.string().min(10).max(12).trim(); // TODO: regex ??
 export type Phone = z.infer<typeof Phone>;
