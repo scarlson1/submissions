@@ -1,6 +1,5 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 // import { resolve } from 'path';
@@ -15,7 +14,6 @@ export default defineConfig({
     }),
     react(),
     tsconfigPaths(),
-    nodePolyfills(),
   ],
   server: {
     port: 3000,

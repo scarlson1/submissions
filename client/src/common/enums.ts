@@ -36,7 +36,7 @@ import { z } from 'zod';
 //   'stagedDocs',
 //   'tasks', // TODO: DELETE
 //   'versions',
-//   'permissions', // TODO: rename to privliged or secure etc.
+//   'permissions', // TODO: rename to privileged or secure etc.
 //   'receivables',
 // ]);
 // export type TCollection = z.infer<typeof Collection>;

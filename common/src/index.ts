@@ -14,7 +14,6 @@ export * from './types/taxes.js';
 export * from './types/user.js';
 
 export * from './collections.js';
-
 export * from './enums.js';
 
 // TODO: router errors and middleware
@@ -22,3 +21,4 @@ export * from './enums.js';
 
 // share with front end using generics ??
 // https://stackoverflow.com/questions/64429003/share-typescript-interfaces-inside-a-firebase-project
+// or use https://github.com/0x80/typed-firestore
