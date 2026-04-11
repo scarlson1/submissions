@@ -1055,6 +1055,38 @@ export function UnauthenticatedHome({ productId }: { productId: Product }) {
           </Box>
         </Container>
       </FullBleed>
+
+      {/* <Box
+        sx={{ height: 500, display: 'flex', justifyContent: 'space-around' }}
+      >
+        <HurricaneGlobe />
+        <ErrorBoundary fallback={null}>
+          <Suspense fallback={null}>
+            <Box
+              sx={{
+                // position: 'absolute',
+                // right: '0',
+                // top: {
+                //   xs: '40px',
+                //   sm: '60px',
+                //   md: '100px',
+                //   lg: '160px',
+                //   xl: '200px',
+                // },
+                // height: '100%',
+                // width: { xs: 300, sm: 360, md: 450, lg: 600, xl: 680 },
+                height: 500,
+                width: 500,
+                zIndex: 1,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Globe autoRotate={true} />
+            </Box>
+          </Suspense>
+        </ErrorBoundary>
+      </Box> */}
     </>
   );
 }

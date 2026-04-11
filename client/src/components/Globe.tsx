@@ -59,7 +59,7 @@ export function Globe({
 
   useEffect(() => {
     if (theme.palette.mode === 'dark') {
-      setDark(1);
+      setDark(0.9);
       setBaseColor([0.3, 0.3, 0.3]);
       setMarkerColor([1, 0.5, 1]);
       setGlowColor([0.1, 0.1, 0.1]);
@@ -297,87 +297,89 @@ export function Globe({
             if (canvasRef.current) canvasRef.current.style.cursor = 'grabbing';
           }}
         />
-        {markers.map((m) => (
-          <Box
-            key={m.id}
-            className='showcase-pulse'
-            sx={{
-              position: 'absolute',
-              bottom: 'anchor(center)',
-              left: 'anchor(center)',
-              translate: '-50% 50%',
-              width: '20px',
-              height: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pointerEvents: 'none',
-              transition: 'opacity 0.4s, filter 0.4s',
-              positionAnchor: `--cobe-${m.id}`,
-              opacity: `var(--cobe-visible-${m.id}, 0)`,
-              filter: `blur(calc((1 - var(--cobe-visible-${m.id}, 0)) * 8px))`,
-              '--delay': `${m.delay}s`,
-            }}
-            // style={
-            //   {
-            //     positionAnchor: `--cobe-${m.id}`,
-            //     opacity: `var(--cobe-visible-${m.id}, 0)`,
-            //     filter: `blur(calc((1 - var(--cobe-visible-${m.id}, 0)) * 8px))`,
-            //     '--delay': `${m.delay}s`,
-            //   } as React.CSSProperties
-            // }
-          >
-            <Box
-              component='span'
-              className='showcase-pulse-ring'
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                border: (theme) => `2px solid ${theme.palette.primary.main}`,
-                borderRadius: '50%',
-                opacity: 0,
-                animation: 'pulse-expand 2s ease-out infinite',
-                animationDelay: '0s', // 'var(--delay, 0s)',
-                '@keyframes pulse-expand': {
-                  '0%': { transform: 'scale(0.3)', opacity: 0.8 },
-                  '100%': { transform: 'scale(1.5)', opacity: 0 },
-                },
-              }}
-            />
-            <Box
-              component='span'
-              className='showcase-pulse-ring'
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                border: (theme) => `2px solid ${theme.palette.primary.main}`,
-                borderRadius: '50%',
-                opacity: 0,
-                animation: 'pulse-expand 2s ease-out infinite',
-                animationDelay: '0.5s', // 'var(--delay, 0s)',
-                '@keyframes pulse-expand': {
-                  '0%': { transform: 'scale(0.3)', opacity: 0.8 },
-                  '100%': { transform: 'scale(1.5)', opacity: 0 },
-                },
-              }}
-            />
-            <Box
-              component='span'
-              sx={{
-                width: '8px',
-                height: '8px',
-                background: (theme) => theme.palette.primary.main, // var(--ink),
-                borderRadius: '50%',
-                boxShadow: (theme) =>
-                  `0 0 0 3px ${theme.palette.background.default}, 0 0 0 5px ${theme.palette.primary.main}`,
-              }}
-              className='showcase-pulse-dot'
-            />
-            {/* <span className='showcase-pulse-ring' />
-            <span className='showcase-pulse-ring' />
-            <span className='showcase-pulse-dot' /> */}
-          </Box>
-        ))}
+        {/* conditionally render markers - globe quality appears to degrade even when passed with no markers ?? */}
+        {markers.length
+          ? markers.map((m) => (
+              <Box
+                key={m.id}
+                className='showcase-pulse'
+                sx={{
+                  position: 'absolute',
+                  bottom: 'anchor(center)',
+                  left: 'anchor(center)',
+                  translate: '-50% 50%',
+                  width: '20px',
+                  height: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  pointerEvents: 'none',
+                  transition: 'opacity 0.4s, filter 0.4s',
+                  positionAnchor: `--cobe-${m.id}`,
+                  opacity: `var(--cobe-visible-${m.id}, 0)`,
+                  filter: `blur(calc((1 - var(--cobe-visible-${m.id}, 0)) * 8px))`,
+                  '--delay': `${m.delay}s`,
+                }}
+                // style={
+                //   {
+                //     positionAnchor: `--cobe-${m.id}`,
+                //     opacity: `var(--cobe-visible-${m.id}, 0)`,
+                //     filter: `blur(calc((1 - var(--cobe-visible-${m.id}, 0)) * 8px))`,
+                //     '--delay': `${m.delay}s`,
+                //   } as React.CSSProperties
+                // }
+              >
+                <Box
+                  component='span'
+                  className='showcase-pulse-ring'
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    border: (theme) =>
+                      `2px solid ${theme.palette.primary.main}`,
+                    borderRadius: '50%',
+                    opacity: 0,
+                    animation: 'pulse-expand 2s ease-out infinite',
+                    animationDelay: '0s', // 'var(--delay, 0s)',
+                    '@keyframes pulse-expand': {
+                      '0%': { transform: 'scale(0.3)', opacity: 0.8 },
+                      '100%': { transform: 'scale(1.5)', opacity: 0 },
+                    },
+                  }}
+                />
+                <Box
+                  component='span'
+                  className='showcase-pulse-ring'
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    border: (theme) =>
+                      `2px solid ${theme.palette.primary.main}`,
+                    borderRadius: '50%',
+                    opacity: 0,
+                    animation: 'pulse-expand 2s ease-out infinite',
+                    animationDelay: '0.5s', // 'var(--delay, 0s)',
+                    '@keyframes pulse-expand': {
+                      '0%': { transform: 'scale(0.3)', opacity: 0.8 },
+                      '100%': { transform: 'scale(1.5)', opacity: 0 },
+                    },
+                  }}
+                />
+                <Box
+                  component='span'
+                  sx={{
+                    width: '8px',
+                    height: '8px',
+                    background: (theme) => theme.palette.primary.main, // var(--ink),
+                    borderRadius: '50%',
+                    boxShadow: (theme) =>
+                      `0 0 0 3px ${theme.palette.background.default}, 0 0 0 5px ${theme.palette.primary.main}`,
+                  }}
+                  className='showcase-pulse-dot'
+                />
+              </Box>
+            ))
+          : null}
       </Box>
     </div>
   );
