@@ -1,7 +1,6 @@
+import type { Address } from '@idemand/common';
 import { Box, Typography, TypographyProps } from '@mui/material';
 import { useMemo } from 'react';
-
-import { Address } from 'common';
 
 interface FormattedAddressProps extends TypographyProps {
   address: Partial<Address>;
@@ -14,7 +13,8 @@ export function FormattedAddress({
   ...typographyProps
 }: FormattedAddressProps) {
   const { addr1, addr2 } = useMemo(() => {
-    const addr1 = `${address?.addressLine1 || ''} ${address?.addressLine2 || ''}`.trim();
+    const addr1 =
+      `${address?.addressLine1 || ''} ${address?.addressLine2 || ''}`.trim();
     const addr2 = `${address?.city ? `${address?.city},` : ''} ${address?.state || ''} ${
       address?.postal
     }`;

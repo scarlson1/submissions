@@ -1,9 +1,14 @@
-import { Limits, Product, RCVs, TransactionType } from '@idemand/common';
+import {
+  Limits,
+  Product,
+  RCVs,
+  TransactionType,
+  type DeepNullable,
+} from '@idemand/common';
 import { isValid } from 'date-fns';
 import { warn } from 'firebase-functions/logger';
 import {
   AmendmentTransaction,
-  DeepNullable,
   OffsetTransaction,
   PremiumTransaction,
   Transaction,

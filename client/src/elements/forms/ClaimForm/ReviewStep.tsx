@@ -1,12 +1,21 @@
 import { Box, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import { useFunctions } from 'reactfire';
 
-import { AccountBalanceRounded, EmailRounded, PhoneRounded } from '@mui/icons-material';
+import type { WithId } from '@idemand/common';
+import {
+  AccountBalanceRounded,
+  EmailRounded,
+  PhoneRounded,
+} from '@mui/icons-material';
 import { submitClaim } from 'api';
-import { DraftPolicyClaim, WithId } from 'common';
+import { DraftPolicyClaim } from 'common';
 import { WizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
-import { formatFirestoreTimestamp, formatPhoneNumber, logDev } from 'modules/utils';
+import {
+  formatFirestoreTimestamp,
+  formatPhoneNumber,
+  logDev,
+} from 'modules/utils';
 import { ContactList } from '../AgencyReviewStep';
 import { ClaimImages } from './ImagesStep';
 
@@ -66,14 +75,17 @@ export const ReviewStep = ({ claim, onError }: ReviewStepProps) => {
               items={[
                 {
                   primaryText: `${claim.contact.firstName || ''} ${claim.contact.firstName || ''}`,
-                  icon: <AccountBalanceRounded fontSize='small' color='primary' />,
+                  icon: (
+                    <AccountBalanceRounded fontSize='small' color='primary' />
+                  ),
                 },
                 {
                   primaryText: claim.contact.email || '',
                   icon: <EmailRounded fontSize='small' color='primary' />,
                 },
                 {
-                  primaryText: formatPhoneNumber(claim.contact.phone || '') || '',
+                  primaryText:
+                    formatPhoneNumber(claim.contact.phone || '') || '',
                   icon: <PhoneRounded fontSize='small' color='primary' />,
                 },
               ]}

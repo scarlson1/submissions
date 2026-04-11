@@ -1,4 +1,3 @@
-import { forwardRef, useMemo, useRef, useState } from 'react';
 import {
   IconButton,
   IconButtonProps,
@@ -9,17 +8,17 @@ import {
 } from '@mui/material';
 import useId from '@mui/material/utils/useId';
 import {
+  gridClasses,
   GridDensity,
   GridDensityOption,
-  GridMenu,
-  GridMenuProps,
-  gridClasses,
   gridDensityValueSelector,
+  GridMenu,
   useGridApiContext,
   useGridRootProps,
   useGridSelector,
 } from '@mui/x-data-grid';
 import { isHideMenuKey, isTabKey } from '@mui/x-data-grid/utils/keyboardUtils';
+import { forwardRef, useMemo, useRef, useState } from 'react';
 
 // import { unstable_useId as useId, unstable_useForkRef as useForkRef } from '@mui/utils';
 // import MenuList from '@mui/material/MenuList';
@@ -36,82 +35,87 @@ import { isHideMenuKey, isTabKey } from '@mui/x-data-grid/utils/keyboardUtils';
 // import { useGridRootProps } from '../../hooks/utils/useGridRootProps';
 // import { gridClasses } from '../../constants/gridClasses';
 
-export const GridToolbarDensityIconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  function GridToolbarDensitySelector(props, ref) {
-    const { onClick, ...other } = props;
-    const apiRef = useGridApiContext();
-    const rootProps = useGridRootProps();
-    const densityValue = useGridSelector(apiRef, gridDensityValueSelector);
-    const densityButtonId = useId();
-    const densityMenuId = useId();
+export const GridToolbarDensityIconButton = forwardRef<
+  HTMLButtonElement,
+  IconButtonProps
+>(function GridToolbarDensitySelector(props, ref) {
+  const { onClick, ...other } = props;
+  const apiRef = useGridApiContext();
+  const rootProps = useGridRootProps();
+  const densityValue = useGridSelector(apiRef, gridDensityValueSelector);
+  const densityButtonId = useId();
+  const densityMenuId = useId();
 
-    const [open, setOpen] = useState(false);
-    const buttonRef = useRef<HTMLButtonElement>(null);
-    const handleRef = useForkRef(ref, buttonRef);
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const handleRef = useForkRef(ref, buttonRef);
 
-    const densityOptions: GridDensityOption[] = [
-      {
-        icon: <rootProps.slots.densityCompactIcon />,
-        label: apiRef.current.getLocaleText('toolbarDensityCompact'),
-        value: 'compact',
-      },
-      {
-        icon: <rootProps.slots.densityStandardIcon />,
-        label: apiRef.current.getLocaleText('toolbarDensityStandard'),
-        value: 'standard',
-      },
-      {
-        icon: <rootProps.slots.densityComfortableIcon />,
-        label: apiRef.current.getLocaleText('toolbarDensityComfortable'),
-        value: 'comfortable',
-      },
-    ];
+  const densityOptions: GridDensityOption[] = [
+    {
+      icon: <rootProps.slots.densityCompactIcon />,
+      label: apiRef.current.getLocaleText('toolbarDensityCompact'),
+      value: 'compact',
+    },
+    {
+      icon: <rootProps.slots.densityStandardIcon />,
+      label: apiRef.current.getLocaleText('toolbarDensityStandard'),
+      value: 'standard',
+    },
+    {
+      icon: <rootProps.slots.densityComfortableIcon />,
+      label: apiRef.current.getLocaleText('toolbarDensityComfortable'),
+      value: 'comfortable',
+    },
+  ];
 
-    const startIcon = useMemo<React.ReactElement>(() => {
-      switch (densityValue) {
-        case 'compact':
-          return <rootProps.slots.densityCompactIcon fontSize='inherit' />;
-        case 'comfortable':
-          return <rootProps.slots.densityComfortableIcon fontSize='inherit' />;
-        default:
-          return <rootProps.slots.densityStandardIcon fontSize='inherit' />;
-      }
-    }, [densityValue, rootProps]);
-
-    const handleDensitySelectorOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-      setOpen((prevOpen) => !prevOpen);
-      onClick?.(event);
-    };
-    const handleDensitySelectorClickAway: GridMenuProps['onClickAway'] = (event) => {
-      if (
-        buttonRef.current === event.target ||
-        // if user clicked on the icon
-        buttonRef.current?.contains(event.target as Element)
-      ) {
-        return;
-      }
-      setOpen(false);
-    };
-    const handleDensityUpdate = (newDensity: GridDensity) => {
-      apiRef.current.setDensity(newDensity);
-      setOpen(false);
-    };
-
-    const handleListKeyDown = (event: React.KeyboardEvent) => {
-      if (isTabKey(event.key)) {
-        event.preventDefault();
-      }
-      if (isHideMenuKey(event.key)) {
-        setOpen(false);
-      }
-    };
-
-    // Disable the button if the corresponding is disabled
-    if (rootProps.disableDensitySelector) {
-      return null;
+  const startIcon = useMemo<React.ReactElement>(() => {
+    switch (densityValue) {
+      case 'compact':
+        return <rootProps.slots.densityCompactIcon fontSize='inherit' />;
+      case 'comfortable':
+        return <rootProps.slots.densityComfortableIcon fontSize='inherit' />;
+      default:
+        return <rootProps.slots.densityStandardIcon fontSize='inherit' />;
     }
+  }, [densityValue, rootProps]);
 
-    const densityElements = densityOptions.map<React.ReactElement>((option, index) => (
+  const handleDensitySelectorOpen = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setOpen((prevOpen) => !prevOpen);
+    onClick?.(event);
+  };
+  const handleDensitySelectorClickAway = (event) => {
+    if (
+      buttonRef.current === event.target ||
+      // if user clicked on the icon
+      buttonRef.current?.contains(event.target as Element)
+    ) {
+      return;
+    }
+    setOpen(false);
+  };
+  const handleDensityUpdate = (newDensity: GridDensity) => {
+    apiRef.current.setDensity(newDensity);
+    setOpen(false);
+  };
+
+  const handleListKeyDown = (event: React.KeyboardEvent) => {
+    if (isTabKey(event.key)) {
+      event.preventDefault();
+    }
+    if (isHideMenuKey(event.key)) {
+      setOpen(false);
+    }
+  };
+
+  // Disable the button if the corresponding is disabled
+  if (rootProps.disableDensitySelector) {
+    return null;
+  }
+
+  const densityElements = densityOptions.map<React.ReactElement>(
+    (option, index) => (
       <MenuItem
         key={index}
         onClick={() => handleDensityUpdate(option.value)}
@@ -120,44 +124,45 @@ export const GridToolbarDensityIconButton = forwardRef<HTMLButtonElement, IconBu
         <ListItemIcon>{option.icon}</ListItemIcon>
         {option.label}
       </MenuItem>
-    ));
+    ),
+  );
 
-    return (
-      <>
-        <IconButton
-          ref={handleRef}
-          size='small'
-          color='primary'
-          // startIcon={startIcon}
-          aria-label={apiRef.current.getLocaleText('toolbarDensityLabel')}
-          aria-haspopup='menu'
-          aria-expanded={open}
-          aria-controls={open ? densityMenuId : undefined}
-          id={densityButtonId}
-          {...other}
-          onClick={handleDensitySelectorOpen}
-          {...rootProps.slotProps?.baseIconButton}
+  return (
+    <>
+      <IconButton
+        ref={handleRef}
+        size='small'
+        color='primary'
+        // startIcon={startIcon}
+        aria-label={apiRef.current.getLocaleText('toolbarDensityLabel')}
+        aria-haspopup='menu'
+        aria-expanded={open}
+        aria-controls={open ? densityMenuId : undefined}
+        id={densityButtonId}
+        {...other}
+        onClick={handleDensitySelectorOpen}
+        {...rootProps.slotProps?.baseIconButton}
+      >
+        {startIcon}
+        {/* {apiRef.current.getLocaleText('toolbarDensity')} */}
+      </IconButton>
+      <GridMenu
+        open={open}
+        target={buttonRef.current}
+        onClickAway={handleDensitySelectorClickAway}
+        onClose={() => {}}
+        position='bottom-start'
+      >
+        <MenuList
+          id={densityMenuId}
+          className={gridClasses.menuList}
+          aria-labelledby={densityButtonId}
+          onKeyDown={handleListKeyDown}
+          autoFocusItem={open}
         >
-          {startIcon}
-          {/* {apiRef.current.getLocaleText('toolbarDensity')} */}
-        </IconButton>
-        <GridMenu
-          open={open}
-          target={buttonRef.current}
-          onClickAway={handleDensitySelectorClickAway}
-          position='bottom-start'
-        >
-          <MenuList
-            id={densityMenuId}
-            className={gridClasses.menuList}
-            aria-labelledby={densityButtonId}
-            onKeyDown={handleListKeyDown}
-            autoFocusItem={open}
-          >
-            {densityElements}
-          </MenuList>
-        </GridMenu>
-      </>
-    );
-  }
-);
+          {densityElements}
+        </MenuList>
+      </GridMenu>
+    </>
+  );
+});

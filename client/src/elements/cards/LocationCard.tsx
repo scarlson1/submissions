@@ -14,7 +14,8 @@ import {
 import { noop } from 'lodash';
 import { useCallback } from 'react';
 
-import { ILocation, Policy, WithId, fallbackImages } from 'common';
+import type { WithId } from '@idemand/common';
+import { fallbackImages, ILocation, Policy } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
 import { FlexCardContentWrapper } from 'components/FlexCard';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
@@ -88,7 +89,10 @@ export const LocationCard = ({
             </Tooltip>
           ) : null}
         </CardMedia>
-        <CardActionArea onClick={() => handleClick(location.locationId)} sx={{ height: '100%' }}>
+        <CardActionArea
+          onClick={() => handleClick(location.locationId)}
+          sx={{ height: '100%' }}
+        >
           <FlexCardContent sx={{ p: 5 }}>
             <Box
               sx={{
@@ -102,22 +106,35 @@ export const LocationCard = ({
                 <Typography
                   fontWeight={900}
                   fontSize={24}
-                  sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
                   {location?.address?.addressLine1}
                 </Typography>
-                <Item label='Building' value={`${dollarFormat(location.limits.limitA || 0)}`} />
+                <Item
+                  label='Building'
+                  value={`${dollarFormat(location.limits.limitA || 0)}`}
+                />
                 <Item
                   label="Add'l Structures"
                   value={`${dollarFormat(location.limits.limitB || 0)}`}
                 />
-                <Item label='Contents' value={`${dollarFormat(location.limits.limitC || 0)}`} />
-                <Item label='BI' value={`${dollarFormat(location.limits.limitD || 0)}`} />
+                <Item
+                  label='Contents'
+                  value={`${dollarFormat(location.limits.limitC || 0)}`}
+                />
+                <Item
+                  label='BI'
+                  value={`${dollarFormat(location.limits.limitD || 0)}`}
+                />
                 <Item
                   label='Effective'
                   value={`${formatFirestoreTimestamp(
                     location.effectiveDate,
-                    'date'
+                    'date',
                   )} - ${formatFirestoreTimestamp(location.expirationDate, 'date')}`}
                 />
               </Box>
@@ -125,7 +142,10 @@ export const LocationCard = ({
                 <Divider light sx={{ my: { xs: 3, md: 4 } }} />
                 <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
                   {namedInsured ? (
-                    <Tooltip title={`${namedInsured.displayName}`} key={namedInsured.email}>
+                    <Tooltip
+                      title={`${namedInsured.displayName}`}
+                      key={namedInsured.email}
+                    >
                       {/* <Avatar src={f.img} alt={p.namedInsured.firstName} /> */}
                       <Avatar alt={namedInsured.displayName || 'i d'} />
                     </Tooltip>

@@ -2,16 +2,14 @@ import { ReactFireOptions, useFirestore, useObservable } from 'reactfire';
 // collectionCount not exported error
 // import { collectionCount } from 'rxfire/firestore';
 import {
-  AggregateField,
-  AggregateQuerySnapshot,
-  Query,
-  QueryFieldFilterConstraint,
   collection,
   collectionGroup,
   getCountFromServer,
+  Query,
   query,
+  QueryFieldFilterConstraint,
 } from 'firebase/firestore';
-import { Observable, from } from 'rxjs';
+import { from, Observable } from 'rxjs';
 import { map, repeat } from 'rxjs/operators';
 
 // https://github.com/FirebaseExtended/rxfire/blob/main/docs/firestore.md#collectioncount
@@ -19,11 +17,12 @@ import { map, repeat } from 'rxjs/operators';
 // TODO: handle errors (DEADLINE_EXCEEDED)
 // https://firebase.google.com/docs/firestore/query-data/aggregation-queries#limitations
 
-type CountSnapshot = AggregateQuerySnapshot<{
-  count: AggregateField<number>;
-}>;
+// type CountSnapshot = AggregateQuerySnapshot<{
+//   count: AggregateField<number>;
+// }>;
 
-export function collectionCountSnap(query: Query<unknown>): Observable<CountSnapshot> {
+export function collectionCountSnap(query: Query<unknown>) {
+  // : Observable<CountSnapshot>
   return from(getCountFromServer(query));
 }
 
@@ -36,7 +35,7 @@ export const useDocCount = (
   constraints: QueryFieldFilterConstraint[] = [],
   isCollectionGroup: boolean = false,
   pathSegments: string[] = [],
-  options?: ReactFireOptions | undefined
+  options?: ReactFireOptions | undefined,
 ) => {
   const firestore = useFirestore();
 
@@ -53,7 +52,9 @@ export const useDocCount = (
   const q = query(colRef, ...constraints);
 
   // refetch every 30 seconds, until 60 fetches (~ 30 mins)
-  const observable$ = collectionCount(q).pipe(repeat({ count: 60, delay: 30 * 1000 }));
+  const observable$ = collectionCount(q).pipe(
+    repeat({ count: 60, delay: 30 * 1000 }),
+  );
 
   const observableId = `firestore:count:${path}:${JSON.stringify(constraints)}:aggregate-count`;
 

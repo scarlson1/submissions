@@ -1,11 +1,11 @@
+import type { Coords, Nullable } from '@idemand/common';
 import { GeoPoint } from 'firebase-admin/firestore';
 import { isFinite, max, min, zip } from 'lodash-es';
-import { Coordinates, Nullable } from '../common/index.js';
 import { betweenRange } from './helpers.js';
 
 export const isValidCoords = (
-  val: GeoPoint | Nullable<Coordinates> | null | undefined
-): val is Coordinates | GeoPoint => {
+  val: GeoPoint | Nullable<Coords> | null | undefined,
+): val is Coords | GeoPoint => {
   if (!val) return false;
   const { latitude, longitude } = val;
 
@@ -34,5 +34,10 @@ export const isLatitude = (lat: unknown) =>
 export function getBoundingBox(points: number[][]) {
   const [xCoords, yCoords] = zip(...points);
   // format: [minLng, minLat, maxLng, maxLat]
-  return [min(yCoords) || -180, min(xCoords) || -90, max(yCoords) || 180, max(xCoords) || 90];
+  return [
+    min(yCoords) || -180,
+    min(xCoords) || -90,
+    max(yCoords) || 180,
+    max(xCoords) || 90,
+  ];
 }

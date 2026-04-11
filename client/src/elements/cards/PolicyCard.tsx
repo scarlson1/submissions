@@ -13,8 +13,9 @@ import {
 } from '@mui/material';
 import { noop } from 'lodash';
 
+import type { WithId } from '@idemand/common';
 import { DescriptionRounded, PaymentsRounded } from '@mui/icons-material';
-import { fallbackImages, Policy, WithId } from 'common';
+import { fallbackImages, Policy } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
 import { FlexCardContentWrapper } from 'components/FlexCard';
 import { useGeneratePDF } from 'hooks';

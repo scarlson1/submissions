@@ -1,4 +1,4 @@
-import { Coords } from '@idemand/common';
+import { Coords, StorageFolder } from '@idemand/common';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getDownloadURL, getStorage } from 'firebase-admin/storage';
 import { info } from 'firebase-functions/logger';
@@ -12,7 +12,6 @@ import {
   getReportErrorFn,
   mapboxToken,
   policiesCollection,
-  StorageFolder,
 } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';

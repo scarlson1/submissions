@@ -1,3 +1,4 @@
+import type { WithId } from '@idemand/common';
 import {
   GRID_CHECKBOX_SELECTION_COL_DEF,
   GridCellParams,
@@ -5,21 +6,23 @@ import {
   GridRowId,
 } from '@mui/x-data-grid';
 import {
+  buildWarning,
   GridApiCommunity,
   GridStateColDef,
-  buildWarning,
   serializeCellValue,
 } from '@mui/x-data-grid/internals';
 import { MutableRefObject } from 'react';
-
-import { WithId } from 'common';
 
 // https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/hooks/features/export/serializers/csvSerializer.ts
 
 function sanitizeCellValue(value: any, delimiterCharacter: string) {
   if (typeof value === 'string') {
     // Make sure value containing delimiter or line break won't be split into multiple rows
-    if ([delimiterCharacter, '\n', '\r', '"'].some((delimiter) => value.includes(delimiter))) {
+    if (
+      [delimiterCharacter, '\n', '\r', '"'].some((delimiter) =>
+        value.includes(delimiter),
+      )
+    ) {
       return `"${value.replace(/"/g, '""')}"`;
     }
 
@@ -51,7 +54,10 @@ class CSVRow {
     if (value === null || value === undefined) {
       this.rowString += '';
     } else if (typeof this.options.sanitizeCellValue === 'function') {
-      this.rowString += this.options.sanitizeCellValue(value, this.options.delimiterCharacter);
+      this.rowString += this.options.sanitizeCellValue(
+        value,
+        this.options.delimiterCharacter,
+      );
     } else {
       this.rowString += value;
     }
@@ -92,7 +98,16 @@ const serializeRow = ({
         objectFormattedValueWarning();
       }
     }
-    row.addValue(serializeCellValue(cellParams, { delimiterCharacter, ignoreValueFormatter }));
+    row.addValue(
+      serializeCellValue(cellParams, {
+        csvOptions: {
+          delimiter: delimiterCharacter,
+          shouldAppendQuotes: false,
+          escapeFormulas: true,
+        },
+        ignoreValueFormatter,
+      }),
+    );
   });
 
   return row.getRowString();
@@ -107,7 +122,11 @@ interface BuildCSVOptions<T> {
   // includeColumnGroupsHeaders: NonNullable<GridCsvExportOptions['includeColumnGroupsHeaders']>;
   ignoreValueFormatter: boolean;
   apiRef: MutableRefObject<GridApiCommunity>;
-  getCellParams: (id: GridRowId, field: string, serverRows: any[]) => GridCellParams;
+  getCellParams: (
+    id: GridRowId,
+    field: string,
+    serverRows: any[],
+  ) => GridCellParams;
 }
 
 export function buildCSV<T>(options: BuildCSVOptions<T>): string {
@@ -134,7 +153,7 @@ export function buildCSV<T>(options: BuildCSVOptions<T>): string {
           ignoreValueFormatter,
           serverRows: rowData,
         })}\r\n`,
-      ''
+      '',
     )
     .trim();
 
@@ -143,7 +162,7 @@ export function buildCSV<T>(options: BuildCSVOptions<T>): string {
   }
 
   const filteredColumns = columns.filter(
-    (column) => column.field !== GRID_CHECKBOX_SELECTION_COL_DEF.field
+    (column) => column.field !== GRID_CHECKBOX_SELECTION_COL_DEF.field,
   );
 
   const headerRows: CSVRow[] = [];

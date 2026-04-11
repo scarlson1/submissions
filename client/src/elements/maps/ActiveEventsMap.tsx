@@ -494,11 +494,21 @@ const MenuProps = {
   },
 };
 
-interface MultipleSelectProps extends SelectProps<string[]> {
+// interface MultipleSelectProps extends SelectProps<string[]> {
+//   options: string[];
+//   handleChange: SelectProps<string[]>['onChange'];
+//   value: string[];
+//   label: string;
+//   id: string
+// }
+
+type MultipleSelectProps = SelectProps<string[]> & {
   options: string[];
   handleChange: SelectProps<string[]>['onChange'];
   value: string[];
-}
+  label: string;
+  id: string;
+};
 
 export function MultipleSelect({
   handleChange,

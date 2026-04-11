@@ -1,30 +1,34 @@
 import axios from 'axios';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { ceil, max, round, sum } from 'lodash-es';
 
+import type { Address, Coords, Nullable } from '@idemand/common';
 import {
-  Address,
-  Coordinates,
-  LimitTypes,
-  Nullable,
   attomKey as attomKeySecret,
   audience,
   elevationKey,
   googleGeoKey,
+  LimitTypes,
   maxA,
   minA,
   propertyDataResCollection,
 } from '../common/index.js';
 import { getAttomProperty } from '../services/attom.js';
-import { geocodeAddress, getElevation, getFEMAFloodZone } from '../services/index.js';
+import {
+  geocodeAddress,
+  getElevation,
+  getFEMAFloodZone,
+} from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { isValidCoords } from '../utils/validateCoords.js';
 import { validate } from './utils/index.js';
 
 function getMockAttomData() {
-  return axios.get('https://scarlson1.github.io/data/attom.json').then(({ data }) => data);
+  return axios
+    .get('https://scarlson1.github.io/data/attom.json')
+    .then(({ data }) => data);
 }
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
@@ -42,18 +46,25 @@ interface InitLimits {
 }
 
 export interface GetPropertyDetailsAttomRequest extends Address {
-  coordinates?: Nullable<Coordinates> | null | undefined;
+  coordinates?: Nullable<Coords> | null | undefined;
 }
 
 const getPropertyDetailsAttom = async ({
   data,
 }: CallableRequest<GetPropertyDetailsAttomRequest>) => {
   info('data: ', data);
-  let { addressLine1, addressLine2 = '', city, state, postal = '', coordinates } = data;
+  let {
+    addressLine1,
+    addressLine2 = '',
+    city,
+    state,
+    postal = '',
+    coordinates,
+  } = data;
   validate(
     addressLine1 && city && state,
     'failed-precondition',
-    'Missing address components in request body'
+    'Missing address components in request body',
   );
 
   let basicProfileRes;
@@ -70,16 +81,14 @@ const getPropertyDetailsAttom = async ({
           ? basicProfileRes.property[0]
           : null;
     } else {
-      let { data: basicRes, profile: extractedProfile } = await getAttomProperty(
-        attomKeySecret.value(),
-        {
+      let { data: basicRes, profile: extractedProfile } =
+        await getAttomProperty(attomKeySecret.value(), {
           addressLine1,
           addressLine2,
           city,
           state,
           postal,
-        }
-      );
+        });
       basicProfileRes = basicRes;
       profile = extractedProfile;
       info('BASIC PROFILE: ', { profile });
@@ -90,8 +99,12 @@ const getPropertyDetailsAttom = async ({
 
   // set coordinates from property data res (if not provided)
   if (!isValidCoords(coordinates)) {
-    let latitude = profile?.location?.latitude ? Number(profile?.location?.latitude) : null;
-    let longitude = profile?.location?.longitude ? Number(profile?.location?.longitude) : null;
+    let latitude = profile?.location?.latitude
+      ? Number(profile?.location?.latitude)
+      : null;
+    let longitude = profile?.location?.longitude
+      ? Number(profile?.location?.longitude)
+      : null;
     if (typeof latitude === 'number' && typeof longitude === 'number') {
       coordinates = {
         latitude,
@@ -132,7 +145,9 @@ const getPropertyDetailsAttom = async ({
   }
 
   if (profile) {
-    const fallback: { [key: string]: number | string | null | Nullable<Coordinates> } = {
+    const fallback: {
+      [key: string]: number | string | null | Nullable<Coords>;
+    } = {
       initLimitA: null,
       initLimitB: null,
       initLimitC: null,
@@ -170,7 +185,7 @@ const getPropertyDetailsAttom = async ({
         profile,
         state,
         floodZone,
-        elevationData?.elevation
+        elevationData?.elevation,
       );
       let { replacementCost } = attomRatingData;
       info('Attom rating data: ', { ...attomRatingData });
@@ -183,7 +198,10 @@ const getPropertyDetailsAttom = async ({
         let MAX_A = maxA.value();
         let MIN_A = minA.value();
 
-        let limitARef = ceil(Math.min(Math.max(replacementCost, MIN_A), MAX_A), -3);
+        let limitARef = ceil(
+          Math.min(Math.max(replacementCost, MIN_A), MAX_A),
+          -3,
+        );
 
         let defaults: InitLimits = {
           initLimitA: limitARef,
@@ -209,16 +227,22 @@ const getPropertyDetailsAttom = async ({
           elevationData,
         };
       } catch (err: any) {
-        error('ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP. ERROR: ', {
-          stack: err?.stack || null,
-          message: err?.message || null,
-          code: err?.code || null,
-        });
+        error(
+          'ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP. ERROR: ',
+          {
+            stack: err?.stack || null,
+            message: err?.message || null,
+            code: err?.code || null,
+          },
+        );
 
         return { ...attomRatingData, ...fallback, elevationData };
       }
     } catch (err) {
-      console.log('ERROR VALIDATING SPATIAL KEY RESPONSE. USING FALLBACK NFIP. ERROR: ', err);
+      console.log(
+        'ERROR VALIDATING SPATIAL KEY RESPONSE. USING FALLBACK NFIP. ERROR: ',
+        err,
+      );
 
       return { ...fallback };
     }
@@ -229,7 +253,7 @@ const getPropertyDetailsAttom = async ({
 
 export default onCallWrapper<GetPropertyDetailsAttomRequest>(
   'getpropertydetailsattom',
-  getPropertyDetailsAttom
+  getPropertyDetailsAttom,
 );
 
 interface AttomBasicProfile {
@@ -240,7 +264,7 @@ function extractRatingDataAttom(
   attomData: AttomBasicProfile,
   state: string,
   fz?: string,
-  elevation?: number | null
+  elevation?: number | null,
 ) {
   const { summary, building, assessment } = attomData;
 
@@ -254,7 +278,9 @@ function extractRatingDataAttom(
   let basement = building?.interior?.bsmtType?.toLowerCase() || 'unknown'; // TODO: basement res types
   let distToCoastFeet = 1000000;
 
-  const rcvBySqFootage = sqFootage ? calcRCVBySquareFootage(sqFootage, state) : null;
+  const rcvBySqFootage = sqFootage
+    ? calcRCVBySquareFootage(sqFootage, state)
+    : null;
 
   if (rcvBySqFootage && replacementCost)
     replacementCost = max([rcvBySqFootage, replacementCost]) || null;
@@ -286,7 +312,8 @@ function tempCalcRCV(assessment: any) {
 
   // if no market values, try assessed total value (land & building)
   if (!market) {
-    if (assessed && assessed.assdTtlValue) return round(assessed.assdTtlValue, -3);
+    if (assessed && assessed.assdTtlValue)
+      return round(assessed.assdTtlValue, -3);
     return null;
   }
 

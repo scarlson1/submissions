@@ -63,7 +63,8 @@ export const DEFAULT_VALUES: QuoteValues = {
   fees: [],
   taxes: [],
   annualPremium: null,
-  subproducerCommission: 0.15,
+  // subproducerCommission: 0.15,
+  commSource: 'agent',
   quoteTotal: null,
   namedInsured: {
     firstName: '',

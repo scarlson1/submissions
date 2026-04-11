@@ -1,4 +1,10 @@
-import { BedRounded, FenceRounded, HouseRounded, WeekendRounded } from '@mui/icons-material';
+import type { WithId } from '@idemand/common';
+import {
+  BedRounded,
+  FenceRounded,
+  HouseRounded,
+  WeekendRounded,
+} from '@mui/icons-material';
 import {
   Box,
   Card,
@@ -12,11 +18,16 @@ import {
   Typography,
 } from '@mui/material';
 
-import { Quote, WithId, fallbackImages } from 'common';
+import { fallbackImages, Quote } from 'common';
 import { LineItem } from 'components';
 import { WizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
-import { addToDate, dollarFormat, formatDate, formatFirestoreTimestamp } from 'modules/utils';
+import {
+  addToDate,
+  dollarFormat,
+  formatDate,
+  formatFirestoreTimestamp,
+} from 'modules/utils';
 
 // TODO:
 //    - show location summary
@@ -77,13 +88,21 @@ export const ReviewStep = ({ onSubmit, quote }: ReviewStepProps) => {
           image={quote?.imageURLs?.satellite || fallbackImages[0]}
           title={`${quote?.address?.addressLine1} map`}
         />
-        <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}>
+        <Box
+          sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}
+        >
           <CardContent sx={{ flex: '1 0 auto' }}>
             <Typography variant='h6'>{quote.address.addressLine1}</Typography>
-            <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              fontSize='0.775rem'
+            >
               {`Effective: ${formatFirestoreTimestamp(quote.effectiveDate, 'date') || '--'} - ${
-                formatDate(addToDate({ years: 1 }, quote.effectiveDate?.toDate()), `MMM dd, yy`) ||
-                '--'
+                formatDate(
+                  addToDate({ years: 1 }, quote.effectiveDate?.toDate()),
+                  `MMM dd, yy`,
+                ) || '--'
               }`}
             </Typography>
           </CardContent>
@@ -105,7 +124,10 @@ export const ReviewStep = ({ onSubmit, quote }: ReviewStepProps) => {
             </Grid>
 
             <Grid xs='auto'>
-              <Tooltip title='Additional Structures Coverage Limit' placement='top'>
+              <Tooltip
+                title='Additional Structures Coverage Limit'
+                placement='top'
+              >
                 <Chip
                   icon={<FenceRounded />}
                   label={dollarFormat(quote.limits?.limitB)}
@@ -177,7 +199,12 @@ export const ReviewStep = ({ onSubmit, quote }: ReviewStepProps) => {
           <Divider sx={{ my: 3 }} />
           <Typography sx={{ py: 2 }}>Underwriter Notes</Typography>
           {quote.notes.map(({ note }) => (
-            <Typography variant='body2' color='text.secondary' sx={{ py: 1 }} key={`${note}`}>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ py: 1 }}
+              key={`${note}`}
+            >
               {note}
             </Typography>
           ))}

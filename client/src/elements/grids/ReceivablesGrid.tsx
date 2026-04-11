@@ -2,12 +2,15 @@ import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 import { Claim, Receivable, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
-import { RECEIVABLE_COLUMN_VISIBILITY, receivableCols } from 'modules/muiGrid/gridColumnDefs';
+import {
+  RECEIVABLE_COLUMN_VISIBILITY,
+  receivableCols,
+} from 'modules/muiGrid/gridColumnDefs';
 
 // requires rxjs query unless iDemand admin ?? get policies by user/agent/org, then fetch receivables ??
 
@@ -19,13 +22,15 @@ export const ReceivablesGrid = ({
   ...props
 }: ReceivablesGridProps) => {
   const navigate = useNavigate();
-  const { data } = useSigninCheck({ requiredClaims: { [Claim.Enum.iDemandAdmin]: true } });
+  const { data } = useSigninCheck({
+    requiredClaims: { [Claim.Enum.iDemandAdmin]: true },
+  });
   const renderShowJson = useGridShowJson(
     'receivables',
     { showInMenu: true },
     { requiredClaims: { [Claim.Enum.iDemandAdmin]: true } },
     null,
-    null
+    null,
   );
 
   const receivableColumns: GridColDef<Receivable>[] = useMemo(
@@ -53,7 +58,7 @@ export const ReceivablesGrid = ({
       ...receivableCols,
       ...(additionalColumns || []),
     ],
-    [renderActions, renderShowJson, additionalColumns]
+    [renderActions, renderShowJson, additionalColumns],
   );
 
   if (!data.hasRequiredClaims) return null;
@@ -68,9 +73,9 @@ export const ReceivablesGrid = ({
       onRowDoubleClick={(params) =>
         navigate(
           createPath({
-            path: ROUTES.PAYABLE_CHECKOUT,
+            path: ROUTES.POLICY_RECEIVABLE_CHECKOUT,
             params: { receivableId: params.id.toString() },
-          })
+          }),
         )
       }
       slotProps={{

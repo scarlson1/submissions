@@ -1,9 +1,10 @@
 import { Box, Typography } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
-import { JSONContent, generateHTML } from '@tiptap/react';
+import { generateHTML, JSONContent } from '@tiptap/react';
 import { useMemo } from 'react';
 
-import { Disclosure, DisclosureType } from 'common';
+import { DisclosureType } from '@idemand/common';
+import { Disclosure } from 'common';
 import { EDITOR_EXTENSION_DEFAULTS } from 'hooks';
 import {
   createdCol,

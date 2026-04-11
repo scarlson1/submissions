@@ -1,4 +1,9 @@
-import { BedRounded, FenceRounded, HouseRounded, WeekendRounded } from '@mui/icons-material';
+import {
+  BedRounded,
+  FenceRounded,
+  HouseRounded,
+  WeekendRounded,
+} from '@mui/icons-material';
 import {
   Box,
   Card,
@@ -13,7 +18,8 @@ import {
 import { useFormikContext } from 'formik';
 import { useEffect, useMemo } from 'react';
 
-import { Quote, WithId, fallbackImages } from 'common';
+import type { WithId } from '@idemand/common';
+import { fallbackImages, Quote } from 'common';
 import { LineItem } from 'components';
 import { addToDate, dollarFormat, formatDate } from 'modules/utils';
 import { BindQuoteValues } from './BindQuoteForm';
@@ -47,7 +53,8 @@ export function ReviewStep({ data, logAnalyticsStep }: ReviewStepProps) {
 
     // TODO: payment method type not stored in policy instead of sub-collection of user --> could add "total" in backend
     let t: number = quoteTotal;
-    if (cardFee && typeof cardFee === 'number' && cardDetails.type === 'card') t += cardFee;
+    if (cardFee && typeof cardFee === 'number' && cardDetails.type === 'card')
+      t += cardFee;
 
     return t;
   }, [cardDetails, data]);
@@ -91,12 +98,21 @@ export function ReviewStep({ data, logAnalyticsStep }: ReviewStepProps) {
           image={data?.imageURLs?.satellite || fallbackImages[0]}
           title={`${data?.address?.addressLine1} map`}
         />
-        <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}>
+        <Box
+          sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}
+        >
           <CardContent sx={{ flex: '1 0 auto' }}>
             <Typography variant='h6'>{data.address.addressLine1}</Typography>
-            <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              fontSize='0.775rem'
+            >
               {`Effective: ${formatDate(values.effectiveDate, `MMM dd, yy`) || '--'} - ${
-                formatDate(addToDate({ years: 1 }, values.effectiveDate), `MMM dd, yy`) || '--'
+                formatDate(
+                  addToDate({ years: 1 }, values.effectiveDate),
+                  `MMM dd, yy`,
+                ) || '--'
               }`}
             </Typography>
           </CardContent>
@@ -118,7 +134,10 @@ export function ReviewStep({ data, logAnalyticsStep }: ReviewStepProps) {
             </Grid>
 
             <Grid xs='auto'>
-              <Tooltip title='Additional Structures Coverage Limit' placement='top'>
+              <Tooltip
+                title='Additional Structures Coverage Limit'
+                placement='top'
+              >
                 <Chip
                   icon={<FenceRounded />}
                   label={dollarFormat(data.limits?.limitB)}
@@ -139,7 +158,11 @@ export function ReviewStep({ data, logAnalyticsStep }: ReviewStepProps) {
 
             <Grid xs='auto'>
               <Tooltip title='Living Expenses Coverage Limit' placement='top'>
-                <Chip icon={<BedRounded />} label={dollarFormat(data.limits.limitD)} size='small' />
+                <Chip
+                  icon={<BedRounded />}
+                  label={dollarFormat(data.limits.limitD)}
+                  size='small'
+                />
               </Tooltip>
             </Grid>
           </Grid>
@@ -187,7 +210,12 @@ export function ReviewStep({ data, logAnalyticsStep }: ReviewStepProps) {
           <Divider sx={{ my: 3 }} />
           <Typography sx={{ py: 2 }}>Underwriter Notes</Typography>
           {data.notes.map(({ note }) => (
-            <Typography variant='body2' color='text.secondary' sx={{ py: 1 }} key={`${note}`}>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ py: 1 }}
+              key={`${note}`}
+            >
               {note}
             </Typography>
           ))}

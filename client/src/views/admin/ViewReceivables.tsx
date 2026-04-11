@@ -14,7 +14,8 @@ import {
 import { where } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-import { Receivable, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { Receivable } from 'common';
 import { useCollectionData, useSafeParams } from 'hooks';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
 import { createPath, ROUTES } from 'router';

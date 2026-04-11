@@ -1,14 +1,14 @@
+import type { TCollection } from '@idemand/common';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { TCollection } from 'common';
 import {
+  collection,
   CollectionReference,
   DocumentData,
-  QueryConstraint,
-  QueryDocumentSnapshot,
-  collection,
   getDocs,
   limit,
   query,
+  QueryConstraint,
+  QueryDocumentSnapshot,
   startAfter,
 } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
@@ -17,7 +17,7 @@ export const useInfiniteDocs = <T extends DocumentData>(
   colName: TCollection, // string,
   constraints: QueryConstraint[],
   pageSize: number = 4,
-  pathSegments: string[] = []
+  pathSegments: string[] = [],
   // queryOptions: Omit<
   //   UseInfiniteQueryOptions,
   //   'queryKey' | 'queryFn' | 'getNextPageParam' | 'initialPageParam'
@@ -25,7 +25,11 @@ export const useInfiniteDocs = <T extends DocumentData>(
 ) => {
   const firestore = useFirestore();
 
-  const colRef = collection(firestore, colName, ...pathSegments) as CollectionReference<T, T>;
+  const colRef = collection(
+    firestore,
+    colName,
+    ...pathSegments,
+  ) as CollectionReference<T, T>;
 
   const fetchDocs = async ({
     pageParam: cursor,
@@ -33,7 +37,12 @@ export const useInfiniteDocs = <T extends DocumentData>(
     pageParam: QueryDocumentSnapshot<T> | null;
   }) => {
     const cursorConstraint = cursor ? [startAfter(cursor)] : [];
-    const q = query<T, T>(colRef, ...constraints, ...cursorConstraint, limit(pageSize));
+    const q = query<T, T>(
+      colRef,
+      ...constraints,
+      ...cursorConstraint,
+      limit(pageSize),
+    );
 
     let snaps = await getDocs(q);
 

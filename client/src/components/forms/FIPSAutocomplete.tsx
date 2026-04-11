@@ -1,10 +1,14 @@
+import { Collection, type FIPSDetails } from '@idemand/common';
 import { CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 import { Autocomplete, Checkbox, TextField } from '@mui/material';
-import { DocumentReference, doc, getDoc, getFirestore } from 'firebase/firestore';
-import { useCallback, useState, useTransition } from 'react';
-
-import { Collection, FIPSDetails } from 'common';
+import {
+  doc,
+  DocumentReference,
+  getDoc,
+  getFirestore,
+} from 'firebase/firestore';
 import { useField } from 'formik';
+import { useCallback, useState, useTransition } from 'react';
 
 // TODO: virtualization - https://mui.com/material-ui/react-autocomplete/#virtualization
 // tanstack virtual - https://tanstack.com/virtual/v3/docs/guide/introduction
@@ -16,7 +20,10 @@ export interface FormikAutocompleteProps {
 }
 
 export const FIPSAutocomplete = ({ name }: FormikAutocompleteProps) => {
-  const [field, { error, touched }, { setValue, setTouched }] = useField({ name, multiple: true });
+  const [field, { error, touched }, { setValue, setTouched }] = useField({
+    name,
+    multiple: true,
+  });
   const [inputValue, setInputValue] = useState('');
 
   const [open, setOpen] = useState(false);
@@ -25,7 +32,11 @@ export const FIPSAutocomplete = ({ name }: FormikAutocompleteProps) => {
   const loading = open && options.length === 0;
 
   const getCounties = useCallback(() => {
-    const docRef = doc(getFirestore(), Collection.Enum.public, 'fips') as DocumentReference<{
+    const docRef = doc(
+      getFirestore(),
+      Collection.Enum.public,
+      'fips',
+    ) as DocumentReference<{
       counties: FIPSDetails[];
     }>;
     getDoc(docRef)

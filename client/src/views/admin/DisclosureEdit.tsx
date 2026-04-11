@@ -1,11 +1,12 @@
 import { Box, Typography } from '@mui/material';
-import { DocumentReference, Timestamp, doc, setDoc } from 'firebase/firestore';
+import { doc, DocumentReference, setDoc, Timestamp } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
 import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
 
-import { Collection, Disclosure, TDisclosureType, TProduct, TState } from 'common';
+import { Collection, type DisclosureType } from '@idemand/common';
+import { Disclosure, TProduct, TState } from 'common';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements/forms';
 import { useAsyncToast } from 'hooks';
@@ -20,14 +21,14 @@ export const DisclosureEdit = () => {
   const docRef = doc(
     firestore,
     Collection.Enum.disclosures,
-    `${disclosureId}`
+    `${disclosureId}`,
   ) as DocumentReference<Disclosure>;
   const { data } = useFirestoreDocDataOnce(docRef);
 
   const handleSubmit = useCallback(
     async (
       { products, state, displayName, type, content }: DisclosureValues,
-      { setSubmitting }: FormikHelpers<DisclosureValues>
+      { setSubmitting }: FormikHelpers<DisclosureValues>,
     ) => {
       try {
         if (!content) throw new Error('failed to get content');
@@ -47,7 +48,7 @@ export const DisclosureEdit = () => {
               updated: Timestamp.now(),
             },
           },
-          { merge: true }
+          { merge: true },
         );
         toast.success(`Saved!`);
 
@@ -59,7 +60,7 @@ export const DisclosureEdit = () => {
         setSubmitting(false);
       }
     },
-    [toast, data, docRef, navigate]
+    [toast, data, docRef, navigate],
   );
 
   return (
@@ -69,7 +70,7 @@ export const DisclosureEdit = () => {
           products: data.products,
           state: data.state || ('' as TState),
           displayName: data.displayName || '',
-          type: data.type || ('' as TDisclosureType),
+          type: data.type || ('' as DisclosureType),
           content: data.content,
         }}
         onSubmit={handleSubmit}

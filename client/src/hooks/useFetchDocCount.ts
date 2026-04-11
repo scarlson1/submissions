@@ -1,20 +1,19 @@
+import type { TCollection } from '@idemand/common';
 import {
-  QueryConstraint,
   collection,
   collectionGroup,
   getCountFromServer,
   query,
+  QueryConstraint,
 } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useFirestore } from 'reactfire';
-
-import { TCollection } from 'common';
 
 export function useFetchDocCount(
   colName: TCollection,
   constraints: QueryConstraint[] = [],
   isCollectionGroup: boolean = false,
-  pathSegments: string[] = []
+  pathSegments: string[] = [],
 ) {
   const db = useFirestore();
 

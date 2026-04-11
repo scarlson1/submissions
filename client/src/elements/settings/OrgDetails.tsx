@@ -16,15 +16,16 @@ import { upperFirst } from 'lodash';
 import { useCallback, useState } from 'react';
 import { Map, Marker } from 'react-map-gl';
 
-import { NESTED_ADDRESS_FIELD_NAMES, Organization, Product, StorageFolder } from 'common';
+import { StorageFolder } from '@idemand/common';
+import { NESTED_ADDRESS_FIELD_NAMES, Organization, Product } from 'common';
 import { MAPBOX_DARK, MAPBOX_LIGHT } from 'components';
 import { FormikNativeSelect, FormikTextField } from 'components/forms';
 import { FormattedAddress } from 'elements/FormattedAddress';
-import { UpdateAvatarImg } from 'elements/UpdateAvatarImg';
 import { FormikAddress } from 'elements/forms';
 import { commOptions } from 'elements/forms/QuoteForm/constants';
 import { MAPBOX_TOKEN } from 'elements/maps';
-import { UploadResult, getDownloadURL } from 'firebase/storage';
+import { UpdateAvatarImg } from 'elements/UpdateAvatarImg';
+import { getDownloadURL, UploadResult } from 'firebase/storage';
 import { useAsyncToast, useClaims, useDocData, useUpdateDoc } from 'hooks';
 import { CoordObj } from 'modules/utils';
 
@@ -48,16 +49,17 @@ export const OrgDetails = () => {
     },
     (msg) => {
       toast.error(msg);
-    }
+    },
   );
 
   const handleUpdateOrg = useCallback(
     (values: OrgValues) => {
       const { latitude, longitude } = values.coordinates || {};
-      const coordinates = latitude && longitude ? new GeoPoint(latitude, longitude) : null;
+      const coordinates =
+        latitude && longitude ? new GeoPoint(latitude, longitude) : null;
       return updateOrg(orgId, { ...values, coordinates });
     },
-    [updateOrg, orgId]
+    [updateOrg, orgId],
   );
 
   // TODO: logic not shared --> move to it's own component
@@ -70,14 +72,14 @@ export const OrgDetails = () => {
         toast.error('error getting logo URL');
       }
     },
-    [toast, updateOrg, orgId]
+    [toast, updateOrg, orgId],
   );
 
   const handleLogoUploadError = useCallback(
     (err: any, msg?: string) => {
       toast.error(msg || 'error uploading logo');
     },
-    [toast]
+    [toast],
   );
 
   return (
@@ -143,12 +145,17 @@ export const OrgDetails = () => {
                     onError={handleLogoUploadError}
                     title='Update Organization Logo'
                     openButtonText='Change logo'
-                    filesDragDropProps={{ multiple: false, maxFileSizeInBytes: 2194304 }} // 2 MB
+                    filesDragDropProps={{
+                      multiple: false,
+                      maxFileSizeInBytes: 2194304,
+                    }} // 2 MB
                     avatarProps={{
                       variant: 'rounded',
                       src: org?.photoURL,
                     }}
-                    editBtnProps={{ sx: { height: 18, width: 18, fontSize: 10 } }}
+                    editBtnProps={{
+                      sx: { height: 18, width: 18, fontSize: 10 },
+                    }}
                   />
                   {/* <Avatar variant='rounded' src={org?.photoURL}>
                     <BusinessRounded />
@@ -158,7 +165,11 @@ export const OrgDetails = () => {
                   <Typography variant='body1' gutterBottom fontSize={18}>
                     {org?.orgName || ''}
                   </Typography>
-                  <FormattedAddress address={org?.address} variant='body2' color='text.secondary' />
+                  <FormattedAddress
+                    address={org?.address}
+                    variant='body2'
+                    color='text.secondary'
+                  />
                 </Box>
               </Box>
 
@@ -169,8 +180,12 @@ export const OrgDetails = () => {
               {org?.defaultCommission ? (
                 <>
                   {Object.entries(org.defaultCommission).map(([k, v]) => (
-                    <Typography variant='body2' color='text.secondary' key={k}>{`${upperFirst(
-                      k
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      key={k}
+                    >{`${upperFirst(
+                      k,
                     )}: ${(typeof v === 'number' ? v : 0.15) * 100}%`}</Typography>
                   ))}
                 </>
@@ -194,7 +209,11 @@ export const OrgDetails = () => {
   );
 };
 
-type OrgValues = Pick<Organization, 'orgName' | 'address' | 'defaultCommission'> & CoordObj;
+type OrgValues = Pick<
+  Organization,
+  'orgName' | 'address' | 'defaultCommission'
+> &
+  CoordObj;
 
 interface EditOrgFormProps extends FormikConfig<OrgValues> {
   exitEditMode: () => void;
@@ -203,7 +222,15 @@ interface EditOrgFormProps extends FormikConfig<OrgValues> {
 function EditOrgForm({ exitEditMode, ...props }: EditOrgFormProps) {
   return (
     <Formik {...props}>
-      {({ isSubmitting, isValidating, isValid, dirty, handleSubmit, submitForm, resetForm }) => (
+      {({
+        isSubmitting,
+        isValidating,
+        isValid,
+        dirty,
+        handleSubmit,
+        submitForm,
+        resetForm,
+      }) => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant='subtitle1' sx={{ flex: '1 1 auto' }}>

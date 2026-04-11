@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { generateSRAccessToken } from '../config';
+import { generateSRAccessToken } from '../config/generateSRAccessToken.js';
 
 // TODO: set up swiss re authentication as instance
 
@@ -27,7 +27,8 @@ swissReInstance.interceptors.request.use(
 
         console.log('ACCESS TOKEN => ', accessToken);
         config.headers['Authorization'] = `Bearer ${accessToken}`;
-        swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        swissReInstance.defaults.headers.common['Authorization'] =
+          `Bearer ${accessToken}`;
       } catch (err) {
         return Promise.reject(err);
       }
@@ -38,7 +39,7 @@ swissReInstance.interceptors.request.use(
   (err) => {
     console.log('Axios request interceptor error => ', err);
     return Promise.reject(err);
-  }
+  },
 );
 
 swissReInstance.interceptors.response.use(
@@ -60,7 +61,8 @@ swissReInstance.interceptors.response.use(
           console.log('REFRESHED TOKEN => ', accessToken);
 
           if (accessToken)
-            swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            swissReInstance.defaults.headers.common['Authorization'] =
+              `Bearer ${accessToken}`;
 
           return swissReInstance(config);
         } catch (err) {
@@ -76,7 +78,8 @@ swissReInstance.interceptors.response.use(
           console.log('REFRESHED TOKEN => ', accessToken);
 
           if (accessToken)
-            swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            swissReInstance.defaults.headers.common['Authorization'] =
+              `Bearer ${accessToken}`;
 
           return swissReInstance(config);
         } catch (err) {
@@ -86,5 +89,5 @@ swissReInstance.interceptors.response.use(
     }
 
     return Promise.reject(err);
-  }
+  },
 );

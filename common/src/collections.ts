@@ -4,6 +4,8 @@ import {
   Firestore,
 } from 'firebase-admin/firestore';
 
+// uses firebase admin --> do not use client side
+
 import { Collection } from './enums.js';
 import {
   ILocation,

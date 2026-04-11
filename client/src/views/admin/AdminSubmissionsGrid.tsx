@@ -9,7 +9,8 @@ import { noop } from 'lodash';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Submission, SUBMISSION_STATUS } from 'common';
+import { SubmissionStatus } from '@idemand/common';
+import { Submission } from 'common';
 import { SubmissionsGrid } from 'elements/grids';
 import { useAsyncToast, useConfirmAndUpdate, useUpdateDoc } from 'hooks';
 import { rcvSourceUserCol } from 'modules/muiGrid/gridColumnDefs';
@@ -58,7 +59,7 @@ export function AdminSubmissionsGrid() {
       try {
         toast.loading('saving status...');
         await updateSubmission(id.toString(), {
-          status: SUBMISSION_STATUS.NOT_ELIGIBLE,
+          status: SubmissionStatus.enum.ineligible,
         });
 
         toast.success('saved'); // TODO: prompt "would you like to notify insured"

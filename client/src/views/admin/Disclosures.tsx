@@ -1,6 +1,14 @@
-import { ArticleRounded, DeleteRounded, EditRounded } from '@mui/icons-material';
+import {
+  ArticleRounded,
+  DeleteRounded,
+  EditRounded,
+} from '@mui/icons-material';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridColDef,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { generateHTML } from '@tiptap/html';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useCallback, useMemo } from 'react';
@@ -8,7 +16,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { Collection } from 'common';
+import { Collection } from '@idemand/common';
 import { ServerDataGrid } from 'components';
 import { useConfirmation } from 'context';
 import { EDITOR_EXTENSION_DEFAULTS, useWidth } from 'hooks';
@@ -33,22 +41,27 @@ export const Disclosures = () => {
         variant: 'info',
         catchOnCancel: false,
         title: 'Disclosure Preview',
-        description: (() => <div dangerouslySetInnerHTML={{ __html: html }} />)(),
+        description: (() => (
+          <div dangerouslySetInnerHTML={{ __html: html }} />
+        ))(),
         dialogContentProps: { dividers: true },
         dialogProps: { maxWidth: 'sm' },
       });
     },
-    [dialog]
+    [dialog],
   );
 
   const editDisclosure = useCallback(
     ({ id }: GridRowParams) =>
       async () => {
         navigate(
-          createPath({ path: ADMIN_ROUTES.DISCLOSURE_EDIT, params: { disclosureId: id as string } })
+          createPath({
+            path: ADMIN_ROUTES.DISCLOSURE_EDIT,
+            params: { disclosureId: id as string },
+          }),
         );
       },
-    [navigate]
+    [navigate],
   );
 
   const deleteDisclosure = useCallback(
@@ -68,7 +81,7 @@ export const Disclosures = () => {
           toast.success('Document deleted');
         } catch (err) {}
       },
-    [dialog, firestore]
+    [dialog, firestore],
   );
 
   const columns: GridColDef[] = useMemo(
@@ -113,17 +126,22 @@ export const Disclosures = () => {
       },
       ...disclosureCols,
     ],
-    [showContent, editDisclosure, deleteDisclosure, isMobile]
+    [showContent, editDisclosure, deleteDisclosure, isMobile],
   );
 
   return (
     <Box>
       <Box sx={{ display: 'flex', pb: 2 }}>
-        <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 }, flex: '1 1 auto' }}>
+        <Typography
+          variant='h5'
+          sx={{ ml: { xs: 2, sm: 3, md: 4 }, flex: '1 1 auto' }}
+        >
           Disclosures
         </Typography>
         <Button
-          onClick={() => navigate(createPath({ path: ADMIN_ROUTES.DISCLOSURE_NEW }))}
+          onClick={() =>
+            navigate(createPath({ path: ADMIN_ROUTES.DISCLOSURE_NEW }))
+          }
           sx={{ maxHeight: 34 }}
         >
           New

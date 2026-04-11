@@ -2,14 +2,8 @@ import { Box, Typography } from '@mui/material';
 import { format } from 'date-fns';
 import { PickingInfo } from 'deck.gl';
 
-import {
-  ILocation,
-  Policy,
-  PolicyLocation,
-  Quote,
-  Submission,
-  WithId,
-} from 'common';
+import type { WithId } from '@idemand/common';
+import { ILocation, Policy, PolicyLocation, Quote, Submission } from 'common';
 import {
   dollarFormat,
   formatDate,

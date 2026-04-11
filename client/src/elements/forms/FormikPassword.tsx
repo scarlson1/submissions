@@ -8,6 +8,7 @@ import {
   RHFTextField,
   RHFTextFieldProps,
 } from 'components/forms';
+import type { FieldPath, FieldValues } from 'react-hook-form';
 
 export const FormikPassword = (props: Partial<FormikTextFieldProps>) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -38,17 +39,31 @@ export const FormikPassword = (props: Partial<FormikTextFieldProps>) => {
   );
 };
 
-interface RHFPasswordProps extends Omit<RHFTextFieldProps, 'name' | 'label' | 'type'> {
+interface RHFPasswordProps<
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+  TTransformedValues = TFieldValues,
+> extends Omit<
+  RHFTextFieldProps<TFieldValues, TName, TTransformedValues>,
+  'name' | 'label' | 'type'
+> {
   name?: string;
   label?: string;
 }
 
-export const RHFPassword = (props: RHFPasswordProps) => {
+export const RHFPassword = <
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+  TTransformedValues = TFieldValues,
+>(
+  props: RHFPasswordProps<TFieldValues, TName, TTransformedValues>,
+) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <RHFTextField
-      name='password'
+    <RHFTextField<TFieldValues, TName, TTransformedValues>
+      // @ts-expect-error generic type
+      name={'password' as any as TName}
       rules={{ required: true }}
       label='Password'
       {...props}

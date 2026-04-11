@@ -7,13 +7,19 @@ import {
   WithFieldValue,
 } from 'firebase/firestore';
 
-import { Quote, WithId } from './types';
+import type { WithId } from '@idemand/common';
+import { Quote } from './types';
 
 export const quoteConverter = {
-  toFirestore(submission: PartialWithFieldValue<Quote> | WithFieldValue<Quote>): DocumentData {
+  toFirestore(
+    submission: PartialWithFieldValue<Quote> | WithFieldValue<Quote>,
+  ): DocumentData {
     return { ...submission, 'metadata.updated': Timestamp.now() };
   },
-  fromFirestore(snap: QueryDocumentSnapshot<Quote>, options: SnapshotOptions): WithId<Quote> {
+  fromFirestore(
+    snap: QueryDocumentSnapshot<Quote>,
+    options: SnapshotOptions,
+  ): WithId<Quote> {
     const data = snap.data(options)!;
 
     return { ...data, id: snap.id };
@@ -27,7 +33,10 @@ export const withIdConverter = <T>() => ({
     let temp = data || {};
     return { ...temp, 'metadata.updated': Timestamp.now() };
   },
-  fromFirestore(snap: QueryDocumentSnapshot<T>, options: SnapshotOptions): WithId<T> {
+  fromFirestore(
+    snap: QueryDocumentSnapshot<T>,
+    options: SnapshotOptions,
+  ): WithId<T> {
     const data = snap.data(options)!;
 
     return { ...data, id: snap.id } as WithId<T>;
@@ -59,8 +68,8 @@ type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest}`
       : never
     : never
   : P extends keyof T
-  ? T[P]
-  : never;
+    ? T[P]
+    : never;
 
 export type CustomUpdateData<T extends object> = Partial<{
   [TKey in Path<T>]: PathValue<T, TKey>;

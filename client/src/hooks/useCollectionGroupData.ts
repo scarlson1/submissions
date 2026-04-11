@@ -5,17 +5,24 @@ import {
   query,
   QueryConstraint,
 } from 'firebase/firestore';
-import { ReactFireOptions, useFirestore, useFirestoreCollectionData } from 'reactfire';
+import {
+  ReactFireOptions,
+  useFirestore,
+  useFirestoreCollectionData,
+} from 'reactfire';
 
-import { TCollection, WithId } from 'common';
+import type { TCollection, WithId } from '@idemand/common';
 
 export const useCollectionGroupData = <T = DocumentData>(
   colName: TCollection,
   constraints: QueryConstraint[] = [],
-  options: ReactFireOptions<T> | undefined = {}
+  options: ReactFireOptions<T> | undefined = {},
 ) => {
   const firestore = useFirestore();
-  const collGroupRef = collectionGroup(firestore, colName) as CollectionReference<WithId<T>>;
+  const collGroupRef = collectionGroup(
+    firestore,
+    colName,
+  ) as CollectionReference<WithId<T>>;
   const q = query(collGroupRef, ...constraints);
 
   return useFirestoreCollectionData<WithId<T>>(q, {

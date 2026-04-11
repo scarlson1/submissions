@@ -2,7 +2,8 @@ import { LoadingButton } from '@mui/lab';
 // import { Unstable_Grid2 as Grid } from '@mui/material';
 import { Form, Formik, FormikConfig } from 'formik';
 
-import { Address, DEFAULT_ADDRESS_FIELD_NAMES, addressValidation } from 'common';
+import type { Address } from '@idemand/common';
+import { addressValidation, DEFAULT_ADDRESS_FIELD_NAMES } from 'common';
 import { FormikAddress, FormikAddressProps } from './FormikAddress';
 
 type EditAddressValues = Address;
@@ -20,8 +21,19 @@ export const EditAddressForm = ({
   ...props
 }: EditAddressFormProps) => {
   return (
-    <Formik initialValues={initialValues} onSubmit={onSubmit} validationSchema={addressValidation}>
-      {({ handleSubmit, submitForm, isValidating, isSubmitting, isValid, dirty }) => (
+    <Formik
+      initialValues={initialValues}
+      onSubmit={onSubmit}
+      validationSchema={addressValidation}
+    >
+      {({
+        handleSubmit,
+        submitForm,
+        isValidating,
+        isSubmitting,
+        isValid,
+        dirty,
+      }) => (
         <Form onSubmit={handleSubmit}>
           <FormikAddress names={DEFAULT_ADDRESS_FIELD_NAMES} {...props} />
           {/* <Grid> */}

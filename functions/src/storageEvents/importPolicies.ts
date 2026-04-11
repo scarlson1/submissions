@@ -8,6 +8,7 @@ import {
   SLProdOfRecordDetails,
   State,
   ValueByRiskType,
+  type CommSource,
 } from '@idemand/common';
 import {
   Firestore,
@@ -502,8 +503,8 @@ async function getPolicyWithoutLocation(
     surplusLinesProducerOfRecord: SLPofR,
     issuingCarrier: getCarrierByState(data.homeState),
     documents: [],
-    quoteId: data.quoteId || null,
-    commSource: data.commSource || 'default',
+    quoteId: data.quoteId || (null as string | null),
+    commSource: data.commSource || ('default' as CommSource),
     metadata: {
       created: ts,
       updated: ts,

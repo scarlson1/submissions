@@ -2,9 +2,10 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import invariant from 'tiny-invariant';
 
+import type { Optional } from '@idemand/common';
 import { getAnnualPremium } from 'api';
 import { GetAnnualPremiumRequest, RatingInputs } from 'api/getAnnualPremium';
-import { Optional, TCommSource } from 'common';
+import { TCommSource } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { validateCommonInputs } from './useCalcPremium';
 
@@ -19,7 +20,9 @@ export interface RatingInputsWithAAL extends RatingInputsWithComm {
   tsunamiAAL: number | null;
 }
 
-export function extractRatingInputsFromValues(values: QuoteValues): RatingInputsWithComm {
+export function extractRatingInputsFromValues(
+  values: QuoteValues,
+): RatingInputsWithComm {
   const {
     coordinates,
     limits,
@@ -63,7 +66,10 @@ export function getValidRatingInputs(values: QuoteValues) {
   const commValidated = validateCommonInputs(values);
   const { coordinates } = commValidated;
 
-  invariant(coordinates?.latitude && coordinates?.longitude, 'coordinates required');
+  invariant(
+    coordinates?.latitude && coordinates?.longitude,
+    'coordinates required',
+  );
 
   return extractRatingInputsFromValues(commValidated);
 }
@@ -73,9 +79,9 @@ export const useRateQuote = (
   onSuccess?: (
     premium: number,
     ratingInputs: RatingInputsWithAAL,
-    ratingDocId?: Optional<string>
+    ratingDocId?: Optional<string>,
   ) => void,
-  onError?: (msg: string) => void
+  onError?: (msg: string) => void,
   // initialRatingSnap?: Optional<RatingInputs>
 ) => {
   const functions = useFunctions();
@@ -99,7 +105,10 @@ export const useRateQuote = (
 
       try {
         const reformatRatingInputs: GetAnnualPremiumRequest = {
-          coordinates: { latitude: ratingInputs.latitude, longitude: ratingInputs.longitude },
+          coordinates: {
+            latitude: ratingInputs.latitude,
+            longitude: ratingInputs.longitude,
+          },
           replacementCost: ratingInputs.replacementCost,
           limits: {
             limitA: ratingInputs.limitA,
@@ -138,7 +147,7 @@ export const useRateQuote = (
               surgeAAL: AALs.surge,
               tsunamiAAL: AALs.tsunami,
             },
-            data.ratingDocId
+            data.ratingDocId,
           );
         setLoading(false);
 
@@ -153,7 +162,7 @@ export const useRateQuote = (
         return null;
       }
     },
-    [functions, submissionId, onSuccess, onError]
+    [functions, submissionId, onSuccess, onError],
   );
 
   return { rerate, loading, error }; // ratingInputsSnap

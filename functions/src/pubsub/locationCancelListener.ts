@@ -1,15 +1,15 @@
 import { isValid } from 'date-fns';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
+import type { WithId } from '@idemand/common';
 import {
   CancellationReason,
+  getReportErrorFn,
   OffsetTransaction,
   PremiumTransaction,
-  WithId,
-  getReportErrorFn,
   transactionsCollection,
 } from '../common/index.js';
 import { docExists } from '../modules/db/index.js';
@@ -32,8 +32,12 @@ export interface LocationCancelPayload {
   cancelEffDateMS: number;
 }
 
-export default async (event: CloudEvent<MessagePublishedData<LocationCancelPayload>>) => {
-  info('LOCATION CANCEL EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
+export default async (
+  event: CloudEvent<MessagePublishedData<LocationCancelPayload>>,
+) => {
+  info('LOCATION CANCEL EVENT - MSG JSON: ', {
+    ...(event.data?.message?.json || {}),
+  });
 
   const eventId = event.id;
   // let policyId = null;
@@ -49,12 +53,13 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
   // } catch (e) {
   //   reportErr('PubSub message was not JSON', {}, e);
   // }
-  const { policyId, locationId, cancelReason, cancelEffDateMS } = extractPubSubPayload(event, [
-    'policyId',
-    'locationId',
-    'cancelReason',
-    'cancelEffDateMS',
-  ]);
+  const { policyId, locationId, cancelReason, cancelEffDateMS } =
+    extractPubSubPayload(event, [
+      'policyId',
+      'locationId',
+      'cancelReason',
+      'cancelEffDateMS',
+    ]);
 
   try {
     verify(policyId && typeof policyId === 'string', 'missing policy ID');
@@ -77,9 +82,17 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
 
   try {
     const policyRequest = fetchPolicyData(db, policyId);
-    const prevTrxRequest = fetchPreviousTrx(db, policyId, locationId, premEndorsementPrevTypes);
+    const prevTrxRequest = fetchPreviousTrx(
+      db,
+      policyId,
+      locationId,
+      premEndorsementPrevTypes,
+    );
 
-    const [policyRes, prevTrxRes] = await Promise.all([policyRequest, prevTrxRequest]);
+    const [policyRes, prevTrxRes] = await Promise.all([
+      policyRequest,
+      prevTrxRequest,
+    ]);
 
     verify(policyRes, 'policy doc not found');
     verify(prevTrxRes, 'previous transaction not found');
@@ -109,7 +122,7 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
         trxEffDate,
         eventId,
         'cancellation',
-        cancelReason
+        cancelReason,
       );
 
       await trxRef.set({ ...offsetTrx });

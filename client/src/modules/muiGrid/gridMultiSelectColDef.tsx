@@ -5,22 +5,31 @@
 // import { isSingleSelectColDef } from '../components/panel/filterPanel/filterPanelUtils';
 // import { isObject } from '../utils/utils';
 
-import { GRID_STRING_COL_DEF, GridColDef, GridColTypeDef, ValueOptions } from '@mui/x-data-grid';
+import {
+  GRID_STRING_COL_DEF,
+  GridColDef,
+  GridColTypeDef,
+  ValueOptions,
+} from '@mui/x-data-grid';
 import { GridSingleSelectColDef, isObject } from '@mui/x-data-grid/internals';
 
-import { getGridFirestoreMultiSelectOperators } from './operators/gridMultiSelectOperators';
 import {
   GridMultiSelectColDef,
   renderEditMultiSelectCell,
 } from 'components/GridEditMultiSelectCell';
+import { getGridFirestoreMultiSelectOperators } from './operators/gridMultiSelectOperators';
 
 // SINGLE SELECT UTILS REF: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/components/panel/filterPanel/filterPanelUtils.ts
 
-export function isMultiSelectColDef(colDef: GridColDef | null): colDef is GridSingleSelectColDef {
+export function isMultiSelectColDef(
+  colDef: GridColDef | null,
+): colDef is GridSingleSelectColDef {
   return colDef?.type === 'multiSelect';
 }
 
-const isArrayOfObjects = (options: any): options is Array<Record<string, any>> => {
+const isArrayOfObjects = (
+  options: any,
+): options is Array<Record<string, any>> => {
   return typeof options[0] === 'object';
 };
 
@@ -34,7 +43,7 @@ const defaultGetOptionLabel = (value: ValueOptions) => {
 
 // CURRENTLY BEING USED AS WORK-AROUND
 export const multiSelectExtendsSingle: GridColTypeDef = {
-  extendType: 'singleSelect',
+  // extendType: 'singleSelect',
   type: 'singleSelect', // get round isSingleSelect check in filter operator input conmponent
   renderEditCell: renderEditMultiSelectCell,
   filterOperators: getGridFirestoreMultiSelectOperators(),
@@ -56,7 +65,11 @@ export const GRID_MULTI_SELECT_COL_DEF: Omit<GridMultiSelectColDef, 'field'> = {
 
     let valueOptions: Array<ValueOptions>;
     if (typeof colDef.valueOptions === 'function') {
-      valueOptions = colDef.valueOptions!({ id, row: id ? api.getRow(id) : null, field });
+      valueOptions = colDef.valueOptions!({
+        id,
+        row: id ? api.getRow(id) : null,
+        field,
+      });
     } else {
       valueOptions = colDef.valueOptions!;
     }
@@ -73,7 +86,9 @@ export const GRID_MULTI_SELECT_COL_DEF: Omit<GridMultiSelectColDef, 'field'> = {
       return colDef.getOptionLabel!(value);
     }
 
-    const valueOption = valueOptions.find((option) => colDef.getOptionValue!(option) === value);
+    const valueOption = valueOptions.find(
+      (option) => colDef.getOptionValue!(option) === value,
+    );
     return valueOption ? colDef.getOptionLabel!(valueOption) : '';
   },
   renderEditCell: renderEditMultiSelectCell,

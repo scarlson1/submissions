@@ -31,7 +31,8 @@ import { MouseEvent, ReactNode, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { RatingData, SUBMISSION_STATUS, TCollection } from 'common';
+import { SubmissionStatus, type TCollection } from '@idemand/common';
+import { RatingData } from 'common';
 import { Submission } from 'common/types';
 import { ClaimsGuard } from 'components';
 import {
@@ -388,7 +389,7 @@ export const SubmissionView = () => {
       try {
         toast.loading('saving status...');
         await updateSubmission(submissionId, {
-          status: SUBMISSION_STATUS.NOT_ELIGIBLE,
+          status: SubmissionStatus.enum.ineligible,
         });
 
         toast.success('saved'); // TODO: prompt "would you like to notify insured"
@@ -728,7 +729,7 @@ export const SubmissionView = () => {
               </MenuItem>
               <MenuItem
                 onClick={handleDecline}
-                disabled={data.status === SUBMISSION_STATUS.QUOTED}
+                disabled={data.status === SubmissionStatus.enum.quoted}
               >
                 <ListItemIcon>
                   <GppBadRounded fontSize='small' />

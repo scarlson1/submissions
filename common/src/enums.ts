@@ -17,7 +17,7 @@ export const Collection = z.enum([
   'claims',
   'invitations',
   'userClaims',
-  'paymentMethods',
+  'paymentMethods', // delete ?? ePay
   'transactions',
   'financialTransactions',
   'taxTransactions',
@@ -25,15 +25,45 @@ export const Collection = z.enum([
   'agencySubmissions',
   'disclosures',
   'notifications',
+  'notifyRegistration',
   'dataImports',
-  'emailActivity',
   'stagedDocs',
+  'emailActivity',
+  'portfolioSubmissions',
   'versions',
   'permissions', // TODO: switch to privileged / secure
-  // 'secure',
   'states', // active states by productId
+  'receivables',
+  'billingEntities',
+  'public',
 ]);
 export type Collection = z.infer<typeof Collection>;
+export type TCollection = z.infer<typeof Collection>;
+
+export const StorageFolder = z.enum([
+  'importPolicies',
+  'importTransactions',
+  'ratePortfolio',
+  'importQuotes',
+  'policies',
+  'claims',
+  'users',
+  'profileImages',
+  'locationMapImages',
+  'organizations',
+]);
+export type TStorageFolder = z.infer<typeof StorageFolder>;
+
+export const SubmissionStatus = z.enum([
+  'draft',
+  'submitted',
+  'under_review',
+  'pending_info',
+  'cancelled',
+  'quoted',
+  'ineligible',
+]);
+export type SubmissionStatus = z.infer<typeof SubmissionStatus>;
 
 export const SubjectBaseItem = z.enum([
   'premium',
@@ -155,6 +185,14 @@ export const DefaultCommission = z.object({
   wind: z.number().nonnegative(),
 });
 export type DefaultCommission = z.infer<typeof DefaultCommission>;
+
+export const DisclosureType = z.enum([
+  'state disclosure',
+  'general disclosure',
+  'terms & conditions',
+  'other',
+]);
+export type DisclosureType = z.infer<typeof DisclosureType>;
 
 export const State = z.enum([
   'AL',

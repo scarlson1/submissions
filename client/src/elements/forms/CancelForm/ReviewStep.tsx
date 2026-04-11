@@ -1,5 +1,13 @@
-import { Alert, AlertTitle, Box, Container, Stack, Typography } from '@mui/material';
-import { CancellationRequest, ILocation, Policy, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Container,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { CancellationRequest, ILocation, Policy } from 'common';
 import { WizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import { useFirstRender } from 'hooks/utils';
@@ -17,7 +25,10 @@ import { LocationCard } from '../LocationChangeForm/ReviewStep';
 
 function useCancelRequestReview(changeRequest: Partial<CancellationRequest>) {
   const firestore = useFirestore();
-  const [reqState, setReqState] = useState<{ loading: boolean; error: string | null }>({
+  const [reqState, setReqState] = useState<{
+    loading: boolean;
+    error: string | null;
+  }>({
     loading: false,
     error: null,
   });
@@ -74,7 +85,11 @@ export interface ReviewStepProps {
 
 // using onSubmit ??
 
-export const ReviewStep = ({ onSubmit, changeRequest, policy }: ReviewStepProps) => {
+export const ReviewStep = ({
+  onSubmit,
+  changeRequest,
+  policy,
+}: ReviewStepProps) => {
   // const { changeRequest, locations, error } = useChangeRequestReview(changeRequest.policyId, changeRequest);
   const { handleStep } = useWizard();
   const { locations, error } = useCancelRequestReview(changeRequest);
@@ -150,7 +165,11 @@ export const ReviewStep = ({ onSubmit, changeRequest, policy }: ReviewStepProps)
                       >
                         {dollarFormat(lcn.termPremium)}
                       </Typography>
-                      <Typography variant='subtitle1' align='right' sx={{ lineHeight: 1.2 }}>
+                      <Typography
+                        variant='subtitle1'
+                        align='right'
+                        sx={{ lineHeight: 1.2 }}
+                      >
                         {dollarFormat(earnedTermPremium)}
                       </Typography>
                     </Stack>
@@ -191,8 +210,8 @@ export const ReviewStep = ({ onSubmit, changeRequest, policy }: ReviewStepProps)
       </Grid> */}
       <Box sx={{ py: 2 }}>
         <Alert severity='info'>
-          The earned premium and refunded amount listed above are estimates and may not reflect the
-          exact premium refunded.
+          The earned premium and refunded amount listed above are estimates and
+          may not reflect the exact premium refunded.
         </Alert>
       </Box>
       <Box

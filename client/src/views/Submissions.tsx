@@ -1,4 +1,8 @@
-import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
+import {
+  GridViewRounded,
+  MapRounded,
+  TableRowsRounded,
+} from '@mui/icons-material';
 import { Button, Card } from '@mui/material';
 import { User } from 'firebase/auth';
 import { QueryFieldFilterConstraint, where } from 'firebase/firestore';
@@ -6,13 +10,14 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import invariant from 'tiny-invariant';
 
-import { Collection, VIEW_QUERY_KEY } from 'common';
+import { Collection } from '@idemand/common';
+import { VIEW_QUERY_KEY } from 'common';
 import { ToggleViewLayout, ToggleViewPanel } from 'components/toggleView';
 import { SubmissionCards } from 'elements/cards';
 import { SubmissionsGrid } from 'elements/grids';
 import { SubmissionsMap } from 'elements/maps';
 import { DataViewType, TDataViewType, useClaims, useWidth } from 'hooks';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 import { AdminSubmissionsGrid } from './admin/AdminSubmissionsGrid';
 
 function getQueryProps(
@@ -21,9 +26,11 @@ function getQueryProps(
     iDemandAdmin: boolean;
     orgAdmin: boolean;
     agent: boolean;
-  }
+  },
 ): { constraints: QueryFieldFilterConstraint[] } {
-  let props: { constraints: QueryFieldFilterConstraint[] } = { constraints: [] };
+  let props: { constraints: QueryFieldFilterConstraint[] } = {
+    constraints: [],
+  };
   if (claims?.iDemandAdmin) {
     props = {
       constraints: [],
@@ -65,11 +72,18 @@ export const Submissions = () => {
         grid: <TableRowsRounded />,
         map: <MapRounded />,
       }}
-      isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.submissions}`] }}
+      isFetchingOptions={{
+        queryKey: [`infinite-${Collection.Enum.submissions}`],
+      }}
       actions={
         <Button
           onClick={() =>
-            navigate(createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }))
+            navigate(
+              createPath({
+                path: ROUTES.SUBMISSION_NEW,
+                params: { productId: 'flood' },
+              }),
+            )
           }
           size='small'
           sx={{ maxHeight: 36 }}
@@ -83,10 +97,16 @@ export const Submissions = () => {
         <SubmissionCards {...queryProps} />
       </ToggleViewPanel>
       <ToggleViewPanel value={DataViewType.Enum.grid}>
-        {claims?.iDemandAdmin ? <AdminSubmissionsGrid /> : <SubmissionsGrid {...queryProps} />}
+        {claims?.iDemandAdmin ? (
+          <AdminSubmissionsGrid />
+        ) : (
+          <SubmissionsGrid {...queryProps} />
+        )}
       </ToggleViewPanel>
       <ToggleViewPanel value={DataViewType.Enum.map}>
-        <Card sx={{ height: { xs: 300, sm: 400, md: 460, lg: 500 }, width: '100%' }}>
+        <Card
+          sx={{ height: { xs: 300, sm: 400, md: 460, lg: 500 }, width: '100%' }}
+        >
           <SubmissionsMap {...queryProps} />
         </Card>
       </ToggleViewPanel>

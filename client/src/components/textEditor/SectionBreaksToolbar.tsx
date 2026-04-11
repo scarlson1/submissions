@@ -1,8 +1,11 @@
 import { useCallback } from 'react';
 
-import { Editor } from '@tiptap/react';
+import {
+  HorizontalRuleRounded,
+  InsertPageBreakRounded,
+} from '@mui/icons-material';
 import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
-import { HorizontalRuleRounded, InsertPageBreakRounded } from '@mui/icons-material';
+import { Editor } from '@tiptap/react';
 
 import { toggleButtonGroupStyle } from './common';
 
@@ -12,9 +15,11 @@ export interface SectionBreaksToolbarProps {
 
 export const SectionBreaksToolbar = ({ editor }: SectionBreaksToolbarProps) => {
   const handleDivider = useCallback(() => {
+    // @ts-expect-error
     editor?.chain().focus().setHorizontalRule().run();
   }, [editor]);
   const handleBreak = useCallback(() => {
+    // @ts-expect-error
     editor?.chain().focus().setHardBreak().run();
   }, [editor]);
 

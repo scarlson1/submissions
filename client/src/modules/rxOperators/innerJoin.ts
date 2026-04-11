@@ -1,6 +1,21 @@
-import { Firestore, collection, limit, query, where } from 'firebase/firestore';
+import {
+  collection,
+  Firestore,
+  limit,
+  query,
+  where,
+  type DocumentData,
+} from 'firebase/firestore';
 import { collectionData as rxCollectionData } from 'rxfire/firestore';
-import { combineLatest, defer, map, of, switchMap, tap } from 'rxjs';
+import {
+  combineLatest,
+  defer,
+  map,
+  of,
+  switchMap,
+  tap,
+  type Observable,
+} from 'rxjs';
 
 // REQUIRES SAME DOCUMENT FIELD IN BOTH DOCUMENTS/COLLECTION
 // EXAMPLE
@@ -21,7 +36,7 @@ export const innerJoin = (
   firestore: Firestore,
   field: string,
   coll: { root: string; pathSegments?: string[] },
-  joinlimit = 100 // limits # of objects that get joined in parent query
+  joinlimit = 100, // limits # of objects that get joined in parent query
 ) => {
   return (source: any) =>
     defer(() => {
@@ -40,15 +55,24 @@ export const innerJoin = (
 
           if (!data || collectionData.length === 0) return of(data);
 
-          const reads$ = [];
+          const reads$: Observable<(DocumentData | (DocumentData & {}))[]>[] =
+            [];
           for (const doc of collectionData) {
             // Push doc read to Array
             // Only get docs where shared key:value pair in both collections
             if (doc[field]) {
               // Perform query to join key, with optional limit
               // const collectionRef = collection(firestore, colName, ...pathSements);
-              const collectionRef = collection(firestore, coll.root, ...(coll.pathSegments || []));
-              const q = query(collectionRef, where(field, '==', doc[field]), limit(joinlimit));
+              const collectionRef = collection(
+                firestore,
+                coll.root,
+                ...(coll.pathSegments || []),
+              );
+              const q = query(
+                collectionRef,
+                where(field, '==', doc[field]),
+                limit(joinlimit),
+              );
 
               // reads$.push(rxCollection(q));
               reads$.push(rxCollectionData(q));
@@ -71,9 +95,11 @@ export const innerJoin = (
           });
         }),
         tap((final) => {
-          console.log(`Queried ${(final as any).length}, joined ${totalJoins} docs`);
+          console.log(
+            `Queried ${(final as any).length}, joined ${totalJoins} docs`,
+          );
           totalJoins = 0;
-        })
+        }),
       );
     });
 };

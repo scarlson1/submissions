@@ -10,12 +10,21 @@ import {
 } from '@mui/material';
 import { useCallback, useState } from 'react';
 
-import { Submission, WithId, fallbackImages } from 'common';
-import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils';
+import type { WithId } from '@idemand/common';
+import { fallbackImages, Submission } from 'common';
+import {
+  dollarFormat,
+  formatFirestoreTimestamp,
+  numberFormat,
+} from 'modules/utils';
 import { Item } from '.';
 import { ExpandMoreButton } from './ExpandMoreButton';
 
-export function SubmissionCard({ submission: s }: { submission: WithId<Submission> }) {
+export function SubmissionCard({
+  submission: s,
+}: {
+  submission: WithId<Submission>;
+}) {
   const [expanded, setExpanded] = useState<boolean>(false);
 
   const handleExpandClick = useCallback(() => {
@@ -45,10 +54,22 @@ export function SubmissionCard({ submission: s }: { submission: WithId<Submissio
         <Typography fontWeight={900} fontSize={24} gutterBottom>
           {s.address?.addressLine1}
         </Typography>
-        <Item label='Building Coverage' value={dollarFormat(s.limits?.limitA)} />
-        <Item label='Other Structures Coverage' value={dollarFormat(s.limits?.limitB)} />
-        <Item label='Contents Coverage' value={dollarFormat(s.limits?.limitC)} />
-        <Item label='Additional Expenses Coverage' value={dollarFormat(s.limits?.limitD)} />
+        <Item
+          label='Building Coverage'
+          value={dollarFormat(s.limits?.limitA)}
+        />
+        <Item
+          label='Other Structures Coverage'
+          value={dollarFormat(s.limits?.limitB)}
+        />
+        <Item
+          label='Contents Coverage'
+          value={dollarFormat(s.limits?.limitC)}
+        />
+        <Item
+          label='Additional Expenses Coverage'
+          value={dollarFormat(s.limits?.limitD)}
+        />
         <Item
           label='Submitted'
           value={formatFirestoreTimestamp(s.metadata.created)}
@@ -73,22 +94,36 @@ export function SubmissionCard({ submission: s }: { submission: WithId<Submissio
       </CardActions>
       <Collapse in={expanded} timeout='auto' unmountOnExit>
         <CardContent>
-          <Item label='Submitted by' value={`${s.contact?.firstName} ${s.contact?.lastName}`} />
+          <Item
+            label='Submitted by'
+            value={`${s.contact?.firstName} ${s.contact?.lastName}`}
+          />
           <Item label='Email' value={s.contact?.email} />
           <Item
             label='Year built'
             value={s.ratingPropertyData?.yearBuilt?.toString() || '--'}
             containerSx={{ pt: 2 }}
           />
-          <Item label='# Stories' value={s.ratingPropertyData?.numStories?.toString() || '--'} />
+          <Item
+            label='# Stories'
+            value={s.ratingPropertyData?.numStories?.toString() || '--'}
+          />
           <Item
             label='Square Footage'
             value={
-              s.ratingPropertyData?.sqFootage ? numberFormat(s.ratingPropertyData?.sqFootage) : '--'
+              s.ratingPropertyData?.sqFootage
+                ? numberFormat(s.ratingPropertyData?.sqFootage)
+                : '--'
             }
           />
-          <Item label='Basement' value={s.ratingPropertyData?.basement ?? '--'} />
-          <Item label='Flood Zone' value={s.ratingPropertyData?.floodZone ?? '--'} />
+          <Item
+            label='Basement'
+            value={s.ratingPropertyData?.basement ?? '--'}
+          />
+          <Item
+            label='Flood Zone'
+            value={s.ratingPropertyData?.floodZone ?? '--'}
+          />
           <Item
             label='Est. Replacement Cost'
             value={

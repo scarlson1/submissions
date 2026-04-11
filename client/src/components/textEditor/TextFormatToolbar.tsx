@@ -1,16 +1,16 @@
 import { useCallback, useMemo } from 'react';
 
-import { Editor } from '@tiptap/react';
-import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import {
   DataArrayRounded,
   FormatBoldRounded,
   FormatItalicRounded,
+  FormatUnderlinedRounded,
   LinkOffRounded,
   LinkRounded,
-  FormatUnderlinedRounded,
   StrikethroughSRounded,
 } from '@mui/icons-material';
+import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
+import { Editor } from '@tiptap/react';
 
 import { toggleButtonGroupStyle } from './common';
 
@@ -31,7 +31,12 @@ export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
       return;
     }
 
-    editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    editor
+      ?.chain()
+      .focus()
+      .extendMarkRange('link')
+      .setLink({ href: url })
+      .run();
   }, [editor]);
 
   const boldActive = editor?.isActive('bold');
@@ -45,18 +50,22 @@ export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
     (event: React.MouseEvent<HTMLElement>, newFormats: string[]) => {
       if (!editor) return;
       if (newFormats.includes('bold') !== boldActive) {
+        // @ts-expect-error
         editor.chain().focus().toggleBold().run();
       }
       if (newFormats.includes('italic') !== italicActive) {
+        // @ts-expect-error
         editor.chain().focus().toggleItalic().run();
       }
       if (newFormats.includes('underline') !== underlineActive) {
         editor.chain().focus().toggleUnderline().run();
       }
       if (newFormats.includes('strike') !== strikeActive) {
+        // @ts-expect-error
         editor.chain().focus().toggleStrike().run();
       }
       if (newFormats.includes('code') !== codeActive) {
+        // @ts-expect-error
         editor.chain().focus().toggleCode().run();
       }
       if (newFormats.includes('link') !== linkActive) {
@@ -73,11 +82,11 @@ export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
       codeActive,
       linkActive,
       setLink,
-    ]
+    ],
   );
 
   const formats = useMemo(() => {
-    let activeFormats = [];
+    let activeFormats: string[] = [];
     if (boldActive) activeFormats.push('bold');
     if (italicActive) activeFormats.push('italic');
     if (underlineActive) activeFormats.push('underline');
@@ -86,7 +95,14 @@ export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
     if (linkActive) activeFormats.push('link');
 
     return activeFormats;
-  }, [boldActive, italicActive, underlineActive, strikeActive, codeActive, linkActive]);
+  }, [
+    boldActive,
+    italicActive,
+    underlineActive,
+    strikeActive,
+    codeActive,
+    linkActive,
+  ]);
 
   if (!editor) {
     return null;
@@ -104,7 +120,7 @@ export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
       <ToggleButton
         size='small'
         value='bold'
-        color='primary'
+        color='primary' // @ts-expect-error
         disabled={!editor.can().chain().focus().toggleBold().run()}
         aria-label='bold'
         sx={{
@@ -118,7 +134,7 @@ export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
       <ToggleButton
         size='small'
         value='italic'
-        color='primary'
+        color='primary' // @ts-expect-error
         disabled={!editor.can().chain().focus().toggleItalic().run()}
         aria-label='italic'
         sx={{
@@ -146,7 +162,7 @@ export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
       <ToggleButton
         size='small'
         value='strike'
-        color='primary'
+        color='primary' // @ts-expect-error
         disabled={!editor.can().chain().focus().toggleStrike().run()}
         aria-label='strike'
         sx={{
@@ -160,7 +176,7 @@ export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
       <ToggleButton
         size='small'
         value='code'
-        color='primary'
+        color='primary' // @ts-expect-error
         disabled={!editor.can().chain().focus().toggleCode().run()}
         aria-label='code'
         sx={{
@@ -181,7 +197,11 @@ export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
         }}
       >
         <Tooltip title={!linkActive ? 'Link' : 'Unlink'} placement='top'>
-          {!linkActive ? <LinkRounded fontSize='small' /> : <LinkOffRounded fontSize='small' />}
+          {!linkActive ? (
+            <LinkRounded fontSize='small' />
+          ) : (
+            <LinkOffRounded fontSize='small' />
+          )}
         </Tooltip>
       </ToggleButton>
     </ToggleButtonGroup>

@@ -1,5 +1,6 @@
 import { DeleteRounded } from '@mui/icons-material';
 import {
+  alpha,
   Box,
   CardActions,
   CardMedia,
@@ -8,12 +9,12 @@ import {
   Unstable_Grid2 as Grid,
   IconButton,
   Typography,
-  alpha,
 } from '@mui/material';
-import { UploadResult, getDownloadURL } from 'firebase/storage';
+import { getDownloadURL, UploadResult } from 'firebase/storage';
 import { useCallback, useState } from 'react';
 
-import { ClaimFormValues, DraftPolicyClaim, StorageFolder } from 'common';
+import { StorageFolder } from '@idemand/common';
+import { ClaimFormValues, DraftPolicyClaim } from 'common';
 import { FlexCard } from 'components';
 import { WizardNavButtons } from 'components/forms';
 import UploadFilesDialog from 'elements/UploadFilesDialog';
@@ -24,13 +25,20 @@ import { BaseStepProps } from './ClaimFormWizard';
 // TODO: image previews --> component - so it can be using in review step
 export type ImageValues = Pick<ClaimFormValues, 'images'>;
 
-export interface ImageStepProps
-  extends Pick<BaseStepProps<ImageValues>, 'saveFormValues' | 'onError'> {
+export interface ImageStepProps extends Pick<
+  BaseStepProps<ImageValues>,
+  'saveFormValues' | 'onError'
+> {
   claimData: Partial<DraftPolicyClaim>;
   claimId: string;
 }
 
-export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: ImageStepProps) => {
+export const ImagesStep = ({
+  saveFormValues,
+  onError,
+  claimData,
+  claimId,
+}: ImageStepProps) => {
   // const { nextStep } = useWizard();
   const toast = useAsyncToast({ position: 'bottom-right' });
   const [urlLoading, setUrlLoading] = useState(false);
@@ -47,7 +55,7 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
             toast.warn(`limit of 10 photos`);
             newResult = uploadResult.slice(
               0,
-              Math.abs(currentImgURLs.length - uploadResult.length)
+              Math.abs(currentImgURLs.length - uploadResult.length),
             );
           }
           const promises = newResult.map((u) => getDownloadURL(u.ref));
@@ -57,7 +65,9 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
           // TODO: storage as object with fullPath, ref, name, etc.
           // uploadResult[0].ref.toString()
 
-          await saveFormValues({ images: [...currentImgURLs, ...downloadUrls] });
+          await saveFormValues({
+            images: [...currentImgURLs, ...downloadUrls],
+          });
         }
       } catch (err: any) {
         logDev('Error getting storage download urls', err);
@@ -65,14 +75,16 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
       }
       setUrlLoading(false);
     },
-    [toast, onError, saveFormValues, claimData]
+    [toast, onError, saveFormValues, claimData],
   );
 
   const handleDelete = useCallback(
     async (imgURL: string) => {
       try {
         setUrlLoading(true);
-        const newImages = [...(claimData.images || [])].filter((i) => i !== imgURL);
+        const newImages = [...(claimData.images || [])].filter(
+          (i) => i !== imgURL,
+        );
         await saveFormValues({ images: newImages });
         // TODO: remove img from storage (need to storage additional info about image to get ref --> might need to storage images as object)
       } catch (err: any) {
@@ -81,7 +93,7 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
       }
       setUrlLoading(false);
     },
-    [saveFormValues, onError, claimData]
+    [saveFormValues, onError, claimData],
   );
 
   const {
@@ -93,9 +105,13 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
     handleCancel,
   } = useCreateStorageFiles(
     `${StorageFolder.enum.policies}/${claimData.policyId}/${StorageFolder.enum.claims}/${claimId}`,
-    { claimId, policyId: claimData.policyId || null, locationId: claimData.locationId || null },
+    {
+      claimId,
+      policyId: claimData.policyId || null,
+      locationId: claimData.locationId || null,
+    },
     handleGetUrls,
-    (err, msg) => console.log('upload failed: ', msg, err)
+    (err, msg) => console.log('upload failed: ', msg, err),
   );
 
   // handleStep(async () => {
@@ -107,11 +123,14 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
   //   }
   // });
 
-  const dragAndDropDisabled = (claimData.images?.length || 0) > 10 || uploadLoading || urlLoading;
+  const dragAndDropDisabled =
+    (claimData.images?.length || 0) > 10 || uploadLoading || urlLoading;
 
   return (
     <Box>
-      <Typography align='center'>Please upload a few photos of the damage.</Typography>
+      <Typography align='center'>
+        Please upload a few photos of the damage.
+      </Typography>
       <Collapse in={claimData.images && claimData.images.length > 0}>
         {claimData.images?.length ? (
           <ClaimImages imgURLs={claimData.images} onDelete={handleDelete} />
@@ -125,7 +144,9 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
         <UploadFilesDialog
           acceptedTypes='.png,.jpeg,.jpg'
           title='Claim Images'
-          children={<DialogContentText>Select up to 10 photos.</DialogContentText>}
+          children={
+            <DialogContentText>Select up to 10 photos.</DialogContentText>
+          }
           openButtonText='Add images'
           filesDragDropProps={{
             multiple: true,

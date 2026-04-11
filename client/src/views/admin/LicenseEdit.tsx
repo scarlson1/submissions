@@ -1,11 +1,20 @@
 import { Box, Typography } from '@mui/material';
-import { Timestamp, doc, documentId, getDocs, query, setDoc, where } from 'firebase/firestore';
+import {
+  doc,
+  documentId,
+  getDocs,
+  query,
+  setDoc,
+  Timestamp,
+  where,
+} from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
 import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { License, TLicenseOwner, TLicenseType, licensesCollection } from 'common';
+import type { LicenseType } from '@idemand/common';
+import { License, licensesCollection, TLicenseOwner } from 'common';
 import { LicenseForm, LicenseValues } from 'elements/forms';
 import { useAsyncToast, useDocData } from 'hooks';
 import { checkForSLProducerLicense } from 'hooks/useCreateSLLicense';
@@ -29,13 +38,13 @@ export const LicenseEdit = () => {
           values.state,
           values.effectiveDate,
           values.expirationDate,
-          [where(documentId(), '!=', licenseId)]
+          [where(documentId(), '!=', licenseId)],
         );
         const q = query(
           licenseCol,
           where('state', '==', values.state),
           where('surplusLinesProducerOfRecord', '==', true),
-          where(documentId(), '!=', licenseId)
+          where(documentId(), '!=', licenseId),
         );
 
         const querySnap = await getDocs(q);
@@ -45,7 +54,9 @@ export const LicenseEdit = () => {
             !data.expirationDate ||
             data.expirationDate.toMillis() > values.effectiveDate.getTime()
           )
-            throw new Error(`Surplus Lines Producer of Record already exists for ${values.state}`);
+            throw new Error(
+              `Surplus Lines Producer of Record already exists for ${values.state}`,
+            );
         }
       }
 
@@ -56,19 +67,24 @@ export const LicenseEdit = () => {
         {
           ...values,
           ownerType: values.ownerType as TLicenseOwner,
-          licenseType: values.licenseType as TLicenseType,
+          licenseType: values.licenseType as LicenseType,
           effectiveDate: Timestamp.fromDate(values.effectiveDate),
-          expirationDate: values.expirationDate ? Timestamp.fromDate(values.expirationDate) : null, // @ts-ignore
+          expirationDate: values.expirationDate
+            ? Timestamp.fromDate(values.expirationDate)
+            : null, // @ts-ignore
           'metadata.updated': Timestamp.now(),
         },
-        { merge: true }
+        { merge: true },
       );
     },
-    [firestore, licenseId]
+    [firestore, licenseId],
   );
 
   const handleSubmit = useCallback(
-    async (values: LicenseValues, { setSubmitting }: FormikHelpers<LicenseValues>) => {
+    async (
+      values: LicenseValues,
+      { setSubmitting }: FormikHelpers<LicenseValues>,
+    ) => {
       try {
         toast.loading('saving...');
         await updateLicense(values);
@@ -83,11 +99,13 @@ export const LicenseEdit = () => {
         toast.error(msg);
       }
     },
-    [updateLicense, navigate, toast]
+    [updateLicense, navigate, toast],
   );
 
   if (!data)
-    return <Typography align='center'>{`License not found with ID ${licenseId}`}</Typography>;
+    return (
+      <Typography align='center'>{`License not found with ID ${licenseId}`}</Typography>
+    );
 
   return (
     <Box>
@@ -102,8 +120,10 @@ export const LicenseEdit = () => {
           licenseNumber: data?.licenseNumber || '',
           effectiveDate: data?.effectiveDate?.toDate() || null,
           expirationDate: data?.expirationDate?.toDate() || null,
-          surplusLinesProducerOfRecord: data?.surplusLinesProducerOfRecord || false,
-          SLAssociationMembershipRequired: data?.SLAssociationMembershipRequired || false,
+          surplusLinesProducerOfRecord:
+            data?.surplusLinesProducerOfRecord || false,
+          SLAssociationMembershipRequired:
+            data?.SLAssociationMembershipRequired || false,
           address: data?.address || {
             addressLine1: '',
             addressLine2: '',

@@ -1,20 +1,20 @@
+import type { Address, Coords, OptionalKeys } from '@idemand/common';
 import axios from 'axios';
-import { Address, Coordinates, OptionalKeys } from '../common/index.js';
 import { isValidCoords } from '../utils/validateCoords.js';
 
 interface GeocodeResult {
-  coordinates: Coordinates;
+  coordinates: Coords;
   placeId: string | null;
   result: Record<string, any>;
 }
 
 export async function geocodeAddress(
   apiKey: string,
-  { addressLine1, city, state, postal }: OptionalKeys<Address, 'addressLine2'>
+  { addressLine1, city, state, postal }: OptionalKeys<Address, 'addressLine2'>,
 ): Promise<GeocodeResult> {
   // let url = `https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query?where=1%3D1&geometry=${longitude}%2C${latitude}&geometryType=esriGeometryPoint&outFields=FLD_ZONE&returnGeometry=false&outSR=4326&f=json`;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?parameters=${encodeURIComponent(
-    `${addressLine1} ${city} ${state} ${postal}`
+    `${addressLine1} ${city} ${state} ${postal}`,
   )}&API_KEY=${apiKey}`;
 
   let { data } = await axios.get(url);

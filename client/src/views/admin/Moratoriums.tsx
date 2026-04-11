@@ -1,10 +1,14 @@
 import { EditRounded } from '@mui/icons-material';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
-import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridRowModel,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Moratorium, WithId } from 'common';
+import type { Moratorium, WithId } from '@idemand/common';
 import { MoratoriumsGrid } from 'elements/grids';
 import { useAsyncToast, useConfirmAndUpdate } from 'hooks';
 import { formatFirestoreTimestamp } from 'modules/utils';
@@ -15,15 +19,15 @@ import { ADMIN_ROUTES, createPath } from 'router';
 
 const getMutationMsg = (
   old: GridRowModel<WithId<Moratorium>>,
-  newVals: GridRowModel<WithId<Moratorium>>
+  newVals: GridRowModel<WithId<Moratorium>>,
 ) => {
-  let changeItems = [];
+  let changeItems: string[] = [];
   if (newVals.effectiveDate !== old.effectiveDate) {
     changeItems.push(
       `"effectiveDate" from ${formatFirestoreTimestamp(
         old.effectiveDate,
-        'date'
-      )} to ${formatFirestoreTimestamp(newVals.effectiveDate, 'date')}`
+        'date',
+      )} to ${formatFirestoreTimestamp(newVals.effectiveDate, 'date')}`,
     );
   }
   if (newVals.expirationDate !== old.expirationDate) {
@@ -49,7 +53,7 @@ export const Moratoriums = () => {
   const confirmAndUpdate = useConfirmAndUpdate<Moratorium>(
     'moratoriums',
     getUpdateValues,
-    getMutationMsg
+    getMutationMsg,
   );
 
   const handleProcessRowUpdateError = useCallback(
@@ -57,7 +61,7 @@ export const Moratoriums = () => {
       toast.error('update failed');
       console.log('ERROR: ', err);
     },
-    [toast]
+    [toast],
   );
 
   const handleRouteToEdit = useCallback(
@@ -66,9 +70,9 @@ export const Moratoriums = () => {
         createPath({
           path: ADMIN_ROUTES.MORATORIUM_EDIT,
           params: { moratoriumId: params.id.toString() },
-        })
+        }),
       ),
-    [navigate]
+    [navigate],
   );
 
   const renderEditActionButton = useCallback(
@@ -83,16 +87,31 @@ export const Moratoriums = () => {
         label='Edit'
       />,
     ],
-    []
+    [],
   );
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
-        <Typography variant='h5' gutterBottom sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pb: 2,
+        }}
+      >
+        <Typography
+          variant='h5'
+          gutterBottom
+          sx={{ ml: { xs: 2, sm: 3, md: 4 } }}
+        >
           Moratoriums
         </Typography>
-        <Button onClick={() => navigate(createPath({ path: ADMIN_ROUTES.MORATORIUM_NEW }))}>
+        <Button
+          onClick={() =>
+            navigate(createPath({ path: ADMIN_ROUTES.MORATORIUM_NEW }))
+          }
+        >
           New
         </Button>
       </Box>

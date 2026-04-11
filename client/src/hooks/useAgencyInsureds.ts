@@ -1,7 +1,14 @@
-import { DocumentReference, doc, getDoc, getFirestore, where } from 'firebase/firestore';
+import {
+  doc,
+  DocumentReference,
+  getDoc,
+  getFirestore,
+  where,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 
-import { Policy, User, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { Policy, User } from 'common';
 import { useCollectionData } from './useCollectionData';
 
 // TODO: use subcollection group query instead (users/uid/permissions/private) - rxjs switchMap ??
@@ -16,7 +23,7 @@ export const useAgencyInsureds = (agencyId: string) => {
   const { data: policies, status } = useCollectionData<Policy>(
     'policies',
     [where('orgId', '==', agencyId)],
-    { suspense: false }
+    { suspense: false },
   );
 
   useEffect(() => {

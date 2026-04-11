@@ -1,4 +1,5 @@
-import { Coordinates, Limits, TCommSource, ValueByRiskType } from 'common';
+import type { Coords } from '@idemand/common';
+import { Limits, TCommSource, ValueByRiskType } from 'common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface RatingInputs {
@@ -25,7 +26,7 @@ export interface RatingInputs {
 export interface GetAnnualPremiumRequest {
   // latitude: number;
   // longitude: number;
-  coordinates: Coordinates;
+  coordinates: Coords;
   replacementCost: number;
   limits: Limits;
   deductible: number;

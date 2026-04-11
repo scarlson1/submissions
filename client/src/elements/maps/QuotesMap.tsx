@@ -3,16 +3,17 @@ import { IconLayer, MapViewState } from 'deck.gl';
 import { QueryFieldFilterConstraint } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 
-import { Policy, Quote, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { Policy, Quote } from 'common';
 import { useCollectionData, useFlyToBounds } from 'hooks';
 import {
   CoordObj,
-  TypedPickingInfo,
   getPlaceMarker,
   svgToDataURL,
+  TypedPickingInfo,
 } from 'modules/utils';
-import { DeckMap } from './DeckMap';
 import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
+import { DeckMap } from './DeckMap';
 import { renderQuoteTooltip } from './renderTooltips';
 
 export interface QuotesMapProps {

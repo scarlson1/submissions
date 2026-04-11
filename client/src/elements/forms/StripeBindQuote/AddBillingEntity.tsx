@@ -11,8 +11,11 @@ import { FormikProps } from 'formik';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { TCollection } from 'common';
-import { NewBillingEntityForm, NewBillingEntityValues } from './NewBillingEntityForm';
+import type { TCollection } from '@idemand/common';
+import {
+  NewBillingEntityForm,
+  NewBillingEntityValues,
+} from './NewBillingEntityForm';
 import { useAddBillingEntity } from './useAddBillingEntity';
 
 interface AddBillingEntityProps {
@@ -21,7 +24,11 @@ interface AddBillingEntityProps {
   buttonProps?: Omit<ButtonProps, 'onClick'>;
 }
 
-export function AddBillingEntity({ colName, docId, buttonProps }: AddBillingEntityProps) {
+export function AddBillingEntity({
+  colName,
+  docId,
+  buttonProps,
+}: AddBillingEntityProps) {
   const [open, setOpen] = useState(false);
   const { addBillingEntity } = useAddBillingEntity(
     colName,
@@ -30,7 +37,7 @@ export function AddBillingEntity({ colName, docId, buttonProps }: AddBillingEnti
       toast.success(`billing entity added`);
       setOpen(false);
     },
-    (msg: string) => toast.error(msg)
+    (msg: string) => toast.error(msg),
   );
   const formRef = useRef<FormikProps<NewBillingEntityValues>>(null);
 

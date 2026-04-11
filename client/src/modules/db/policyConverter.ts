@@ -6,21 +6,27 @@ import {
   WithFieldValue,
 } from 'firebase/firestore';
 
-import { Policy, PolicyWithStatus, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { Policy, PolicyWithStatus } from 'common';
 import { calcPolicyStatus } from 'modules/utils';
 
 // docs: https://firebase.google.com/docs/reference/js/firestore_.firestoredataconverter
 
 export const policyConverter = {
-  toFirestore(policy: PartialWithFieldValue<Policy> | WithFieldValue<Policy>): Policy {
+  toFirestore(
+    policy: PartialWithFieldValue<Policy> | WithFieldValue<Policy>,
+  ): Policy {
     return {
       ...(policy as Policy),
-      metadata: { ...(policy.metadata as Policy['metadata']), updated: Timestamp.now() },
+      metadata: {
+        ...(policy.metadata as Policy['metadata']),
+        updated: Timestamp.now(),
+      },
     };
   },
   fromFirestore(
     snap: QueryDocumentSnapshot<Policy>,
-    options: SnapshotOptions
+    options: SnapshotOptions,
   ): WithId<PolicyWithStatus> {
     // TODO: return class ??
     const data = snap.data(options);

@@ -22,6 +22,7 @@ import {
   SecureLoginSVG,
   ServerDownSVG,
 } from 'assets/images';
+import type { ReactNode } from 'react';
 import { createPath, ROUTES } from 'router';
 
 // FOR HANDLING ERRORS THROWN IN REACT ROUTER LOADERS
@@ -281,7 +282,7 @@ const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps) => {
     console.log('Is firestore error (TODO: refactor error boundary)');
   }
 
-  let msg = null;
+  let msg: ReactNode = null;
   const err = error as any;
   if (err?.message && err.message.indexOf('query requires an index') !== -1) {
     msg = (

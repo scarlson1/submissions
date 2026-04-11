@@ -2,19 +2,22 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { CalcQuoteRequest, calcQuote } from 'api';
-import { CommSource, Optional } from 'common';
+import type { Optional } from '@idemand/common';
+import { calcQuote, CalcQuoteRequest } from 'api';
+import { CommSource } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { truthyOrZero } from 'modules/utils';
 import { RatingInputsWithAAL } from './useRateQuote';
 
 export function validateCommonInputs(values: QuoteValues) {
-  const { ratingPropertyData, deductible, commSource, address, limits } = values;
+  const { ratingPropertyData, deductible, commSource, address, limits } =
+    values;
 
   invariant(address?.state, 'state required');
   invariant(
-    ratingPropertyData?.replacementCost && ratingPropertyData?.replacementCost >= 100000,
-    'replacement cost required (>100k)'
+    ratingPropertyData?.replacementCost &&
+      ratingPropertyData?.replacementCost >= 100000,
+    'replacement cost required (>100k)',
   );
   invariant(ratingPropertyData?.floodZone, 'flood zone required');
   invariant(ratingPropertyData.basement, 'basement required');
@@ -25,15 +28,27 @@ export function validateCommonInputs(values: QuoteValues) {
   invariant(CommSource.safeParse(commSource).success, 'invalid comm. source');
   invariant(
     deductible && typeof deductible === 'number' && deductible >= 1000,
-    'deductible required (min $1,000)'
+    'deductible required (min $1,000)',
   );
   // invariant(priorLossCount, 'prior loss count required')
   invariant(limits, 'limits required');
   const { limitA, limitB, limitC, limitD } = limits;
-  invariant(limitA && typeof limitA === 'number' && limitA >= 100000, 'limitA must be > 100k');
-  invariant((limitB || limitB === 0) && typeof limitB === 'number', 'limitB required');
-  invariant((limitC || limitC === 0) && typeof limitC === 'number', 'limitC required');
-  invariant((limitD || limitD === 0) && typeof limitD === 'number', 'limitD required');
+  invariant(
+    limitA && typeof limitA === 'number' && limitA >= 100000,
+    'limitA must be > 100k',
+  );
+  invariant(
+    (limitB || limitB === 0) && typeof limitB === 'number',
+    'limitB required',
+  );
+  invariant(
+    (limitC || limitC === 0) && typeof limitC === 'number',
+    'limitC required',
+  );
+  invariant(
+    (limitD || limitD === 0) && typeof limitD === 'number',
+    'limitD required',
+  );
 
   return values;
 }
@@ -42,7 +57,12 @@ function getValidatedCalcInputs(values: QuoteValues) {
   let comValues = validateCommonInputs(values);
   const {
     AALs,
-    ratingPropertyData: { replacementCost, floodZone, basement, priorLossCount },
+    ratingPropertyData: {
+      replacementCost,
+      floodZone,
+      basement,
+      priorLossCount,
+    },
     deductible,
     address,
     // subproducerCommission,
@@ -79,10 +99,10 @@ export const useCalcPremium = (
   onSuccess?: (
     newPremium: number,
     ratingInputs: Optional<RatingInputsWithAAL>,
-    newRatingDocId?: Optional<string>
+    newRatingDocId?: Optional<string>,
   ) => void,
   onError?: (msg: string, err: any) => void,
-  submissionId?: string | null
+  submissionId?: string | null,
 ) => {
   const functions = useFunctions();
   const [loading, setLoading] = useState(false);
@@ -102,7 +122,10 @@ export const useCalcPremium = (
       try {
         setLoading(true);
 
-        const { data } = await calcQuote(functions, { ...validatedReqBody, submissionId });
+        const { data } = await calcQuote(functions, {
+          ...validatedReqBody,
+          submissionId,
+        });
 
         console.log('calcQuote: ', data);
         if (!data.annualPremium || typeof data.annualPremium !== 'number')
@@ -128,7 +151,12 @@ export const useCalcPremium = (
           orgId: validatedReqBody.orgId,
         };
 
-        if (onSuccess) onSuccess(data.annualPremium, flattenedRatingInputs, data.ratingDocId);
+        if (onSuccess)
+          onSuccess(
+            data.annualPremium,
+            flattenedRatingInputs,
+            data.ratingDocId,
+          );
         setLoading(false);
         return data.annualPremium;
       } catch (err: any) {
@@ -141,7 +169,7 @@ export const useCalcPremium = (
         return null;
       }
     },
-    [functions, onSuccess, onError, submissionId]
+    [functions, onSuccess, onError, submissionId],
   );
 
   return { calcPremium, loading };

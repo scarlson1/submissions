@@ -1,20 +1,20 @@
-import { Timestamp, doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { useCallback, useMemo, useState } from 'react';
 import { useFirestore, useFunctions } from 'reactfire';
 
 import { approveImport } from 'api';
 import {
   DeepPartial,
-  StageImportRecord,
   importSummaryCollection,
   stagedImportsCollection,
+  StageImportRecord,
 } from 'common';
 import { useClaims } from './useClaims';
 
 export const useManageImports = (
   importId: string,
   onSuccess?: (msg: string) => void,
-  onError?: (msg: string, err: any) => void
+  onError?: (msg: string, err: any) => void,
 ) => {
   const firestore = useFirestore();
   const functions = useFunctions();
@@ -47,7 +47,7 @@ export const useManageImports = (
         onError && onError(errMsg, err);
       }
     },
-    [functions, user, claims, importId, onSuccess, onError]
+    [functions, user, claims, importId, onSuccess, onError],
   );
 
   const stagedDocsCol = stagedImportsCollection(firestore, importId);
@@ -69,7 +69,7 @@ export const useManageImports = (
 
       return setDoc(doc(stagedDocsCol, docId), updates, { merge: true });
     },
-    [stagedDocsCol, user]
+    [stagedDocsCol, user],
   );
 
   const handleDeclineImport = useCallback(
@@ -86,18 +86,19 @@ export const useManageImports = (
           declineIds = summarySnap.data()?.importDocIds || [];
         }
 
-        if (!declineIds || !declineIds.length) throw new Error(`missing doc IDs`);
+        if (!declineIds || !declineIds.length)
+          throw new Error(`missing doc IDs`);
         if (declineIds.length > 100) throw new Error('max of 100 at a time');
 
         // TODO: split into array of n --> promise all
-        const errIds = [];
-        const promises = [];
+        const errIds: string[] = [];
+        const promises: Promise<void>[] = [];
         for (const id of declineIds) {
           promises.push(
             setDeclined(id).catch((err) => {
               console.error(`Error updating status to declined (${id})`, err);
               errIds.push(id);
-            })
+            }),
           );
         }
         await Promise.all(promises);
@@ -121,11 +122,11 @@ export const useManageImports = (
         onError && onError(errMsg, err);
       }
     },
-    [firestore, claims, importId, onSuccess, onError, setDeclined]
+    [firestore, claims, importId, onSuccess, onError, setDeclined],
   );
 
   return useMemo(
     () => ({ handleApproveImport, handleDeclineImport, loading }),
-    [handleApproveImport, handleDeclineImport, loading]
+    [handleApproveImport, handleDeclineImport, loading],
   );
 };

@@ -1,14 +1,14 @@
 import axios from 'axios';
 import { z } from 'zod';
 
+import type { WithId } from '@idemand/common';
 import {
   LineOfBusiness,
   Product,
   State,
+  TransactionType,
   TTax,
   TTaxItemName,
-  TransactionType,
-  WithId,
 } from 'common';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
@@ -23,8 +23,10 @@ export const ApiClient = axios.create({
 
 // TODO: interceptors (handle express validator errors)
 
-interface TaxResLineItem
-  extends Omit<WithId<TTax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
+interface TaxResLineItem extends Omit<
+  WithId<TTax>,
+  'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'
+> {
   displayName: TTaxItemName;
   taxBaseAmount: number | null; // null if fixed rate ($10)
   rate: number | null; // null if fixed rate
@@ -61,7 +63,7 @@ export const ZStateTaxRequest = ZSubjectBaseKeyVal.and(
     quoteNumber: z.string().optional().nullable(),
     effectiveDate: z.date().or(z.string()).optional(),
     lineOfBusiness: LineOfBusiness.optional(),
-  })
+  }),
 );
 export type StateTaxRequest = z.infer<typeof ZStateTaxRequest>;
 
@@ -80,7 +82,9 @@ const ActiveStateRequestConfig = z.object({
   }),
   data: z.never(),
 });
-export type TActiveStateRequestConfig = z.infer<typeof ActiveStateRequestConfig>;
+export type TActiveStateRequestConfig = z.infer<
+  typeof ActiveStateRequestConfig
+>;
 
 const MoratoriumRequestConfig = z.object({
   url: z.literal('/moratorium'),

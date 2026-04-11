@@ -17,7 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import { Collection } from 'common';
+import { Collection } from '@idemand/common';
 import { useAlgolia } from 'hooks/useAlgolia';
 import { Fragment } from 'react';
 

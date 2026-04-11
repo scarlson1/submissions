@@ -6,13 +6,13 @@ import {
   Quote,
   State,
   WithId,
+  type Concrete,
   type RCVs,
 } from '@idemand/common';
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 import { sum } from 'lodash-es';
-import type { Concrete } from '../../common/types.js';
 import { createDocId } from '../../modules/db/index.js';
 import {
   calcPolicyPremium,

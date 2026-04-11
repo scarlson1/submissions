@@ -1,8 +1,16 @@
-import { QueryConstraint, Timestamp, getDocs, query, where } from 'firebase/firestore';
+import {
+  getDocs,
+  query,
+  QueryConstraint,
+  Timestamp,
+  where,
+  type QuerySnapshot,
+} from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useFirestore } from 'reactfire';
 
-import { License, WithId, licensesCollection } from 'common';
+import type { WithId } from '@idemand/common';
+import { License, licensesCollection } from 'common';
 import { splitChunks } from 'modules/utils';
 
 // TODO: 'in' query constraint limited to 10
@@ -16,11 +24,15 @@ export const useFetchLicenses = (constraints?: QueryConstraint[]) => {
     async (states: string[], effDate?: Timestamp) => {
       const licensesCol = licensesCollection(firestore);
 
-      const promises = [];
+      const promises: Promise<QuerySnapshot<License, License>>[] = [];
       let statesArr = splitChunks(states, 10);
 
       for (let chunk of statesArr) {
-        const q = query(licensesCol, where('state', 'in', chunk), ...(constraints || []));
+        const q = query(
+          licensesCol,
+          where('state', 'in', chunk),
+          ...(constraints || []),
+        );
 
         promises.push(getDocs(q));
       }
@@ -45,6 +57,6 @@ export const useFetchLicenses = (constraints?: QueryConstraint[]) => {
 
       return licenses;
     },
-    [firestore, constraints]
+    [firestore, constraints],
   );
 };

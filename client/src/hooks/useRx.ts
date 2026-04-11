@@ -1,14 +1,20 @@
 import {
   DocumentReference,
   Query as FirestoreQuery,
-  Query,
   doc as fsDoc,
   getFirestore,
+  Query,
   queryEqual,
+  type DocumentData,
 } from 'firebase/firestore';
-import { ReactFireGlobals, ReactFireOptions, checkIdField, useObservable } from 'reactfire';
+import {
+  checkIdField,
+  ReactFireGlobals,
+  ReactFireOptions,
+  useObservable,
+} from 'reactfire';
 import { collectionData, docData } from 'rxfire/firestore';
-import { DocumentData } from 'rxfire/firestore/interfaces';
+// import { DocumentData } from 'rxfire/firestore/interfaces';
 import { from, groupBy, map, mergeMap, tap, toArray } from 'rxjs';
 
 import { docJoin } from 'modules/rxOperators/docJoin';
@@ -23,11 +29,14 @@ const cachedQueries: Array<FirestoreQuery> =
   (globalThis as any as ReactFireGlobals)._reactFireFirestoreQueryCache || [];
 
 if (!(globalThis as any as ReactFireGlobals)._reactFireFirestoreQueryCache) {
-  (globalThis as any as ReactFireGlobals)._reactFireFirestoreQueryCache = cachedQueries;
+  (globalThis as any as ReactFireGlobals)._reactFireFirestoreQueryCache =
+    cachedQueries;
 }
 
 function getUniqueIdForFirestoreQuery(query: FirestoreQuery) {
-  const index = cachedQueries.findIndex((cachedQuery) => queryEqual(cachedQuery, query));
+  const index = cachedQueries.findIndex((cachedQuery) =>
+    queryEqual(cachedQuery, query),
+  );
   if (index > -1) {
     return index;
   }
@@ -45,16 +54,18 @@ export const useCollectionDataInnerJoin = <T extends DocumentData>(
   // withCollection: string,
   // pathSegments: string[] = [],
   options: ReactFireOptions<T[]> = {},
-  limit: number = 100
+  limit: number = 100,
 ) => {
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
   const idSegments = coll.pathSegments ? `:${coll.pathSegments.join(':')}` : '';
   const observable1Id = `firestore:collectionData:${getUniqueIdForFirestoreQuery(
-    query
+    query,
   )}:innerJoin:${joinField}:${coll.root}${idSegments}:idField=${idField}`;
 
   const policies$ = collectionData<T>(query);
-  const combinedObservable$ = policies$.pipe(innerJoin(getFirestore(), joinField, coll, limit));
+  const combinedObservable$ = policies$.pipe(
+    innerJoin(getFirestore(), joinField, coll, limit),
+  );
 
   return useObservable(observable1Id, combinedObservable$, options);
 };
@@ -62,24 +73,24 @@ export const useCollectionDataInnerJoin = <T extends DocumentData>(
 export const useCollectionDataPopulateById = <
   JoinKey extends string,
   T extends DocumentData = DocumentData,
-  K extends DocumentData = DocumentData
+  K extends DocumentData = DocumentData,
 >(
   query: Query<T>,
   joinField: JoinKey,
   coll: { root: string; pathSegments?: string[] },
   // withCollection: string,
   // pathSegments: string[] = [],
-  options: ReactFireOptions<T & { [key in JoinKey]: K }[]> = {}
+  options: ReactFireOptions<T & { [key in JoinKey]: K }[]> = {},
 ) => {
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
   const idSegments = coll.pathSegments ? `:${coll.pathSegments.join(':')}` : '';
   const observable1Id = `firestore:collectionData:${getUniqueIdForFirestoreQuery(
-    query
+    query,
   )}:innerJoin:${joinField}:${coll.root}${idSegments}:idField=${idField}`;
 
   const policies$ = collectionData<T>(query, options);
   const combinedObservable$ = policies$.pipe(
-    populateById<JoinKey, T, K>(getFirestore(), joinField, coll)
+    populateById<JoinKey, T, K>(getFirestore(), joinField, coll),
   );
 
   return useObservable(observable1Id, combinedObservable$, options);
@@ -87,14 +98,17 @@ export const useCollectionDataPopulateById = <
 
 // works like mongoose populate
 // TODO: typing so return type of populated docs is known
-export const useRxDocJoin = <T extends DocumentData = DocumentData, J = { [key: string]: string }>(
+export const useRxDocJoin = <
+  T extends DocumentData = DocumentData,
+  J = { [key: string]: string },
+>(
   docRef: DocumentReference<T>,
   join: { [Property in keyof J]: string },
-  options?: ReactFireOptions<T[]>
+  options?: ReactFireOptions<T[]>,
 ) => {
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
   const observable1Id = `firestore:collectionData:${docRef.path}}:docJoin:${JSON.stringify(
-    join
+    join,
   )}:idField=${idField}`;
 
   const policy$ = docData<T>(docRef, options);
@@ -109,10 +123,13 @@ export const useRxDocJoin = <T extends DocumentData = DocumentData, J = { [key: 
 
 // ATTEMPTS TO GET POLICIES AND FETCH USER AFTER - not fully working
 
-export const useRx = <T extends DocumentData>(query: Query<T>, options?: ReactFireOptions<T[]>) => {
+export const useRx = <T extends DocumentData>(
+  query: Query<T>,
+  options?: ReactFireOptions<T[]>,
+) => {
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
   const observable1Id = `firestore:collectionData:${getUniqueIdForFirestoreQuery(
-    query
+    query,
   )}:idField=${idField}`;
 
   const policies$ = collectionData<T>(query);
@@ -175,9 +192,9 @@ export const useRx = <T extends DocumentData>(query: Query<T>, options?: ReactFi
         mergeMap((group$) =>
           group$.pipe(
             toArray(),
-            map((p) => ({ policies: p, userId: group$.key }))
+            map((p) => ({ policies: p, userId: group$.key })),
             // reduce((acc, curr) => ({ ...acc, [curr.userId]: curr.policies }), {})
-          )
+          ),
         ),
         // { policies: Policy[], userId: string }
         tap((preUser) => console.log('PRE USER POPULATE: ', preUser)), // toArray(),
@@ -185,19 +202,23 @@ export const useRx = <T extends DocumentData>(query: Query<T>, options?: ReactFi
         mergeMap((u: any) => {
           const userRef = fsDoc(getFirestore(), 'users', u.userId);
           return docData(userRef).pipe(
-            map((user) => ({ ...user, userId: u.userId, policies: u.policies }))
+            map((user) => ({
+              ...user,
+              userId: u.userId,
+              policies: u.policies,
+            })),
           );
           // return docData(userRef).pipe(map((user) => [u, user]));
         }),
         tap((postUser) => console.log('POST USER: ', postUser)),
         // map((combinedArr) => ({ ...combinedArr[1], policies: combinedArr[0].policies })),
         // { ...user, policies: Policy[] }
-        tap((postMap) => console.log('POST MAP: ', postMap))
+        tap((postMap) => console.log('POST MAP: ', postMap)),
         // toArray(),
         // reduce((acc: any[], curr) => [...acc, curr], [])
         // tap((last) => console.log('LAST: ', last))
-      )
-    )
+      ),
+    ),
   );
 
   return useObservable(observable1Id, combinedObservable$, options);

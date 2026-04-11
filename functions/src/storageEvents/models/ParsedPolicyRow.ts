@@ -6,6 +6,7 @@ import {
   CancelReason,
   CarrierDetails,
   CommSource,
+  Coords,
   Deductible,
   FeeItem,
   Limits,
@@ -13,14 +14,15 @@ import {
   Mortgagee,
   NamedInsured,
   Product,
-  RCVs,
   RatingPropertyData,
+  RCVs,
   State,
   TaxItem,
   ValueByRiskType,
+  type DeepNullable,
 } from '@idemand/common';
 import { z } from 'zod';
-import { Coords, DeepNullable, MGACommissionPct } from '../../common/index.js';
+import { MGACommissionPct } from '../../common/index.js';
 
 // TODO: extend Policy ??
 // delete userId ?? always match named insured ??

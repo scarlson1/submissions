@@ -1,12 +1,34 @@
 import { TextField, TextFieldProps } from '@mui/material';
-import { UseControllerProps, useController } from 'react-hook-form';
+import {
+  useController,
+  UseControllerProps,
+  type FieldPath,
+  type FieldValues,
+} from 'react-hook-form';
 
-export interface RHFTextFieldProps extends UseControllerProps<any, any> {
+// export interface RHFTextFieldProps extends UseControllerProps<any, any> {
+//   textFieldProps?: TextFieldProps;
+//   label: string;
+// }
+
+export type RHFTextFieldProps<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+  TTransformedValues = TFieldValues,
+> = UseControllerProps<TFieldValues, TName, TTransformedValues> & {
   textFieldProps?: TextFieldProps;
   label: string;
-}
+};
 
-export const RHFTextField = ({ textFieldProps, label, ...props }: RHFTextFieldProps) => {
+export const RHFTextField = <
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+  TTransformedValues = TFieldValues,
+>({
+  textFieldProps,
+  label,
+  ...props
+}: RHFTextFieldProps<TFieldValues, TName, TTransformedValues>) => {
   const {
     field,
     fieldState: { isTouched, error },
@@ -22,7 +44,11 @@ export const RHFTextField = ({ textFieldProps, label, ...props }: RHFTextFieldPr
       value={field.value}
       name={field.name}
       inputRef={field.ref}
-      helperText={isTouched && Boolean(error) ? error?.message : textFieldProps?.helperText ?? ''}
+      helperText={
+        isTouched && Boolean(error)
+          ? error?.message
+          : (textFieldProps?.helperText ?? '')
+      }
     />
   );
 };

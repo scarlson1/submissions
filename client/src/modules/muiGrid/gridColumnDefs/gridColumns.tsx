@@ -44,29 +44,32 @@ import { isDate, round, sum, sumBy } from 'lodash';
 import { toast } from 'react-hot-toast';
 import { Link as RouterLink } from 'react-router-dom';
 
+import {
+  Collection,
+  SubmissionStatus,
+  type Address,
+  type Nullable,
+  type SubmissionStatus as TSubmissionStatus,
+} from '@idemand/common';
 import { LoadingButton, LoadingButtonProps } from '@mui/lab';
 import {
   AdditionalInsured,
-  Address,
   Basement,
   CancelReason,
   CBRSDesignation,
   ChangeRequestStatus,
   Claim,
-  Collection,
   CompressedAddress,
   FloodZone,
   INVITE_STATUS,
   LineOfBusiness,
   Mortgagee,
-  Nullable,
   POLICY_STATUS,
   PolicyLocation,
   PriorLossCount,
   Product,
   QUOTE_STATUS,
   State,
-  SUBMISSION_STATUS,
   TAgencySubmissionStatus,
   TChangeRequestStatus,
   TFeeItem,
@@ -774,7 +777,7 @@ export const statusCol: GridSingleSelectColDef = {
 };
 
 export type ChipStatus =
-  | SUBMISSION_STATUS
+  | TSubmissionStatus
   | QUOTE_STATUS
   | POLICY_STATUS
   | TAgencySubmissionStatus
@@ -784,19 +787,19 @@ export type ChipStatus =
 
 export function getChipProps(status: ChipStatus): Partial<ChipProps> {
   switch (status) {
-    case SUBMISSION_STATUS.SUBMITTED:
+    case SubmissionStatus.enum.submitted:
       return { icon: <FiberNewRounded />, color: 'primary' };
-    case SUBMISSION_STATUS.UNDER_REVIEW:
+    case SubmissionStatus.enum.under_review:
       return { icon: <FindInPageRounded />, color: 'warning' };
-    case SUBMISSION_STATUS.DRAFT:
+    case SubmissionStatus.enum.draft:
       return { icon: <PendingRounded />, color: 'info' };
-    case SUBMISSION_STATUS.NOT_ELIGIBLE:
+    case SubmissionStatus.enum.ineligible:
       return { icon: <ThumbDownRounded />, color: 'default' };
-    case SUBMISSION_STATUS.PENDING_INFO:
+    case SubmissionStatus.enum.pending_info:
       return { icon: <HourglassBottomRounded />, color: 'warning' };
-    case SUBMISSION_STATUS.QUOTED:
+    case SubmissionStatus.enum.quoted:
       return { icon: <RequestQuoteRounded />, color: 'success' };
-    case SUBMISSION_STATUS.CANCELLED:
+    case SubmissionStatus.enum.cancelled:
       return { icon: <CloseRounded />, color: 'default' };
     case QUOTE_STATUS.AWAITING_USER:
       return { icon: <HourglassEmptyRounded />, color: 'primary' };
@@ -822,7 +825,7 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <SaveAltRounded />, color: 'success' };
     case 'declined':
       return { icon: <ThumbDownRounded />, color: 'default' };
-    case ChangeRequestStatus.enum.denied: // ChangeRequestStatus.enum.denied: // CHANGE_REQUEST_STATUS.DENIED:
+    case ChangeRequestStatus.enum.denied:
       return { icon: <CloseRounded />, color: 'error' };
     case 'error':
       return { icon: <ErrorOutlineRounded />, color: 'error' };

@@ -1,11 +1,11 @@
 import { Box, Typography } from '@mui/material';
-import { Timestamp, doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { TTax, taxesCollection } from 'common';
+import { taxesCollection, TTax } from 'common';
 import { TaxForm, TaxValues } from 'elements/forms/TaxForm';
 import { useAsyncToast } from 'hooks';
 import { nanoId } from 'modules/db/utils';
@@ -18,10 +18,15 @@ export const SLTaxNew = () => {
   const toast = useAsyncToast({ position: 'top-right' });
 
   const handleSubmit = useCallback(
-    async (values: TaxValues, { setSubmitting, setFieldError }: FormikHelpers<TaxValues>) => {
+    async (
+      values: TaxValues,
+      { setSubmitting, setFieldError }: FormikHelpers<TaxValues>,
+    ) => {
       try {
         const isFixedRate = values.subjectBase[0] === 'fixedFee';
-        const rate = isFixedRate ? values.fixedRate : parseFloat(getNumber(values.rate)) / 100;
+        const rate = isFixedRate
+          ? values.fixedRate
+          : parseFloat(getNumber(values.rate)) / 100;
         if (!rate || isNaN(rate)) {
           setFieldError('fixedRate', 'Missing rate');
           return setSubmitting(false);
@@ -36,7 +41,8 @@ export const SLTaxNew = () => {
 
         const tax: TTax = {
           ...rest,
-          id,
+          // id,
+          taxId: id,
           rate,
           rateType: isFixedRate ? 'fixed' : 'percent',
           effectiveDate: effTimestamp,
@@ -59,7 +65,7 @@ export const SLTaxNew = () => {
         setSubmitting(false);
       }
     },
-    [navigate, firestore, toast]
+    [navigate, firestore, toast],
   );
 
   return (

@@ -1,7 +1,8 @@
 import { BusinessRounded, PersonRounded } from '@mui/icons-material';
 import { GridColDef } from '@mui/x-data-grid';
 
-import { License, LicenseOwner, LicenseType } from 'common';
+import { LicenseType } from '@idemand/common';
+import { License, LicenseOwner } from 'common';
 import { renderChip } from 'components/RenderGridCellHelpers';
 import {
   getGridFirestoreBooleanOperators,

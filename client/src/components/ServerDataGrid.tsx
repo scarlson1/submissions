@@ -8,11 +8,22 @@ import {
   GridRowSelectionModel,
   useGridApiRef,
 } from '@mui/x-data-grid';
-import { DocumentData, DocumentSnapshot, QueryFieldFilterConstraint } from 'firebase/firestore';
+import {
+  DocumentData,
+  DocumentSnapshot,
+  QueryFieldFilterConstraint,
+} from 'firebase/firestore';
 import { lowerCase } from 'lodash';
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
-import { TCollection } from 'common';
+import type { TCollection } from '@idemand/common';
 import {
   useFetchDocCount,
   useFetchDocsWithCursor,
@@ -42,7 +53,7 @@ declare module '@mui/x-data-grid' {
 
 export interface ServerDataGridProps<
   T extends DocumentData = DocumentData,
-  D extends DocumentData = T
+  D extends DocumentData = T,
 > extends Partial<Omit<DataGridProps, 'rows'>> {
   colName: TCollection;
   pathSegments?: string[];
@@ -54,7 +65,7 @@ export interface ServerDataGridProps<
 
 export const ServerDataGrid = <
   AppModel extends DocumentData = DocumentData,
-  DBModel extends DocumentData = AppModel
+  DBModel extends DocumentData = AppModel,
 >({
   colName,
   pathSegments = [],
@@ -69,7 +80,10 @@ export const ServerDataGrid = <
   // https://mui.com/blog/mui-x-v6/#apiref-moved-to-the-mit-community-version (pagination, scrolling, state)
   const apiRef = useGridApiRef();
   const { isMobile } = useWidth();
-  const toolbar = useMemo(() => (isMobile ? GridMobileToolbar : GridToolbar), [isMobile]);
+  const toolbar = useMemo(
+    () => (isMobile ? GridMobileToolbar : GridToolbar),
+    [isMobile],
+  );
 
   const [rowCount, setRowCount] = useState<number>(0);
   const [paginationModel, setPaginationModel] = useState({
@@ -85,23 +99,32 @@ export const ServerDataGrid = <
 
   const { sortModel, sortOps, handleSortModelChange } = useGridServerSort(
     props?.initialState,
-    resetCursors
+    resetCursors,
   );
-  const { filters, handleFilterChange } = useGridServerFilter(props?.initialState, resetCursors);
-  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([]);
+  const { filters, handleFilterChange } = useGridServerFilter(
+    props?.initialState,
+    resetCursors,
+  );
+  const [rowSelectionModel, setRowSelectionModel] =
+    useState<GridRowSelectionModel>([]);
 
   const queryOptions = useMemo(() => {
     const orderByConstraint = getOrderByIfNecessary(constraints);
     // console.log('updating query options', orderByConstraint);
 
-    return [...filters, ...constraints, ...orderByConstraint, ...sortOps.current];
+    return [
+      ...filters,
+      ...constraints,
+      ...orderByConstraint,
+      ...sortOps.current,
+    ];
   }, [filters, constraints, sortModel, sortOps]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchCount = useFetchDocCount(
     colName,
     [...filters, ...constraints],
     isCollectionGroup,
-    pathSegments
+    pathSegments,
   );
 
   useEffect(() => {
@@ -118,12 +141,12 @@ export const ServerDataGrid = <
       itemsPerPage: paginationModel.pageSize,
     },
     isCollectionGroup,
-    pathSegments
+    pathSegments,
   );
 
   const rowData = useMemo(
     () => data?.docs?.map((doc: any) => ({ ...doc.data(), id: doc.id })) ?? [],
-    [data]
+    [data],
   );
 
   // apiRef.current?.subscribeEvent('paginationModelChange', () => console.log('pagination event'));
@@ -133,11 +156,15 @@ export const ServerDataGrid = <
       startTransition(() => {
         setPaginationModel((currModel) => {
           const staleData =
-            cursors.current.get(currModel.page + 2)?.id === data.docs[data.docs.length - 1]?.id; // Delete ?? bug caused by useMemo in fetch data hook (resolved)
+            cursors.current.get(currModel.page + 2)?.id ===
+            data.docs[data.docs.length - 1]?.id; // Delete ?? bug caused by useMemo in fetch data hook (resolved)
 
           // save the last document as next page's cursor (query uses "startAfter(snap)")
           if (model.page !== currModel.page && !staleData)
-            cursors.current.set(currModel.page + 1, data.docs[data.docs.length - 1]);
+            cursors.current.set(
+              currModel.page + 1,
+              data.docs[data.docs.length - 1],
+            );
 
           // TODO: better solution to resetting cursors on page size change
           // encode page, page size, filter, and sort in cursor key (like react-query / reactFire id) --> if doesn't exists reset to page 0 ??
@@ -152,7 +179,7 @@ export const ServerDataGrid = <
         });
       });
     },
-    [data, resetCursors]
+    [data, resetCursors],
   );
 
   // const handleExport = useCallback(
@@ -183,7 +210,9 @@ export const ServerDataGrid = <
             maxHeight: { xs: 400, sm: 420, md: 460, lg: 500 },
             overflowY: 'auto',
           },
-          '.MuiDataGrid-main > div:nth-of-type(2)': { overflowY: 'auto !important' },
+          '.MuiDataGrid-main > div:nth-of-type(2)': {
+            overflowY: 'auto !important',
+          },
         }}
         pageSizeOptions={[5, 10, 25]}
         {...props}
@@ -232,7 +261,10 @@ export const ServerDataGrid = <
         // slots={{
         //   noRowsOverlay: CustomNoRowsOverlay,
         // }}
-        onRowSelectionModelChange={(newRowSelectionModel, details: GridCallbackDetails<any>) => {
+        onRowSelectionModelChange={(
+          newRowSelectionModel,
+          details: GridCallbackDetails<any>,
+        ) => {
           setRowSelectionModel(newRowSelectionModel);
         }}
         rowSelectionModel={rowSelectionModel}

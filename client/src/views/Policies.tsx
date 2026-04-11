@@ -21,12 +21,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import invariant from 'tiny-invariant';
 
-import {
-  Collection,
-  POLICY_IMPORT_REQUIRED_HEADERS,
-  StorageFolder,
-  VIEW_QUERY_KEY,
-} from 'common';
+import { Collection, StorageFolder } from '@idemand/common';
+import { POLICY_IMPORT_REQUIRED_HEADERS, VIEW_QUERY_KEY } from 'common';
 import { DownloadStorageFileButton } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { ToggleViewLayout, ToggleViewLayoutProps } from 'components/toggleView';

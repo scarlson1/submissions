@@ -1,10 +1,8 @@
-import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { GeoPoint, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
-  Coordinates,
-  Optional,
   defaultFloodZone,
   ratingDataCollection,
   swissReClientId,
@@ -13,10 +11,10 @@ import {
 } from '../common/index.js';
 import {
   GetAALRes,
-  GetPremiumCalcResult,
   getAALs,
   getComm,
   getPremium,
+  GetPremiumCalcResult,
   validateAALs,
   validateBasement,
   validateFloodZone,
@@ -32,6 +30,8 @@ import {
   Limits,
   PriorLossCount,
   ValueByRiskType,
+  type Coords,
+  type Optional,
 } from '@idemand/common';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims } from './utils/index.js';
@@ -40,7 +40,7 @@ import { requireIDemandAdminClaims } from './utils/index.js';
 // instead of passing data ??
 
 interface GetAnnualPremiumRequest {
-  coordinates: Coordinates;
+  coordinates: Coords;
   replacementCost: number;
   limits: Limits;
   deductible: number;
@@ -64,7 +64,10 @@ export interface GetAnnualPremiumResponse {
   ratingDocId?: string;
 }
 
-const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
+const getAnnualPremium = async ({
+  data,
+  auth,
+}: CallableRequest<GetAnnualPremiumRequest>) => {
   const db = getFirestore();
   info('GET ANNUAL PREMIUM CALLED', data);
 
@@ -220,4 +223,7 @@ const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremium
   return res;
 };
 
-export default onCallWrapper<GetAnnualPremiumRequest>('getAnnualPremium', getAnnualPremium);
+export default onCallWrapper<GetAnnualPremiumRequest>(
+  'getAnnualPremium',
+  getAnnualPremium,
+);

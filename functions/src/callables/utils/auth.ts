@@ -3,9 +3,14 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 // import type { AuthData } from 'firebase-functions/lib/common/providers/https.js';
 import { HttpsError } from 'firebase-functions/v1/auth';
 
-import { AgencyDetails, AgentDetails, NamedInsured } from '@idemand/common';
+import {
+  AgencyDetails,
+  AgentDetails,
+  NamedInsured,
+  type Optional,
+} from '@idemand/common';
 import type { AuthData } from 'firebase-functions/tasks';
-import { Claim, Optional } from '../../common/index.js';
+import { Claim } from '../../common/index.js';
 
 export const hasClaim = (token: DecodedIdToken | undefined, claim: Claim) =>
   token ? token[claim] || false : false;

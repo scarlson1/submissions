@@ -4,16 +4,17 @@ import { QueryFieldFilterConstraint } from 'firebase/firestore';
 import { flatten } from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { Policy, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { Policy } from 'common';
 import { useCollectionData, useFlyToBounds } from 'hooks';
 import {
   CoordObj,
-  TypedPickingInfo,
   getPlaceMarker,
   svgToDataURL,
+  TypedPickingInfo,
 } from 'modules/utils';
-import { DeckMap } from './DeckMap';
 import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
+import { DeckMap } from './DeckMap';
 import { renderPolicyLocationTooltip } from './renderTooltips';
 
 // which scenarios filter via query vs deck.gl filter ??

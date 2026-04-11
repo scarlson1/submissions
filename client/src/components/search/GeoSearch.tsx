@@ -1,9 +1,10 @@
-import { ViewStateChangeParameters } from '@deck.gl/core/controllers/controller';
+// import { ViewStateChangeParameters } from '@deck.gl/core/controllers/controller';
 import algoliasearch from 'algoliasearch/lite';
 import { GeoHit } from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { InstantSearch, SearchBox, useSearchBox } from 'react-instantsearch';
 
+import type { ViewStateChangeParameters } from '@deck.gl/core';
 import { Box } from '@mui/material';
 import {
   FlyToInterpolator,
@@ -56,6 +57,7 @@ export const GeoSearch = () => {
   );
 
   return (
+    // @ts-expect-error
     <InstantSearch searchClient={searchClient} indexName='local_airports'>
       <Box sx={{ my: 4, height: '100%' }}>
         <Box sx={{ pb: 3 }}>
@@ -78,7 +80,7 @@ export function Airports() {
     refine: refineItems,
     currentRefinement,
     clearMapRefinement,
-  } = useGeoSearch<Airport>();
+  } = useGeoSearch<GeoHit<Airport>>();
   const [previousQuery, setPreviousQuery] = useState(query);
   const [skipViewEffect, setSkipViewEffect] = useState(false);
   const [viewState, setViewState] = useState<MapViewState>({

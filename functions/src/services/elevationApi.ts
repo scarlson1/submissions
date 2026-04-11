@@ -1,8 +1,7 @@
+import type { Coords } from '@idemand/common';
 import axios from 'axios';
 import { GeoPoint } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
-
-import { Coordinates } from '../common/index.js';
 
 // API: https://www.gpxz.io/docs
 
@@ -22,7 +21,7 @@ export const getElevationInstance = (apiKey: string) => {
     async (err) => {
       error('gpxz elevation api error: ', err);
       return Promise.reject(err);
-    }
+    },
   );
 
   return submissionsInstance;
@@ -46,7 +45,7 @@ export interface ElevationsRes {
   status: string;
 }
 
-export function getElevation(apiKey: string, coordinates: Coordinates | GeoPoint) {
+export function getElevation(apiKey: string, coordinates: Coords | GeoPoint) {
   const elevationClient = getElevationInstance(apiKey);
 
   return elevationClient
@@ -60,9 +59,14 @@ export function getElevation(apiKey: string, coordinates: Coordinates | GeoPoint
 }
 
 // query format: latlons=46.66,14.03|46.60,14.15
-export function getElevations(apiKey: string, coordinates: (Coordinates | GeoPoint)[]) {
+export function getElevations(
+  apiKey: string,
+  coordinates: (Coords | GeoPoint)[],
+) {
   const elevationClient = getElevationInstance(apiKey);
-  const latlons = coordinates.map((coords) => `${coords.latitude},${coords.longitude}`).join('|');
+  const latlons = coordinates
+    .map((coords) => `${coords.latitude},${coords.longitude}`)
+    .join('|');
 
   return elevationClient
     .get<ElevationsRes>('/points', {

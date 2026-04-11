@@ -7,7 +7,12 @@ import invariant from 'tiny-invariant';
 
 import { User } from 'common';
 import { RHFTextField } from 'components/forms';
-import { useAsyncToast, useDocData, useUpdateDoc, useUpdateProfile } from 'hooks';
+import {
+  useAsyncToast,
+  useDocData,
+  useUpdateDoc,
+  useUpdateProfile,
+} from 'hooks';
 
 // MUI example: https://codesandbox.io/s/react-hook-form-v7-controller-5h1q5?file=/src/Mui.js
 
@@ -56,30 +61,33 @@ export function UserDetailsForm() {
   }, [isSubmitSuccessful, reset, fsUser?.firstName, fsUser?.lastName]);
 
   const { update: updateUserDoc } = useUpdateDoc<User>('users', () =>
-    toast.success('profile updated!')
+    toast.success('profile updated!'),
   );
 
   const { updateProfile } = useUpdateProfile(
     ({ displayName, firstName, lastName }) => {
       return updateUserDoc(user.uid, { displayName, firstName, lastName });
     },
-    (msg) => toast.error(msg)
+    (msg) => toast.error(msg),
   );
 
   const onSubmit: SubmitHandler<UserDetailsInputs> = useCallback(
     async (data) => {
       toast.loading('updating profile...');
 
-      await updateProfile({ firstName: data.firstName, lastName: data.lastName });
+      await updateProfile({
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
     },
-    [toast, updateProfile]
+    [toast, updateProfile],
   );
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
         <Grid xs={6} sm={4} md={5}>
-          <RHFTextField
+          <RHFTextField<UserDetailsInputs, any, UserDetailsInputs>
             control={control}
             name='firstName'
             rules={{ required: true }}

@@ -3,8 +3,9 @@ import { GridActionsColDef, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
 import { useMemo } from 'react';
 
+import { Collection } from '@idemand/common';
 import { ChangeRequest, ServerDataGridCollectionProps } from 'common';
-import { ChangeRequestStatus, Collection } from 'common/enums';
+import { ChangeRequestStatus } from 'common/enums';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useClaims, useWidth } from 'hooks';
 import { changeRequestCols } from 'modules/muiGrid';
@@ -43,9 +44,14 @@ export const ChangeRequestsGrid = ({
     return cols;
   }, [additionalColumns, renderActions, isSmall]);
 
-  const props: Omit<ServerDataGridProps<ChangeRequest>, 'columns'> = useMemo(() => {
+  const props: Omit<
+    ServerDataGridProps<ChangeRequest>,
+    'columns'
+  > = useMemo(() => {
     let queryProps: Omit<ServerDataGridProps<ChangeRequest>, 'columns'>;
-    let constraints: ServerDataGridProps<ChangeRequest>['constraints'] = [...propConstraints];
+    let constraints: ServerDataGridProps<ChangeRequest>['constraints'] = [
+      ...propConstraints,
+    ];
 
     if (policyId) {
       queryProps = {
@@ -93,7 +99,13 @@ export const ChangeRequestsGrid = ({
           },
           filter: {
             filterModel: {
-              items: [{ field: 'status', operator: '!=', value: ChangeRequestStatus.enum.draft }],
+              items: [
+                {
+                  field: 'status',
+                  operator: '!=',
+                  value: ChangeRequestStatus.enum.draft,
+                },
+              ],
             },
           },
           ...(initialState || {}),

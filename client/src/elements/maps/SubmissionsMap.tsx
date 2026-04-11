@@ -15,17 +15,18 @@ import { QueryConstraint, where } from 'firebase/firestore';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // import { DataFilterExtension } from '@deck.gl/extensions';
 
-import { Submission, WithId } from 'common';
+import type { WithId } from '@idemand/common';
+import { Submission } from 'common';
 import { useCollectionData, useFlyToBounds } from 'hooks';
 import {
   CoordObj,
-  TypedPickingInfo,
   getPlaceMarker,
   getRGBAArray,
   svgToDataURL,
+  TypedPickingInfo,
 } from 'modules/utils';
-import { DeckMap } from './DeckMap';
 import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
+import { DeckMap } from './DeckMap';
 import { renderSubmissionTooltip } from './renderTooltips';
 
 // TODO: study how MUI 'slots' works to create component that can add filters, etc.
@@ -124,7 +125,7 @@ export const TestSubmissionsMapWithFilters = ({
   ]);
 
   const filters = useMemo(() => {
-    let filters = [];
+    let filters: QueryConstraint[] = [];
     if (queryConstraints) filters.push(...queryConstraints);
     if (state && state.length > 0) filters.push(where('state', '==', state));
     // if (orgId) filters.push(where('orgId', '==', orgId));

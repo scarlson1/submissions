@@ -1,6 +1,6 @@
-import { AgentDetails, CommSource } from '@idemand/common';
+import { AgentDetails, CommSource, type DeepNullable } from '@idemand/common';
 import invariant from 'tiny-invariant';
-import { DeepNullable, Limits } from '../../common/index.js';
+import { Limits } from '../../common/index.js';
 import {
   validateAddress,
   validateAgentDetails,
@@ -15,7 +15,9 @@ import { CSVTransformedQuote } from '../models/index.js';
  * @param {DeepNullable<Quote>} row formatted row
  * @returns {boolean} returns false if validation fails, otherwise true
  */
-export function validateQuoteRow(row: DeepNullable<CSVTransformedQuote>): boolean {
+export function validateQuoteRow(
+  row: DeepNullable<CSVTransformedQuote>,
+): boolean {
   try {
     validateLimits(row.limits as Limits);
     validateDeductible(row.deductible as number);
@@ -24,7 +26,10 @@ export function validateQuoteRow(row: DeepNullable<CSVTransformedQuote>): boolea
     invariant(row.coordinates, 'latitude & longitude required'); // TODO: use validateCoords() (need to convert to float in transform fn)
     invariant(row.homeState, 'homeState required');
 
-    invariant(typeof row.annualPremium === 'number', 'annualPremium must be a number');
+    invariant(
+      typeof row.annualPremium === 'number',
+      'annualPremium must be a number',
+    );
     invariant(row.annualPremium >= 100, 'annualPremium must be > 100');
 
     // quoteTotal calc after taxes fetched
@@ -47,15 +52,18 @@ export function validateQuoteRow(row: DeepNullable<CSVTransformedQuote>): boolea
     invariant(
       // @ts-ignore
       row.quoteExpirationDate && isDate(row.quoteExpirationDate?.toDate()),
-      'policyEffectiveDate required'
+      'policyEffectiveDate required',
     );
     invariant(
       // @ts-ignore
       row.quotePublishedDate && isDate(row.quotePublishedDate?.toDate()),
-      'policyExpirationDate required'
+      'policyExpirationDate required',
     );
     invariant(row.status, 'missing status');
-    invariant(row?.ratingPropertyData?.priorLossCount, 'missing priorLossCount');
+    invariant(
+      row?.ratingPropertyData?.priorLossCount,
+      'missing priorLossCount',
+    );
     invariant(row.product, 'missing product');
 
     invariant(Array.isArray(row.fees), 'fees must be an array');
@@ -64,26 +72,37 @@ export function validateQuoteRow(row: DeepNullable<CSVTransformedQuote>): boolea
     // TODO: validate prem calc data (techPrem, mgaCommission, AALs)
 
     invariant(
-      row.premCalcData?.MGACommission && typeof row.premCalcData.MGACommission === 'number',
-      'invalid mgaCommission'
+      row.premCalcData?.MGACommission &&
+        typeof row.premCalcData.MGACommission === 'number',
+      'invalid mgaCommission',
     );
     invariant(
-      row.premCalcData?.MGACommissionPct && typeof row.premCalcData.MGACommissionPct === 'number',
-      'invalid mgaCommissionPct'
+      row.premCalcData?.MGACommissionPct &&
+        typeof row.premCalcData.MGACommissionPct === 'number',
+      'invalid mgaCommissionPct',
     );
     invariant(
-      row.premCalcData?.annualPremium && typeof row.premCalcData.annualPremium === 'number',
-      'invalid annualPremium'
+      row.premCalcData?.annualPremium &&
+        typeof row.premCalcData.annualPremium === 'number',
+      'invalid annualPremium',
     );
     invariant(
       row.premCalcData?.techPremium &&
-        Object.values(row.premCalcData.techPremium).every((tp) => typeof tp === 'number'),
-      'invalid tech premium'
+        Object.values(row.premCalcData.techPremium).every(
+          (tp) => typeof tp === 'number',
+        ),
+      'invalid tech premium',
     );
 
-    invariant(row.AALs && Object.values(row.AALs).every((aal) => typeof aal === 'number'));
+    invariant(
+      row.AALs &&
+        Object.values(row.AALs).every((aal) => typeof aal === 'number'),
+    );
 
-    invariant(CommSource.safeParse(row.commSource).success, 'invalid commSource');
+    invariant(
+      CommSource.safeParse(row.commSource).success,
+      'invalid commSource',
+    );
 
     return true;
   } catch (err: any) {
