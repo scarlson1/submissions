@@ -33,6 +33,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import type { Marker } from 'cobe';
 import { Globe } from 'components/Globe';
 import { useAuth } from 'context/AuthContext';
+import type { User } from 'firebase/auth';
 import {
   collection,
   getCountFromServer,
@@ -40,9 +41,10 @@ import {
   Timestamp,
   where,
   type Firestore,
+  type QueryFieldFilterConstraint,
 } from 'firebase/firestore';
 import { useClaims, useCollectionData, useDocCount, useDocData } from 'hooks';
-import { getPoliciesQueryProps } from 'modules/db/query';
+import { getPoliciesQueryProps, getQuoteQueryProps } from 'modules/db/query';
 import { Suspense, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
@@ -1142,11 +1144,20 @@ function LocationsGlobe({ autoRotate }: { autoRotate?: boolean }) {
 
 const tsNow = Timestamp.now();
 
-function ActivePoliciesMetricCard() {
+function ActivePoliciesMetricCard({
+  user,
+  claims,
+}: {
+  user: User;
+  claims: any;
+}) {
   const navigate = useNavigate();
+  const { constraints } = getPoliciesQueryProps(user, claims);
+
   const { data: count } = useDocCount(Collection.enum.policies, [
     where('effectiveDate', '<=', tsNow),
     where('expirationDate', '>=', tsNow),
+    ...constraints,
   ]); // inaccurate - includes policies with effectiveDate > now
   // need to query by bound date to get change from last month
   // or query transactions -- would need to query from firebase function
@@ -1163,27 +1174,33 @@ function ActivePoliciesMetricCard() {
   );
 }
 
-const fetchQuoteCount = async (fs: Firestore) => {
+const fetchQuoteCount = async (
+  fs: Firestore,
+  constraints: QueryFieldFilterConstraint[] = [],
+) => {
   const coll = collection(fs, Collection.enum.quotes);
   const q = query(
     coll,
     where('status', '==', QuoteStatus.enum['awaiting:user']),
     where('quoteExpirationDate', '>=', tsNow),
+    ...constraints,
   );
   const snapshot = await getCountFromServer(q);
   return snapshot.data().count;
 };
 
-function OpenQuotesMetricCard() {
+function OpenQuotesMetricCard({ user, claims }: { user: User; claims: any }) {
   const navigate = useNavigate();
   const firestore = useFirestore();
+  const { constraints } = getQuoteQueryProps(user, claims);
+
   const { data: count } = useSuspenseQuery({
     queryKey: [
       'count',
       'quotes',
       { status: QuoteStatus.enum['awaiting:user'] },
     ],
-    queryFn: () => fetchQuoteCount(firestore),
+    queryFn: () => fetchQuoteCount(firestore, constraints),
     staleTime: 1000 * 60 * 2,
   });
   // const { data: count } = useDocCount(Collection.enum.quotes, [
@@ -1208,6 +1225,7 @@ function OpenQuotesMetricCard() {
 export function AuthenticatedHome() {
   const navigate = useNavigate();
   const { user, claims } = useClaims();
+  invariant(user);
 
   const isAdmin = claims?.iDemandAdmin;
   const isOrgAdmin = claims?.orgAdmin;
@@ -1508,7 +1526,7 @@ export function AuthenticatedHome() {
                 />
               }
             >
-              <ActivePoliciesMetricCard />
+              <ActivePoliciesMetricCard user={user} claims={claims} />
             </Suspense>
           </ErrorBoundary>
         </Grid>
@@ -1534,7 +1552,7 @@ export function AuthenticatedHome() {
                 />
               }
             >
-              <OpenQuotesMetricCard />
+              <OpenQuotesMetricCard user={user} claims={claims} />
             </Suspense>
           </ErrorBoundary>
         </Grid>
