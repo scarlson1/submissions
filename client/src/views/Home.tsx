@@ -1145,9 +1145,9 @@ const tsNow = Timestamp.now();
 function ActivePoliciesMetricCard() {
   const navigate = useNavigate();
   const { data: count } = useDocCount(Collection.enum.policies, [
+    where('effectiveDate', '<=', tsNow),
     where('expirationDate', '>=', tsNow),
-  ]);
-
+  ]); // inaccurate - includes policies with effectiveDate > now
   // need to query by bound date to get change from last month
   // or query transactions -- would need to query from firebase function
 
@@ -1168,7 +1168,7 @@ const fetchQuoteCount = async (fs: Firestore) => {
   const q = query(
     coll,
     where('status', '==', QuoteStatus.enum['awaiting:user']),
-    where('quoteExpirationDate', '>=', Timestamp.fromMillis(Date.now())),
+    where('quoteExpirationDate', '>=', tsNow),
   );
   const snapshot = await getCountFromServer(q);
   return snapshot.data().count;
@@ -1490,12 +1490,24 @@ export function AuthenticatedHome() {
                 label='Active policies'
                 trend={{ value: '-- %', up: true }}
                 sub='vs. last month'
-                delay={0}
                 onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
               />
             }
           >
-            <Suspense>
+            <Suspense
+              fallback={
+                <MetricCard
+                  value='--'
+                  label='Active policies'
+                  trend={{ value: '-- %', up: true }}
+                  sub='vs. last month'
+                  delay={0}
+                  onClick={() =>
+                    navigate(createPath({ path: ROUTES.POLICIES }))
+                  }
+                />
+              }
+            >
               <ActivePoliciesMetricCard />
             </Suspense>
           </ErrorBoundary>
@@ -1508,12 +1520,20 @@ export function AuthenticatedHome() {
                 value='--'
                 label='Open quotes'
                 sub='-- awaiting signature'
-                delay={80}
                 onClick={() => navigate(createPath({ path: ROUTES.QUOTES }))}
               />
             }
           >
-            <Suspense>
+            <Suspense
+              fallback={
+                <MetricCard
+                  value='--'
+                  label='Open quotes'
+                  sub='-- awaiting signature'
+                  delay={80}
+                />
+              }
+            >
               <OpenQuotesMetricCard />
             </Suspense>
           </ErrorBoundary>
