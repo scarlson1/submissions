@@ -212,6 +212,9 @@ app.post('/webhook', async (req: StripeWebhookRequest, res: Response) => {
       const account = event.data.object as Stripe.Account;
       console.log('account updated: ', account);
 
+      // TODO: sync to org doc (only data required data for payouts ??): charges_enabled, company.name, company.address, company.phone, company.tax_id_provided, future_requirements, payouts_enabled, requirements
+      // or query from stripe to ensure accurate data ??
+
       break;
     }
     case 'payout.failed': {
