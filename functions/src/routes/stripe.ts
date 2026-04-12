@@ -1,4 +1,3 @@
-import { usersCollection } from '@idemand/common';
 import axios from 'axios';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
@@ -530,13 +529,14 @@ app.post(
   accountSessionSchema,
   validateRequest,
   async (req: RequestUserAuth, res: Response) => {
+    const accountId = req.body.accountId; // TODO: middleware to require account ID
+    // const type = req.body.type || 'account_onboarding';
+    const types = req.body.type;
+
+    const isMGAAdmin = req.user?.iDemandAdmin && req.user?.email_verified;
+    if (!isMGAAdmin) await verifyUserBelongsToOrg(req, accountId);
+
     try {
-      const accountId = req.body.accountId; // TODO: middleware to require account ID
-      // const type = req.body.type || 'account_onboarding';
-      const types = req.body.type;
-
-      await verifyUserBelongsToOrg(req, accountId);
-
       // payments, payment_details, payouts in beta
       const stripe = getStripe(stripeSecretKey.value());
       const params: Stripe.AccountSessionCreateParams = {
@@ -602,10 +602,16 @@ function extractUserOrg(req: RequestUserAuth) {
 // TODO: move to middleware ??
 async function verifyUserBelongsToOrg(req: RequestUserAuth, accountId: string) {
   const orgId = extractUserOrg(req);
+  console.log('ORG ID: ', orgId);
 
   const orgStripeId = await getAccountId(getFirestore(), orgId);
+  console.log('ORG STRIPE ID: ', orgStripeId);
 
-  if (!orgStripeId || orgStripeId !== accountId) throw new NotAuthorizedError();
+  if (!orgStripeId) throw new Error('org missing Stripe account ID');
+
+  if (req.user?.iDemandAdmin && req.user?.email_verified) return;
+
+  if (orgStripeId !== accountId) throw new NotAuthorizedError();
 }
 
 async function getAccountId(db: Firestore, orgId: string) {
@@ -623,12 +629,12 @@ app.post(
   validateRequest,
   async (req: RequestUserAuth, res: Response) => {
     try {
-      const { orgId, returnUrl } = req.body; // or pass in query param & use get method??
+      const { orgId, returnUrl } = req.body;
 
-      const uid = req.user?.uid;
-      if (!uid) throw new NotAuthorizedError();
-      const userSnap = await usersCollection(getFirestore()).doc(uid).get();
-      if (userSnap.data()?.orgId !== orgId) throw new NotAuthorizedError();
+      const isMGAAdmin = req.user?.iDemandAdmin && req.user?.email_verified;
+      if (!isMGAAdmin) {
+        if (req.tenantId !== orgId) throw new NotAuthorizedError();
+      }
 
       const accountId = await getAccountId(getFirestore(), orgId);
 

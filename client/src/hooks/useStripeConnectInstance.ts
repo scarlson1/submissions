@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import { functionsInstance } from 'api';
+import { logDev } from 'modules/utils';
 
 const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 export type StripeEmbeddedType =
@@ -28,6 +29,7 @@ export function useStripeConnectInstance(
             type,
           },
         );
+        logDev('stripe account session res: ', data);
 
         return data.clientSecret;
       } catch (err: any) {

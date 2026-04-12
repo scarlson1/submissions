@@ -302,6 +302,7 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 ### TODOs
 
 - fix tenant auth redirect (email/user found --> redirect to auth/:tenantId or attempt signin with tenant auth - not working)
+- Org onboarding - check requirements & add onboarding flow -> stripe, etc.
 - documentation
   - agency management (onboarding, permissions)
   - admin - moratorium, active states, licenses, etc.
