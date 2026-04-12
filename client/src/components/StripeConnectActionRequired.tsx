@@ -20,7 +20,6 @@ export const StripeConnectActionRequired = ({ orgId }: { orgId: string }) => {
 
   if (!data) return null;
 
-  console.log('STRIPE ACCOUNT: ', data);
   let actionRequired = true;
   // TODO: check account status
   // let transfers = data?.capabilities?.transfers === 'active'
