@@ -18,7 +18,10 @@ export const useClaims = () => {
   // use id token result hook instead ??
 
   let orgId = orgAdminResult.user?.tenantId || null;
-  if (iDAdminResult.user?.email?.endsWith(env.VITE_MGA_DOMAIN))
+  if (
+    iDAdminResult.user?.email?.endsWith(env.VITE_MGA_DOMAIN) &&
+    iDAdminResult.user.emailVerified
+  )
     orgId = import.meta.env.VITE_MGA_ORG_ID;
 
   return useMemo(

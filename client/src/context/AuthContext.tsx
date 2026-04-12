@@ -22,6 +22,7 @@ import { useUserClaims } from 'hooks';
 import { useTypesenseStore } from 'hooks/useAlgoliaStore';
 import { UserWithClaimsResult } from 'hooks/useUserClaims';
 import { usePrevious } from 'hooks/utils';
+import { logDev } from 'modules/utils';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: new feature: authStateReady - https://firebase.google.com/support/release-notes/js
@@ -68,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     import.meta.env.VITE_FB_PROJECT_ID !== 'idemand-submissions' &&
-      console.log('USER OBS CHANGE: ', userData);
+      logDev('USER OBS CHANGE: ', userData);
   }, [userData]);
 
   const [generateKey, resetKey] = useTypesenseStore((state) => [

@@ -17,6 +17,7 @@ import { matchPath, Outlet, useLocation } from 'react-router-dom';
 
 import { functionsInstance } from 'api';
 import { Organization } from 'common';
+import { ErrorFallback } from 'components/ErrorFallback';
 import { LoadingComponent } from 'components/layout';
 import { LinkTab } from 'components/layout/ConfigLayout';
 import {
@@ -27,6 +28,7 @@ import {
   useStripeConnectInstance,
 } from 'hooks';
 import { logDev } from 'modules/utils';
+import { ErrorBoundary } from 'react-error-boundary';
 import { ROUTES } from 'router';
 import { OrgStripeConnectOnboarding } from './settings/OrgStripeConnectOnboarding';
 
@@ -129,7 +131,6 @@ export function StripeConnectViewsLayout() {
   );
 }
 
-// TODO: need to wrap in require auth and check orgAdmin or iDemand admin
 // use in admin org view (don't want to use current user's org)
 export function StripeConnectViewsLocalTabs({ orgId }: { orgId: string }) {
   const [value, setValue] = useState<'payments' | 'payouts' | 'account'>(
@@ -172,25 +173,26 @@ export function StripeConnectViewsLocalTabs({ orgId }: { orgId: string }) {
           </TabList>
         </Box>
         {/* <Box sx={{ py: { xs: 2, md: 3 } }}> */}
-        <Suspense fallback={<LoadingComponent />}>
-          <StripeConnectComponentWrapper
-            accountId={data.stripeAccountId}
-            type={['payments', 'payouts', 'payment_details']}
-          >
-            <TabPanel value='payments'>
-              <ConnectPayments />
-            </TabPanel>
-            <TabPanel value='payouts'>
-              <ConnectPayouts />
-            </TabPanel>
-            <TabPanel value='account'>
-              {/* <StripeAccountLink
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<LoadingComponent />}>
+            <StripeConnectComponentWrapper
+              accountId={data.stripeAccountId}
+              type={['payments', 'payouts', 'payment_details']}
+            >
+              <TabPanel value='payments'>
+                <ConnectPayments />
+              </TabPanel>
+              <TabPanel value='payouts'>
+                <ConnectPayouts />
+              </TabPanel>
+              <TabPanel value='account'>
+                {/* <StripeAccountLink
                 orgId={orgId}
                 type='account_update'
                 title='Update Stripe Account'
               /> */}
-              <OrgStripeConnectOnboarding orgId={orgId} />
-              {/* <ConnectAccountOnboarding
+                <OrgStripeConnectOnboarding orgId={orgId} />
+                {/* <ConnectAccountOnboarding
                 onExit={() => {
                   console.log('The account has exited onboarding');
                 }}
@@ -200,9 +202,10 @@ export function StripeConnectViewsLocalTabs({ orgId }: { orgId: string }) {
                 // privacyPolicyUrl="{{URL}}"
                 // skipTermsOfServiceCollection={false}
               /> */}
-            </TabPanel>
-          </StripeConnectComponentWrapper>
-        </Suspense>
+              </TabPanel>
+            </StripeConnectComponentWrapper>
+          </Suspense>
+        </ErrorBoundary>
         {/* </Box> */}
       </TabContext>
     </Box>

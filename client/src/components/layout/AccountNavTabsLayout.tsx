@@ -2,6 +2,7 @@ import { Box, Tabs } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
+import { ClaimsGuard } from 'components/ClaimsGuard';
 import { LinkTab } from 'components/layout/ConfigLayout';
 import { ACCOUNT_ROUTES, createPath } from 'router';
 
@@ -20,7 +21,7 @@ export const AccountNavTabsLayout = () => {
       createPath({ path: ACCOUNT_ROUTES.USER_SETTINGS }),
       createPath({ path: ACCOUNT_ROUTES.ORG_SETTINGS }),
     ],
-    []
+    [],
   );
 
   // subpath links are relative --> need to redirect if only /account
@@ -44,7 +45,9 @@ export const AccountNavTabsLayout = () => {
 
   return (
     <Box>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: { xs: 2, md: 3 } }}>
+      <Box
+        sx={{ borderBottom: 1, borderColor: 'divider', mb: { xs: 2, md: 3 } }}
+      >
         <Tabs
           value={value}
           sx={{
@@ -61,8 +64,19 @@ export const AccountNavTabsLayout = () => {
           scrollButtons='auto'
           variant='scrollable'
         >
-          <LinkTab label='User' to={createPath({ path: ACCOUNT_ROUTES.USER_SETTINGS })} />
-          <LinkTab label='Org' to={createPath({ path: ACCOUNT_ROUTES.ORG_SETTINGS })} />
+          <LinkTab
+            label='User'
+            to={createPath({ path: ACCOUNT_ROUTES.USER_SETTINGS })}
+          />
+          <ClaimsGuard
+            requiredClaims={['iDemandAdmin', 'orgAdmin']}
+            requireAll={false}
+          >
+            <LinkTab
+              label='Org'
+              to={createPath({ path: ACCOUNT_ROUTES.ORG_SETTINGS })}
+            />
+          </ClaimsGuard>
         </Tabs>
       </Box>
       <Outlet />

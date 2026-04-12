@@ -6,7 +6,6 @@ import {
 } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { QueryFieldFilterConstraint, where } from 'firebase/firestore';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,8 +19,8 @@ import {
 import { QuoteCards } from 'elements';
 import { QuotesGrid } from 'elements/grids';
 import { QuotesMap } from 'elements/maps';
-import { User } from 'firebase/auth';
 import { DataViewType, TDataViewType, useClaims } from 'hooks';
+import { getQuoteQueryProps } from 'modules/db/query';
 import { createPath, ROUTES } from 'router';
 import invariant from 'tiny-invariant';
 import { Quotes as AdminQuotes, AdminQuotesActionMenu } from './admin/Quotes';
@@ -56,46 +55,16 @@ function getLayoutProps(claims: {
   return props;
 }
 
-function getQueryProps(
-  user: User,
-  claims: {
-    iDemandAdmin: boolean;
-    orgAdmin: boolean;
-    agent: boolean;
-  },
-): { constraints: QueryFieldFilterConstraint[] } {
-  let props: { constraints: QueryFieldFilterConstraint[] } = {
-    constraints: [],
-  };
-  if (claims?.iDemandAdmin) {
-    props = {
-      constraints: [],
-    };
-  } else if (claims?.orgAdmin && user.tenantId) {
-    props = {
-      // TODO: uncomment once verifying org ID is set on all quotes
-      // constraints: [where('agency.orgId', '==', `${user.tenantId}`)],
-      constraints: [where('agent.userId', '==', `${user?.uid}`)],
-    };
-  } else if (claims?.agent) {
-    props = {
-      constraints: [where('agent.userId', '==', `${user?.uid}`)],
-    };
-  } else {
-    props = {
-      constraints: [where('userId', '==', user.uid)],
-    };
-  }
-  return props;
-}
-
 export const Quotes = () => {
   const navigate = useNavigate();
   const { claims, user } = useClaims();
   invariant(user); // already wrapped in <RequireAuthReactFire />
 
   const layoutProps = useMemo(() => getLayoutProps(claims), [claims]);
-  const queryProps = useMemo(() => getQueryProps(user, claims), [user, claims]);
+  const queryProps = useMemo(
+    () => getQuoteQueryProps(user, claims),
+    [user, claims],
+  );
 
   const handleViewQuote = useCallback(
     (quoteId: string) => {
