@@ -3,9 +3,7 @@ import {
   MapRounded,
   TableRowsRounded,
 } from '@mui/icons-material';
-import { Button, Card } from '@mui/material';
-import { User } from 'firebase/auth';
-import { QueryFieldFilterConstraint, where } from 'firebase/firestore';
+import { alpha, Button, Card, type Theme } from '@mui/material';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import invariant from 'tiny-invariant';
@@ -17,41 +15,9 @@ import { SubmissionCards } from 'elements/cards';
 import { SubmissionsGrid } from 'elements/grids';
 import { SubmissionsMap } from 'elements/maps';
 import { DataViewType, TDataViewType, useClaims, useWidth } from 'hooks';
+import { getSubmissionQueryProps } from 'modules/db/query';
 import { createPath, ROUTES } from 'router';
 import { AdminSubmissionsGrid } from './admin/AdminSubmissionsGrid';
-
-function getQueryProps(
-  user: User,
-  claims: {
-    iDemandAdmin: boolean;
-    orgAdmin: boolean;
-    agent: boolean;
-  },
-): { constraints: QueryFieldFilterConstraint[] } {
-  let props: { constraints: QueryFieldFilterConstraint[] } = {
-    constraints: [],
-  };
-  if (claims?.iDemandAdmin) {
-    props = {
-      constraints: [],
-    };
-  } else if (claims?.orgAdmin && user.tenantId) {
-    props = {
-      // TODO: uncomment once verifying org ID is set on all quotes
-      // constraints: [where('agency.orgId', '==', `${user.tenantId}`)],
-      constraints: [where('agent.userId', '==', `${user?.uid}`)],
-    };
-  } else if (claims?.agent) {
-    props = {
-      constraints: [where('agent.userId', '==', `${user?.uid}`)],
-    };
-  } else {
-    props = {
-      constraints: [where('userId', '==', user.uid)],
-    };
-  }
-  return props;
-}
 
 export const Submissions = () => {
   const navigate = useNavigate();
@@ -59,7 +25,10 @@ export const Submissions = () => {
   invariant(user);
   const { isMobile } = useWidth();
 
-  const queryProps = useMemo(() => getQueryProps(user, claims), [user, claims]);
+  const queryProps = useMemo(
+    () => getSubmissionQueryProps(user, claims),
+    [user, claims],
+  );
 
   return (
     <ToggleViewLayout<TDataViewType>
@@ -91,7 +60,18 @@ export const Submissions = () => {
           {isMobile ? 'New' : 'New Submission'}
         </Button>
       }
-      headerContainerSx={{ pb: { xs: 2, sm: 3, lg: 4 } }}
+      headerContainerSx={{
+        pb: { xs: 2, sm: 3, lg: 4 },
+        position: 'sticky',
+        top: 10,
+        zIndex: 1,
+        pt: { xs: 2, sm: 3 },
+        // bgcolor: 'background.default',
+        backgroundColor: (theme) =>
+          alpha((theme as Theme).palette.background.default, 0.75),
+        borderRadius: 1,
+        backdropFilter: 'blur(10px)',
+      }}
     >
       <ToggleViewPanel value={DataViewType.Enum.cards}>
         <SubmissionCards {...queryProps} />

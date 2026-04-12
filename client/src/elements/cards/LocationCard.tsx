@@ -147,14 +147,26 @@ export const LocationCard = ({
                       key={namedInsured.email}
                     >
                       {/* <Avatar src={f.img} alt={p.namedInsured.firstName} /> */}
-                      <Avatar alt={namedInsured.displayName || 'i d'} />
+                      <Avatar
+                        alt={namedInsured.displayName || 'i d'}
+                        sx={{
+                          width: { xs: 30, md: 36 },
+                          height: { xs: 30, md: 36 },
+                        }}
+                      />
                     </Tooltip>
                   ) : null}
                   {location?.additionalInsureds?.length
                     ? location.additionalInsureds.map((f, i) => (
                         <Tooltip title={`${f?.name}`} key={`${f.email}-${i}`}>
                           {/* <Avatar src={f.img} alt={f.name} />  */}
-                          <Avatar alt={`${f.email}-${i}`} />
+                          <Avatar
+                            alt={`${f.email}-${i}`}
+                            sx={{
+                              width: { xs: 30, md: 36 },
+                              height: { xs: 30, md: 36 },
+                            }}
+                          />
                         </Tooltip>
                       ))
                     : null}
