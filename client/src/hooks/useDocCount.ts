@@ -1,6 +1,7 @@
 import { ReactFireOptions, useFirestore, useObservable } from 'reactfire';
 // collectionCount not exported error
 // import { collectionCount } from 'rxfire/firestore';
+import type { Collection } from '@idemand/common';
 import {
   collection,
   collectionGroup,
@@ -31,7 +32,7 @@ export function collectionCount(query: Query<unknown>): Observable<number> {
 }
 
 export const useDocCount = (
-  colName: string,
+  colName: Collection,
   constraints: QueryFieldFilterConstraint[] = [],
   isCollectionGroup: boolean = false,
   pathSegments: string[] = [],
@@ -42,12 +43,9 @@ export const useDocCount = (
   let path = `${colName}`;
   if (pathSegments.length) path += `/${pathSegments.join('/')}`;
 
-  let colRef;
-  if (!!isCollectionGroup) {
-    colRef = collectionGroup(firestore, path);
-  } else {
-    colRef = collection(firestore, path);
-  }
+  let colRef = isCollectionGroup
+    ? collectionGroup(firestore, path)
+    : collection(firestore, path);
 
   const q = query(colRef, ...constraints);
 

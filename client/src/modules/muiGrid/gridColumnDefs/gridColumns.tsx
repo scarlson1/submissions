@@ -393,6 +393,29 @@ export const updatedCol: GridColDef = {
   },
 };
 
+export const quoteExpirationCol: GridColDef = {
+  field: 'quoteExpirationDate',
+  headerName: 'Quote Expiration',
+  type: 'date',
+  minWidth: 160,
+  flex: 0.6,
+  editable: false,
+  // disableExport: true,
+  filterOperators: getGridFirestoreDateOperators(),
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.quoteExpirationDate || null,
+  // valueFormatter: formatGridFirestoreTimestamp,
+  valueFormatter: formatGridFirestoreTimestampAsDate,
+  renderCell: (params: GridRenderCellParams<any, any, any>) => {
+    if (!(params.value && params.value.seconds)) return null;
+    return (
+      <Typography variant='body2' color='text.secondary'>
+        {formatFirestoreTimestamp(params.value)}
+      </Typography>
+    );
+  },
+};
+
 export const orgNameCol: GridColDef = {
   field: 'orgName',
   headerName: 'Org Name',
