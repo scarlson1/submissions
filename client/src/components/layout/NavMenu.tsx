@@ -1,6 +1,13 @@
 import { useState } from 'react';
 
-import { Box, Button, ButtonProps, ClickAwayListener, List, Popper } from '@mui/material';
+import {
+  Box,
+  Button,
+  ButtonProps,
+  ClickAwayListener,
+  List,
+  Popper,
+} from '@mui/material';
 // import { useSpring, animated } from '@react-spring/web';
 
 export interface NavMenuProps {
@@ -19,7 +26,12 @@ export interface NavMenuProps {
   // children?: React.ReactNode;
 }
 
-export const NavMenu = ({ btnTitle = 'open', btnProps, items, renderItem }: NavMenuProps) => {
+export const NavMenu = ({
+  btnTitle = 'open',
+  btnProps,
+  items,
+  renderItem,
+}: NavMenuProps) => {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -39,7 +51,12 @@ export const NavMenu = ({ btnTitle = 'open', btnProps, items, renderItem }: NavM
       <Button aria-describedby={id} onClick={handleClick} {...btnProps}>
         {btnTitle}
       </Button>
-      <Popper id={id} open={open} anchorEl={anchorEl} sx={{ zIndex: 1000 }}>
+      <Popper
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        sx={{ zIndex: (theme) => theme.zIndex.appBar }}
+      >
         {/* {({ TransitionProps }) => (
           <Fade {...TransitionProps}> */}
         <ClickAwayListener onClickAway={handleClose}>
