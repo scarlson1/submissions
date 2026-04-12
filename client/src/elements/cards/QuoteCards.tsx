@@ -1,6 +1,6 @@
 import { LoadingButton } from '@mui/lab';
 import { Unstable_Grid2 as Grid, Typography } from '@mui/material';
-import { QueryFieldFilterConstraint, orderBy } from 'firebase/firestore';
+import { orderBy, QueryFieldFilterConstraint } from 'firebase/firestore';
 import { Fragment, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
@@ -15,12 +15,17 @@ interface QuoteCardsProps extends Omit<QuoteCardProps, 'data'> {
   pageSize?: number;
 }
 
-export const QuoteCards = ({ constraints, pageSize, ...props }: QuoteCardsProps) => {
+export const QuoteCards = ({
+  constraints,
+  pageSize,
+  ...props
+}: QuoteCardsProps) => {
   const { ref, inView } = useInView();
-  const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteDocs<Quote>(
-    'quotes',
-    [...constraints, orderBy('metadata.created', 'desc')]
-  );
+  const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteDocs<Quote>('quotes', [
+      ...constraints,
+      orderBy('metadata.created', 'desc'),
+    ]);
 
   useEffect(() => {
     if (!hasNextPage) return;
@@ -36,8 +41,8 @@ export const QuoteCards = ({ constraints, pageSize, ...props }: QuoteCardsProps)
         container
         rowSpacing={6}
         columnSpacing={8}
-        maxHeight={{ xs: 420, sm: 500, md: 800 }}
-        sx={{ overflowY: 'auto' }}
+        // maxHeight={{ xs: 420, sm: 500, md: 800 }}
+        // sx={{ overflowY: 'auto' }}
       >
         {data?.pages.map((group, i) => (
           <Fragment key={`quote-card-group-${i}`}>
@@ -58,8 +63,8 @@ export const QuoteCards = ({ constraints, pageSize, ...props }: QuoteCardsProps)
             {isFetchingNextPage
               ? 'Loading more...'
               : hasNextPage
-              ? 'Load more'
-              : 'All items loaded'}
+                ? 'Load more'
+                : 'All items loaded'}
           </LoadingButton>
         </Grid>
       </Grid>

@@ -8,12 +8,14 @@ import {
 import {
   Alert,
   AlertTitle,
+  alpha,
   Box,
   Collapse,
   Container,
   Link,
   MenuItem,
   Typography,
+  type Theme,
 } from '@mui/material';
 import { UploadResult } from 'firebase/storage';
 import { camelCase } from 'lodash';
@@ -118,7 +120,18 @@ export const Policies = () => {
         isFetchingOptions={{
           queryKey: [`infinite-${Collection.Enum.policies}`],
         }}
-        headerContainerSx={{ pb: { xs: 2, sm: 3, lg: 4 } }}
+        headerContainerSx={{
+          pb: { xs: 2, sm: 3, lg: 4 },
+          position: 'sticky',
+          top: 10,
+          zIndex: 1,
+          pt: { xs: 2, sm: 3 },
+          // bgcolor: 'background.default',
+          backgroundColor: (theme) =>
+            alpha((theme as Theme).palette.background.default, 0.75),
+          borderRadius: 1,
+          backdropFilter: 'blur(10px)',
+        }}
         {...layoutProps}
       >
         <ToggleViewPanel value={DataViewType.Enum.cards}>

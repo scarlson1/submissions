@@ -1,6 +1,7 @@
 import { ExpandMoreRounded } from '@mui/icons-material';
 import {
   Card,
+  CardActionArea,
   CardActions,
   CardContent,
   CardMedia,
@@ -17,6 +18,8 @@ import {
   formatFirestoreTimestamp,
   numberFormat,
 } from 'modules/utils';
+import { Link } from 'react-router-dom';
+import { createPath, ROUTES } from 'router';
 import { Item } from '.';
 import { ExpandMoreButton } from './ExpandMoreButton';
 
@@ -34,7 +37,7 @@ export function SubmissionCard({
   return (
     <Card
       sx={{
-        maxWidth: 340,
+        maxWidth: 400,
         boxShadow: '0 8px 40px -12px rgba(0,0,0,0.3)',
         '&:hover': {
           boxShadow: '0 16px 70px -12.125px rgba(0,0,0,0.3)',
@@ -44,38 +47,46 @@ export function SubmissionCard({
       variant='elevation'
       raised
     >
-      <CardMedia
-        sx={{ height: 140 }}
-        // image={fallbackImages[i] || fallbackImages[0]}
-        image={s?.imageURLs?.satellite || fallbackImages[0]}
-        title={`${s.address?.addressLine1} map`}
-      />
-      <CardContent sx={{ p: 5 }}>
-        <Typography fontWeight={900} fontSize={24} gutterBottom>
-          {s.address?.addressLine1}
-        </Typography>
-        <Item
-          label='Building Coverage'
-          value={dollarFormat(s.limits?.limitA)}
+      <CardActionArea
+        component={Link}
+        to={createPath({
+          path: ROUTES.SUBMISSION_VIEW,
+          params: { submissionId: s.id },
+        })}
+      >
+        <CardMedia
+          sx={{ height: 140 }}
+          // image={fallbackImages[i] || fallbackImages[0]}
+          image={s?.imageURLs?.satellite || fallbackImages[0]}
+          title={`${s.address?.addressLine1} map`}
         />
-        <Item
-          label='Other Structures Coverage'
-          value={dollarFormat(s.limits?.limitB)}
-        />
-        <Item
-          label='Contents Coverage'
-          value={dollarFormat(s.limits?.limitC)}
-        />
-        <Item
-          label='Additional Expenses Coverage'
-          value={dollarFormat(s.limits?.limitD)}
-        />
-        <Item
-          label='Submitted'
-          value={formatFirestoreTimestamp(s.metadata.created)}
-          containerSx={{ pt: 2 }}
-        />
-      </CardContent>
+        <CardContent sx={{ p: 5 }}>
+          <Typography fontWeight={900} fontSize={24} gutterBottom>
+            {s.address?.addressLine1}
+          </Typography>
+          <Item
+            label='Building Coverage'
+            value={dollarFormat(s.limits?.limitA)}
+          />
+          <Item
+            label='Other Structures Coverage'
+            value={dollarFormat(s.limits?.limitB)}
+          />
+          <Item
+            label='Contents Coverage'
+            value={dollarFormat(s.limits?.limitC)}
+          />
+          <Item
+            label='Additional Expenses Coverage'
+            value={dollarFormat(s.limits?.limitD)}
+          />
+          <Item
+            label='Submitted'
+            value={formatFirestoreTimestamp(s.metadata.created)}
+            containerSx={{ pt: 2 }}
+          />
+        </CardContent>
+      </CardActionArea>
       <CardActions
         disableSpacing
         sx={{ borderTop: (theme) => `1px solid ${theme.vars.palette.divider}` }}

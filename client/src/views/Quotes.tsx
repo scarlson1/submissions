@@ -4,7 +4,7 @@ import {
   TableRowsRounded,
   VisibilityRounded,
 } from '@mui/icons-material';
-import { Tooltip } from '@mui/material';
+import { alpha, Tooltip, type Theme } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -110,7 +110,18 @@ export const Quotes = () => {
         map: <MapRounded />,
       }}
       isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.policies}`] }}
-      headerContainerSx={{ pb: { xs: 2, sm: 3, lg: 4 } }}
+      headerContainerSx={{
+        pb: { xs: 2, sm: 3, lg: 4 },
+        position: 'sticky',
+        top: 10,
+        zIndex: 1,
+        pt: { xs: 2, sm: 3 },
+        // bgcolor: 'background.default',
+        backgroundColor: (theme) =>
+          alpha((theme as Theme).palette.background.default, 0.75),
+        borderRadius: 1,
+        backdropFilter: 'blur(10px)',
+      }}
       {...layoutProps}
     >
       <ToggleViewPanel value={DataViewType.Enum.cards}>

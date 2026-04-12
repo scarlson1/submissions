@@ -111,7 +111,7 @@ service cloud.firestore {
       let policyData = policy.data;
 
       return (
-      	isUser(policyData.get('userId', null)) 
+      	isUser(policyData.get('userId', null))
         || isUser(policyData.get(['namedInsured','userId'], null))
         || isUser(policyData.get(['agency', 'userId'], null)) 
         || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId'], null)))
@@ -147,7 +147,6 @@ service cloud.firestore {
       }
     }
 
-    // 
     function locationTypeRule(subRule, quoteRule, policyRule) {
       let parentType = existingData().parentType;
       return (
