@@ -1,4 +1,9 @@
-import type { Policy, Product } from '@idemand/common';
+import {
+  Collection,
+  QuoteStatus,
+  type Policy,
+  type Product,
+} from '@idemand/common';
 import {
   ArrowForwardRounded,
   AutorenewRounded,
@@ -24,14 +29,24 @@ import {
   Typography,
 } from '@mui/material';
 import { keyframes, lighten, useTheme } from '@mui/material/styles';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import type { Marker } from 'cobe';
 import { Globe } from 'components/Globe';
 import { useAuth } from 'context/AuthContext';
-import { useClaims, useCollectionData, useDocData } from 'hooks';
+import {
+  collection,
+  getCountFromServer,
+  query,
+  Timestamp,
+  where,
+  type Firestore,
+} from 'firebase/firestore';
+import { useClaims, useCollectionData, useDocCount, useDocData } from 'hooks';
 import { getPoliciesQueryProps } from 'modules/db/query';
 import { Suspense, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
+import { useFirestore } from 'reactfire';
 import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 import invariant from 'tiny-invariant';
 
@@ -1125,6 +1140,69 @@ function LocationsGlobe({ autoRotate }: { autoRotate?: boolean }) {
   return <Globe markers={markers} autoRotate={autoRotate} />;
 }
 
+const tsNow = Timestamp.now();
+
+function ActivePoliciesMetricCard() {
+  const navigate = useNavigate();
+  const { data: count } = useDocCount(Collection.enum.policies, [
+    where('expirationDate', '>=', tsNow),
+  ]);
+
+  // need to query by bound date to get change from last month
+  // or query transactions -- would need to query from firebase function
+
+  return (
+    <MetricCard
+      value={String(count)}
+      label='Active policies'
+      trend={{ value: '+12%', up: true }}
+      sub='vs. last month'
+      delay={0}
+      onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
+    />
+  );
+}
+
+const fetchQuoteCount = async (fs: Firestore) => {
+  const coll = collection(fs, Collection.enum.quotes);
+  const q = query(
+    coll,
+    where('status', '==', QuoteStatus.enum['awaiting:user']),
+    where('quoteExpirationDate', '>=', Timestamp.fromMillis(Date.now())),
+  );
+  const snapshot = await getCountFromServer(q);
+  return snapshot.data().count;
+};
+
+function OpenQuotesMetricCard() {
+  const navigate = useNavigate();
+  const firestore = useFirestore();
+  const { data: count } = useSuspenseQuery({
+    queryKey: [
+      'count',
+      'quotes',
+      { status: QuoteStatus.enum['awaiting:user'] },
+    ],
+    queryFn: () => fetchQuoteCount(firestore),
+    staleTime: 1000 * 60 * 2,
+  });
+  // const { data: count } = useDocCount(Collection.enum.quotes, [
+  //   where('status', '==', QuoteStatus.enum['awaiting:user']),
+  //   where('quoteExpirationDate', '<=', tsNow),
+  // ]);
+
+  return (
+    <MetricCard
+      value={String(count)}
+      label='Open quotes'
+      // sub='8 awaiting signature'
+      sub='awaiting user'
+      delay={80}
+      onClick={() => navigate(createPath({ path: ROUTES.QUOTES }))}
+    />
+  );
+}
+
 // ─── AUTHENTICATED DASHBOARD ──────────────────────────────────────────────────
 // TODO: Replace placeholder data
 export function AuthenticatedHome() {
@@ -1202,7 +1280,6 @@ export function AuthenticatedHome() {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap');`}</style>
 
       {/* Header bar — full bleed */}
-      {/* TODO: add gradient to theme */}
       {/* light: {
       palette: {
         gradient: {
@@ -1263,8 +1340,9 @@ export function AuthenticatedHome() {
             alignItems={{ sm: 'center' }}
             justifyContent='space-between'
             gap={3}
+            sx={{ '& > *': { zIndex: 2 } }}
           >
-            <Box>
+            <Box sx={{ '& > *': { zIndex: 2 } }}>
               <Stack
                 direction='row'
                 alignItems='center'
@@ -1367,61 +1445,78 @@ export function AuthenticatedHome() {
               New quote
             </Button>
           </Stack>
+          {/* TODO: uncomment once user's locations are fetched -> pass as markers */}
+          <ErrorBoundary fallback={null}>
+            <Suspense fallback={null}>
+              <Box
+                sx={{
+                  // height: { xs: 240, sm: 320, md: 400 },
+                  // width: { xs: 240, sm: 320, md: 400 },
+                  // ml: 'auto',
+                  // position: 'absolute',
+                  // right: 0,
+                  // top: '40px',
+                  // zIndex: 1,
+                  position: 'absolute',
+                  right: '0',
+                  top: {
+                    xs: '40px',
+                    sm: '60px',
+                    md: '100px',
+                    lg: '160px',
+                    xl: '200px',
+                  },
+                  height: '100%',
+                  width: { xs: 300, sm: 360, md: 450, lg: 600, xl: 680 },
+                  zIndex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <LocationsGlobe autoRotate={true} />
+              </Box>
+            </Suspense>
+          </ErrorBoundary>
         </Container>
-        {/* TODO: uncomment once user's locations are fetched -> pass as markers */}
-        <ErrorBoundary fallback={null}>
-          <Suspense fallback={null}>
-            <Box
-              sx={{
-                // height: { xs: 240, sm: 320, md: 400 },
-                // width: { xs: 240, sm: 320, md: 400 },
-                // ml: 'auto',
-                // position: 'absolute',
-                // right: 0,
-                // top: '40px',
-                // zIndex: 1,
-                position: 'absolute',
-                right: '0',
-                top: {
-                  xs: '40px',
-                  sm: '60px',
-                  md: '100px',
-                  lg: '160px',
-                  xl: '200px',
-                },
-                height: '100%',
-                width: { xs: 300, sm: 360, md: 450, lg: 600, xl: 680 },
-                zIndex: 1,
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              <LocationsGlobe autoRotate={true} />
-            </Box>
-          </Suspense>
-        </ErrorBoundary>
       </FullBleed>
 
       {/* Metrics row */}
       <Grid container spacing={2.5} sx={{ mb: { xs: 5, md: 6 } }}>
         <Grid xs={6} md={isPowerUser ? 3 : 4}>
-          <MetricCard
-            value='148'
-            label='Active policies'
-            trend={{ value: '+12%', up: true }}
-            sub='vs. last month'
-            delay={0}
-            onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
-          />
+          <ErrorBoundary
+            fallback={
+              <MetricCard
+                value='--'
+                label='Active policies'
+                trend={{ value: '-- %', up: true }}
+                sub='vs. last month'
+                delay={0}
+                onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
+              />
+            }
+          >
+            <Suspense>
+              <ActivePoliciesMetricCard />
+            </Suspense>
+          </ErrorBoundary>
         </Grid>
+        {/* TODO: query quote count */}
         <Grid xs={6} md={isPowerUser ? 3 : 4}>
-          <MetricCard
-            value='23'
-            label='Open quotes'
-            sub='8 awaiting signature'
-            delay={80}
-            onClick={() => navigate(createPath({ path: ROUTES.QUOTES }))}
-          />
+          <ErrorBoundary
+            fallback={
+              <MetricCard
+                value='--'
+                label='Open quotes'
+                sub='-- awaiting signature'
+                delay={80}
+                onClick={() => navigate(createPath({ path: ROUTES.QUOTES }))}
+              />
+            }
+          >
+            <Suspense>
+              <OpenQuotesMetricCard />
+            </Suspense>
+          </ErrorBoundary>
         </Grid>
         {isPowerUser && (
           <Grid xs={6} md={3}>
