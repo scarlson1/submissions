@@ -1,15 +1,20 @@
 import { FirebaseError } from 'firebase/app';
-import { GeoPoint, Timestamp, addDoc } from 'firebase/firestore';
+import { addDoc, GeoPoint, Timestamp } from 'firebase/firestore';
 import { useCallback, useState } from 'react';
 import { useFirestore, useUser } from 'reactfire';
 
-import { AgencyApplication, AgencySubmissionStatus, TOrgType, agencyAppCollection } from 'common';
+import type { OrgType } from '@idemand/common';
+import {
+  agencyAppCollection,
+  AgencyApplication,
+  AgencySubmissionStatus,
+} from 'common';
 import { useUploadStorageFiles } from 'hooks';
 import { AgencyAppValues } from 'views/AgencyNew';
 
 export const useCreateAgencySubmission = (
   onSuccess?: (subId: string) => void,
-  onError?: (msg: string, err: unknown) => void
+  onError?: (msg: string, err: unknown) => void,
 ) => {
   const { data: user } = useUser();
   const firestore = useFirestore();
@@ -17,12 +22,19 @@ export const useCreateAgencySubmission = (
   const { uploadFiles } = useUploadStorageFiles('newAgencySubmissions');
 
   const handleSubmission = useCallback(
-    async (values: AgencyAppValues & { type?: TOrgType }, sendNotifications: boolean = true) => {
+    async (
+      values: AgencyAppValues & { type?: OrgType },
+      sendNotifications: boolean = true,
+    ) => {
       setError(null);
       try {
         if (!values.EandO || typeof values.EandO === 'string')
           throw new Error('Error uploading E&O');
-        const uploadResult = await uploadFiles(values.EandO, {}, `EandO_${values.orgName}_`);
+        const uploadResult = await uploadFiles(
+          values.EandO,
+          {},
+          `EandO_${values.orgName}_`,
+        );
         console.log('uploadResult: ', uploadResult);
 
         let agencyAppData: AgencyApplication = {
@@ -48,7 +60,10 @@ export const useCreateAgencySubmission = (
           status: AgencySubmissionStatus.enum.submitted,
           coordinates:
             values.coordinates?.latitude && values.coordinates?.longitude
-              ? new GeoPoint(values.coordinates.latitude, values.coordinates.longitude)
+              ? new GeoPoint(
+                  values.coordinates.latitude,
+                  values.coordinates.longitude,
+                )
               : null,
           sendAppReceivedNotification: sendNotifications,
           submittedByUserId: user?.uid || null,
@@ -58,7 +73,10 @@ export const useCreateAgencySubmission = (
           },
         };
 
-        const docRef = await addDoc(agencyAppCollection(firestore), agencyAppData);
+        const docRef = await addDoc(
+          agencyAppCollection(firestore),
+          agencyAppData,
+        );
 
         if (onSuccess) onSuccess(docRef.id);
 
@@ -73,7 +91,7 @@ export const useCreateAgencySubmission = (
         if (onError) onError(msg, err);
       }
     },
-    [uploadFiles, onSuccess, onError, firestore, user]
+    [uploadFiles, onSuccess, onError, firestore, user],
   );
 
   return { handleSubmission, error };

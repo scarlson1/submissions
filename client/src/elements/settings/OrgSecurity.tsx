@@ -1,11 +1,19 @@
 import { CloseRounded, EditRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Box, Collapse, IconButton, Paper, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Collapse,
+  IconButton,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { Form, Formik, FormikConfig, FormikHelpers } from 'formik';
 import { useCallback, useState } from 'react';
 import { array, boolean, object, string } from 'yup';
 
-import { Organization, OrganizationZ } from 'common';
+import type { Organization } from '@idemand/common';
+import { Organization as OrganizationZ } from '@idemand/common';
 import { FormikFieldArray, FormikSwitch } from 'components/forms';
 import { useAsyncToast, useClaims, useDocData, useUpdateDoc } from 'hooks';
 import { logDev } from 'modules/utils';
@@ -22,7 +30,7 @@ const validation = object().shape({
         .of(
           string()
             .required('domain required')
-            .matches(domainRegex, 'invalid domain. format: @xxx.yyy')
+            .matches(domainRegex, 'invalid domain. format: @xxx.yyy'),
         ),
     otherwise: () => array().notRequired(),
   }),
@@ -54,11 +62,14 @@ export const OrgSecurity = () => {
     },
     (msg) => {
       toast.error(msg);
-    }
+    },
   );
 
   const handleUpdateOrg = useCallback(
-    (values: OrgSecurityValues, { setSubmitting }: FormikHelpers<OrgSecurityValues>) => {
+    (
+      values: OrgSecurityValues,
+      { setSubmitting }: FormikHelpers<OrgSecurityValues>,
+    ) => {
       // not necessary ?? move zod validation to form ?? or be confident yup matches ??
       if (!OrganizationZ.partial().safeParse(values).success) {
         toast.error('validation failed');
@@ -68,7 +79,7 @@ export const OrgSecurity = () => {
       }
       return updateOrg(orgId, values);
     },
-    [updateOrg, orgId]
+    [updateOrg, orgId],
   );
 
   // const handleUpdateOrg = useCallback(
@@ -105,7 +116,13 @@ export const OrgSecurity = () => {
         </Box>
       ) : (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <Typography variant='subtitle1' gutterBottom>
               Org Security Settings
             </Typography>
@@ -135,17 +152,23 @@ export const OrgSecurity = () => {
               <Box sx={{ flex: '0 0 auto' }}>
                 <Typography
                   color={
-                    org.emailDomains && org.enforceDomainRestriction ? 'success.light' : 'grey.main'
+                    org.emailDomains && org.enforceDomainRestriction
+                      ? 'success.light'
+                      : 'grey.main'
                   }
                   align='right'
                 >
-                  {org.emailDomains && org.enforceDomainRestriction ? 'enabled' : 'disabled'}
+                  {org.emailDomains && org.enforceDomainRestriction
+                    ? 'enabled'
+                    : 'disabled'}
                 </Typography>
 
                 {org.enforceDomainRestriction && org.emailDomains?.length ? (
                   <Typography variant='body2' align='right'>
                     {`${org.emailDomains[0]} ${
-                      org.emailDomains.length > 1 ? `+${org.emailDomains.length - 1} more` : ''
+                      org.emailDomains.length > 1
+                        ? `+${org.emailDomains.length - 1} more`
+                        : ''
                     }`.trim()}
                   </Typography>
                 ) : null}
@@ -183,7 +206,13 @@ function EditOrgSecurityForm({ exitEditMode, ...props }: EditOrgSecurityForm) {
         setFieldTouched,
       }) => (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <Typography variant='subtitle1' gutterBottom>
               Org Security Settings
             </Typography>
@@ -222,7 +251,11 @@ function EditOrgSecurityForm({ exitEditMode, ...props }: EditOrgSecurityForm) {
                 <Box sx={{ display: 'flex', flexWrap: 'nowrap' }}>
                   <Box sx={{ flex: '1 1 auto' }}>
                     <Typography>Domain restriction</Typography>
-                    <Typography variant='body2' color='text.secondary' gutterBottom>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      gutterBottom
+                    >
                       Enforce email domain for new users in your organization.
                     </Typography>
                   </Box>
@@ -230,7 +263,10 @@ function EditOrgSecurityForm({ exitEditMode, ...props }: EditOrgSecurityForm) {
                     <FormikSwitch
                       name='enforceDomainRestriction'
                       label=''
-                      formControlLabelProps={{ componentsProps: {}, sx: { mr: 0 } }}
+                      formControlLabelProps={{
+                        componentsProps: {},
+                        sx: { mr: 0 },
+                      }}
                     />
                   </Box>
                 </Box>

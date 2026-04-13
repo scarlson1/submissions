@@ -131,6 +131,7 @@ export function additionalInterestToAdditionalInsured(
     additionalInterests
       ?.filter(
         (ai) =>
+          // @ts-ignore
           ai.type === 'additional_named_insured' ||
           ai.type === 'additional_insured',
       )

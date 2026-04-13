@@ -36,6 +36,7 @@ import type {
   Coords,
   Nullable,
   Optional,
+  Organization,
   TaxItem,
   WithId,
 } from '@idemand/common';
@@ -50,7 +51,6 @@ import {
   FloodZone,
   Limits,
   NamedInsuredDetails,
-  Organization,
   orgsCollection,
   PriorLossCount,
   RatingPropertyData,

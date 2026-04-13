@@ -1,25 +1,25 @@
 import { FirebaseError } from 'firebase/app';
 import {
   AuthProvider,
-  GoogleAuthProvider,
-  OAuthProvider,
-  PopupRedirectResolver,
-  UserCredential,
   fetchSignInMethodsForEmail,
   getAuth,
+  GoogleAuthProvider,
   linkWithCredential,
   linkWithPopup,
+  OAuthProvider,
+  PopupRedirectResolver,
   // MultiFactorError,
   reauthenticateWithPopup,
   signInWithEmailAndPassword,
   signInWithPopup,
+  UserCredential,
 } from 'firebase/auth';
 import { doc, getFirestore, setDoc } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 // import { auth, db } from 'firebaseConfig';
-import { AuthProviders } from 'common/types';
+import type { AuthProviders } from '@idemand/common';
 import InputDialog from 'components/InputDialog';
 import { useAuth } from 'context/AuthContext';
 import { useConfirmation } from 'context/ConfirmationService';
@@ -39,7 +39,11 @@ interface UseSocialAuthProps {
   skipRedirect?: boolean;
 }
 
-export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAuthProps) => {
+export const useSocialAuth = ({
+  onSuccess,
+  onError,
+  skipRedirect,
+}: UseSocialAuthProps) => {
   const auth = getAuth();
   const db = getFirestore();
   const navigate = useNavigate();
@@ -53,7 +57,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
       if (!!skipRedirect) return userCred;
       navigate(getRedirectPath(location), { replace: true });
     },
-    [location, navigate, skipRedirect]
+    [location, navigate, skipRedirect],
   );
 
   // TODO: split error handling into separate functions ??
@@ -77,22 +81,36 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
               catchOnCancel: false,
               variant: 'danger',
               title: 'Link Account',
-              description: 'Please enter your password to link a new authentication provider.',
+              description:
+                'Please enter your password to link a new authentication provider.',
               component: (
                 <InputDialog
                   onAccept={() => {}}
                   onClose={() => {}}
                   open={false}
-                  inputProps={{ type: 'password', label: 'Password', name: 'password' }}
+                  inputProps={{
+                    type: 'password',
+                    label: 'Password',
+                    name: 'password',
+                  }}
                 />
               ),
             });
             if (!password) return;
-            const emailSignInResult = await signInWithEmailAndPassword(auth, email, password);
-            const userCred = await linkWithCredential(emailSignInResult.user, credential);
+            const emailSignInResult = await signInWithEmailAndPassword(
+              auth,
+              email,
+              password,
+            );
+            const userCred = await linkWithCredential(
+              emailSignInResult.user,
+              credential,
+            );
 
             if (onSuccess) onSuccess(userCred);
-            toast.success(`${providerName} auth successfully linked to your account!`);
+            toast.success(
+              `${providerName} auth successfully linked to your account!`,
+            );
 
             return handleReturnUserOrRedirect(userCred);
           }
@@ -120,9 +138,14 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
 
           const providerResult = await signInWithPopup(auth, provider);
           // Remember that the user may have signed in with an account that has a different email address than the first one. Link credential.
-          const linkResult = await linkWithCredential(providerResult.user, credential);
+          const linkResult = await linkWithCredential(
+            providerResult.user,
+            credential,
+          );
           console.log('linked providers: ', linkResult);
-          toast.success(`${providerName} auth successfully linked to your account`);
+          toast.success(
+            `${providerName} auth successfully linked to your account`,
+          );
           if (onSuccess) onSuccess(linkResult);
 
           return handleReturnUserOrRedirect(linkResult);
@@ -146,13 +169,19 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         }
         if (code === 'auth/internal-error') {
           let alreadyExists = message.includes('ALREADY_EXISTS');
-          let toastMsg = alreadyExists ? 'account already exists' : 'An error occurred';
+          let toastMsg = alreadyExists
+            ? 'account already exists'
+            : 'An error occurred';
 
           toast.error(toastMsg);
           return;
         }
         // TODO: return error ?? allow handle on case by case basis by calling function ??
-        if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return;
+        if (
+          code === 'auth/popup-closed-by-user' ||
+          code === 'auth/cancelled-popup-request'
+        )
+          return;
         // if (code === 'auth/credential-already-in-use') {}
 
         toast.error(message);
@@ -163,13 +192,16 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
           onError(err, providerName);
           return;
         } else {
-          const errCode = error instanceof FirebaseError ? error.code : 'unknown';
-          toast.error(`An error occurred. See console for details (${errCode})`);
+          const errCode =
+            error instanceof FirebaseError ? error.code : 'unknown';
+          toast.error(
+            `An error occurred. See console for details (${errCode})`,
+          );
           return;
         }
       }
     },
-    [auth, handleReturnUserOrRedirect, onSuccess, onError, confirm]
+    [auth, handleReturnUserOrRedirect, onSuccess, onError, confirm],
   );
 
   // TODO: use shared logic with linking any new provider
@@ -186,7 +218,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
             phone: result.user.phoneNumber,
             photoURL: result.user.photoURL,
           },
-          { merge: true }
+          { merge: true },
         );
 
         if (onSuccess) onSuccess(result);
@@ -202,7 +234,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         return;
       }
     },
-    [db, handleReturnUserOrRedirect, onSuccess, onError, handleError, user]
+    [db, handleReturnUserOrRedirect, onSuccess, onError, handleError, user],
   );
 
   // can add scopes (ex: https://www.googleapis.com/auth/user.birthday.read)
@@ -257,7 +289,10 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
     }
 
     try {
-      const authResult: UserCredential = await signInWithPopup(auth, microsoftProvider);
+      const authResult: UserCredential = await signInWithPopup(
+        auth,
+        microsoftProvider,
+      );
       console.log('microsoft UserCred: ', authResult);
 
       // Check if new user (not currently doing anything with response)
@@ -269,7 +304,8 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
       return handleReturnUserOrRedirect(authResult);
     } catch (err) {
       console.log('error: ', err);
-      if (err instanceof FirebaseError) return handleError(err, 'microsoft.com'); // 'Microsoft');
+      if (err instanceof FirebaseError)
+        return handleError(err, 'microsoft.com'); // 'Microsoft');
 
       if (onError) onError(err, 'Microsoft');
     }
@@ -290,7 +326,11 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         if (!user) {
           throw new Error('must be signed in to reauthenticate.');
         }
-        const userCred = await reauthenticateWithPopup(user, provider, resolver);
+        const userCred = await reauthenticateWithPopup(
+          user,
+          provider,
+          resolver,
+        );
         console.log('reauth provider cred: ', userCred);
         if (onSuccess) onSuccess(userCred);
         return userCred;
@@ -302,21 +342,21 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         // return Promise.reject(err);
       }
     },
-    [handleError, onError, user, onSuccess]
+    [handleError, onError, user, onSuccess],
   );
 
   const reauthWithGoogle = useCallback(
     (resolver?: PopupRedirectResolver) => {
       return reauthWithProvider(googleProvider, resolver);
     },
-    [reauthWithProvider]
+    [reauthWithProvider],
   );
 
   const reauthWithMicrosoft = useCallback(
     (resolver?: PopupRedirectResolver) => {
       return reauthWithProvider(microsoftProvider, resolver);
     },
-    [reauthWithProvider]
+    [reauthWithProvider],
   );
 
   return {

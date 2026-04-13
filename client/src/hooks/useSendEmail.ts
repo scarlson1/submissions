@@ -1,66 +1,33 @@
-import { useCallback, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useFunctions } from 'reactfire';
 
-import { useMutation } from '@tanstack/react-query';
 import { sendEmail } from 'api';
-import { BaseSendEmailResponse, SendEmailRequest } from 'common';
+import { SendEmailRequest } from 'common';
 
-export interface UseSendEmailProps<T> {
-  onSuccess?: (data: BaseSendEmailResponse) => void;
+export interface UseSendEmailProps {
+  onSuccess?: (data) => void;
   onError?: (msg: string, err: unknown) => void;
   onMutate?: (variables, context) => void | Promise<void>;
 }
 
-export const useSendEmailOld = <T extends SendEmailRequest = SendEmailRequest>({
-  onSuccess,
-  onError,
-}: UseSendEmailProps<T> | undefined = {}) => {
-  const functions = useFunctions();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<any>(null);
-
-  const send = useCallback(
-    async (args: SendEmailRequest) => {
-      // TODO: filter to for unique
-      try {
-        setLoading(true);
-        const { data } = await sendEmail(functions, args);
-
-        console.log('res: ', data);
-        if (onSuccess) onSuccess(data);
-        setLoading(false);
-        return data;
-      } catch (err: any) {
-        let errMsg = 'Error delivering email';
-        if (err.message) errMsg += ` - ${err.message}`;
-        setError(err);
-        console.log('ERROR MSG: ', errMsg);
-        if (onError) onError(errMsg, err);
-        setLoading(false);
-      }
-    },
-    [functions, onSuccess, onError],
-  );
-
-  return { send, loading, error };
-};
-
+// <R extends BaseSendEmailResponse = BaseSendEmailResponse, T extends SendEmailRequest = SendEmailRequest>
 export const useSendEmail = <T extends SendEmailRequest = SendEmailRequest>({
   onSuccess,
   onError,
   onMutate,
-}: UseSendEmailProps<T> | undefined = {}) => {
+}: UseSendEmailProps | undefined = {}) => {
   const functions = useFunctions();
 
-  const { mutate, isPending, error } = useMutation<any, Error, T, unknown>({
+  const { mutate, isPending, error } = useMutation<unknown, Error, T, unknown>({
     mutationFn: async (vars) => {
-      return await sendEmail(functions, vars);
+      const { data } = await sendEmail(functions, vars);
+      return data;
     },
     onMutate: onMutate,
-    onSuccess(data, variables, onMutateResult, context) {
+    onSuccess(data, vars, onMutateResult, context) {
       if (onSuccess) onSuccess(data);
     },
-    onError(error, variables, onMutateResult, context) {
+    onError(error, vars, onMutateResult, context) {
       if (onError) {
         const msg =
           error instanceof Error ? error.message : 'something went wrong';

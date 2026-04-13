@@ -49,6 +49,7 @@ import {
   SubmissionStatus,
   type Address,
   type Nullable,
+  type PolicyLocation,
   type SubmissionStatus as TSubmissionStatus,
 } from '@idemand/common';
 import { LoadingButton, LoadingButtonProps } from '@mui/lab';
@@ -65,7 +66,6 @@ import {
   LineOfBusiness,
   Mortgagee,
   POLICY_STATUS,
-  PolicyLocation,
   PriorLossCount,
   Product,
   QUOTE_STATUS,

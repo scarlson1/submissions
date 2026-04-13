@@ -15,8 +15,8 @@ import {
 } from 'react';
 import { matchPath, Outlet, useLocation } from 'react-router-dom';
 
+import type { Organization } from '@idemand/common';
 import { functionsInstance } from 'api';
-import { Organization } from 'common';
 import { ErrorFallback } from 'components/ErrorFallback';
 import { LoadingComponent } from 'components/layout';
 import { LinkTab } from 'components/layout/ConfigLayout';

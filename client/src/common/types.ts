@@ -14,14 +14,17 @@ import {
   BaseMetadata as BaseMetadataZ,
   GeoPoint as GeoPointZ,
   ILocationPolicy,
+  PolicyLocation,
   Policy as PolicyZ,
   Timestamp as TimestampZ,
   type Address,
+  type AuthProviders,
   type BaseMetadata,
   type GeoPoint,
   type ILocation,
   type LocationImages,
   type Nullable,
+  type OrgType,
   type Policy,
   type Quote,
   type SubmissionStatus,
@@ -40,7 +43,6 @@ import { FloodValues } from 'views/SubmissionNew';
 import {
   Basement,
   CBRSDesignation,
-  DefaultCommission,
   FeeItemName,
   FloodZone,
   LineOfBusiness,
@@ -1030,17 +1032,17 @@ export type Totals = z.infer<typeof TotalsZ>;
 export const TotalsByBillingEntityZ = z.record(TotalsZ);
 export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntityZ>;
 
-export const PolicyLocationZ = z.object({
-  termPremium: z.number(),
-  annualPremium: z.number().min(100, 'annualPremium must be > 100'),
-  // TODO: add annualPremium
-  address: CompressedAddressZ,
-  coords: GeoPointZ,
-  billingEntityId: z.string(),
-  cancelEffDate: TimestampZ.optional().nullable(),
-  version: z.number().optional(),
-});
-export type PolicyLocation = z.infer<typeof PolicyLocationZ>;
+// export const PolicyLocationZ = z.object({
+//   termPremium: z.number(),
+//   annualPremium: z.number().min(100, 'annualPremium must be > 100'),
+//   // TODO: add annualPremium
+//   address: CompressedAddressZ,
+//   coords: GeoPointZ,
+//   billingEntityId: z.string(),
+//   cancelEffDate: TimestampZ.optional().nullable(),
+//   version: z.number().optional(),
+// });
+// export type PolicyLocation = z.infer<typeof PolicyLocationZ>;
 
 // export const PolicyZ = z.object({
 //   product: Product,
@@ -1166,7 +1168,7 @@ export const ReceivableZ = z.object({
   // totalAmountWithoutTaxesAndFees: z.number().int().nonnegative(), // or name subtotalAmount ?? or totalTermPremium ??
   termPremiumAmount: z.number().int().nonnegative(),
   totalAmount: z.number().int().nonnegative(),
-  locations: z.record(PolicyLocationZ),
+  locations: z.record(PolicyLocation),
   dueDate: TimestampZ,
   totalTransferred: z.number().int().nonnegative().default(0), // cents
   totalAmountPaid: z.number().int().nonnegative().default(0), // cents, mirrors Stripe
@@ -1553,7 +1555,7 @@ export interface UserAccess extends BaseDoc {
 }
 
 export interface AgencyApplication extends BaseDoc {
-  type: TOrgType;
+  type: OrgType;
   orgName: string;
   address: Address;
   coordinates?: GeoPoint | null;
@@ -1617,68 +1619,68 @@ export interface Agency {
 //   | 'yahoo.com'
 //   | 'hotmail.com';
 
-export const AuthProvidersZ = z.enum([
-  'password',
-  'phone',
-  'google.com',
-  'microsoft.com',
-  'apple.com',
-  'twitter.com',
-  'github.com',
-  'yahoo.com',
-  'hotmail.com',
-]);
-export type AuthProviders = z.infer<typeof AuthProvidersZ>;
+// export const AuthProvidersZ = z.enum([
+//   'password',
+//   'phone',
+//   'google.com',
+//   'microsoft.com',
+//   'apple.com',
+//   'twitter.com',
+//   'github.com',
+//   'yahoo.com',
+//   'hotmail.com',
+// ]);
+// export type AuthProviders = z.infer<typeof AuthProvidersZ>;
 
-export const AgencyStatus = z.enum([
-  'submitted',
-  'active',
-  'inactive',
-  'pending_info',
-]);
-export type AgencyStatus = z.infer<typeof AgencyStatus>;
+// export const AgencyStatus = z.enum([
+//   'submitted',
+//   'active',
+//   'inactive',
+//   'pending_info',
+// ]);
+// export type AgencyStatus = z.infer<typeof AgencyStatus>;
 
-export const OrgType = z.enum(['agency', 'carrier']);
-export type TOrgType = z.infer<typeof OrgType>;
+// export const OrgType = z.enum(['agency', 'carrier']);
+// export type TOrgType = z.infer<typeof OrgType>;
 
-export const OrganizationZ = z.object({
-  type: OrgType,
-  address: AddressZ.optional(),
-  coordinates: GeoPointZ.nullable().optional(),
-  orgName: z.string().min(2, 'orgName must be at least 2 characters'),
-  orgId: z.string().min(5, 'orgId must be at least 5 characters'),
-  tenantId: z.string().nullable(),
-  stripeAccountId: z.string().nullable(),
-  primaryContact: AgentDetailsZ.omit({ name: true })
-    .extend({
-      firstName: z.string(),
-      lastName: z.string(),
-      displayName: z.string(),
-    })
-    .optional(),
-  principalProducer: AgentDetailsZ.omit({ name: true })
-    .extend({
-      firstName: z.string(),
-      lastName: z.string(),
-      displayName: z.string(),
-      NPN: z.string(),
-    })
-    .optional(),
-  FEIN: z.string().optional(),
-  EandOURL: z.string().optional(),
-  // accountNumber: z.string(), // TODO: handle in stripe or separate collection
-  // routingNumber: z.string(),
-  // TODO: change domain restrictions to an array ??
-  emailDomains: z.array(z.string()).optional().nullable(), // TODO: add regex ?? reuse in form validation ??
-  enforceDomainRestriction: z.boolean().optional(),
-  status: AgencyStatus,
-  defaultCommission: DefaultCommission,
-  authProviders: z.array(AuthProvidersZ),
-  photoURL: z.string().optional().nullable(),
-  website: z.string().url().optional().nullable(),
-  metadata: BaseMetadataZ,
-});
-export type Organization = z.infer<typeof OrganizationZ>;
+// export const OrganizationZ = z.object({
+//   type: OrgType,
+//   address: AddressZ.optional(),
+//   coordinates: GeoPointZ.nullable().optional(),
+//   orgName: z.string().min(2, 'orgName must be at least 2 characters'),
+//   orgId: z.string().min(5, 'orgId must be at least 5 characters'),
+//   tenantId: z.string().nullable(),
+//   stripeAccountId: z.string().nullable(),
+//   primaryContact: AgentDetailsZ.omit({ name: true })
+//     .extend({
+//       firstName: z.string(),
+//       lastName: z.string(),
+//       displayName: z.string(),
+//     })
+//     .optional(),
+//   principalProducer: AgentDetailsZ.omit({ name: true })
+//     .extend({
+//       firstName: z.string(),
+//       lastName: z.string(),
+//       displayName: z.string(),
+//       NPN: z.string(),
+//     })
+//     .optional(),
+//   FEIN: z.string().optional(),
+//   EandOURL: z.string().optional(),
+//   // accountNumber: z.string(), // TODO: handle in stripe or separate collection
+//   // routingNumber: z.string(),
+//   // TODO: change domain restrictions to an array ??
+//   emailDomains: z.array(z.string()).optional().nullable(), // TODO: add regex ?? reuse in form validation ??
+//   enforceDomainRestriction: z.boolean().optional(),
+//   status: AgencyStatus,
+//   defaultCommission: DefaultCommission,
+//   authProviders: z.array(AuthProvidersZ),
+//   photoURL: z.string().optional().nullable(),
+//   website: z.string().url().optional().nullable(),
+//   metadata: BaseMetadataZ,
+// });
+// export type Organization = z.infer<typeof OrganizationZ>;
 
 // TODO: convert dates to Firestore timestamps so that they're queryable
 

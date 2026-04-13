@@ -5,7 +5,7 @@ import {
   Firestore,
 } from 'firebase/firestore';
 
-import type { Policy, Quote } from '@idemand/common';
+import type { Organization, Policy, Quote } from '@idemand/common';
 import { Collection, type ILocation, type TCollection } from '@idemand/common';
 import {
   ActiveStates,
@@ -18,7 +18,6 @@ import {
   License,
   Moratorium,
   NotifyRegistration,
-  Organization,
   PaymentMethod,
   PolicyClaim,
   PortfolioSubmission,
