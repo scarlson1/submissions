@@ -1,11 +1,8 @@
+import { receivablesCollection, type Receivable } from '@idemand/common';
 import { getFirestore, UpdateData } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import Stripe from 'stripe';
-import {
-  getReportErrorFn,
-  Receivable,
-  receivablesCollection,
-} from '../../common/index.js';
+import { getReportErrorFn } from '../../common/index.js';
 
 const reportErr = getReportErrorFn('handleInvoiceFinalized');
 

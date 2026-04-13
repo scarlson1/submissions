@@ -1,9 +1,9 @@
+import type { Receivable } from '@idemand/common';
 import { Policy, Totals } from '@idemand/common';
 import { Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { round, sumBy } from 'lodash-es';
 import Stripe from 'stripe';
-import { Receivable } from '../../common/index.js';
 import { verify } from '../../utils/index.js';
 
 function toAmt(val: number) {

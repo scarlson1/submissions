@@ -11,10 +11,11 @@
   src: https://stripe.com/docs/connect/separate-charges-and-transfers#transfer-availability
 */
 
+import { receivablesCollection } from '@idemand/common';
 import { getFirestore } from 'firebase-admin/firestore';
 import { info, warn } from 'firebase-functions/logger';
 import Stripe from 'stripe';
-import { getReportErrorFn, receivablesCollection } from '../../common/index.js';
+import { getReportErrorFn } from '../../common/index.js';
 import { createTransferGroupId } from '../db/utils.js';
 
 const reportErr = getReportErrorFn('setTransferGroupOnPaymentIntentCreated');
@@ -25,7 +26,7 @@ const reportErr = getReportErrorFn('setTransferGroupOnPaymentIntentCreated');
 
 export const setTransferGroupOnPaymentIntentCreated = async (
   // stripe: Stripe,
-  paymentIntent: Stripe.PaymentIntent
+  paymentIntent: Stripe.PaymentIntent,
 ) => {
   try {
     // if (paymentIntent.invoice) {
@@ -55,11 +56,11 @@ export const setTransferGroupOnPaymentIntentCreated = async (
       // });
 
       info(
-        `Update receivable with transfer group ${transferGroup} from invoice-generated (${paymentIntent.invoice}) payment intent (${paymentIntent.id})`
+        `Update receivable with transfer group ${transferGroup} from invoice-generated (${paymentIntent.invoice}) payment intent (${paymentIntent.id})`,
       );
     } else {
       warn(
-        `No receivable found matching invoice (${paymentIntent.invoice}) from paymentIntent (${paymentIntent.id}) created event`
+        `No receivable found matching invoice (${paymentIntent.invoice}) from paymentIntent (${paymentIntent.id}) created event`,
       );
     }
     // } else {

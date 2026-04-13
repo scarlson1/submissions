@@ -1,4 +1,10 @@
-import { Policy, Totals, WithId } from '@idemand/common';
+import {
+  Policy,
+  receivablesCollection,
+  Totals,
+  WithId,
+  type Receivable,
+} from '@idemand/common';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
@@ -8,8 +14,6 @@ import Stripe from 'stripe';
 import {
   getReportErrorFn,
   policiesCollection,
-  Receivable,
-  receivablesCollection,
   stripeSecretKey,
 } from '../common/index.js';
 import { createDocId, getDocData } from '../modules/db/index.js';

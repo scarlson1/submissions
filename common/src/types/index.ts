@@ -8,6 +8,7 @@ export * from './organization.js';
 export * from './policy.js';
 export * from './quote.js';
 export * from './ratingData.js';
+export * from './receivable.js';
 export * from './submission.js';
 export * from './swissReRes.js';
 export * from './taxes.js';

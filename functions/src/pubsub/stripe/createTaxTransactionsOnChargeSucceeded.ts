@@ -1,14 +1,14 @@
-import { taxTransactionsCollection } from '@idemand/common';
+import {
+  receivablesCollection,
+  taxTransactionsCollection,
+  type Receivable,
+} from '@idemand/common';
 import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import Stripe from 'stripe';
-import {
-  getReportErrorFn,
-  Receivable,
-  receivablesCollection,
-} from '../../common/index.js';
+import { getReportErrorFn } from '../../common/index.js';
 import { createTaxTrxId, getQueryData } from '../../modules/db/utils.js';
 import { createTaxTrxObjectFromCalc } from '../../modules/taxes/createTaxTrxObjectFromCalc.js';
 import { verify } from '../../utils/validation.js';

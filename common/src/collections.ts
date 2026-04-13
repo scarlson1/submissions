@@ -24,6 +24,7 @@ import {
   TaxTransaction,
   User,
   UserAccess,
+  type Receivable,
 } from './types/index.js';
 
 const createCollection = <T = DocumentData>(
@@ -65,6 +66,9 @@ export const taxCalcCollection = (db: Firestore) =>
 
 export const taxTransactionsCollection = <T = TaxTransaction>(db: Firestore) =>
   createCollection<T>(db, Collection.Enum.taxTransactions);
+
+export const receivablesCollection = (db: Firestore) =>
+  createCollection<Receivable>(db, Collection.enum.receivables);
 
 export const licensesCollection = (db: Firestore) =>
   createCollection<License>(db, Collection.enum.licenses);

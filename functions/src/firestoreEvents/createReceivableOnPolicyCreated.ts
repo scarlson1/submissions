@@ -1,8 +1,16 @@
-import { Organization, Policy, orgsCollection } from '@idemand/common';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import {
+  Organization,
+  orgsCollection,
+  Policy,
+  receivablesCollection,
+} from '@idemand/common';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
-import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
-import { getReportErrorFn, receivablesCollection, stripeSecretKey } from '../common/index.js';
+import {
+  FirestoreEvent,
+  QueryDocumentSnapshot,
+} from 'firebase-functions/v2/firestore';
+import { getReportErrorFn, stripeSecretKey } from '../common/index.js';
 import { createDocId, getDocData } from '../modules/db/utils.js';
 import { generateInvoiceForReceivable } from '../modules/payments/generateInvoiceForReceivable.js';
 import {
@@ -32,7 +40,7 @@ export default async (
     {
       policyId: string;
     }
-  >
+  >,
 ) => {
   const { policyId } = event.params;
   info(`policy created (${policyId}) - creating receivables...`);
@@ -67,14 +75,17 @@ export default async (
       policy.commSource,
       policy.agency.orgId,
       policy.agent.userId,
-      policy.product
+      policy.product,
     );
 
     for (let cusId of billingEntityIds) {
       const totals = policy.totalsByBillingEntity[cusId];
       if (!totals) throw new Error(`missing totals for billing ID ${cusId}`);
 
-      const billingEntityLocations = getLcnSummariesByCusId(cusId, policy.locations);
+      const billingEntityLocations = getLcnSummariesByCusId(
+        cusId,
+        policy.locations,
+      );
 
       const receivable = await createReceivableObject(stripe, {
         cusId,
@@ -84,14 +95,17 @@ export default async (
         subProducerCommPct: subproducerCommissionPct,
         dueDate: getInvoiceDueDateTS(
           policy?.metadata?.created || Timestamp.now(),
-          policy.effectiveDate
+          policy.effectiveDate,
         ),
       });
 
       let receivableRef = receivablesCol.doc(`rec_${createDocId(7)}`);
-      info(`adding receivable ${receivableRef.id} to batch for policy ${policyId}`, {
-        ...receivable,
-      });
+      info(
+        `adding receivable ${receivableRef.id} to batch for policy ${policyId}`,
+        {
+          ...receivable,
+        },
+      );
 
       batch.set(receivableRef, receivable);
       receivableIds.push(receivableRef.id);
@@ -103,11 +117,18 @@ export default async (
     // TODO: move to correct place --> temp including here for testing
     for (let receivableId of receivableIds) {
       try {
-        let invoiceId = await generateInvoiceForReceivable(stripe, receivableId);
+        let invoiceId = await generateInvoiceForReceivable(
+          stripe,
+          receivableId,
+        );
         await stripe.invoices.sendInvoice(invoiceId);
         info(`Created invoice for receivable ${invoiceId}`);
       } catch (err: any) {
-        reportErr(`Error creating / sending invoice for receivable `, { receivableId }, err);
+        reportErr(
+          `Error creating / sending invoice for receivable `,
+          { receivableId },
+          err,
+        );
       }
     }
     return;

@@ -12,7 +12,11 @@ import {
   taxesCollection,
   usersCollection,
 } from '@idemand/common';
-import { CollectionReference, DocumentData, Firestore } from 'firebase-admin/firestore';
+import {
+  CollectionReference,
+  DocumentData,
+  Firestore,
+} from 'firebase-admin/firestore';
 import Stripe from 'stripe';
 import {
   AgencyApplication,
@@ -24,7 +28,6 @@ import {
   PolicyClaim,
   PropertyDataRes,
   RatingData,
-  Receivable,
   StageImportRecord,
   Transaction,
 } from '../common/index.js';
@@ -48,7 +51,7 @@ export {
 
 export const createCollection = <T = DocumentData>(
   db: Firestore,
-  collectionPath: Collection | string
+  collectionPath: Collection | string,
 ) => {
   return db.collection(collectionPath) as CollectionReference<T>;
 };
@@ -56,8 +59,8 @@ export const createCollection = <T = DocumentData>(
 export const transfersCollection = (db: Firestore) =>
   createCollection<Stripe.Transfer | Stripe.TransferReversal>(db, 'transfers');
 
-export const receivablesCollection = (db: Firestore) =>
-  createCollection<Receivable>(db, 'receivables');
+// export const receivablesCollection = (db: Firestore) =>
+//   createCollection<Receivable>(db, 'receivables');
 
 export const ratingDataCollection = (db: Firestore) =>
   createCollection<RatingData>(db, 'ratingData');
@@ -71,7 +74,7 @@ export const finTrxCollection = (db: Firestore) =>
 export const policyClaimsCollection = (db: Firestore, policyId: string) =>
   createCollection<PolicyClaim>(
     db,
-    `${Collection.enum.policies}/${policyId}/${Collection.enum.claims}`
+    `${Collection.enum.policies}/${policyId}/${Collection.enum.claims}`,
   );
 
 export const transactionsCollection = (db: Firestore) =>
@@ -96,32 +99,38 @@ export const importSummaryCollection = (db: Firestore) =>
 export const userClaimsCollection = (db: Firestore, orgId: string) =>
   createCollection<ClaimsDocData>(
     db,
-    `${Collection.enum.organizations}/${orgId}/${Collection.enum.userClaims}`
+    `${Collection.enum.organizations}/${orgId}/${Collection.enum.userClaims}`,
   );
 
 export const paymentMethodsCollection = (db: Firestore, userId: string) =>
   createCollection<PaymentMethod>(
     db,
-    `${Collection.enum.users}/${userId}/${Collection.enum.paymentMethods}`
+    `${Collection.enum.users}/${userId}/${Collection.enum.paymentMethods}`,
   );
 
-export const changeRequestsCollection = <T extends ChangeRequest = ChangeRequest>(
+export const changeRequestsCollection = <
+  T extends ChangeRequest = ChangeRequest,
+>(
   db: Firestore,
-  policyId: string
+  policyId: string,
 ) =>
   createCollection<T>(
     db,
-    `${Collection.enum.policies}/${policyId}/${Collection.enum.changeRequests}`
+    `${Collection.enum.policies}/${policyId}/${Collection.enum.changeRequests}`,
   );
 
 export const stagedImportsCollection = (db: Firestore, importId: string) =>
   createCollection<StageImportRecord>(
     db,
-    `${Collection.enum.dataImports}/${importId}/${Collection.enum.stagedDocs}`
+    `${Collection.enum.dataImports}/${importId}/${Collection.enum.stagedDocs}`,
   );
 
 export const versionsCollection = <T extends DocumentData>(
   db: Firestore,
   parentCollection: Collection,
-  parentId: string
-) => createCollection<T>(db, `${parentCollection}/${parentId}/${Collection.enum.versions}`);
+  parentId: string,
+) =>
+  createCollection<T>(
+    db,
+    `${parentCollection}/${parentId}/${Collection.enum.versions}`,
+  );
