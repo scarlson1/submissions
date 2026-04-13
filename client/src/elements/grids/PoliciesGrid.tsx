@@ -9,15 +9,11 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import {
-  CLAIMS,
-  PaymentStatus,
-  Policy,
-  PolicyWithStatus,
-  ServerDataGridCollectionProps,
-} from 'common';
+import type { Policy } from '@idemand/common';
+import { CLAIMS, PaymentStatus, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGeneratePDF, useGridShowJson } from 'hooks';
+import type { PolicyWithStatus } from 'modules/db';
 import {
   POLICY_COLUMN_VISIBILITY,
   policyCols,

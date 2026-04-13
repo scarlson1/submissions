@@ -36,6 +36,7 @@ import type {
   Coords,
   Nullable,
   Optional,
+  TaxItem,
   WithId,
 } from '@idemand/common';
 import { Collection } from '@idemand/common';
@@ -133,7 +134,7 @@ export interface QuoteValues {
   effectiveExceptionRequested: boolean;
   effectiveDate: Date;
   fees: TFeeItem[];
-  taxes: TTaxItem[];
+  taxes: TaxItem[]; // TTaxItem[];
   annualPremium: number | null;
   // subproducerCommission: number;
   commSource: TCommSource;

@@ -5,14 +5,14 @@ import {
   Firestore,
 } from 'firebase/firestore';
 
-import { Collection, type TCollection } from '@idemand/common';
+import type { Policy, Quote } from '@idemand/common';
+import { Collection, type ILocation, type TCollection } from '@idemand/common';
 import {
   ActiveStates,
   AgencyApplication,
   ChangeRequest,
   Charge,
   DraftPolicyClaim,
-  ILocation,
   ImportSummary,
   Invite,
   License,
@@ -20,11 +20,9 @@ import {
   NotifyRegistration,
   Organization,
   PaymentMethod,
-  Policy,
   PolicyClaim,
   PortfolioSubmission,
   PropertyDataRes,
-  Quote,
   RatingData,
   StageImportRecord,
   Submission,

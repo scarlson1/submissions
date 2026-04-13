@@ -24,14 +24,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import { object, string } from 'yup';
 
-import type { Address, TCollection } from '@idemand/common';
+import type { Address, Quote, TCollection } from '@idemand/common';
 import { calcTotalsByBillingEntity } from 'api';
 import {
   AdditionalInterest,
   additionalInterestsVal,
   fallbackImages,
   NamedInsuredDetails,
-  Quote,
 } from 'common';
 import {
   FormikFieldArray,

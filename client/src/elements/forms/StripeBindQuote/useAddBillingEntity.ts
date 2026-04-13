@@ -1,9 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFunctions } from 'reactfire';
 
-import type { TCollection } from '@idemand/common';
+import type { BillingEntity, TCollection } from '@idemand/common';
 import { addBillingEntity as addBillingEntityFn } from 'api';
-import { BillingEntity } from 'common';
 
 export const useAddBillingEntity = (
   colName: TCollection,

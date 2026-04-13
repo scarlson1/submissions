@@ -1,10 +1,20 @@
-import { BusinessRounded, PersonAddRounded, PersonRounded } from '@mui/icons-material';
-import { Box, Collapse, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import {
+  BusinessRounded,
+  PersonAddRounded,
+  PersonRounded,
+} from '@mui/icons-material';
+import {
+  Box,
+  Collapse,
+  Unstable_Grid2 as Grid,
+  Typography,
+} from '@mui/material';
 import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { object, string } from 'yup';
 
-import { ClaimFormValues, Policy, emailVal, phoneVal } from 'common';
+import type { Policy } from '@idemand/common';
+import { ClaimFormValues, emailVal, phoneVal } from 'common';
 import {
   FormikMaskField,
   FormikNativeSelect,
@@ -47,9 +57,16 @@ const contactStepVal = object().shape({
 });
 
 export type ContactValues = Pick<ClaimFormValues, 'contact'>;
-export type ContactStepProps = BaseStepProps<ContactValues> & { policyId: string };
+export type ContactStepProps = BaseStepProps<ContactValues> & {
+  policyId: string;
+};
 
-export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: ContactStepProps) => {
+export const ContactStep = ({
+  saveFormValues,
+  onError,
+  policyId,
+  ...props
+}: ContactStepProps) => {
   const { nextStep } = useWizard();
 
   const { data } = useDocDataOnce<Policy>('policies', policyId);
@@ -64,16 +81,20 @@ export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: Con
             contactVals = {
               firstName: data?.namedInsured?.firstName || '',
               lastName: data?.namedInsured?.lastName || '',
-              email: (data?.namedInsured?.email || '') as ContactValues['contact']['email'],
-              phone: (data?.namedInsured?.phone || '') as ContactValues['contact']['phone'],
+              email: (data?.namedInsured?.email ||
+                '') as ContactValues['contact']['email'],
+              phone: (data?.namedInsured?.phone ||
+                '') as ContactValues['contact']['phone'],
             };
             break;
           case 'agent':
             contactVals = {
               firstName: data?.agent?.name.split(' ')[0] || '',
               lastName: data?.agent?.name.split(' ')[1] || '',
-              email: (data?.agent?.email || '') as ContactValues['contact']['email'],
-              phone: (data?.agent?.phone || '') as ContactValues['contact']['phone'],
+              email: (data?.agent?.email ||
+                '') as ContactValues['contact']['email'],
+              phone: (data?.agent?.phone ||
+                '') as ContactValues['contact']['phone'],
             };
             break;
         }
@@ -92,7 +113,7 @@ export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: Con
         onError && onError('error saving values');
       }
     },
-    [nextStep, saveFormValues, onError, data]
+    [nextStep, saveFormValues, onError, data],
   );
 
   return (
@@ -124,7 +145,9 @@ export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: Con
                 listItemTextProps={{
                   primary: `${data.namedInsured.firstName} ${data.namedInsured.lastName}`,
                   secondary: `${data.namedInsured?.email}  |  ${
-                    data.namedInsured?.phone ? formatPhoneNumber(data.namedInsured?.phone) : ''
+                    data.namedInsured?.phone
+                      ? formatPhoneNumber(data.namedInsured?.phone)
+                      : ''
                   }`,
                 }}
               />
@@ -142,7 +165,9 @@ export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: Con
                 listItemTextProps={{
                   primary: `${data.agent?.name}`,
                   secondary: `${data.agent?.email}  |  ${
-                    data.agent?.phone ? formatPhoneNumber(data.agent?.phone) : ''
+                    data.agent?.phone
+                      ? formatPhoneNumber(data.agent?.phone)
+                      : ''
                   }`,
                 }}
               />

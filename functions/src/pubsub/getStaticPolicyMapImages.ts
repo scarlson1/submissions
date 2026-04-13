@@ -1,4 +1,4 @@
-import { Coords, StorageFolder } from '@idemand/common';
+import { Coords, StorageFolder, type Policy } from '@idemand/common';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getDownloadURL, getStorage } from 'firebase-admin/storage';
 import { info } from 'firebase-functions/logger';
@@ -96,7 +96,7 @@ export default async (
     //   },
     // };
 
-    const docUpdates: Record<string, string> = {};
+    const docUpdates: Partial<Policy> = {};
 
     for (const styleType of MAPBOX_STYLES) {
       // const url = `https://api.mapbox.com/styles/v1/${styleType.style}/static/[${bbox[0]},${

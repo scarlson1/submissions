@@ -4,8 +4,7 @@ import { QueryFieldFilterConstraint } from 'firebase/firestore';
 import { flatten } from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type { WithId } from '@idemand/common';
-import { Policy } from 'common';
+import type { Policy, WithId } from '@idemand/common';
 import { useCollectionData, useFlyToBounds } from 'hooks';
 import {
   CoordObj,

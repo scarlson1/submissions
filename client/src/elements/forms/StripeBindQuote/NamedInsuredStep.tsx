@@ -3,12 +3,12 @@ import { Timestamp, UpdateData } from 'firebase/firestore';
 import { Form, Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { RefObject, useCallback } from 'react';
 
+import type { Quote } from '@idemand/common';
 import { setQuoteUserId } from 'api';
 import {
   NamedInsured,
   namedInsuredValidationNested,
   phoneRequiredVal,
-  Quote,
 } from 'common';
 import {
   FormikMaskField,

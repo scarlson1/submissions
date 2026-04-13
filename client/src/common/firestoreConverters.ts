@@ -7,8 +7,7 @@ import {
   WithFieldValue,
 } from 'firebase/firestore';
 
-import type { WithId } from '@idemand/common';
-import { Quote } from './types';
+import type { Quote, WithId } from '@idemand/common';
 
 export const quoteConverter = {
   toFirestore(

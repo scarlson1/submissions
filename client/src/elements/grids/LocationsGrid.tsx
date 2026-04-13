@@ -1,9 +1,15 @@
 import { GridColDef } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 
-import { CLAIMS, ILocation, ServerDataGridCollectionProps } from 'common';
+import type { ILocation } from '@idemand/common';
+import { CLAIMS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
-import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
+import {
+  useAsyncToast,
+  useGridActions,
+  useGridShowJson,
+  useWidth,
+} from 'hooks';
 import { LOCATION_COLUMN_VISIBILITY, locationCols } from 'modules/muiGrid';
 
 export type LocationGridProps = ServerDataGridCollectionProps<ILocation>;
@@ -20,7 +26,7 @@ export const LocationsGrid = ({
   const renderShowJson = useGridShowJson(
     'locations',
     { showInMenu: true },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
   );
 
   const columns = useMemo<GridColDef[]>(
@@ -41,7 +47,14 @@ export const LocationsGrid = ({
       ...locationCols,
       ...additionalColumns,
     ],
-    [renderActions, renderShowJson, googleMapsAction, floodFactorAction, isSmall, additionalColumns]
+    [
+      renderActions,
+      renderShowJson,
+      googleMapsAction,
+      floodFactorAction,
+      isSmall,
+      additionalColumns,
+    ],
   );
 
   return (

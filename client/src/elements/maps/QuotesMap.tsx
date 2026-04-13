@@ -3,8 +3,7 @@ import { IconLayer, MapViewState } from 'deck.gl';
 import { QueryFieldFilterConstraint } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 
-import type { WithId } from '@idemand/common';
-import { Policy, Quote } from 'common';
+import type { Policy, Quote, WithId } from '@idemand/common';
 import { useCollectionData, useFlyToBounds } from 'hooks';
 import {
   CoordObj,

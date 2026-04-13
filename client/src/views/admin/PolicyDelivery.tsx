@@ -6,7 +6,7 @@ import { getDownloadURL } from 'firebase/storage';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Policy } from 'common';
+import type { Policy } from '@idemand/common';
 import { FilesDragDrop } from 'components/forms';
 import {
   useAsyncToast,
@@ -19,7 +19,7 @@ import {
 } from 'hooks';
 import { usePromptForEmails } from 'hooks/usePromptForEmails';
 import { onlyUnique } from 'modules/utils';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 
 // TODO: how should document delivery be tracked?? see history / check if doc was delivered ?? NEED TO USE SENDGRID WEBHOOK & STORE IN COLLECTION
 // TODO: create custom tags for email delivery ('policy_delivery') https://docs.sendgrid.com/for-developers/sending-email/getting-started-email-activity-api#query-reference
@@ -72,9 +72,14 @@ export const PolicyDelivery = () => {
   const { policyId } = useSafeParams(['policyId']);
   const { data } = useDocData('policies', policyId);
 
-  const { downloadPDF: downloadPolicy, loading: genDecLoading } = useGeneratePDF('generateDecPDF');
+  const { downloadPDF: downloadPolicy, loading: genDecLoading } =
+    useGeneratePDF('generateDecPDF');
 
-  const { update: updatePolicy } = useUpdateDoc<Policy>('policies', console.log, console.error);
+  const { update: updatePolicy } = useUpdateDoc<Policy>(
+    'policies',
+    console.log,
+    console.error,
+  );
 
   const {
     files: uploadFiles,
@@ -89,7 +94,9 @@ export const PolicyDelivery = () => {
       policyId, // data.id,
       userId: data.userId || null,
       insuredEmail: data.namedInsured?.email || null,
-      insuredName: `${data.namedInsured?.firstName} $${data.namedInsured?.lastName}`.trim() || null,
+      insuredName:
+        `${data.namedInsured?.firstName} $${data.namedInsured?.lastName}`.trim() ||
+        null,
       agentId: data.agent.userId || null,
       agentName: data.agent.name || null,
       agencyId: data.agency.orgId || null,
@@ -113,7 +120,7 @@ export const PolicyDelivery = () => {
         });
       }
     },
-    (err) => console.log('upload failed: ', err)
+    (err) => console.log('upload failed: ', err),
   );
 
   const showPolicyDoc = useCallback(() => {
@@ -136,7 +143,7 @@ export const PolicyDelivery = () => {
           description:
             'Please select the emails to which you would like to deliver the policy, if any. If using alternative email, enter the email then press tab, space, or enter.',
           confirmButtonText: 'Send',
-        }
+        },
       );
 
       if (!emails || emails.length < 1) throw new Error('no emails selected');
@@ -158,7 +165,7 @@ export const PolicyDelivery = () => {
 
   const handleDownloadPolicy = useCallback(
     () => downloadPolicy(policyId),
-    [downloadPolicy, policyId]
+    [downloadPolicy, policyId],
   );
 
   return (
@@ -225,7 +232,11 @@ export const PolicyDelivery = () => {
             </Button>
           </Badge>
           <Badge badgeContent='4' color='secondary'>
-            <Button onClick={showPolicyDoc} endIcon={<OpenInNewRounded />} size='small'>
+            <Button
+              onClick={showPolicyDoc}
+              endIcon={<OpenInNewRounded />}
+              size='small'
+            >
               Show current policy doc
             </Button>
           </Badge>
@@ -236,15 +247,20 @@ export const PolicyDelivery = () => {
           <Typography color='text.secondary'>What to do:</Typography>
         </Badge>
       </Box>
-      <Typography variant='body2' color='text.secondary' sx={{ textDecoration: 'line-through' }}>
+      <Typography
+        variant='body2'
+        color='text.secondary'
+        sx={{ textDecoration: 'line-through' }}
+      >
         - manually generate the policy document(s)
       </Typography>
       <Typography variant='body2' color='text.secondary'>
-        - Click the button to generate the policy dec and download to your computer
+        - Click the button to generate the policy dec and download to your
+        computer
       </Typography>
       <Typography variant='body2' color='text.secondary'>
-        - select them above, then click 'upload' in the top right corner to add them to cloud
-        storage
+        - select them above, then click 'upload' in the top right corner to add
+        them to cloud storage
       </Typography>
       <Typography variant='body2' color='text.secondary'>
         - click deliver documents to email the policy docs to agent/insured
@@ -254,7 +270,8 @@ export const PolicyDelivery = () => {
         TODO:
       </Typography>
       <Typography variant='body2' color='text.secondary'>
-        - allow multiple document uploads? Allow array or are the possible documents a fixed set?
+        - allow multiple document uploads? Allow array or are the possible
+        documents a fixed set?
       </Typography>
       <Typography variant='body2' color='text.secondary'>
         - get transaction data from ePay
@@ -269,11 +286,12 @@ export const PolicyDelivery = () => {
         - Final UW human intervention before delivering policy
       </Typography>
       <Typography variant='body2' color='text.secondary'>
-        - Ensure payment, etc. all checkout before notifying and delivery to insured/agent
+        - Ensure payment, etc. all checkout before notifying and delivery to
+        insured/agent
       </Typography>
       <Typography variant='body2' color='text.secondary'>
-        - Send document delivery via email (attachment) (and link to view policy?) - need to finish
-        template
+        - Send document delivery via email (attachment) (and link to view
+        policy?) - need to finish template
       </Typography>
 
       <Box sx={{ py: 15 }}>

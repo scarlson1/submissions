@@ -14,8 +14,8 @@ import {
 import { noop } from 'lodash';
 import { useCallback } from 'react';
 
-import type { WithId } from '@idemand/common';
-import { fallbackImages, ILocation, Policy } from 'common';
+import type { ILocation, Policy, WithId } from '@idemand/common';
+import { fallbackImages } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
 import { FlexCardContentWrapper } from 'components/FlexCard';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';

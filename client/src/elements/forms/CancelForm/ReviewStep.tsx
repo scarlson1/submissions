@@ -1,4 +1,4 @@
-import type { WithId } from '@idemand/common';
+import type { ILocation, Policy, WithId } from '@idemand/common';
 import {
   Alert,
   AlertTitle,
@@ -7,7 +7,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { CancellationRequest, ILocation, Policy } from 'common';
+import { CancellationRequest } from 'common';
 import { WizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import { useFirstRender } from 'hooks/utils';

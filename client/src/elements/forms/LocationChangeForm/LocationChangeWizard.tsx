@@ -1,5 +1,5 @@
 import { Box, Button, Typography } from '@mui/material';
-import { Timestamp, setDoc } from 'firebase/firestore';
+import { setDoc, Timestamp } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { isEmpty, isEqual } from 'lodash';
 import Lottie from 'lottie-react';
@@ -7,14 +7,15 @@ import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
+import type { ILocation } from '@idemand/common';
 import { calcLocationChanges } from 'api';
 import { CheckmarkLottie } from 'assets';
-import { AdditionalInterest, ILocation, Limits, LocationChangeRequest } from 'common';
+import { AdditionalInterest, Limits, LocationChangeRequest } from 'common';
 import { Wizard } from 'components/forms';
 import { useDialog, useDocData } from 'hooks';
 import { createChangeRequest } from 'modules/db';
 import { combineToAdditionalInterests } from 'modules/utils';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 import { LocationChangesStep } from './LocationChangesStep';
 import { ReviewStep } from './ReviewStep';
 
@@ -29,7 +30,9 @@ export interface LocationChangeValues {
 }
 
 interface ChangeLocationComponentProps {
-  changeRequestDocResource: ReturnType<typeof createChangeRequest<LocationChangeRequest>>;
+  changeRequestDocResource: ReturnType<
+    typeof createChangeRequest<LocationChangeRequest>
+  >;
   policyId: string;
   locationId: string;
 }
@@ -63,18 +66,22 @@ export const LocationChangeWizard = ({
             updated: Timestamp.now(),
           },
         },
-        { merge: true }
+        { merge: true },
       );
     },
-    [changeRequestRef]
+    [changeRequestRef],
   );
 
   const handleSubmitStep = useCallback(
-    async (values: LocationChangeValues, bag: FormikHelpers<LocationChangeValues>) => {
+    async (
+      values: LocationChangeValues,
+      bag: FormikHelpers<LocationChangeValues>,
+    ) => {
       let reqId = changeRequestRef.id;
 
       let initValues = formRef.current?.initialValues;
-      let skipUpdate = isEqual(values, initValues) && !isEmpty(changeRequest.formValues || {});
+      let skipUpdate =
+        isEqual(values, initValues) && !isEmpty(changeRequest.formValues || {});
 
       if (!skipUpdate) {
         await saveChangeRequest({
@@ -105,7 +112,7 @@ export const LocationChangeWizard = ({
       saveChangeRequest,
       changeRequest,
       changeRequestRef,
-    ]
+    ],
   );
 
   const handleSubmitChangeRequest = useCallback(
@@ -118,7 +125,7 @@ export const LocationChangeWizard = ({
           email: user?.email || '',
         },
       }),
-    [saveChangeRequest, user]
+    [saveChangeRequest, user],
   );
 
   const handleDone = useCallback(() => {
@@ -134,18 +141,21 @@ export const LocationChangeWizard = ({
         // initialValues={initialValues.current}
         initialValues={{
           limits: changeRequest?.formValues?.limits || location.limits,
-          deductible: changeRequest?.formValues?.deductible || location.deductible,
+          deductible:
+            changeRequest?.formValues?.deductible || location.deductible,
           requestEffDate:
-            (changeRequest?.formValues?.requestEffDate as unknown as Timestamp)?.toDate() ||
-            new Date(),
+            (
+              changeRequest?.formValues?.requestEffDate as unknown as Timestamp
+            )?.toDate() || new Date(),
           externalId:
             changeRequest?.formValues?.externalId === undefined
               ? location.externalId || ''
               : changeRequest?.formValues?.externalId,
-          additionalInterests: changeRequest?.formValues?.additionalInterests || [
+          additionalInterests: changeRequest?.formValues
+            ?.additionalInterests || [
             ...combineToAdditionalInterests(
               location.additionalInsureds,
-              location.mortgageeInterest
+              location.mortgageeInterest,
             ),
           ],
         }}
@@ -159,7 +169,13 @@ export const LocationChangeWizard = ({
         onSubmit={handleSubmitChangeRequest}
       />
       <Box>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
           <Lottie
             animationData={CheckmarkLottie}
             loop={false}
@@ -174,10 +190,17 @@ export const LocationChangeWizard = ({
           color='text.secondary'
           sx={{ py: 5, mx: 'auto', maxWidth: 500 }}
         >
-          Your change request has been received. You'll receive a confirmation email once it has
-          been review and processed by our underwriters.
+          Your change request has been received. You'll receive a confirmation
+          email once it has been review and processed by our underwriters.
         </Typography>
-        <Box sx={{ width: '100%', pt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <Box
+          sx={{
+            width: '100%',
+            pt: 2,
+            display: 'flex',
+            justifyContent: 'flex-end',
+          }}
+        >
           <Button onClick={handleDone} sx={{ ml: 'auto' }}>
             Done
           </Button>

@@ -1,6 +1,6 @@
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
-import { Policy } from 'common';
+import type { Policy } from '@idemand/common';
 import {
   agencyAddressCol,
   agencyNameCol,

@@ -17,6 +17,7 @@ import {
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import type { Quote } from '@idemand/common';
 import {
   ApartmentRentSVG,
   AtHomeSVG,
@@ -25,7 +26,7 @@ import {
   SecureLoginSVG,
   UnderConstructionSVG,
 } from 'assets/images';
-import { ANALYTICS_EVENTS, Quote, QUOTE_STATUS } from 'common';
+import { ANALYTICS_EVENTS, QUOTE_STATUS } from 'common';
 import {
   FlexCard,
   FlexCardContent,
