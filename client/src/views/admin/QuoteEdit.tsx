@@ -8,8 +8,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import type { Quote, State } from '@idemand/common';
-import { CLAIMS, QUOTE_STATUS, quotesCollection } from 'common';
+import { Claim, type Quote, type State } from '@idemand/common';
+import { QUOTE_STATUS, quotesCollection } from 'common';
 import { QuoteForm, QuoteValues } from 'elements/forms';
 import { useAsyncToast, useDocDataOnce } from 'hooks';
 import { CARD_FEE_RATE } from 'hooks/useCreateQuote';
@@ -24,7 +24,7 @@ const useEditQuote = (
   onError?: (msg: string, err: any) => void,
 ) => {
   const { data: authCheckResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
   const firestore = useFirestore();
   const quotesColRef = quotesCollection(firestore);

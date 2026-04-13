@@ -15,7 +15,8 @@ import {
 } from '@mui/material';
 import { useCallback, useState } from 'react';
 
-import { DEFAULT_ADDRESS_FIELD_NAMES, State } from 'common';
+import { State } from '@idemand/common';
+import { DEFAULT_ADDRESS_FIELD_NAMES } from 'common';
 import {
   FormikMaskField,
   FormikNativeSelect,
@@ -85,7 +86,10 @@ export const FormikAddressLite = ({
         fullScreen={fullScreen}
         TransitionComponent={Transition}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center' }} component='div'>
+        <DialogTitle
+          sx={{ display: 'flex', alignItems: 'center' }}
+          component='div'
+        >
           <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
             {title}
           </Typography>
@@ -124,7 +128,12 @@ export const FormikAddressLite = ({
             )}
             {names.city && (
               <Grid xs={6} sm={4}>
-                <FormikTextField name={names.city} label='City' fullWidth {...textFieldProps} />
+                <FormikTextField
+                  name={names.city}
+                  label='City'
+                  fullWidth
+                  {...textFieldProps}
+                />
               </Grid>
             )}
             {names.state && (
@@ -134,7 +143,11 @@ export const FormikAddressLite = ({
                   label='State'
                   fullWidth
                   selectOptions={State.options}
-                  variant={textFieldProps?.variant === 'standard' ? 'standard' : 'outlined'}
+                  variant={
+                    textFieldProps?.variant === 'standard'
+                      ? 'standard'
+                      : 'outlined'
+                  }
                 />
               </Grid>
             )}
@@ -149,7 +162,11 @@ export const FormikAddressLite = ({
                   inputProps={{
                     maskProps: postalMaskProps,
                   }}
-                  variant={textFieldProps?.variant === 'standard' ? 'standard' : 'outlined'}
+                  variant={
+                    textFieldProps?.variant === 'standard'
+                      ? 'standard'
+                      : 'outlined'
+                  }
                   size={textFieldProps?.size || 'medium'}
                 />
               </Grid>
@@ -158,10 +175,18 @@ export const FormikAddressLite = ({
               <>
                 <Grid xs></Grid>
                 <Grid xs={6}>
-                  <FormikTextField name={names.latitude} label='Latitude' fullWidth />
+                  <FormikTextField
+                    name={names.latitude}
+                    label='Latitude'
+                    fullWidth
+                  />
                 </Grid>
                 <Grid xs={6}>
-                  <FormikTextField name={names.longitude} label='Longitude' fullWidth />
+                  <FormikTextField
+                    name={names.longitude}
+                    label='Longitude'
+                    fullWidth
+                  />
                 </Grid>
               </>
             ) : null}

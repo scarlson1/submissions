@@ -22,12 +22,12 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 import {
+  Claim,
   StorageFolder,
   type Quote,
   type TStorageFolder,
 } from '@idemand/common';
 import {
-  CLAIMS,
   PORTFOLIO_RATING_REQUIRED_HEADERS,
   QUOTE_IMPORT_REQUIRED_HEADERS,
   QUOTE_STATUS,
@@ -69,7 +69,7 @@ export const Quotes = () => {
   const renderShowJson = useGridShowJson(
     'quotes',
     { showInMenu: true },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    { requiredClaims: { [Claim.enum.iDemandAdmin]: true } },
   );
   const { isMobile } = useWidth();
 

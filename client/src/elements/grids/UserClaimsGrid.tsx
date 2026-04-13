@@ -17,8 +17,8 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { Collection } from '@idemand/common';
-import { CLAIMS, User, usersCollection } from 'common';
+import { Claim, Collection } from '@idemand/common';
+import { User, usersCollection } from 'common';
 import { BasicDataGrid, GridEditMultiSelectCell } from 'components';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAsyncToast, useGridEditMode, useUpdateClaims } from 'hooks';
@@ -60,7 +60,7 @@ export const UserClaimsGrid = ({
     validateCustomClaims: hasAdminClaimsValidator,
   });
   const { data: iDAdminResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
   const toast = useAsyncToast();
   const updateClaims = useUpdateClaims();
@@ -121,12 +121,12 @@ export const UserClaimsGrid = ({
         editable: signInResult.hasRequiredClaims,
         valueOptions: iDAdminResult.hasRequiredClaims
           ? [
-              CLAIMS.AGENT,
-              CLAIMS.ORG_ADMIN,
-              CLAIMS.IDEMAND_ADMIN,
+              Claim.enum.agent,
+              Claim.enum.orgAdmin,
+              Claim.enum.iDemandAdmin,
               'iDemandUser',
             ]
-          : [CLAIMS.AGENT, CLAIMS.ORG_ADMIN],
+          : [Claim.enum.agent, Claim.enum.orgAdmin],
         closeOnChange: true,
         renderEditCell: (params: GridRenderEditCellParams) => (
           <GridEditMultiSelectCell {...params} />

@@ -14,8 +14,7 @@ import {
   useSigninCheck,
 } from 'reactfire';
 
-import type { TCollection, WithId } from '@idemand/common';
-import { Submission } from 'common';
+import type { Submission, TCollection, WithId } from '@idemand/common';
 import { DialogOptions } from 'context';
 import { openGoogleMaps } from 'modules/utils';
 import { useFloodFactor } from './useFloodFactor';

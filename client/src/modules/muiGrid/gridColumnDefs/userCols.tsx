@@ -1,9 +1,17 @@
 import { Avatar, Box, Typography } from '@mui/material';
 import { blue, lightBlue, lightGreen, purple, red } from '@mui/material/colors';
-import { GridColDef, GridRenderCellParams, GridRenderEditCellParams } from '@mui/x-data-grid';
+import {
+  GridColDef,
+  GridRenderCellParams,
+  GridRenderEditCellParams,
+} from '@mui/x-data-grid';
 
-import { CLAIMS, User } from 'common';
-import { GridEditMultiSelectCell, GridMultiSelectColDef } from 'components/GridEditMultiSelectCell';
+import { Claim } from '@idemand/common';
+import { User } from 'common';
+import {
+  GridEditMultiSelectCell,
+  GridMultiSelectColDef,
+} from 'components/GridEditMultiSelectCell';
 import { renderChips } from 'components/RenderGridCellHelpers';
 import { getRandomItem, stringAvatar } from 'modules/utils';
 import {
@@ -21,7 +29,8 @@ import {
 export const userClaimsCol: GridMultiSelectColDef = {
   field: 'userClaims',
   headerName: 'Roles',
-  description: "user's permissions. double click to edit (requires admin permissions)",
+  description:
+    "user's permissions. double click to edit (requires admin permissions)",
   flex: 1,
   minWidth: 240,
   // @ts-ignore
@@ -30,14 +39,18 @@ export const userClaimsCol: GridMultiSelectColDef = {
   editable: false,
   filterable: false,
   sortable: false,
-  valueOptions: [CLAIMS.AGENT, CLAIMS.ORG_ADMIN],
+  valueOptions: [Claim.enum.agent, Claim.enum.orgAdmin],
   valueGetter: (params) => {
     if (!params.value) return [];
-    return Object.keys(params.value).filter((k) => params.value[k] && k !== '_lastCommitted');
+    return Object.keys(params.value).filter(
+      (k) => params.value[k] && k !== '_lastCommitted',
+    );
   },
   valueFormatter: (params) => `${params.value?.join(', ')}`,
   renderCell: renderChips,
-  renderEditCell: (params: GridRenderEditCellParams) => <GridEditMultiSelectCell {...params} />,
+  renderEditCell: (params: GridRenderEditCellParams) => (
+    <GridEditMultiSelectCell {...params} />
+  ),
   // usually necessary if valueGetter is used
   // called when value changes and when "stopEditing" is triggered (click away, enter, esc, etc.)
   valueSetter: (params) => {
@@ -57,7 +70,13 @@ export const userClaimsCol: GridMultiSelectColDef = {
   closeOnChange: false,
 };
 
-const AVATAR_BACKGROUNDS = [purple[200], blue[200], red[200], lightBlue[200], lightGreen[200]];
+const AVATAR_BACKGROUNDS = [
+  purple[200],
+  blue[200],
+  red[200],
+  lightBlue[200],
+  lightGreen[200],
+];
 
 export const userSummaryCol: GridColDef<User> = {
   field: 'user',
@@ -68,13 +87,15 @@ export const userSummaryCol: GridColDef<User> = {
   filterable: false,
   sortable: false,
   valueGetter: (params) => {
-    const name = `${params.row.firstName || ''} ${params.row.lastName || ''}`.trim();
+    const name =
+      `${params.row.firstName || ''} ${params.row.lastName || ''}`.trim();
     const email = params.row.email || '';
     const photoURL = params.row.photoURL || '';
 
     return { name, email, photoURL };
   },
-  valueFormatter: (params) => `${params.value?.name || ''} | ${params.value.email || ''}`,
+  valueFormatter: (params) =>
+    `${params.value?.name || ''} | ${params.value.email || ''}`,
   renderCell: (params: GridRenderCellParams<any>) => {
     const avatarProps = params.value?.name
       ? { ...stringAvatar(params.value.name) }

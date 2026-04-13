@@ -1,10 +1,9 @@
-import { Quote } from '@idemand/common';
+import { Claim, Quote } from '@idemand/common';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
-  CLAIMS,
   mgaDomain,
   mgaOrgId,
   // Quote,
@@ -30,7 +29,7 @@ const assignQuote = async ({
   validate(quoteId, 'failed-precondition', 'quoteId required');
 
   const { uid, token } = auth;
-  const isAgent = token ? token[CLAIMS.AGENT] || false : false;
+  const isAgent = token ? token[Claim.enum.agent] || false : false;
 
   try {
     const db = getFirestore();

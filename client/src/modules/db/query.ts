@@ -5,6 +5,7 @@ export function getPoliciesQueryProps(
   user: User,
   claims: {
     iDemandAdmin: boolean;
+    // iDemandUser: boolean;
     orgAdmin: boolean;
     agent: boolean;
   },

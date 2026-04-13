@@ -2,9 +2,8 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import type { Optional } from '@idemand/common';
+import { CommSource, type Optional } from '@idemand/common';
 import { calcQuote, CalcQuoteRequest } from 'api';
-import { CommSource } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { truthyOrZero } from 'modules/utils';
 import { RatingInputsWithAAL } from './useRateQuote';

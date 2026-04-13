@@ -1,8 +1,8 @@
 import { GridColDef } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 
-import type { ILocation } from '@idemand/common';
-import { CLAIMS, ServerDataGridCollectionProps } from 'common';
+import { Claim, type ILocation } from '@idemand/common';
+import { ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import {
   useAsyncToast,
@@ -26,7 +26,7 @@ export const LocationsGrid = ({
   const renderShowJson = useGridShowJson(
     'locations',
     { showInMenu: true },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    { requiredClaims: { [Claim.enum.iDemandAdmin]: true } },
   );
 
   const columns = useMemo<GridColDef[]>(

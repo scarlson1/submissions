@@ -6,8 +6,8 @@ import { Fragment, useEffect, useMemo } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { useNavigate } from 'react-router-dom';
 
+import type { Submission } from '@idemand/common';
 import { VoidSVG } from 'assets/images';
-import { Submission } from 'common';
 import { useInfiniteDocs } from 'hooks';
 import { createPath, ROUTES } from 'router';
 import { SubmissionCard } from './SubmissionCard';

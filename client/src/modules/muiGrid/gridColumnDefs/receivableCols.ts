@@ -1,6 +1,6 @@
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
-import { Receivable } from 'common';
+import type { Receivable } from '@idemand/common';
 import {
   billingEntityEmail,
   billingEntityName,

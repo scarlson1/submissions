@@ -1,21 +1,21 @@
-import { UserCredential, getAuth, signInAnonymously } from 'firebase/auth';
+import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
 import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 // import { auth } from 'firebaseConfig';
-import { CLAIMS } from 'common';
+import type { ClaimArray } from '@idemand/common';
 import { useClaims } from 'hooks';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: read for reference: https://adarshaacharya.com.np/blog/role-based-auth-with-react-router-v6
 
-type CustomClaimKeys = keyof typeof CLAIMS;
+// type CustomClaimKeys = keyof typeof CLAIMS;
 
 export interface RequireAuthProps {
   children: JSX.Element;
   allowAnonymous?: boolean;
-  requiredClaims?: null | CustomClaimKeys[];
+  requiredClaims?: null | ClaimArray;
   redirectPath?: string;
   shouldSignInAnonymously?: boolean;
 }
@@ -42,7 +42,7 @@ export const RequireAuth = ({
       // && !loadingInitial
       // let notAuthorized = requiredClaims.every((key) => !claims[CLAIMS[key]]);
       let notAuthorized =
-        claims !== null ? requiredClaims.every((key) => !claims![CLAIMS[key]]) : true;
+        claims !== null ? requiredClaims.every((key) => !claims![key]) : true;
 
       if (!!notAuthorized) {
         if (user && user.uid) {
@@ -50,7 +50,7 @@ export const RequireAuth = ({
             `You're account does not have the required permissions to access this route.`,
             {
               duration: 8000,
-            }
+            },
           );
         }
         console.log('REDIRECTING - MISSING REQUIRED CLAIMS');
@@ -94,7 +94,9 @@ export const RequireAuth = ({
     console.log("not authenticated => routing to '/login'"); // , user, loadingInitial
     // TODO: toast causes bug on start up
     // toast.error('Authentication required to access route');
-    return <Navigate to={redirectPath} state={{ from: location }} replace={true} />;
+    return (
+      <Navigate to={redirectPath} state={{ from: location }} replace={true} />
+    );
   }
 
   return children;

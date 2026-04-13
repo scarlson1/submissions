@@ -19,9 +19,8 @@ import { where } from 'firebase/firestore';
 import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
-import type { Policy } from '@idemand/common';
+import type { Policy, Receivable } from '@idemand/common';
 import { CheckmarkLottie } from 'assets';
-import { Receivable } from 'common';
 import { useCollectionData, useDocData } from 'hooks';
 import { createPath, ROUTES } from 'router';
 

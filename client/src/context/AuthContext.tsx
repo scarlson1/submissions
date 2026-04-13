@@ -16,7 +16,7 @@ import {
 import { matchPath, useLocation } from 'react-router-dom';
 import { useAnalytics, useAuth as useFireAuth, useFunctions } from 'reactfire';
 
-import { CLAIMS } from 'common';
+import type { Claim } from '@idemand/common';
 import { ReauthDialog } from 'components';
 import { useUserClaims } from 'hooks';
 import { useTypesenseStore } from 'hooks/useAlgoliaStore';
@@ -37,7 +37,7 @@ import { AUTH_ROUTES, createPath } from 'router';
 //   IDEMAND_ADMIN = 'iDemandAdmin',
 //   AGENT = 'agent',
 // }
-export type CustomClaimsInterface = Record<CLAIMS, boolean> &
+export type CustomClaimsInterface = Record<Claim, boolean> &
   IdTokenResult['claims'];
 
 interface AuthContextValue extends UserWithClaimsResult {

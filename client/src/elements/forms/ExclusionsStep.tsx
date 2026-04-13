@@ -23,8 +23,8 @@ import {
 } from '@mui/material';
 import { useFormikContext } from 'formik';
 
+import type { FloodValues } from '@idemand/common';
 import { FormikToggleButtonGroup } from 'components/forms';
-import { FloodValues } from 'views/SubmissionNew';
 
 // TODO: move to zod enum
 const exclusions = [
@@ -56,7 +56,8 @@ const MenuProps = {
 };
 
 export const ExclusionsStep = () => {
-  const { values, setFieldValue, validateField } = useFormikContext<FloodValues>();
+  const { values, setFieldValue, validateField } =
+    useFormikContext<FloodValues>();
   const [collapseIn, setCollapseIn] = useState(false);
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export const ExclusionsStep = () => {
 
   const handleExclusionsExistChange = (
     event: React.MouseEvent<HTMLElement>,
-    newValue: boolean | null
+    newValue: boolean | null,
   ) => {
     setFieldValue('exclusionsExist', newValue);
     if (newValue === false) {
@@ -102,18 +103,33 @@ export const ExclusionsStep = () => {
           </ListItem>
         ))}
       </List>
-      <FormikToggleButtonGroup name='exclusionsExist' onChange={handleExclusionsExistChange}>
-        <ToggleButton name='exclusionsExist' value={true} aria-label='yes' sx={{ py: 2, px: 4 }}>
+      <FormikToggleButtonGroup
+        name='exclusionsExist'
+        onChange={handleExclusionsExistChange}
+      >
+        <ToggleButton
+          name='exclusionsExist'
+          value={true}
+          aria-label='yes'
+          sx={{ py: 2, px: 4 }}
+        >
           Yes
         </ToggleButton>
-        <ToggleButton name='exclusionsExist' value={false} aria-label='no' sx={{ py: 2, px: 4 }}>
+        <ToggleButton
+          name='exclusionsExist'
+          value={false}
+          aria-label='no'
+          sx={{ py: 2, px: 4 }}
+        >
           No
         </ToggleButton>
       </FormikToggleButtonGroup>
       <Collapse in={collapseIn}>
         <Box>
           <Divider sx={{ my: 4 }} />
-          <Typography>Please select all that apply from the dropdown.</Typography>
+          <Typography>
+            Please select all that apply from the dropdown.
+          </Typography>
           {/* TODO: configure FormikSelect to handle multiple values & chip */}
           {/* <FormikSelect
             id='exclusions-select'
@@ -121,8 +137,13 @@ export const ExclusionsStep = () => {
             label=''
             selectOptions={exclusions}
           /> */}
-          <FormControl size='small' sx={{ m: 1, width: '100%', maxWidth: 400, my: 4 }}>
-            <InputLabel id='multiple-exclusions-label'>Existing item(s):</InputLabel>
+          <FormControl
+            size='small'
+            sx={{ m: 1, width: '100%', maxWidth: 400, my: 4 }}
+          >
+            <InputLabel id='multiple-exclusions-label'>
+              Existing item(s):
+            </InputLabel>
             <Select
               labelId='multiple-exclusions-label'
               id='exclusions-select'
@@ -150,7 +171,9 @@ export const ExclusionsStep = () => {
                         : theme.typography.fontWeightBold,
                   }}
                 >
-                  <Checkbox checked={values.exclusions.indexOf(exclusion) > -1} />
+                  <Checkbox
+                    checked={values.exclusions.indexOf(exclusion) > -1}
+                  />
                   <ListItemText primary={exclusion} />
                 </MenuItem>
               ))}

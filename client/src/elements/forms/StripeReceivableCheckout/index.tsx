@@ -2,9 +2,8 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { getFunctions } from 'firebase/functions';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import type { WithId } from '@idemand/common';
+import type { Receivable, WithId } from '@idemand/common';
 import { fetchPaymentIntentSecret } from 'api';
-import { Receivable } from 'common';
 import { ErrorFallback } from 'components';
 import { CheckoutForm } from '../StripeCheckout/CheckoutForm';
 import { StripeElementsWrapper } from './StripeElementsWrapper';

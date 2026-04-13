@@ -1,5 +1,6 @@
+import type { ClaimArray } from '@idemand/common';
 import type { NextFunction, Response } from 'express';
-import type { ClaimArray, RequestUserAuth } from '../../common/index.js';
+import type { RequestUserAuth } from '../../common/index.js';
 import { NotAuthorizedError } from '../errors/notAuthorizedError.js';
 
 export const requireClaim =

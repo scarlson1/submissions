@@ -3,14 +3,16 @@ import { Box, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS } from 'common';
+import { Claim } from '@idemand/common';
 import { ServerDataGrid } from 'components';
 import { orgCols } from 'modules/muiGrid/gridColumnDefs';
 import { ADMIN_ROUTES, createPath } from 'router';
 
 export const Organizations = () => {
   const navigate = useNavigate();
-  const { data } = useSigninCheck({ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } });
+  const { data } = useSigninCheck({
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
+  });
 
   if (!data.hasRequiredClaims) {
     return (
@@ -29,7 +31,9 @@ export const Organizations = () => {
         <Button
           variant='contained'
           size='small'
-          onClick={() => navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))}
+          onClick={() =>
+            navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))
+          }
           sx={{ maxHeight: 34 }}
           startIcon={<AddBusinessRounded fontSize='small' />}
         >
@@ -48,7 +52,7 @@ export const Organizations = () => {
                 createPath({
                   path: ADMIN_ROUTES.ORGANIZATION,
                   params: { orgId: params.id.toString() },
-                })
+                }),
               );
             }
           }}

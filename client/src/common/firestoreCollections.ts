@@ -5,8 +5,16 @@ import {
   Firestore,
 } from 'firebase/firestore';
 
-import type { Organization, Policy, Quote } from '@idemand/common';
-import { Collection, type ILocation, type TCollection } from '@idemand/common';
+import type {
+  ILocation,
+  Organization,
+  Policy,
+  Quote,
+  Receivable,
+  Submission,
+  TCollection,
+} from '@idemand/common';
+import { Collection } from '@idemand/common';
 import {
   ActiveStates,
   AgencyApplication,
@@ -24,13 +32,11 @@ import {
   PropertyDataRes,
   RatingData,
   StageImportRecord,
-  Submission,
   TaxTransaction,
   TTax,
   User,
   UserAccess,
   UserClaims,
-  type Receivable,
 } from './types';
 
 export const createCollection = <

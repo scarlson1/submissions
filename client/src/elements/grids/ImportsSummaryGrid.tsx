@@ -4,8 +4,8 @@ import { capitalize } from 'lodash';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import type { WithId } from '@idemand/common';
-import { CLAIMS, ImportSummary, ServerDataGridCollectionProps } from 'common';
+import { Claim, type WithId } from '@idemand/common';
+import { ImportSummary, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
 import { importSummaryCols } from 'modules/muiGrid';
@@ -23,7 +23,7 @@ export const ImportsSummaryGrid = ({
   const renderShowJson = useGridShowJson(
     'dataImports',
     { showInMenu: false },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    { requiredClaims: { [Claim.enum.iDemandAdmin]: true } },
     getImportSummaryTitle,
   );
 

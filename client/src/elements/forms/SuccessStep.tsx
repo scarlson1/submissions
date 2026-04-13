@@ -19,7 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
 
-import type { Address } from '@idemand/common';
+import type { Address, Submission } from '@idemand/common';
 import { CheckmarkLottie } from 'assets';
 import {
   ANALYTICS_EVENTS,
@@ -30,7 +30,6 @@ import {
   submissionsCollection,
   withIdConverter,
 } from 'common';
-import { Submission } from 'common/types';
 import { useAuth } from 'context/AuthContext';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import { useAnalyticsEvent } from 'hooks';

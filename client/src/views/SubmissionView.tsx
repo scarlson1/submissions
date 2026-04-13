@@ -31,9 +31,12 @@ import { MouseEvent, ReactNode, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { SubmissionStatus, type TCollection } from '@idemand/common';
+import {
+  SubmissionStatus,
+  type Submission,
+  type TCollection,
+} from '@idemand/common';
 import { RatingData } from 'common';
-import { Submission } from 'common/types';
 import { ClaimsGuard } from 'components';
 import {
   useAsyncToast,

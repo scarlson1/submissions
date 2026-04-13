@@ -4,14 +4,13 @@ import { useCallback, useMemo } from 'react';
 import { useFunctions } from 'reactfire';
 import { object } from 'yup';
 
-import type { Address, Coords, Nullable } from '@idemand/common';
+import type { Address, Coords, Nullable, Product } from '@idemand/common';
 import { getPropertyDetailsAttom } from 'api';
 import {
   addressValidationActiveStates,
   coordinatesValidation,
   DraftAddLocationRequest,
   NESTED_ADDRESS_FIELD_NAMES,
-  TProduct,
 } from 'common';
 import { FormikWizardNavButtons } from 'components/forms';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
@@ -31,7 +30,7 @@ const getAddressVal = (activeStates: Record<string, boolean>) =>
   });
 
 interface AddressStepProps extends BaseStepProps<AddressValues> {
-  product: TProduct;
+  product: Product;
   changeRequest: DraftAddLocationRequest;
 }
 

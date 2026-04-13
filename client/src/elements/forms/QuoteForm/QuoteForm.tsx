@@ -31,34 +31,33 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import type {
+import {
   Address,
+  Basement,
+  CBRSDesignation,
+  Collection,
+  CommSource,
   Coords,
+  FloodZone,
+  Limits,
   Nullable,
   Optional,
   Organization,
+  Product,
+  State,
+  Submission,
   TaxItem,
   WithId,
 } from '@idemand/common';
-import { Collection } from '@idemand/common';
 import {
   AgencyDetails,
   AgentDetails,
-  Basement,
   CarrierDetails,
-  CBRSDesignation,
-  CommSource,
-  FloodZone,
-  Limits,
   NamedInsuredDetails,
   orgsCollection,
   PriorLossCount,
   RatingPropertyData,
-  State,
-  Submission,
-  TCommSource,
   TFeeItem,
-  TProduct,
   TTaxItem,
   typesenseIndexName,
   User,
@@ -137,7 +136,7 @@ export interface QuoteValues {
   taxes: TaxItem[]; // TTaxItem[];
   annualPremium: number | null;
   // subproducerCommission: number;
-  commSource: TCommSource;
+  commSource: CommSource;
   quoteTotal: number | null;
   namedInsured: NamedInsuredDetails;
   agent: AgentDetails;
@@ -156,7 +155,7 @@ interface QuoteFormProps extends Omit<
 > {
   initialValues?: QuoteValues | undefined;
   title: string;
-  product?: TProduct;
+  product?: Product;
   submissionId?: string | null;
   initialRatingSnap?: Optional<RatingInputsWithAAL> | null | undefined;
 }

@@ -54,6 +54,17 @@ export const StorageFolder = z.enum([
 ]);
 export type TStorageFolder = z.infer<typeof StorageFolder>;
 
+export const Claim = z.enum([
+  'iDemandAdmin',
+  'iDemandUser',
+  'orgAdmin',
+  'agent',
+]);
+export type Claim = z.infer<typeof Claim>;
+
+export const ClaimArray = z.array(Claim);
+export type ClaimArray = z.infer<typeof ClaimArray>;
+
 export const SubmissionStatus = z.enum([
   'draft',
   'submitted',

@@ -1,7 +1,8 @@
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { CLAIMS, hostingBaseURL, resendKey } from '../common/index.js';
+import { Claim } from '@idemand/common';
+import { hostingBaseURL, resendKey } from '../common/index.js';
 import { sendNewQuoteEmail } from '../services/sendgrid/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { onlyUnique } from '../utils/arrays.js';
@@ -21,9 +22,9 @@ const sendNewQuoteNotifications = async ({
 
   if (!token) throw new HttpsError('unauthenticated', 'must be signed in');
 
-  const isIDemandAdmin: boolean = token[CLAIMS.IDEMAND_ADMIN];
+  const isIDemandAdmin: boolean = token[Claim.enum.iDemandAdmin];
   const isAgentOrOrgAdmin: boolean =
-    token[CLAIMS.AGENT] || token[CLAIMS.ORG_ADMIN];
+    token[Claim.enum.agent] || token[Claim.enum.orgAdmin];
 
   if (!(isIDemandAdmin || isAgentOrOrgAdmin))
     throw new HttpsError('permission-denied', 'must be agent or admin');

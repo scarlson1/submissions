@@ -1,7 +1,7 @@
 import { array, boolean, date, mixed, number, object, string } from 'yup';
 
+import { State } from '@idemand/common';
 import { isValidEmail, validateRoutingNumber } from 'modules/utils';
-import { State } from './enums';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
 
@@ -17,10 +17,14 @@ export function phoneRequiredVal(val: any) {
   return error;
 }
 
-export const emailVal = string().test('valid-email', 'Invalid email', async (val) => {
-  if (val && !isValidEmail(val)) return false;
-  return true;
-});
+export const emailVal = string().test(
+  'valid-email',
+  'Invalid email',
+  async (val) => {
+    if (val && !isValidEmail(val)) return false;
+    return true;
+  },
+);
 
 export const passwordValidation = string()
   .min(8, 'Password must be 8 characters long')
@@ -43,7 +47,9 @@ export const stateVal = string()
 // export const isAvailableState = string().oneOf(ACTIVE_STATES_ABRV);
 
 export const addressValidation = object().shape({
-  addressLine1: string().typeError('address required').required('address is required'),
+  addressLine1: string()
+    .typeError('address required')
+    .required('address is required'),
   addressLine2: string().notRequired(),
   city: string().typeError('city required').required('city is required'),
   state: stateVal,
@@ -66,18 +72,30 @@ export const validateActiveState = (activeStates: { [key: string]: boolean }) =>
   string()
     .typeError('state required')
     .required('State is required')
-    .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]);
+    .test(
+      'activeState',
+      'Ineligible state',
+      (val) => Boolean(val) && activeStates[`${val}`],
+    );
 
-export const addressValidationActiveStates = (activeStates: Record<string, boolean>) =>
+export const addressValidationActiveStates = (
+  activeStates: Record<string, boolean>,
+) =>
   object().shape({
-    addressLine1: string().typeError('addressLine1 required').required('Address is required'),
+    addressLine1: string()
+      .typeError('addressLine1 required')
+      .required('Address is required'),
     addressLine2: string().typeError('addressLine2 (string)').notRequired(),
     city: string().typeError('city required').required('City is required'),
     state: validateActiveState(activeStates),
-    postal: string().typeError('postal required').required('Postal code is required'),
+    postal: string()
+      .typeError('postal required')
+      .required('Postal code is required'),
   });
 
-export const addressValidationActiveStatesNested = (activeStates: { [key: string]: boolean }) =>
+export const addressValidationActiveStatesNested = (activeStates: {
+  [key: string]: boolean;
+}) =>
   object().shape({
     address: addressValidationActiveStates(activeStates),
   });
@@ -107,7 +125,10 @@ export const coordinatesValidation = object().shape({
 export const additionalInterestsVal = array().of(
   object().shape({
     type: string().label('type').required(),
-    name: string().label('name').min(3, 'please enter full name').required('Required'),
+    name: string()
+      .label('name')
+      .min(3, 'please enter full name')
+      .required('Required'),
     accountNumber: string().label('account number'), // TODO: if type === mortgagee --> required
     address: object().when('type', {
       is: (val: string) => val === 'mortgagee',
@@ -117,7 +138,9 @@ export const additionalInterestsVal = array().of(
             .typeError('address required')
             .required('address is required (mortgagee)'),
           addressLine2: string().notRequired(),
-          city: string().typeError('city required').required('city is required'),
+          city: string()
+            .typeError('city required')
+            .required('city is required'),
           state: stateVal,
           postal: postalVal.required('postal code is required'),
         }),
@@ -130,7 +153,7 @@ export const additionalInterestsVal = array().of(
           postal: postalVal.label('postal').notRequired(),
         }),
     }),
-  })
+  }),
 );
 
 export const additionalInterestsValidation = object().shape({
@@ -138,30 +161,39 @@ export const additionalInterestsValidation = object().shape({
 });
 
 const getNumValue = (val: any): number =>
-  typeof val === 'string' ? parseInt(val || '0') : typeof val === 'number' ? val : 0;
+  typeof val === 'string'
+    ? parseInt(val || '0')
+    : typeof val === 'number'
+      ? val
+      : 0;
 
 export const checkBCDSumValid = (
   limit1: string | number,
   limit2: string | number,
-  limit3: string | number
+  limit3: string | number,
 ) => {
   limit1 = getNumValue(limit1);
   limit2 = getNumValue(limit2);
   limit3 = getNumValue(limit3);
 
   return (
-    limit1 + limit2 + limit3 < parseInt(import.meta.env.VITE_FLOOD_MAX_LIMIT_B_C_D || '1000000')
+    limit1 + limit2 + limit3 <
+    parseInt(import.meta.env.VITE_FLOOD_MAX_LIMIT_B_C_D || '1000000')
   );
 };
 
 export const limitAVal = string()
   .typeError('limitA required')
   .required()
-  .test('limitA', 'Building limit required. Please enter a number.', (value) => {
-    if (value === undefined) return false;
-    if (!isNaN(parseInt(value))) return true;
-    return false;
-  })
+  .test(
+    'limitA',
+    'Building limit required. Please enter a number.',
+    (value) => {
+      if (value === undefined) return false;
+      if (!isNaN(parseInt(value))) return true;
+      return false;
+    },
+  )
   .test('limitA', 'Amount must be between 100k and 1M.', (value) => {
     let num = parseInt(value || '0');
     let min = parseInt(import.meta.env.VITE_FLOOD_MIN_LIMIT_A!) || 100000;
@@ -173,24 +205,40 @@ export const limitAVal = string()
 export const limitBVal = string()
   .typeError('limitB required')
   .required()
-  .test('limitB', 'Building limit required. Please enter a number.', (value) => {
-    if (value === undefined) return false;
-    if (!isNaN(parseInt(value))) return true;
-    return false;
-  })
+  .test(
+    'limitB',
+    'Building limit required. Please enter a number.',
+    (value) => {
+      if (value === undefined) return false;
+      if (!isNaN(parseInt(value))) return true;
+      return false;
+    },
+  )
   .test('limitB', 'Sum B+C+D must be between 0 and 1M.', (value, context) => {
-    return checkBCDSumValid(value || 0, context.parent.limitC, context.parent.limitD);
+    return checkBCDSumValid(
+      value || 0,
+      context.parent.limitC,
+      context.parent.limitD,
+    );
   });
 
 export const limitCVal = string()
   .typeError('limitC required')
-  .test('limitC', 'Building limit required. Please enter a number.', (value) => {
-    if (value === undefined) return false;
-    if (!isNaN(parseInt(value))) return true;
-    return false;
-  })
+  .test(
+    'limitC',
+    'Building limit required. Please enter a number.',
+    (value) => {
+      if (value === undefined) return false;
+      if (!isNaN(parseInt(value))) return true;
+      return false;
+    },
+  )
   .test('limitC', 'Sum B+C+D must be between 0 and 1M.', (value, context) => {
-    return checkBCDSumValid(context.parent.limitB, value || 0, context.parent.limitD);
+    return checkBCDSumValid(
+      context.parent.limitB,
+      value || 0,
+      context.parent.limitD,
+    );
   });
 
 export const limitDVal = string()
@@ -201,7 +249,11 @@ export const limitDVal = string()
     return false;
   })
   .test('limitD', 'Sum B+C+D must be between 0 and 1M.', (value, context) => {
-    return checkBCDSumValid(context.parent.limitB, context.parent.limitC, value || 0);
+    return checkBCDSumValid(
+      context.parent.limitB,
+      context.parent.limitC,
+      value || 0,
+    );
   });
 
 export const limitsValidation = object({
@@ -230,15 +282,20 @@ export const buildingDetailsValidation = object().shape({
 });
 
 export const exclusionsValidation = object({
-  exclusionsExist: boolean().oneOf([true, false], 'Please select an option').nullable(),
+  exclusionsExist: boolean()
+    .oneOf([true, false], 'Please select an option')
+    .nullable(),
   exclusions: array().when(['exclusionsExist'], {
     is: (existsVal: boolean | null) => !!existsVal,
-    then: () => array().min(1, 'Please select at least one option from dropdown'),
+    then: () =>
+      array().min(1, 'Please select at least one option from dropdown'),
     otherwise: () => array(),
   }),
 });
 
-export const priorLossVal = string().label('priorLossCount').oneOf(['0', '1', '2', '3+']);
+export const priorLossVal = string()
+  .label('priorLossCount')
+  .oneOf(['0', '1', '2', '3+']);
 
 export const priorLossValidation = object({
   priorLossCount: priorLossVal.required('Prior loss history is required'),
@@ -273,8 +330,12 @@ export const namedInsuredValidation = object().shape({
 });
 
 export const namedInsuredValidationNotRequired = object().shape({
-  firstName: string().typeError('Named Insured name must be a string').notRequired(),
-  lastName: string().typeError('Named Insured name must be a string').notRequired(),
+  firstName: string()
+    .typeError('Named Insured name must be a string')
+    .notRequired(),
+  lastName: string()
+    .typeError('Named Insured name must be a string')
+    .notRequired(),
   email: emailVal,
   phone: phoneVal.notRequired(),
   userId: string().notRequired(),
@@ -362,7 +423,7 @@ export const agentsValidation = object().shape({
       //   .string()
       //   .oneOf(['admin', 'agent'], 'Please select an option')
       //   .required('Access level required'),
-    })
+    }),
   ),
 });
 
@@ -389,7 +450,9 @@ export const newTaxValidation = object().shape({
   expirationDate: date().nullable(),
   LOB: array().of(string()),
   products: array().of(string()).min(1),
-  transactionTypes: array().of(string()).min(1, 'Must select at lease one option'),
+  transactionTypes: array()
+    .of(string())
+    .min(1, 'Must select at lease one option'),
   subjectBase: array()
     .of(string())
     .min(1, 'Must select at lease one option')
@@ -399,13 +462,16 @@ export const newTaxValidation = object().shape({
       (value) => {
         if (value?.includes('fixedFee') && value.length > 1) return false;
         return true;
-      }
+      },
     ),
   rate: number().when(['subjectBase'], {
     is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
     then: () => number().notRequired().nullable(),
     otherwise: () =>
-      number().positive().max(20, 'Rate must be less than 20%').required('Rate is required'),
+      number()
+        .positive()
+        .max(20, 'Rate must be less than 20%')
+        .required('Rate is required'),
   }),
   fixedRate: number().when(['subjectBase'], {
     is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
@@ -413,8 +479,12 @@ export const newTaxValidation = object().shape({
     otherwise: () => number().notRequired().nullable(),
   }),
   baseRoundType: string().required(),
-  baseDigits: number().min(0, 'Must be 0 or greater').integer('Must be an integer'),
+  baseDigits: number()
+    .min(0, 'Must be 0 or greater')
+    .integer('Must be an integer'),
   resultRoundType: string().required(),
-  resultDigits: number().min(0, 'Must be 0 or greater').integer('Must be an integer'),
+  resultDigits: number()
+    .min(0, 'Must be 0 or greater')
+    .integer('Must be an integer'),
   // refundable: boolean()
 });

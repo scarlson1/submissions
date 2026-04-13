@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 import { createPath, ROUTES } from 'router';
 
-import { Claim, Receivable, ServerDataGridCollectionProps } from 'common';
+import { Claim, type Receivable } from '@idemand/common';
+import { ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
 import {

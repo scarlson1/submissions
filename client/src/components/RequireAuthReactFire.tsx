@@ -1,3 +1,4 @@
+import type { ClaimArray } from '@idemand/common';
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import { IdTokenResult, signInAnonymously } from 'firebase/auth';
 import { useEffect } from 'react';
@@ -13,13 +14,12 @@ import {
   useSigninCheck,
 } from 'reactfire';
 
-import { CLAIMS, TClaim } from 'common';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: needs to use the same auth status source as used in components
 // using useAuth from AuthContext in components is behind useSignInCheck
 
-export type CustomClaimKeys = keyof typeof CLAIMS;
+// export type CustomClaimKeys = keyof typeof CLAIMS;
 
 export interface RequireAuthReactFireProps {
   children: JSX.Element;
@@ -62,24 +62,37 @@ export const RequireAuthReactFire = ({
   }
 
   // TODO: WOULD STATUS EVER EQUAL ERROR OR WOULD IT THROW TO THE NEAREST ERROR BOUNDARY ??
-  if (status === 'error') return <Navigate to={'/'} state={{ from: location }} />;
+  if (status === 'error')
+    return <Navigate to={'/'} state={{ from: location }} />;
 
   // TODO: flush out component (buttons, image, etc.)
   if (!data.hasRequiredClaims) {
     return (
-      <Box sx={{ py: 5, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Box
+        sx={{
+          py: 5,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}
+      >
         <Typography variant='h6' align='center' gutterBottom>
           {data.signedIn ? 'Not authorized' : 'Authentication required'}
         </Typography>
         <Box sx={{ mx: 'auto' }}>
           {data.signedIn ? (
-            <Button onClick={() => navigate(-1)} disabled={location.key === 'default'}>
+            <Button
+              onClick={() => navigate(-1)}
+              disabled={location.key === 'default'}
+            >
               Back
             </Button>
           ) : (
             <Button
               onClick={() =>
-                navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
+                navigate(createPath({ path: AUTH_ROUTES.LOGIN }), {
+                  state: { from: location },
+                })
               }
             >
               Sign In
@@ -90,7 +103,10 @@ export const RequireAuthReactFire = ({
     );
   }
 
-  if (!data.user || (!allowAnonymous && !!data.user.isAnonymous && !shouldSignInAnonymously)) {
+  if (
+    !data.user ||
+    (!allowAnonymous && !!data.user.isAnonymous && !shouldSignInAnonymously)
+  ) {
     // TODO: redirect to create account
     toast('Must create an account to access this route');
     return <Navigate to={authPath} state={{ from: location }} />;
@@ -108,7 +124,7 @@ type Claims = IdTokenResult['claims'];
 export const getRequiredClaimValidator =
   // (requiredClaims: CustomClaimKeys[]): ClaimsValidator =>
 
-    (requiredClaims: TClaim[]): ClaimsValidator =>
+  (requiredClaims: ClaimArray): ClaimsValidator =>
     (userClaims: Claims) => {
       // check each required claim, returns true if all claims are missing
       let notAuthorized = true;
@@ -120,7 +136,8 @@ export const getRequiredClaimValidator =
       });
 
       const errors: ClaimCheckErrors = {};
-      if (!!notAuthorized) errors.claims = ['Must have at least one of the required claims.'];
+      if (!!notAuthorized)
+        errors.claims = ['Must have at least one of the required claims.'];
 
       return {
         hasRequiredClaims: !notAuthorized,
@@ -128,5 +145,7 @@ export const getRequiredClaimValidator =
       };
     };
 
-// export const hasAdminClaimsValidator = getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']);
-export const hasAdminClaimsValidator = getRequiredClaimValidator(['orgAdmin', 'iDemandAdmin']);
+export const hasAdminClaimsValidator = getRequiredClaimValidator([
+  'orgAdmin',
+  'iDemandAdmin',
+]);

@@ -1,15 +1,15 @@
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
-import { Submission } from 'common';
+import type { Submission } from '@idemand/common';
 import {
   addrCityCol,
   addrCountyCol,
+  addressSummaryCol,
   addrFIPSCol,
   addrLine1Col,
   addrLine2Col,
   addrPostalCol,
   addrStateCol,
-  addressSummaryCol,
   annualPremiumCol,
   coordinatesCol,
   createdCol,

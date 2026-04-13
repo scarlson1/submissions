@@ -3,8 +3,8 @@ import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { SubmissionStatus } from '@idemand/common';
-import { CLAIMS, ServerDataGridCollectionProps, Submission } from 'common';
+import { Claim, SubmissionStatus, type Submission } from '@idemand/common';
+import { ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import {
   useAsyncToast,
@@ -35,11 +35,11 @@ export const SubmissionsGrid = ({
   const renderShowJson = useGridShowJson(
     'submissions',
     { showInMenu: true },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    { requiredClaims: { [Claim.enum.iDemandAdmin]: true } },
   );
 
   const { data: iDAdminResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
 
   const submissionColumns: GridColDef[] = useMemo(

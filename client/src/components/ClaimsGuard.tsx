@@ -8,7 +8,7 @@ import {
   useSigninCheck,
 } from 'reactfire';
 
-import { TClaim } from 'common';
+import type { ClaimArray } from '@idemand/common';
 import { getRequiredClaimValidator } from './RequireAuthReactFire';
 
 export type SignInCheckProps =
@@ -19,7 +19,7 @@ export type SignInCheckProps =
 
 export interface ClaimsGuardProps {
   children: React.ReactNode;
-  requiredClaims?: TClaim[]; // CustomClaimKeys[];
+  requiredClaims?: ClaimArray; // CustomClaimKeys[];
   signInCheckProps?: SignInCheckProps;
   requireAll?: boolean;
 }

@@ -39,13 +39,16 @@ import numeral from 'numeral';
 import { toast } from 'react-hot-toast';
 import { Location } from 'react-router-dom';
 
-import type { Address, Policy, Timestamp } from '@idemand/common';
-import {
+import type {
+  Address,
   CompressedAddress,
+  Policy,
+  Timestamp,
+} from '@idemand/common';
+import {
   FlattenObjectKeys,
   Path,
   TFeeItem,
-  TPolicyStatus,
   TRoundingType,
   TTaxItem,
 } from 'common';
@@ -926,7 +929,7 @@ export function splitChunks<T = any>(data: T[], size: number) {
 }
 
 // TODO: move to policyConverter ??
-export const calcPolicyStatus = (policy: Policy): TPolicyStatus => {
+export const calcPolicyStatus = (policy: Policy): string => {
   const currentMS = new Date().getTime();
   if (policy.cancelEffDate) {
     const isAfterCancelDate = policy.cancelEffDate.toMillis() > currentMS;

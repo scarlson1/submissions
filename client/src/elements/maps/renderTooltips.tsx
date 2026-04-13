@@ -7,9 +7,9 @@ import type {
   Policy,
   PolicyLocation,
   Quote,
+  Submission,
   WithId,
 } from '@idemand/common';
-import { Submission } from 'common';
 import {
   dollarFormat,
   formatDate,
