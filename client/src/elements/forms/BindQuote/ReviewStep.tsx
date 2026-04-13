@@ -18,8 +18,8 @@ import {
 import { useFormikContext } from 'formik';
 import { useEffect, useMemo } from 'react';
 
-import type { WithId } from '@idemand/common';
-import { fallbackImages, Quote } from 'common';
+import type { Quote, WithId } from '@idemand/common';
+import { fallbackImages } from 'common';
 import { LineItem } from 'components';
 import { addToDate, dollarFormat, formatDate } from 'modules/utils';
 import { BindQuoteValues } from './BindQuoteForm';

@@ -3,8 +3,9 @@ import { Box, Button, Divider, Stack, Typography } from '@mui/material';
 import Lottie from 'lottie-react';
 import { Fragment, useMemo } from 'react';
 
+import type { Policy } from '@idemand/common';
 import { CheckmarkLottie } from 'assets';
-import { CancellationRequest, Policy } from 'common';
+import { CancellationRequest } from 'common';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import { useDialog } from 'hooks';
 import { compressedToAddress } from 'modules/utils';
@@ -31,10 +32,22 @@ export function SubmittedStep({
 
   return (
     <Fragment>
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+      <Box
+        sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            width: '100%',
+            justifyContent: 'space-between',
+          }}
+        >
           <Box>
-            <Typography variant='overline' color='text.secondary' sx={{ lineHeight: 1.4 }}>
+            <Typography
+              variant='overline'
+              color='text.secondary'
+              sx={{ lineHeight: 1.4 }}
+            >
               Status
             </Typography>
             <Typography variant='subtitle2'>{data.status}</Typography>
@@ -50,7 +63,11 @@ export function SubmittedStep({
                 >
                   Address
                 </Typography>
-                <FormattedAddress address={address} variant='subtitle2' textAlign='right' />
+                <FormattedAddress
+                  address={address}
+                  variant='subtitle2'
+                  textAlign='right'
+                />
               </>
             ) : null}
           </Box>
@@ -64,9 +81,14 @@ export function SubmittedStep({
         <Typography variant='h5' gutterBottom>
           {title}
         </Typography>
-        <Typography variant='body2' color='text.secondary' sx={{ p: 4 }} gutterBottom>
-          Your cancellation request has been submitted. Our team will review and notify you once it
-          has been processed.
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          sx={{ p: 4 }}
+          gutterBottom
+        >
+          Your cancellation request has been submitted. Our team will review and
+          notify you once it has been processed.
         </Typography>
       </Box>
       <Divider sx={{ my: 3 }} />

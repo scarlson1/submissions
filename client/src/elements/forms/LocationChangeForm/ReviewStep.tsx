@@ -22,13 +22,12 @@ import { isNumber, merge } from 'lodash';
 import { Fragment, ReactNode, useCallback, useMemo, useState } from 'react';
 import { useFirestore } from 'reactfire';
 
-import { Collection, type WithId } from '@idemand/common';
+import { Collection, type ILocation, type WithId } from '@idemand/common';
 import {
   AddLocationRequest,
   CancellationRequest,
   DraftAddLocationRequest,
   fallbackImages,
-  ILocation,
   PolicyChangeRequest,
 } from 'common';
 import { WizardNavButtons } from 'components/forms';

@@ -4,7 +4,7 @@ import { get, isNumber, set } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { useFirestore, useFunctions, useUser } from 'reactfire';
 
-import { Collection } from '@idemand/common';
+import { Collection, type ILocation } from '@idemand/common';
 import {
   approveChangeRequest,
   ApproveChangeResponse,
@@ -13,7 +13,6 @@ import {
 import {
   ChangeRequest,
   changeRequestsCollection,
-  ILocation,
   policiesCollection,
 } from 'common';
 import { ChangeRequestStatus } from 'common/enums';

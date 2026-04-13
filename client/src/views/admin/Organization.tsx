@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useParams, useSearchParams } from 'react-router-dom';
 
-import { Organization as Org } from 'common';
+import type { Organization as Org } from '@idemand/common';
 import { ClaimsGuard, ErrorFallback, PageMeta } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { AddUsersDialog } from 'elements/forms';
@@ -21,7 +21,6 @@ import { StripeConnectViewsLocalTabs } from 'elements/StripeConnectViewsLayout';
 import { useDocData } from 'hooks';
 
 // TODO: org details tab (address, default commissions, etc.)
-// TODO: payments, payouts, etc.
 
 const MIN_TAB_HEIGHT = 40;
 

@@ -166,6 +166,7 @@ export const NamedInsuredDetails = z.object({
   phone: z.string(),
   userId: z.string().optional().nullable(),
   photoURL: z.string().optional().nullable(),
+  stripeCustomerId: z.string().optional().nullable(),
 });
 export type NamedInsuredDetails = z.infer<typeof NamedInsuredDetails>;
 
@@ -200,8 +201,14 @@ export const AddressWithCoords = Address.and(
 );
 export type AddressWithCoords = z.infer<typeof AddressWithCoords>;
 
+export const AdditionalInterestType = z.enum([
+  'mortgagee',
+  'additional_insured',
+]);
+export type AdditionalInterestType = z.infer<typeof AdditionalInterestType>;
+
 export const AdditionalInterest = z.object({
-  type: z.string(),
+  type: AdditionalInterestType,
   name: z.string(),
   email: z.string().email().optional(),
   accountNumber: z.string(), // .optional().nullable(),

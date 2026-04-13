@@ -1,10 +1,10 @@
 import { Box, Button, Unstable_Grid2 as Grid, Typography } from '@mui/material';
-import { QueryConstraint, orderBy } from 'firebase/firestore';
+import { orderBy, QueryConstraint } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-import { Policy } from 'common';
+import type { Policy } from '@idemand/common';
 import { useCollectionData } from 'hooks';
-import { ROUTES, createPath } from 'router';
+import { createPath, ROUTES } from 'router';
 import { PolicyCard, PolicyCardProps } from './PolicyCard';
 
 // TODO: move navigate to onClick prop
@@ -34,14 +34,22 @@ export const PolicyCards = ({ constraints, ...props }: PolicyCardsProps) => {
       </Grid>
       {(!policies || policies.length < 1) && (
         <Box>
-          <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ py: 4 }}>
+          <Typography
+            variant='subtitle2'
+            color='text.secondary'
+            align='center'
+            sx={{ py: 4 }}
+          >
             No policies found
           </Typography>
           <Box>
             <Button
               onClick={() =>
                 navigate(
-                  createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })
+                  createPath({
+                    path: ROUTES.SUBMISSION_NEW,
+                    params: { productId: 'flood' },
+                  }),
                 )
               }
               sx={{ mx: 'auto', display: 'block' }}

@@ -1,13 +1,14 @@
 import { add, startOfDay } from 'date-fns';
-import { Timestamp, setDoc } from 'firebase/firestore';
+import { setDoc, Timestamp } from 'firebase/firestore';
 import { FormikConfig, FormikProps } from 'formik';
 import { isEmpty, isEqual } from 'lodash';
 import { useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
+import type { Policy } from '@idemand/common';
 import { calcCancelChange, calcPolicyCancelChanges } from 'api';
-import { CancellationReason, CancellationRequest, Policy } from 'common';
+import { CancellationReason, CancellationRequest } from 'common';
 import { Wizard } from 'components/forms';
 import { useDocDataOnce } from 'hooks';
 import { createChangeRequest } from 'modules/db';
@@ -26,7 +27,9 @@ export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
 }
 
 interface CancelWizardProps {
-  changeRequestDocResource: ReturnType<typeof createChangeRequest<CancellationRequest>>;
+  changeRequestDocResource: ReturnType<
+    typeof createChangeRequest<CancellationRequest>
+  >;
   policyId: string;
   cancelScope: 'policy' | 'location';
 }
@@ -61,15 +64,16 @@ export const CancelWizard = ({
             updated: Timestamp.now(),
           },
         },
-        { merge: true }
+        { merge: true },
       );
     },
-    [changeRequestRef]
+    [changeRequestRef],
   );
 
   const calcChangesFn = useMemo(
-    () => (cancelScope === 'policy' ? calcPolicyCancelChanges : calcCancelChange),
-    [cancelScope]
+    () =>
+      cancelScope === 'policy' ? calcPolicyCancelChanges : calcCancelChange,
+    [cancelScope],
   );
 
   const handleNextStep = useCallback(
@@ -77,7 +81,8 @@ export const CancelWizard = ({
       let initValues = formRef.current?.initialValues;
       // skip saving values if no changes and formValues saved
       // (should compare to server state instead of initial values ??)
-      let skipUpdate = isEqual(values, initValues) && !isEmpty(changeRequest.formValues || {});
+      let skipUpdate =
+        isEqual(values, initValues) && !isEmpty(changeRequest.formValues || {});
 
       if (!skipUpdate) {
         const requestEffDate = Timestamp.fromDate(values.requestEffDate);
@@ -106,7 +111,7 @@ export const CancelWizard = ({
       calcChangesFn,
       changeRequestRef.id,
       changeRequest.formValues,
-    ]
+    ],
   );
 
   const handleSubmit = useCallback(async () => {
@@ -133,9 +138,12 @@ export const CancelWizard = ({
       <CancelValuesStep
         initialValues={{
           requestEffDate:
-            (changeRequest?.formValues?.requestEffDate as unknown as Timestamp)?.toDate() ||
-            (null as unknown as Date), // || fallbackEffDate,
-          cancelReason: changeRequest?.formValues?.cancelReason || ('' as CancellationReason),
+            (
+              changeRequest?.formValues?.requestEffDate as unknown as Timestamp
+            )?.toDate() || (null as unknown as Date), // || fallbackEffDate,
+          cancelReason:
+            changeRequest?.formValues?.cancelReason ||
+            ('' as CancellationReason),
         }}
         innerRef={formRef}
         minEffDate={minEffDate}
@@ -145,7 +153,11 @@ export const CancelWizard = ({
         changeRequest={changeRequest}
       />
       {/* <ReviewStep policyId={policyId} requestId={changeRequestRef.id} onSubmit={handleSubmit} /> */}
-      <ReviewStep onSubmit={handleSubmit} changeRequest={changeRequest} policy={policy} />
+      <ReviewStep
+        onSubmit={handleSubmit}
+        changeRequest={changeRequest}
+        policy={policy}
+      />
       <SubmittedStep
         data={changeRequest as CancellationRequest}
         policy={policy}

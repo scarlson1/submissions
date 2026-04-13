@@ -1,5 +1,6 @@
+import { BillingType } from '@idemand/common';
 import { Unstable_Grid2 as Grid } from '@mui/material';
-import { BillingType, emailVal, phoneVal } from 'common';
+import { emailVal, phoneVal } from 'common';
 import {
   FormikMaskField,
   FormikNativeSelect,
@@ -33,7 +34,12 @@ export function NewBillingEntityForm(props: NewBillingEntityFormProps) {
         <Form onSubmit={handleSubmit}>
           <Grid container spacing={4}>
             <Grid xs={6}>
-              <FormikTextField name='displayName' label='Name' required fullWidth />
+              <FormikTextField
+                name='displayName'
+                label='Name'
+                required
+                fullWidth
+              />
             </Grid>
             <Grid xs={6}>
               <FormikTextField name='email' label='Email' required fullWidth />

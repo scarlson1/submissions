@@ -1,7 +1,7 @@
 import { Box, Container, Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
-import { Policy } from 'common';
+import type { Policy } from '@idemand/common';
 import { PageMeta } from 'components';
 import { FormattedAddress } from 'elements';
 import ClaimForm from 'elements/forms/ClaimForm';
@@ -24,7 +24,9 @@ export function ClaimNew() {
     if (policy) {
       let lcns = Object.keys(policy.locations);
       if (!lcns.includes(locationId))
-        throw new Error(`location ${locationId} does not exist in policy ${policyId}`);
+        throw new Error(
+          `location ${locationId} does not exist in policy ${policyId}`,
+        );
     }
   }, [policy, policyId, locationId]);
 
@@ -51,7 +53,10 @@ export function ClaimNew() {
           <Typography
             variant='overline'
             color='text.secondary'
-            sx={{ lineHeight: 1.5, display: { xs: 'none', sm: 'inline-block' } }}
+            sx={{
+              lineHeight: 1.5,
+              display: { xs: 'none', sm: 'inline-block' },
+            }}
           >{`Policy: ${policyId}`}</Typography>
           <Typography variant='h6'>New Claim</Typography>
           {lcnSummary ? (

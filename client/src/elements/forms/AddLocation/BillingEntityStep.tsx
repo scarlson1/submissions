@@ -1,14 +1,14 @@
-import { Box, Typography } from '@mui/material';
-import { Form, Formik, FormikProps } from 'formik';
-import { useCallback, useMemo, useRef } from 'react';
-import { object, string } from 'yup';
-
+import type { BillingEntity, Policy } from '@idemand/common';
 import { AddCardRounded } from '@mui/icons-material';
-import { PaymentMethod, Policy, TBillingEntity, policiesCollection } from 'common';
+import { Box, Typography } from '@mui/material';
+import { PaymentMethod, policiesCollection } from 'common';
 import { FormikSelect, FormikWizardNavButtons } from 'components/forms';
 import { doc, setDoc } from 'firebase/firestore';
+import { Form, Formik, FormikProps } from 'formik';
 import { useDocData, useWizard } from 'hooks';
+import { useCallback, useMemo, useRef } from 'react';
 import { useFirestore } from 'reactfire';
+import { object, string } from 'yup';
 import { AddPaymentDialog } from '../AddPaymentDialog';
 import { BaseStepProps } from './AddLocationWizard';
 
@@ -17,20 +17,25 @@ import { BaseStepProps } from './AddLocationWizard';
 // TODO: refactor --> list billing entities as cards
 export const getDefaultPmtMethod = (
   billingEntities: Policy['billingEntities'],
-  defaultId: string
+  defaultId: string,
 ) => {
   const defaultEntity = billingEntities[defaultId];
   const defaultPmtId = defaultEntity.selectedPaymentMethodId;
-  return defaultPmtId && defaultEntity.paymentMethods.find((p) => p.id === defaultPmtId);
+  return (
+    defaultPmtId &&
+    defaultEntity.paymentMethods.find((p) => p.id === defaultPmtId)
+  );
 };
 
-function getOptionLabel(b: TBillingEntity) {
+function getOptionLabel(b: BillingEntity) {
   let label = `${b.displayName}`;
   let secondaryText = '';
   const defaultPmtMethod =
-    b.selectedPaymentMethodId && b.paymentMethods.find((p) => p.id === b.selectedPaymentMethodId);
+    b.selectedPaymentMethodId &&
+    b.paymentMethods.find((p) => p.id === b.selectedPaymentMethodId);
   if (defaultPmtMethod) {
-    if (defaultPmtMethod.transactionType) secondaryText = `${defaultPmtMethod.transactionType}`;
+    if (defaultPmtMethod.transactionType)
+      secondaryText = `${defaultPmtMethod.transactionType}`;
     if (defaultPmtMethod.maskedAccountNumber)
       secondaryText += ` - ${defaultPmtMethod.maskedAccountNumber}`;
     // else if (b.emailAddress) secondaryText += ` - ${b.emailAddress}`;
@@ -74,7 +79,7 @@ export const BillingEntityStep = ({
         onError && onError('Error saving values');
       }
     },
-    [saveChangeRequest, onError, nextStep]
+    [saveChangeRequest, onError, nextStep],
   );
 
   const handleMethodAdded = useCallback(
@@ -83,7 +88,7 @@ export const BillingEntityStep = ({
       try {
         const policyRef = doc(policiesCollection(firestore), policyId);
 
-        const billingEntity: TBillingEntity = {
+        const billingEntity: BillingEntity = {
           displayName: pmtMethod.payer, // TODO: use named insured ?? get from separate from??
           email: pmtMethod.emailAddress,
           phone: '', // TODO: collect phone
@@ -109,7 +114,7 @@ export const BillingEntityStep = ({
               namedInsured: billingEntity,
             },
           },
-          { merge: true }
+          { merge: true },
         );
         // await setDoc(
         //   policyRef,
@@ -133,7 +138,7 @@ export const BillingEntityStep = ({
         onError && onError('Error adding payment method to policy');
       }
     },
-    [firestore, onError, policyId]
+    [firestore, onError, policyId],
   );
 
   const billingEntityOptions = useMemo(
@@ -142,7 +147,7 @@ export const BillingEntityStep = ({
         label: getOptionLabel(b),
         value: id,
       })),
-    [policy]
+    [policy],
   );
 
   return (
@@ -156,7 +161,14 @@ export const BillingEntityStep = ({
     >
       {({ handleSubmit, submitForm }) => (
         <Form onSubmit={handleSubmit}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', py: 5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              py: 5,
+            }}
+          >
             <Typography align='center' sx={{ py: 2 }}>
               Who gets the bill?
             </Typography>
@@ -172,9 +184,15 @@ export const BillingEntityStep = ({
             {/* </Box> */}
             <AddPaymentDialog
               openButtonText='Add Payment Method'
-              buttonProps={{ variant: 'text', startIcon: <AddCardRounded />, sx: { mx: 'auto' } }}
+              buttonProps={{
+                variant: 'text',
+                startIcon: <AddCardRounded />,
+                sx: { mx: 'auto' },
+              }}
               cb={handleMethodAdded}
-              containerProps={{ sx: { my: 2, display: 'flex', justifyContent: 'center' } }}
+              containerProps={{
+                sx: { my: 2, display: 'flex', justifyContent: 'center' },
+              }}
             />
             <FormikWizardNavButtons onClick={submitForm} />
           </Box>

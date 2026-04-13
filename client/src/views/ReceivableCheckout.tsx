@@ -13,10 +13,10 @@ import {
 } from '@mui/material';
 import { forwardRef, ReactNode, useMemo, useState } from 'react';
 
-import type { WithId } from '@idemand/common';
+import type { Policy, WithId } from '@idemand/common';
 import { CloseRounded } from '@mui/icons-material';
 import { DownloadFilesSVG } from 'assets/images';
-import { Policy, Receivable } from 'common';
+import { Receivable } from 'common';
 import { LineItem } from 'components';
 import { FormattedAddress } from 'elements';
 import { Item } from 'elements/cards';

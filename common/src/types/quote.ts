@@ -19,7 +19,13 @@ import { LocationImages } from './location.js';
 import { BillingEntity, CarrierDetails } from './policy.js';
 import { TaxItem } from './taxes.js';
 
-export const QuoteStatus = z.enum(['draft', 'awaiting:user', 'bound', 'cancelled', 'expired']);
+export const QuoteStatus = z.enum([
+  'draft',
+  'awaiting:user',
+  'bound',
+  'cancelled',
+  'expired',
+]);
 export type QuoteStatus = z.infer<typeof QuoteStatus>;
 
 export const Note = z.object({
@@ -36,11 +42,11 @@ export const Quote = z.object({
   limits: Limits,
   address: Address,
   homeState: State,
-  coordinates: GeoPoint.nullable(),
+  coordinates: GeoPoint, // .nullable(),
   fees: z.array(FeeItem),
   taxes: z.array(TaxItem),
   annualPremium: z.number().nonnegative(),
-  subproducerCommission: z.number().nonnegative(), // .max(0),
+  // subproducerCommission: z.number().nonnegative(), // .max(0),
   cardFee: z.number(),
   quoteTotal: z.number().optional(),
   effectiveDate: Timestamp.optional(),

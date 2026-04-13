@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { BillingType, CancelReason, CommSource, PaymentStatus, Product, State } from '../enums.js';
+import {
+  BillingType,
+  CancelReason,
+  CommSource,
+  PaymentStatus,
+  Product,
+  State,
+} from '../enums.js';
 import {
   Address,
   AgencyDetails,
@@ -12,6 +19,7 @@ import {
   Timestamp,
 } from './common.js';
 import { FeeItem } from './fees.js';
+import { LocationImages } from './location.js';
 import { TaxItem } from './taxes.js';
 
 export const NamedInsured = z.object({
@@ -152,6 +160,8 @@ export const Policy = z.object({
   commSource: CommSource,
   quoteId: z.string().optional().nullable(),
   externalId: z.string().optional().nullable(),
+  imageURLs: LocationImages.optional().nullable(),
+  imagePaths: LocationImages.optional().nullable(),
   // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
   documents: z
     .array(
@@ -159,7 +169,7 @@ export const Policy = z.object({
         displayName: z.string(),
         downloadUrl: z.string(),
         storagePath: z.string(),
-      })
+      }),
     )
     .optional()
     .nullable()

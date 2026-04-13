@@ -39,12 +39,11 @@ import numeral from 'numeral';
 import { toast } from 'react-hot-toast';
 import { Location } from 'react-router-dom';
 
-import type { Address, Timestamp } from '@idemand/common';
+import type { Address, Policy, Timestamp } from '@idemand/common';
 import {
   CompressedAddress,
   FlattenObjectKeys,
   Path,
-  Policy,
   TFeeItem,
   TPolicyStatus,
   TRoundingType,

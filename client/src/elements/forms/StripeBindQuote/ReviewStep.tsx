@@ -1,4 +1,4 @@
-import type { WithId } from '@idemand/common';
+import type { Quote, WithId } from '@idemand/common';
 import {
   BedRounded,
   FenceRounded,
@@ -18,7 +18,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import { fallbackImages, Quote } from 'common';
+import { fallbackImages } from 'common';
 import { LineItem } from 'components';
 import { WizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';

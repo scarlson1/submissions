@@ -5,12 +5,11 @@ import { pick } from 'lodash';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
 
-import type { WithId } from '@idemand/common';
+import type { Policy, WithId } from '@idemand/common';
 import {
   ChangeRequest,
   changeRequestsCollection,
   policiesCollection,
-  Policy,
   PolicyChangeRequestOld,
 } from 'common';
 import { ChangeRequestStatus } from 'common/enums';

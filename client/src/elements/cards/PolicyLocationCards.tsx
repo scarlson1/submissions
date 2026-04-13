@@ -4,7 +4,7 @@ import { DocumentReference, where } from 'firebase/firestore';
 import { Fragment, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { ILocation, Policy } from 'common';
+import type { ILocation, Policy } from '@idemand/common';
 import { useDocData, useInfiniteDocs } from 'hooks';
 import { logDev } from 'modules/utils';
 import { LocationCard, LocationCardProps } from './LocationCard';
@@ -15,13 +15,21 @@ import { LocationCard, LocationCardProps } from './LocationCard';
 // TODO: add sort / filter capabilities
 // passed as props so same filters can be shared across cards/map ??
 
-interface PolicyLocationCardsProps extends Omit<LocationCardProps, 'location' | 'namedInsured'> {
+interface PolicyLocationCardsProps extends Omit<
+  LocationCardProps,
+  'location' | 'namedInsured'
+> {
   policyId: string;
   startingCursor?: DocumentReference;
   pageSize?: number;
+  currentLcnIds?: string[]; // optionally filter out ?? or show status ??
 }
 
-export const PolicyLocationCards = ({ policyId, ...props }: PolicyLocationCardsProps) => {
+export const PolicyLocationCards = ({
+  policyId,
+  currentLcnIds,
+  ...props
+}: PolicyLocationCardsProps) => {
   const { ref, inView } = useInView();
   const { data: policy } = useDocData<Policy>('policies', policyId);
   const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -51,11 +59,18 @@ export const PolicyLocationCards = ({ policyId, ...props }: PolicyLocationCardsP
       >
         {data?.pages.map((group, i) => (
           <Fragment key={i}>
-            {group.data.map((l) => (
-              <Grid xs={12} sm={6} md={4} xl={3} key={l.id}>
-                <LocationCard location={l} namedInsured={policy.namedInsured} {...props} />
-              </Grid>
-            ))}
+            {group.data.map((l) => {
+              if (currentLcnIds && !currentLcnIds.includes(l.id)) return null;
+              return (
+                <Grid xs={12} sm={6} md={4} xl={3} key={l.id}>
+                  <LocationCard
+                    location={l}
+                    namedInsured={policy.namedInsured}
+                    {...props}
+                  />
+                </Grid>
+              );
+            })}
           </Fragment>
         ))}
         <Grid xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -68,8 +83,8 @@ export const PolicyLocationCards = ({ policyId, ...props }: PolicyLocationCardsP
             {isFetchingNextPage
               ? 'Loading more...'
               : hasNextPage
-              ? 'Load more'
-              : 'All items loaded'}
+                ? 'Load more'
+                : 'All items loaded'}
           </LoadingButton>
         </Grid>
       </Grid>

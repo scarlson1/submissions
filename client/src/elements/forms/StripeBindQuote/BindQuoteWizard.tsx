@@ -7,8 +7,9 @@ import { RefObject, useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useFirestore, useFunctions } from 'reactfire';
 
+import type { Quote } from '@idemand/common';
 import { createPolicy, CreatePolicyResponse } from 'api';
-import { Quote, quotesCollection } from 'common';
+import { quotesCollection } from 'common';
 import { Wizard } from 'components/forms';
 import { useDocData } from 'hooks';
 import { addToDate, logDev } from 'modules/utils';

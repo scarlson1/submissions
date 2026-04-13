@@ -4,7 +4,7 @@ import { orderBy, QueryFieldFilterConstraint } from 'firebase/firestore';
 import { Fragment, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { Quote } from 'common';
+import type { Quote } from '@idemand/common';
 import { useInfiniteDocs } from 'hooks';
 import { logDev } from 'modules/utils';
 import { QuoteCard, QuoteCardProps } from './QuoteCard';

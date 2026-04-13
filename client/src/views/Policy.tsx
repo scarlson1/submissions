@@ -35,8 +35,7 @@ import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 
-import type { WithId } from '@idemand/common';
-import { ILocation, Policy as IPolicy } from 'common';
+import type { ILocation, Policy as IPolicy, WithId } from '@idemand/common';
 import {
   ClaimsGuard,
   ErrorFallback,
@@ -108,6 +107,8 @@ export const Policy = () => {
   const locationChangeDialog = useCreateLocationChangeRequest();
   const cancelDialog = useCreateCancelRequest();
 
+  // TODO: need to get locations by ID in Object.keys(policy.locations) - currently returns added/removed locations etc.
+  // or need to filter ?? Or show pending / expired / removed locations ??
   const locationConstraints = useMemo(
     () => [
       where('policyId', '==', policyId),
@@ -408,6 +409,7 @@ export const Policy = () => {
                   <PolicyLocationCards
                     policyId={policyId}
                     onEdit={handleLocationChangeRequest}
+                    currentLcnIds={Object.keys(data.locations)}
                   />
                 </Box>
               ) : null}

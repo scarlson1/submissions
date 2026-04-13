@@ -318,3 +318,7 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 - submission annual premium not being set/updated. Check for errors in logs (firestore trigger)
 - replace mocked data in `<Home />`
 - move epay & algolia
+- fix/standardize layout - currently using different layout for policies/ route to avoid constrained maxWidth of `<Container />`
+- policy locations grid - filter to lcnIds in `policy.locations`
+- tests
+- finish moving types to `common/`

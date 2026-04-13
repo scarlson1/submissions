@@ -14,8 +14,8 @@ import {
 import { noop } from 'lodash';
 import { useMemo } from 'react';
 
-import type { WithId } from '@idemand/common';
-import { fallbackImages, Quote, QUOTE_STATUS } from 'common';
+import type { Quote, WithId } from '@idemand/common';
+import { fallbackImages, QUOTE_STATUS } from 'common';
 import { FlexCard } from 'components';
 import { FlexCardContent, FlexCardContentWrapper } from 'components/FlexCard';
 import { dollarFormat, getQuoteStatus } from 'modules/utils';

@@ -1,3 +1,5 @@
+import type { Policy, WithId } from '@idemand/common';
+import { DescriptionRounded, PaymentsRounded } from '@mui/icons-material';
 import {
   Avatar,
   AvatarGroup,
@@ -11,14 +13,11 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { noop } from 'lodash';
-
-import type { WithId } from '@idemand/common';
-import { DescriptionRounded, PaymentsRounded } from '@mui/icons-material';
-import { fallbackImages, Policy } from 'common';
+import { fallbackImages } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
 import { FlexCardContentWrapper } from 'components/FlexCard';
 import { useGeneratePDF } from 'hooks';
+import { noop } from 'lodash';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { useNavigate } from 'react-router-dom';
 import { createPath, ROUTES } from 'router';

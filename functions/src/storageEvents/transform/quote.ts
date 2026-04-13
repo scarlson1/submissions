@@ -178,9 +178,9 @@ export function transformQuoteRow(
     taxes: [],
     annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : null,
     premCalcData,
-    subproducerCommission: row.subproducerCommission
-      ? extractNumber(row.subproducerCommission)
-      : null,
+    // subproducerCommission: row.subproducerCommission
+    //   ? extractNumber(row.subproducerCommission)
+    //   : null,
     AALs,
     cardFee: cardFee, // TODO: delete card fee ??
     quoteTotal,

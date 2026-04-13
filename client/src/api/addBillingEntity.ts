@@ -1,12 +1,11 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import type { TCollection } from '@idemand/common';
-import { TBillingEntity } from 'common';
+import type { BillingEntity, TCollection } from '@idemand/common';
 
 export interface AddBillingEntityRequest {
   collection: TCollection;
   docId: string;
-  billingEntityDetails: Pick<TBillingEntity, 'displayName' | 'email' | 'phone'>;
+  billingEntityDetails: Pick<BillingEntity, 'displayName' | 'email' | 'phone'>;
 }
 
 export interface AddBillingEntityResponse {

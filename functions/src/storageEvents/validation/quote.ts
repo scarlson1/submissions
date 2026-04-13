@@ -35,6 +35,7 @@ export function validateQuoteRow(
     // quoteTotal calc after taxes fetched
     // invariant(typeof row.quoteTotal === 'number', 'quoteTotal must be a number');
     // invariant(row.quoteTotal >= 100, 'quoteTotal must be > 100');
+    // @ts-ignore
     validateSubproducerCommission(row.subproducerCommission);
 
     // namedInsured email ??

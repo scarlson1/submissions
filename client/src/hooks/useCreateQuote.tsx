@@ -14,17 +14,28 @@ import { useCallback } from 'react';
 import { useFirestore, useSigninCheck } from 'reactfire';
 import invariant from 'tiny-invariant';
 
+import type {
+  Basement,
+  FloodZone,
+  Quote,
+  State,
+  TaxItem,
+} from '@idemand/common';
 import {
   CLAIMS,
   licensesCollection,
-  Quote,
   QUOTE_STATUS,
   quotesCollection,
   Submission,
 } from 'common';
 import type { QuoteValues } from 'elements/forms';
 import { createDocId } from 'modules/db/utils';
-import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
+import {
+  addToDate,
+  extractNumber,
+  getGeoHash,
+  readableFirebaseCode,
+} from 'modules/utils/helpers';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 
 // TODO: create policy ID with quote --> save payment billing details as subcollection ??
@@ -36,7 +47,7 @@ export const CARD_FEE_RATE = 0.035;
 export const useCreateQuote = (
   onComplete?: () => void | Promise<void>,
   onStepSuccess?: (msg: string) => void, // TODO: pass quoteId instead of string
-  onError?: (msg: string, err: unknown) => void
+  onError?: (msg: string, err: unknown) => void,
 ) => {
   const firestore = useFirestore();
   const { data: signInCheckResult } = useSigninCheck({
@@ -51,11 +62,12 @@ export const useCreateQuote = (
         const q = query(
           licensesCollection(firestore),
           where('state', '==', state),
-          where('surplusLinesProducerOfRecord', '==', true)
+          where('surplusLinesProducerOfRecord', '==', true),
         );
 
         const querySnap = await getDocs(q);
-        if (querySnap.empty) throw new Error(`No SL license found for ${state}`);
+        if (querySnap.empty)
+          throw new Error(`No SL license found for ${state}`);
         return querySnap.docs[0].data();
       } catch (err: any) {
         let msg = `error fetching SL license`;
@@ -64,22 +76,26 @@ export const useCreateQuote = (
         return null;
       }
     },
-    [firestore, onError]
+    [firestore, onError],
   );
 
   const createQuote = useCallback(
     async (
       values: QuoteValues,
       submissionId: string | null = null,
-      submissionData: Partial<Submission> | null = null
+      submissionData: Partial<Submission> | null = null,
     ) => {
-      if (!signInCheckResult.hasRequiredClaims) throw new Error('Missing required permissions');
+      if (!signInCheckResult.hasRequiredClaims)
+        throw new Error('Missing required permissions');
       // TODO: use homeState instead of address.state once interface is updated
       const surplusLinesLicense = await getSLLicense(values.address.state);
       if (!surplusLinesLicense) return;
 
       try {
-        const quoteData = getFormattedQuote(values, signInCheckResult.user?.uid);
+        const quoteData = getFormattedQuote(
+          values,
+          signInCheckResult.user?.uid,
+        );
         // console.log('QUOTE DATA: ', quoteData);
 
         // const geoHash = getGeoHash(submissionData?.coordinates);
@@ -88,8 +104,12 @@ export const useCreateQuote = (
         const quoteRef = await addDoc(quotesCollection(firestore), {
           ...quoteData,
           submissionId,
-          imageURLs: isEmpty(submissionData?.imageURLs) ? null : submissionData?.imageURLs,
-          imagePaths: isEmpty(submissionData?.imagePaths) ? null : submissionData?.imagePaths,
+          imageURLs: isEmpty(submissionData?.imageURLs)
+            ? null
+            : submissionData?.imageURLs,
+          imagePaths: isEmpty(submissionData?.imagePaths)
+            ? null
+            : submissionData?.imagePaths,
           geoHash,
         });
 
@@ -105,7 +125,8 @@ export const useCreateQuote = (
 
         if (err instanceof FirebaseError) {
           msg += readableFirebaseCode(err as FirestoreError);
-        } else if (err?.message) msg = err.message.replace('Invariant failed: ', '');
+        } else if (err?.message)
+          msg = err.message.replace('Invariant failed: ', '');
 
         if (onError) onError(msg, err);
       }
@@ -118,7 +139,7 @@ export const useCreateQuote = (
       sendEmailNotifications,
       getSLLicense,
       signInCheckResult,
-    ]
+    ],
   );
 
   return createQuote;
@@ -148,14 +169,17 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
   // TODO: validation
   invariant(quoteTotal, 'missing quote total');
   invariant(annualPremium, 'missing annualPremium');
-  invariant(namedInsured?.email || agent?.email, 'Must have at least one email (insured or agent)');
+  invariant(
+    namedInsured?.email || agent?.email,
+    'Must have at least one email (insured or agent)',
+  );
   invariant(isValid(effectiveDate), 'Invalid effective date');
   invariant(typeof coordinates?.latitude === 'number', 'invalid latitude');
   invariant(typeof coordinates?.longitude === 'number', 'invalid longitude');
 
   let effDateStartOfDay = startOfDay(effectiveDate);
 
-  let numTaxes = taxes.map((t) => ({
+  let numTaxes: TaxItem[] = taxes.map((t) => ({
     ...t,
     value: extractNumber(`${t.value}`) ?? null,
     rate: extractNumber(`${t.rate}`) ?? null,
@@ -173,7 +197,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     },
     address,
     coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
-    homeState: address.state,
+    homeState: address.state as State,
     mailingAddress: {
       name: '',
       addressLine1: address?.addressLine1 || '',
@@ -183,7 +207,9 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
       postal: address?.postal || '',
     },
     quotePublishedDate: Timestamp.now(),
-    quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 30 }, endOfToday())),
+    quoteExpirationDate: Timestamp.fromDate(
+      addToDate({ days: 30 }, endOfToday()),
+    ),
     effectiveDate: Timestamp.fromDate(effDateStartOfDay),
     exclusions: [],
     additionalInterests: [],
@@ -199,38 +225,43 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     agency,
     carrier,
     commSource,
-    // agency: {
-    // orgId: agency.orgId || null,
-    // name: agency.name || null,
-    // address: agency.address || null,
-    // },
     billingEntities: {},
     defaultBillingEntityId: 'namedInsured',
     notes:
       notes && notes.length > 0
         ? notes
             .filter((n) => n.note)
-            .map((n) => ({ note: n.note, created: Timestamp.now(), userId: uid || null }))
+            .map((n) => ({
+              note: n.note,
+              created: Timestamp.now(),
+              userId: uid || null,
+            }))
         : [],
     status: QUOTE_STATUS.AWAITING_USER,
     ratingPropertyData: {
       CBRSDesignation: ratingPropertyData.CBRSDesignation,
-      basement: ratingPropertyData.basement,
+      basement: ratingPropertyData.basement as Basement, // TODO: fix type (or extend to make optional if quote)
       distToCoastFeet: extractNumber(`${ratingPropertyData.distToCoastFeet}`),
-      floodZone: ratingPropertyData.floodZone,
+      floodZone: ratingPropertyData.floodZone as FloodZone,
       numStories: ratingPropertyData.numStories,
       propertyCode: ratingPropertyData.propertyCode,
-      replacementCost: ratingPropertyData.replacementCost,
+      replacementCost: ratingPropertyData.replacementCost as number,
       sqFootage: extractNumber(`${ratingPropertyData.sqFootage}`),
       yearBuilt: extractNumber(`${ratingPropertyData.yearBuilt}`),
       priorLossCount: ratingPropertyData?.priorLossCount ?? null,
     },
     ratingDocId: ratingDocId || '',
-    statusTransitions: {
-      published: Timestamp.now(),
-      accepted: null,
-      cancelled: null,
-      finalized: null,
+    imageURLs: {
+      light: '',
+      dark: '',
+      satellite: '',
+      satelliteStreets: '',
+    },
+    imagePaths: {
+      light: '',
+      dark: '',
+      satellite: '',
+      satelliteStreets: '',
     },
     metadata: {
       created: Timestamp.now(),

@@ -1,16 +1,16 @@
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
-import { ILocation } from 'common';
+import type { ILocation } from '@idemand/common';
 import {
   additionalInsuredsCol,
   addrCityCol,
   addrCountyCol,
+  addressSummaryCol,
   addrFIPSCol,
   addrLine1Col,
   addrLine2Col,
   addrPostalCol,
   addrStateCol,
-  addressSummaryCol,
   annualPremiumCol,
   booleanCalcActiveCol,
   coordinatesCol,

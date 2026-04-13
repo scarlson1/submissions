@@ -16,13 +16,13 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { object, string } from 'yup';
 
+import type { OrgType } from '@idemand/common';
+import { OrgType as OrgTypeZ } from '@idemand/common';
 import {
   addressValidation,
   contactValidation,
   EandOVal,
   FEINVal,
-  OrgType,
-  TOrgType,
 } from 'common';
 import {
   feinMaskProps,
@@ -44,10 +44,10 @@ import { AgencyAppValues } from 'views/AgencyNew';
 
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
 
-type CreateTenantValues = AgencyAppValues & { type: TOrgType };
+type CreateTenantValues = AgencyAppValues & { type: OrgType };
 
 const INITIAL_VALUES: CreateTenantValues = {
-  type: '' as TOrgType,
+  type: '' as OrgType,
   orgName: '',
   address: {
     addressLine1: '',
@@ -250,7 +250,7 @@ export const CreateTenant = () => {
                         <FormikNativeSelect
                           name='type'
                           label='Type'
-                          selectOptions={OrgType.options}
+                          selectOptions={OrgTypeZ.options}
                           sx={{ minWidth: 120 }}
                           variant='standard'
                           required

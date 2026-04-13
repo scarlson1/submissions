@@ -6,9 +6,12 @@ import {
   WithFieldValue,
 } from 'firebase/firestore';
 
-import type { WithId } from '@idemand/common';
-import { Policy, PolicyWithStatus } from 'common';
+import type { Policy, WithId } from '@idemand/common';
 import { calcPolicyStatus } from 'modules/utils';
+
+export interface PolicyWithStatus extends Policy {
+  status?: string | null;
+}
 
 // docs: https://firebase.google.com/docs/reference/js/firestore_.firestoredataconverter
 

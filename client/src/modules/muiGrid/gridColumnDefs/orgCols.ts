@@ -1,13 +1,13 @@
 import { GridColDef } from '@mui/x-data-grid';
 
-import { Organization } from 'common';
+import type { Organization } from '@idemand/common';
 import {
   addrCityCol,
+  addressSummaryCol,
   addrLine1Col,
   addrLine2Col,
   addrPostalCol,
   addrStateCol,
-  addressSummaryCol,
   createdCol,
   emailCol,
   emailDomainsCol,

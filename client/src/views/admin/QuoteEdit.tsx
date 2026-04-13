@@ -8,7 +8,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { CLAIMS, Quote, QUOTE_STATUS, quotesCollection } from 'common';
+import type { Quote, State } from '@idemand/common';
+import { CLAIMS, QUOTE_STATUS, quotesCollection } from 'common';
 import { QuoteForm, QuoteValues } from 'elements/forms';
 import { useAsyncToast, useDocDataOnce } from 'hooks';
 import { CARD_FEE_RATE } from 'hooks/useCreateQuote';
@@ -45,6 +46,17 @@ const useEditQuote = (
         invariant(typeof newValues.coordinates?.longitude === 'number');
         invariant(typeof newValues.coordinates?.latitude === 'number');
 
+        invariant(newValues.ratingPropertyData.floodZone);
+        invariant(newValues.ratingPropertyData.replacementCost);
+        invariant(newValues.ratingPropertyData.basement);
+
+        invariant(newValues?.agency?.orgId, 'agency.orgId required');
+        invariant(newValues?.agency?.name, 'agency.name required');
+        invariant(
+          newValues?.agency?.stripeAccountId,
+          'agency.stripeAccountId required',
+        );
+
         let effDateStartOfDay = startOfDay(newValues.effectiveDate);
         // let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
 
@@ -66,7 +78,7 @@ const useEditQuote = (
           product: newValues?.product || 'flood',
           address: newValues?.address,
           // TODO: add homeState to the form
-          homeState: newValues?.homeState,
+          homeState: newValues?.homeState as State,
           coordinates: new GeoPoint(
             newValues.coordinates.latitude,
             newValues.coordinates.longitude,
@@ -93,9 +105,9 @@ const useEditQuote = (
           namedInsured: newValues?.namedInsured,
           agent: newValues?.agent,
           agency: {
-            orgId: newValues?.agency?.orgId || null,
-            name: newValues?.agency?.name || null,
-            stripeAccountId: newValues?.agency?.stripeAccountId || null,
+            orgId: newValues?.agency?.orgId,
+            name: newValues?.agency?.name,
+            stripeAccountId: newValues?.agency?.stripeAccountId,
             address: newValues?.agency?.address || null,
           },
           userId: newValues?.namedInsured?.userId || null,

@@ -9,7 +9,8 @@ import {
 import { useCallback, useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { QUOTE_STATUS, Quote, ServerDataGridCollectionProps } from 'common';
+import type { Quote } from '@idemand/common';
+import { QUOTE_STATUS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import {
@@ -45,12 +46,15 @@ export const QuotesGrid = ({
     (params: GridRowParams) => () => {
       sendNotifications(params.id as string);
     },
-    [sendNotifications]
+    [sendNotifications],
   );
 
   // pass in renderActions ??
   const getAdminActions = useCallback(
-    (params: GridRowParams, adminActionProps?: Partial<GridActionsCellItemProps>) => {
+    (
+      params: GridRowParams,
+      adminActionProps?: Partial<GridActionsCellItemProps>,
+    ) => {
       if (!authCheckResult.hasRequiredClaims) return [];
       return [
         // @ts-ignore // TODO: type props
@@ -67,7 +71,7 @@ export const QuotesGrid = ({
         />,
       ];
     },
-    [authCheckResult, handleSendNotifications]
+    [authCheckResult, handleSendNotifications],
   );
 
   const quoteColumns: GridColDef[] = useMemo(
@@ -106,7 +110,7 @@ export const QuotesGrid = ({
       additionalColumns,
       isSmall,
       claims,
-    ]
+    ],
   );
 
   return (

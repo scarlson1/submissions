@@ -1,6 +1,6 @@
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
-import { Quote } from 'common';
+import type { Quote } from '@idemand/common';
 import {
   addrCityCol,
   addrCountyCol,

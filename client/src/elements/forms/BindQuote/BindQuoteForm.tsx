@@ -20,9 +20,7 @@ import {
   mailingAddressValidation,
   NamedInsuredDetails,
   namedInsuredValidationNested,
-  Quote,
   quotesCollection,
-  TBillingEntity,
 } from 'common';
 import { FormikWizard, Step } from 'components/forms';
 import { addToDate } from 'modules/utils';
@@ -36,6 +34,7 @@ import { QuoteExpired } from './Expired';
 import { MailingAddressStep } from './MailingAddressStep';
 import { NamedInsuredStep } from './NamedInsuredStep';
 // import { PaymentStep, billingValidation } from './PaymentStep';
+import type { BillingEntity, Quote } from '@idemand/common';
 import { BillingStep, billingValidation } from './BillingStep';
 import { ReviewStep } from './ReviewStep';
 import { useLogCheckoutProgress } from './useLogCheckoutProgress';
@@ -48,7 +47,7 @@ export interface BindQuoteValues {
   additionalInterests: AdditionalInterest[];
   mailingAddress: MailingAddress;
   // paymentMethodId: string;
-  billingEntities: TBillingEntity[];
+  billingEntities: BillingEntity[];
 }
 
 export const BindQuoteForm = () => {
@@ -80,7 +79,7 @@ export const BindQuoteForm = () => {
     return { minEffDate, maxEffDate };
   }, [data]);
 
-  const billingEntities = useMemo<TBillingEntity[]>(() => {
+  const billingEntities = useMemo<BillingEntity[]>(() => {
     // const defaultPmtMethod = getDefaultPmtMethod(data.billingEntities, data.defaultBillingEntity)
     return Object.values(data?.billingEntities || {});
 

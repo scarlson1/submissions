@@ -6,11 +6,10 @@ import { useClaims, useDocDataOnce, useWizard } from 'hooks';
 import { useCallback, useMemo } from 'react';
 import { date, number, object, string } from 'yup';
 
-import type { Nullable } from '@idemand/common';
+import type { Nullable, Policy } from '@idemand/common';
 import {
   AllowString,
   Basement,
-  Policy,
   PriorLossCount,
   priorLossVal,
   RatingPropertyData,
