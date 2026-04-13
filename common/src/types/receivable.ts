@@ -1,8 +1,8 @@
 import z from 'zod';
-import { BaseMetadata, Timestamp } from './common';
-import { FeeItem } from './fees';
-import { PolicyLocation } from './policy';
-import { TaxItem } from './taxes';
+import { BaseMetadata, Timestamp } from './common.js';
+import { FeeItem } from './fees.js';
+import { PolicyLocation } from './policy.js';
+import { TaxItem } from './taxes.js';
 
 export const StripeAddress = z.object({
   line1: z.string().nullable(),
