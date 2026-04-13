@@ -2,7 +2,7 @@ import { EmailData } from '@sendgrid/helpers/classes/email-address';
 import { MailData } from '@sendgrid/helpers/classes/mail';
 // import { MailDataRequired } from '@sendgrid/mail';
 import { projectID } from 'firebase-functions/params';
-import { Resend, type Tag } from 'resend';
+import { Resend, type Attachment, type Tag } from 'resend';
 
 // TODO: switch to dynamic templates ??
 // dynamic templates ref: https://docs.sendgrid.com/for-developers/sending-email/using-handlebars#password-reset
@@ -343,7 +343,7 @@ export const sendNewQuoteEmail = async (
 export const sendPolicyDocDelivery = async (
   key: string,
   to: string | string[],
-  attachments: AttachmentJSON[],
+  attachments: Attachment[], // TODO: type // AttachmentJSON[],
   toName?: string,
   addressName?: string,
   sgArgs?: ExtraSendGridArgs,

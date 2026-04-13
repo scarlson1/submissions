@@ -2,6 +2,7 @@ import {
   Document,
   Image,
   Page,
+  renderToBuffer,
   renderToStream,
   Text,
   View,
@@ -415,6 +416,9 @@ export const generatePolicyDecPDF = async (data: DecPageTemplateData) => {
   // return await renderToBuffer(<DecPagePDF {...{ data }} />);
   return await renderToStream(<DecPagePDF {...{ data }} />);
 };
+
+export const generatePolicyDecPDFBuffer = async (data: DecPageTemplateData) =>
+  await renderToBuffer(<DecPagePDF {...{ data }} />);
 
 function BlockTitle({ title }: any) {
   return <Text style={{ ...styles.overline }}>{title}</Text>;

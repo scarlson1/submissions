@@ -104,6 +104,112 @@ export interface DecPageTemplateData extends Record<string, unknown> {
   disclosure?: string;
 }
 
+export async function getPolicyLocations(
+  policy: Policy,
+): Promise<WithId<ILocation>[]> {
+  const locationIds = policy.locations && Object.keys(policy.locations);
+  const locationsCol = locationsCollection(getFirestore());
+  const locationsQuerySnap = await getAllById(locationsCol, locationIds);
+
+  const locations = locationsQuerySnap.docs.map((snap) => ({
+    ...snap.data(),
+    id: snap.id,
+  }));
+  return locations;
+}
+
+export async function getPolicyTemplateData(
+  policy: WithId<Policy>,
+  locations: WithId<ILocation>[],
+) {
+  const locationData = formatLocationData(locations);
+  const locationInterests = getLocationInterests(locations);
+  const premiumTable = getPremiumTable(policy);
+
+  const policyEffectiveDate = format(
+    policy.effectiveDate.toDate(),
+    'MMM dd, yyyy',
+  );
+  const policyExpirationDate = format(
+    policy.expirationDate.toDate(),
+    'MMM dd, yyyy',
+  );
+
+  const {
+    namedInsured,
+    agent,
+    agency,
+    issuingCarrier,
+    mailingAddress,
+    surplusLinesProducerOfRecord: slLicense,
+  } = policy;
+
+  const templateData: DecPageTemplateData = {
+    policyId: policy.id,
+    mailingAddressName: mailingAddress.name || namedInsured.displayName, // TODO: add name to mailing address // mailingAddress.name,
+    mailingAddressLine1: mailingAddress?.addressLine1 || '',
+    mailingAddressLine2: mailingAddress?.addressLine2 || '',
+    mailingCity: mailingAddress?.city || '',
+    mailingState: mailingAddress?.state || '',
+    mailingPostal: mailingAddress?.postal || '',
+    insuredEmail: namedInsured.email,
+    insuredName: namedInsured.displayName,
+    policyEffectiveDate,
+    policyExpirationDate,
+    homeState: policy?.homeState || '',
+    homeStateFullName: statesList[policy?.homeState || ''] || '',
+    agencyName: agency.name,
+    agencyAddressLine1: agency?.address?.addressLine1,
+    agencyAddressLine2: agency?.address?.addressLine2,
+    agencyCity: agency?.address?.city,
+    agencyState: agency?.address?.state,
+    agencyPostal: agency?.address?.postal,
+    agentEmail: agent?.email,
+    agentName: agent?.name,
+    agentPhone: formatPhoneNumber(policy?.agent?.phone || '') || '',
+    issuingCarrier: issuingCarrier,
+    surplusLinesLicenseNum: slLicense.licenseNum,
+    surplusLinesName: slLicense.name,
+    surplusLinesLicenseState: slLicense.licenseState,
+    surplusLinesLicensePhone: formatPhoneNumber(slLicense.phone || '') || '',
+    // locationCoverages, // : [...locationCoverages, ...test],
+    locationData,
+    locationInterests,
+    premiumTable,
+    // ...mortgagee,
+    docsAttached: [
+      // {
+      //   docTitle: 'Example Doc Attachment One',
+      // },
+      // {
+      //   docTitle: 'Example Doc Attachment Two',
+      // },
+      // {
+      //   docTitle: 'Example Doc Attachment Three',
+      // },
+      // {
+      //   docTitle: 'Example Doc Attachment Four',
+      // },
+    ],
+  };
+
+  try {
+    const disclosureCol = disclosuresCollection(getFirestore());
+    const disclosure = await getStateDisclosure(
+      disclosureCol,
+      policy.homeState,
+      policy.product,
+    );
+    if (disclosure && disclosure.content) {
+      templateData['disclosure'] = tiptapJsonToText(disclosure.content);
+    } else info(`No state disclosure found for ${policy.homeState}`);
+  } catch (err: unknown) {
+    console.log('error fetching disclosure / converting to HTML', err);
+  }
+
+  return templateData;
+}
+
 app.post(
   '/generateDecPDF',
   generatePDFSchema,
@@ -126,7 +232,7 @@ app.post(
 
     const db = getFirestore();
 
-    let policy: Policy;
+    let policy: WithId<Policy>;
     try {
       const policySnap = await policiesCollection(db).doc(policyId).get();
 
@@ -137,7 +243,7 @@ app.post(
         return;
       }
 
-      policy = policyData;
+      policy = { ...policyData, id: policySnap.id };
     } catch (err: unknown) {
       error('Error fetching policy', { err });
       // TODO: use custom error classes
@@ -151,106 +257,113 @@ app.post(
       return;
     }
 
-    const locationsCol = locationsCollection(db);
-    const locationsQuerySnap = await getAllById(locationsCol, locationIds);
-    if (locationsQuerySnap.empty) {
-      res.status(400).send('location records not found');
-      return;
-    }
-    if (locationsQuerySnap.docs.length !== locationIds.length) {
+    // const locationsCol = locationsCollection(db);
+    // const locationsQuerySnap = await getAllById(locationsCol, locationIds);
+    // if (locationsQuerySnap.empty) {
+    //   res.status(400).send('location records not found');
+    //   return;
+    // }
+    // if (locationsQuerySnap.docs.length !== locationIds.length) {
+    //   res.status(400).send('location record not found');
+    //   return;
+    // }
+
+    const locations = await getPolicyLocations(policy);
+    // locationsQuerySnap.docs.map((snap) => ({
+    //   ...snap.data(),
+    //   id: snap.id,
+    // })) as WithId<ILocation>[];
+    if (!locations.length) {
       res.status(400).send('location record not found');
       return;
     }
 
-    const locations = locationsQuerySnap.docs.map((snap) => ({
-      ...snap.data(),
-      id: snap.id,
-    })) as WithId<ILocation>[];
+    // const locationData = formatLocationData(locations);
+    // const locationInterests = getLocationInterests(locations);
+    // const premiumTable = getPremiumTable(policy);
 
-    const locationData = formatLocationData(locations);
-    const locationInterests = getLocationInterests(locations);
-    const premiumTable = getPremiumTable(policy);
+    // const policyEffectiveDate = format(
+    //   policy.effectiveDate.toDate(),
+    //   'MMM dd, yyyy',
+    // );
+    // const policyExpirationDate = format(
+    //   policy.expirationDate.toDate(),
+    //   'MMM dd, yyyy',
+    // );
 
-    const policyEffectiveDate = format(
-      policy.effectiveDate.toDate(),
-      'MMM dd, yyyy',
-    );
-    const policyExpirationDate = format(
-      policy.expirationDate.toDate(),
-      'MMM dd, yyyy',
-    );
+    // const {
+    //   namedInsured,
+    //   agent,
+    //   agency,
+    //   issuingCarrier,
+    //   mailingAddress,
+    //   surplusLinesProducerOfRecord: slLicense,
+    // } = policy;
 
-    const {
-      namedInsured,
-      agent,
-      agency,
-      issuingCarrier,
-      mailingAddress,
-      surplusLinesProducerOfRecord: slLicense,
-    } = policy;
+    // const templateData: DecPageTemplateData = {
+    //   policyId,
+    //   mailingAddressName: mailingAddress.name || namedInsured.displayName, // TODO: add name to mailing address // mailingAddress.name,
+    //   mailingAddressLine1: mailingAddress?.addressLine1 || '',
+    //   mailingAddressLine2: mailingAddress?.addressLine2 || '',
+    //   mailingCity: mailingAddress?.city || '',
+    //   mailingState: mailingAddress?.state || '',
+    //   mailingPostal: mailingAddress?.postal || '',
+    //   insuredEmail: namedInsured.email,
+    //   insuredName: namedInsured.displayName,
+    //   policyEffectiveDate,
+    //   policyExpirationDate,
+    //   homeState: policy?.homeState || '',
+    //   homeStateFullName: statesList[policy?.homeState || ''] || '',
+    //   agencyName: agency.name,
+    //   agencyAddressLine1: agency?.address?.addressLine1,
+    //   agencyAddressLine2: agency?.address?.addressLine2,
+    //   agencyCity: agency?.address?.city,
+    //   agencyState: agency?.address?.state,
+    //   agencyPostal: agency?.address?.postal,
+    //   agentEmail: agent?.email,
+    //   agentName: agent?.name,
+    //   agentPhone: formatPhoneNumber(policy?.agent?.phone || '') || '',
+    //   issuingCarrier: issuingCarrier,
+    //   surplusLinesLicenseNum: slLicense.licenseNum,
+    //   surplusLinesName: slLicense.name,
+    //   surplusLinesLicenseState: slLicense.licenseState,
+    //   surplusLinesLicensePhone: formatPhoneNumber(slLicense.phone || '') || '',
+    //   // locationCoverages, // : [...locationCoverages, ...test],
+    //   locationData,
+    //   locationInterests,
+    //   premiumTable,
+    //   // ...mortgagee,
+    //   docsAttached: [
+    //     // {
+    //     //   docTitle: 'Example Doc Attachment One',
+    //     // },
+    //     // {
+    //     //   docTitle: 'Example Doc Attachment Two',
+    //     // },
+    //     // {
+    //     //   docTitle: 'Example Doc Attachment Three',
+    //     // },
+    //     // {
+    //     //   docTitle: 'Example Doc Attachment Four',
+    //     // },
+    //   ],
+    // };
 
-    const templateData: DecPageTemplateData = {
-      policyId,
-      mailingAddressName: mailingAddress.name || namedInsured.displayName, // TODO: add name to mailing address // mailingAddress.name,
-      mailingAddressLine1: mailingAddress?.addressLine1 || '',
-      mailingAddressLine2: mailingAddress?.addressLine2 || '',
-      mailingCity: mailingAddress?.city || '',
-      mailingState: mailingAddress?.state || '',
-      mailingPostal: mailingAddress?.postal || '',
-      insuredEmail: namedInsured.email,
-      insuredName: namedInsured.displayName,
-      policyEffectiveDate,
-      policyExpirationDate,
-      homeState: policy?.homeState || '',
-      homeStateFullName: statesList[policy?.homeState || ''] || '',
-      agencyName: agency.name,
-      agencyAddressLine1: agency?.address?.addressLine1,
-      agencyAddressLine2: agency?.address?.addressLine2,
-      agencyCity: agency?.address?.city,
-      agencyState: agency?.address?.state,
-      agencyPostal: agency?.address?.postal,
-      agentEmail: agent?.email,
-      agentName: agent?.name,
-      agentPhone: formatPhoneNumber(policy?.agent?.phone || '') || '',
-      issuingCarrier: issuingCarrier,
-      surplusLinesLicenseNum: slLicense.licenseNum,
-      surplusLinesName: slLicense.name,
-      surplusLinesLicenseState: slLicense.licenseState,
-      surplusLinesLicensePhone: formatPhoneNumber(slLicense.phone || '') || '',
-      // locationCoverages, // : [...locationCoverages, ...test],
-      locationData,
-      locationInterests,
-      premiumTable,
-      // ...mortgagee,
-      docsAttached: [
-        // {
-        //   docTitle: 'Example Doc Attachment One',
-        // },
-        // {
-        //   docTitle: 'Example Doc Attachment Two',
-        // },
-        // {
-        //   docTitle: 'Example Doc Attachment Three',
-        // },
-        // {
-        //   docTitle: 'Example Doc Attachment Four',
-        // },
-      ],
-    };
+    // try {
+    //   const disclosureCol = disclosuresCollection(db);
+    //   const disclosure = await getStateDisclosure(
+    //     disclosureCol,
+    //     policy.homeState,
+    //     policy.product,
+    //   );
+    //   if (disclosure && disclosure.content) {
+    //     templateData['disclosure'] = tiptapJsonToText(disclosure.content);
+    //   } else info(`No state disclosure found for ${policy.homeState}`);
+    // } catch (err: unknown) {
+    //   console.log('error fetching disclosure / converting to HTML', err);
+    // }
 
-    try {
-      const disclosureCol = disclosuresCollection(db);
-      const disclosure = await getStateDisclosure(
-        disclosureCol,
-        policy.homeState,
-        policy.product,
-      );
-      if (disclosure && disclosure.content) {
-        templateData['disclosure'] = tiptapJsonToText(disclosure.content);
-      } else info(`No state disclosure found for ${policy.homeState}`);
-    } catch (err: unknown) {
-      console.log('error fetching disclosure / converting to HTML', err);
-    }
+    const templateData = await getPolicyTemplateData(policy, locations);
 
     try {
       // const pdfBuffer = await generatePolicyDecPDF(templateData);
