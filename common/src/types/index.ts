@@ -6,6 +6,7 @@ export * from './location.js';
 export * from './moratorium.js';
 export * from './organization.js';
 export * from './policy.js';
+export * from './portfolioExposure.js';
 export * from './quote.js';
 export * from './ratingData.js';
 export * from './receivable.js';

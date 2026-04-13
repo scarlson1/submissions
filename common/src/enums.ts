@@ -36,6 +36,10 @@ export const Collection = z.enum([
   'receivables',
   'billingEntities',
   'public',
+  'portfolioExposure',
+  'portfolioConcentrationAlerts',
+  'taxReconciliationErrors',
+  'exposureConfig',
 ]);
 export type Collection = z.infer<typeof Collection>;
 export type TCollection = z.infer<typeof Collection>;

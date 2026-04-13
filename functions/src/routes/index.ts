@@ -37,6 +37,13 @@ export const authrequeststest = onRequest(
   },
 );
 
+export const bigquerysetup = onRequest(
+  { invoker: 'public', cors: true },
+  async (request, response) => {
+    await (await import('./bigquerySetup.js')).default(request, response);
+  },
+);
+
 export const copytaxes = onRequest(async (request, response) => {
   await (await import('./copyTaxes.js')).default(request, response);
 });

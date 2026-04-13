@@ -215,6 +215,7 @@ export const stripepubsub = {
 import {
   authrequests,
   authrequeststest,
+  bigquerysetup,
   copytaxes,
   generatepdf,
   // quickbooks,
@@ -233,6 +234,7 @@ import {
 export {
   authrequests,
   authrequeststest,
+  bigquerysetup,
   copytaxes,
   generatepdf,
   resend,
