@@ -1,7 +1,22 @@
 import ReactJson from '@microlink/react-json-view';
-import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
+import {
+  OpenInNewRounded,
+  SaveRounded,
+  SendRounded,
+} from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Badge, Box, Button, Stack, Typography, useTheme } from '@mui/material';
+import {
+  Alert,
+  AlertTitle,
+  Badge,
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Stack,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import { getDownloadURL } from 'firebase/storage';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -21,43 +36,119 @@ import { usePromptForEmails } from 'hooks/usePromptForEmails';
 import { onlyUnique } from 'modules/utils';
 import { createPath, ROUTES } from 'router';
 
-// TODO: how should document delivery be tracked?? see history / check if doc was delivered ?? NEED TO USE SENDGRID WEBHOOK & STORE IN COLLECTION
+// TODO: how should document delivery be tracked?? see history / check if doc was delivered ?? NEED TO USE RESEND WEBHOOK & STORE IN COLLECTION
 // TODO: create custom tags for email delivery ('policy_delivery') https://docs.sendgrid.com/for-developers/sending-email/getting-started-email-activity-api#query-reference
 // OR create templates and get by template ID
 
-// const useEPayTransaction = (id: string | null | undefined) => {
-//   const [transaction, setTransaction] = useState<any>();
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
-
-//   const getTransactionData = useCallback(async (id: string) => {
-//     try {
-//       console.log(`FETCHING TRANSACTION DATA: ${id}`);
-//       setLoading(true);
-//       setError(null);
-//       const { data } = await ePayInstance.get(`/api/v1/transactions/${id}`);
-
-//       console.log('RES: ', data);
-//       setTransaction(data);
-//       setLoading(false);
-//     } catch (err) {
-//       console.log('ERROR: ', err);
-//       setError('Error fetching ePay transaction');
-//       setLoading(false);
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     if (!id) return;
-//     if (transaction && transaction.id === id) return;
-
-//     getTransactionData(id);
-//   }, [id, getTransactionData, transaction]);
-
-//   return useMemo(() => ({ transaction, loading, error }), [transaction, loading, error]);
-// };
+// DELETE ?? AUTOMATICALLY SEND WHEN BOUND ??
 
 export const PolicyDelivery = () => {
+  const { policyId } = useSafeParams(['policyId']);
+  const navigate = useNavigate();
+  const toast = useAsyncToast();
+  const promptForEmails = usePromptForEmails();
+  const { data } = useDocData('policies', policyId);
+
+  const { send, loading } = useSendEmail({
+    onMutate: () => {
+      toast.loading('sending policy documents...');
+    },
+    onSuccess: () => {
+      toast.success('policy documents sent!');
+      navigate(createPath({ path: ROUTES.POLICIES }));
+    },
+    onError: (msg) => toast.error(msg),
+  });
+  // const {mutate: sendPolicy} = useMutation({
+  //   mutationFn: () =>
+  // })
+
+  const { downloadPDF: downloadPolicy, loading: genDecLoading } =
+    useGeneratePDF('generateDecPDF');
+
+  const handleDeliverDocs = useCallback(async () => {
+    try {
+      const emails = await promptForEmails(
+        {
+          insuredEmail: data?.namedInsured?.email || null,
+          agentEmail: data?.agent?.email || null,
+        },
+        {
+          title: 'Select emails for policy delivery',
+          description:
+            'Please select the emails to which you would like to deliver the policy, if any. If using alternative email, enter the email then press tab, space, or enter.',
+          confirmButtonText: 'Send',
+        },
+      );
+
+      if (!emails || emails.length < 1) throw new Error('no emails selected');
+
+      const uniqEmails = emails.filter(onlyUnique);
+
+      // toast.loading('sending policy documents...');
+
+      send({
+        templateName: 'policy_delivery',
+        policyId,
+        to: uniqEmails, // emails,
+      });
+    } catch (err) {
+      console.log('ERR: ', err);
+      toast.error('documents not delivered');
+    }
+  }, [promptForEmails, send, toast, data, policyId]);
+
+  return (
+    <Box>
+      <Box sx={{ py: 2 }}>
+        <Alert severity='info' sx={{ maxWidth: 740 }}>
+          <AlertTitle>Update</AlertTitle>
+          Below is the deprecated implementation (upload policy PDF to storage).
+          The current implementation generates the Policy PDF from current data
+          upon request.
+          <br />
+          <Typography
+            color='primary'
+            component='span'
+            onClick={() => {
+              if (!genDecLoading) downloadPolicy(policyId);
+            }}
+            fontSize='inherit'
+            sx={{
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' },
+            }}
+          >
+            Download&nbsp;a&nbsp;copy
+          </Typography>{' '}
+          if you'd like to verify first.
+          <br />
+          <Button
+            variant='contained'
+            onClick={handleDeliverDocs}
+            disabled={loading}
+            startIcon={
+              loading ? (
+                <CircularProgress size={16} color='inherit' />
+              ) : (
+                <SendRounded fontSize='inherit' />
+              )
+            }
+            sx={{ mt: 2 }}
+          >
+            Send Policy
+          </Button>
+        </Alert>
+      </Box>
+
+      <Divider sx={{ my: 3 }} />
+
+      <PolicyDeliveryOld />
+    </Box>
+  );
+};
+
+function PolicyDeliveryOld() {
   const theme = useTheme();
   const navigate = useNavigate();
   const toast = useAsyncToast();
@@ -242,6 +333,7 @@ export const PolicyDelivery = () => {
           </Badge>
         </Stack>
       </Box>
+
       <Box sx={{ pt: 5, pb: 2 }}>
         <Badge badgeContent='1' color='secondary'>
           <Typography color='text.secondary'>What to do:</Typography>
@@ -311,4 +403,4 @@ export const PolicyDelivery = () => {
       </Box>
     </Box>
   );
-};
+}

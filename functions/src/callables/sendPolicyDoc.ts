@@ -59,36 +59,11 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
     const attachments: Attachment[] = [
       {
         content: attachmentBuff, // string or buffer
-        filename: `iDemand Flood Policy ${policyId}`,
+        filename: `Policy ${policyId}`,
         contentType: 'application/pdf',
         // disposition: 'attachment',
       },
     ];
-    // const a = {
-    //     /** Content of an attached file. */
-    //   content?: string | Buffer;
-    //   /** Name of attached file. */
-    //   filename?: string | false | undefined;
-    //   /** Path where the attachment file is hosted */
-    //   path?: string;
-    //   /** Optional content type for the attachment, if not set will be derived from the filename property */
-    //   contentType?: string;
-    //   /**
-    //    * Optional content ID for the attachment, to be used as a reference in the HTML content.
-    //    * If set, this attachment will be sent as an inline attachment and you can reference it in the HTML content using the `cid:` prefix.
-    //    */
-    //   contentId?: string;
-    // }
-    // const x: AttachmentData = {
-    //   id: string;
-    //   filename?: string;
-    //   size: number;
-    //   content_type: string;
-    //   content_disposition: 'inline' | 'attachment';
-    //   content_id?: string;
-    //   download_url: string;
-    //   expires_at: string;
-    // }
 
     // const link = `${hostingBaseURL.value()}/policies/${policyId}`;
     const toName = policy.namedInsured.firstName || undefined;
@@ -101,24 +76,14 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
       locationStr += ` and ${lcns.length - 1} other locations`;
     }
 
-    await sendPolicyDocDelivery(
-      sgKey,
-      to,
-      attachments,
-      toName,
-      locationStr, // data.address.addressLine1
-      {
-        customArgs: {
-          emailType: 'policy_doc_delivery',
-        },
-      },
-    );
+    await sendPolicyDocDelivery(sgKey, to, attachments, toName, locationStr);
 
     return {
       status: 'success',
       emails: to,
     };
   } catch (err: any) {
+    console.log(err.message);
     error('ERROR SENDING POLICY DELIVERY EMAIL: ', { err });
     // TODO: notify admins?
     throw new HttpsError('internal', 'Failed to deliver email.');
