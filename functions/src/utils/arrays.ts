@@ -2,8 +2,6 @@ import { get, isEqual, remove } from 'lodash-es';
 import { extractNumberNeg, Path } from '../common/index.js';
 import { getNumber } from './helpers.js';
 
-export const noopDeleteMe = () => {};
-
 /**
  * Split an array of items into array of provided size
  * @param {any[]} data - array of data
