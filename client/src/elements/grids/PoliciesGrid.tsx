@@ -9,8 +9,8 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import type { Policy } from '@idemand/common';
-import { CLAIMS, PaymentStatus, ServerDataGridCollectionProps } from 'common';
+import { Claim, PaymentStatus, type Policy } from '@idemand/common';
+import { ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGeneratePDF, useGridShowJson } from 'hooks';
 import type { PolicyWithStatus } from 'modules/db';
@@ -37,13 +37,13 @@ export const PoliciesGrid = ({
 }: PoliciesGridProps) => {
   const navigate = useNavigate();
   const { data: iDAdminResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
 
   const renderShowJson = useGridShowJson(
     'policies',
     { showInMenu: true },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    { requiredClaims: { [Claim.enum.iDemandAdmin]: true } },
     null,
     null,
     // handle policy version collection

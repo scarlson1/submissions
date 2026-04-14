@@ -1,7 +1,8 @@
 import { Box, Chip } from '@mui/material';
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
-import { Invite, InviteStatus } from 'common';
+import { InviteStatus } from '@idemand/common';
+import { Invite } from 'common';
 import {
   createdCol,
   displayNameCol,
@@ -61,8 +62,8 @@ export const inviteCols: GridColDef<Invite>[] = [
               claimType === 'boolean'
                 ? claim
                 : claimType === 'string' || claimType === 'number'
-                ? `${claim}: ${params.value[claim]}`
-                : `${claim}: [object]`;
+                  ? `${claim}: ${params.value[claim]}`
+                  : `${claim}: [object]`;
 
             return <Chip label={label} size='small' key={claim} />;
           })}
@@ -78,7 +79,8 @@ export const inviteCols: GridColDef<Invite>[] = [
     editable: false,
     sortable: false,
     filterable: false,
-    valueGetter: (params) => params.row.invitedBy?.name ?? (params.row.invitedBy?.email || null),
+    valueGetter: (params) =>
+      params.row.invitedBy?.name ?? (params.row.invitedBy?.email || null),
   },
   {
     field: 'isCreateOrgInvite',
@@ -89,7 +91,8 @@ export const inviteCols: GridColDef<Invite>[] = [
     editable: false,
     sortable: false,
     filterable: false,
-    valueGetter: (params) => params.row.invitedBy?.name ?? (params.row.invitedBy?.email || null),
+    valueGetter: (params) =>
+      params.row.invitedBy?.name ?? (params.row.invitedBy?.email || null),
   },
   orgIdCol,
   createdCol,

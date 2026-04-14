@@ -1,11 +1,10 @@
-import { InviteClass } from '@idemand/common';
+import { Claim, InviteClass } from '@idemand/common';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { inviteConverter } from '../common/converters/index.js';
 import {
-  CLAIMS,
   hostingBaseURL,
   INVITE_STATUS,
   invitesCollection,
@@ -21,12 +20,13 @@ import { onCallWrapper } from '../services/sentry/index.js';
 export interface NewUser {
   email: string;
   name: string;
-  access:
-    | CLAIMS.ORG_ADMIN
-    | CLAIMS.AGENT
-    | CLAIMS.IDEMAND_ADMIN
-    | CLAIMS.IDEMAND_USER
-    | ''; // AccessLevels | '';
+  access: Claim | '';
+  // access:
+  //   | Claim.enum.orgAdmin
+  //   | Claim.enum.agent
+  //   | Claim.enum.iDemandAdmin
+  //   | CLAIMS.IDEMAND_USER
+  //   | ''; // AccessLevels | '';
 }
 
 export interface InviteUsersRequest {
@@ -51,9 +51,9 @@ const inviteUsers = async ({
 }: CallableRequest<InviteUsersRequest>) => {
   if (!auth?.uid) throw new HttpsError('unauthenticated', 'Must be signed in.');
 
-  const isIDemandAdmin = auth?.token[CLAIMS.IDEMAND_ADMIN];
+  const isIDemandAdmin = auth?.token[Claim.enum.iDemandAdmin];
 
-  if (!(auth?.token[CLAIMS.ORG_ADMIN] || isIDemandAdmin))
+  if (!(auth?.token[Claim.enum.orgAdmin] || isIDemandAdmin))
     throw new HttpsError('permission-denied', 'Admin permissions required');
 
   // TODO: check for org ID? allow invites using different function if not inviting agents ? inviteUsers vs inviteOrgUsers

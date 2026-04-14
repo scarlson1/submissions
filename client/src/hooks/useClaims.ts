@@ -1,4 +1,5 @@
-import { CLAIMS, env } from 'common';
+import { Claim } from '@idemand/common';
+import { env } from 'common';
 import { useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
@@ -7,13 +8,13 @@ import { useSigninCheck } from 'reactfire';
 // using useAuth from AuthContext in components is behind useSignInCheck
 export const useClaims = () => {
   const { data: iDAdminResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
   const { data: orgAdminResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.ORG_ADMIN]: true },
+    requiredClaims: { [Claim.enum.orgAdmin]: true },
   });
   const { data: agentResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.AGENT]: true },
+    requiredClaims: { [Claim.enum.agent]: true },
   });
   // use id token result hook instead ??
 
@@ -30,9 +31,9 @@ export const useClaims = () => {
       orgId,
       isSignedIn: iDAdminResult.signedIn,
       claims: {
-        [CLAIMS.IDEMAND_ADMIN]: iDAdminResult.hasRequiredClaims,
-        [CLAIMS.ORG_ADMIN]: orgAdminResult.hasRequiredClaims,
-        [CLAIMS.AGENT]: agentResult.hasRequiredClaims,
+        [Claim.enum.iDemandAdmin]: iDAdminResult.hasRequiredClaims,
+        [Claim.enum.orgAdmin]: orgAdminResult.hasRequiredClaims,
+        [Claim.enum.agent]: agentResult.hasRequiredClaims,
       },
     }),
     [iDAdminResult, orgAdminResult, agentResult, orgId],

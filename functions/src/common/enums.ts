@@ -70,23 +70,23 @@ export enum UW_NOTE_CODE {
   UNKNOWN = 'unknown',
 }
 
-export enum CLAIMS {
-  IDEMAND_ADMIN = 'iDemandAdmin',
-  IDEMAND_USER = 'iDemandUser',
-  ORG_ADMIN = 'orgAdmin',
-  AGENT = 'agent',
-}
+// export enum CLAIMS {
+//   IDEMAND_ADMIN = 'iDemandAdmin',
+//   IDEMAND_USER = 'iDemandUser',
+//   ORG_ADMIN = 'orgAdmin',
+//   AGENT = 'agent',
+// }
 
-export const Claim = z.enum([
-  'iDemandAdmin',
-  'iDemandUser',
-  'orgAdmin',
-  'agent',
-]);
-export type Claim = z.infer<typeof Claim>;
+// export const Claim = z.enum([
+//   'iDemandAdmin',
+//   'iDemandUser',
+//   'orgAdmin',
+//   'agent',
+// ]);
+// export type Claim = z.infer<typeof Claim>;
 
-const ClaimArray = z.array(Claim);
-export type ClaimArray = z.infer<typeof ClaimArray>;
+// const ClaimArray = z.array(Claim);
+// export type ClaimArray = z.infer<typeof ClaimArray>;
 
 export enum FIN_TRANSACTION_TYPE {
   CHARGE = 'charge',

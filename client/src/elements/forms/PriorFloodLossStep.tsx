@@ -2,8 +2,8 @@ import { ToggleButton } from '@mui/material';
 import { useFormikContext } from 'formik';
 import { useCallback } from 'react';
 
+import type { FloodValues } from '@idemand/common';
 import { FormikToggleButtonGroup } from 'components/forms';
-import { FloodValues } from 'views/SubmissionNew';
 
 export interface PriorFloodLossStepProps {}
 
@@ -17,7 +17,7 @@ export const PriorFloodLossStep = (props: PriorFloodLossStepProps) => {
       if (!newValue) return;
       setFieldValue('priorLossCount', newValue);
     },
-    [setFieldValue]
+    [setFieldValue],
   );
 
   //
@@ -28,16 +28,36 @@ export const PriorFloodLossStep = (props: PriorFloodLossStepProps) => {
       onChange={handleLossCountChange}
       exclusive
     >
-      <ToggleButton name='priorLossCount' value='0' aria-label='0' sx={{ py: 2, px: 4 }}>
+      <ToggleButton
+        name='priorLossCount'
+        value='0'
+        aria-label='0'
+        sx={{ py: 2, px: 4 }}
+      >
         0
       </ToggleButton>
-      <ToggleButton name='priorLossCount' value='1' aria-label='1' sx={{ py: 2, px: 4 }}>
+      <ToggleButton
+        name='priorLossCount'
+        value='1'
+        aria-label='1'
+        sx={{ py: 2, px: 4 }}
+      >
         1
       </ToggleButton>
-      <ToggleButton name='priorLossCount' value='2' aria-label='2' sx={{ py: 2, px: 4 }}>
+      <ToggleButton
+        name='priorLossCount'
+        value='2'
+        aria-label='2'
+        sx={{ py: 2, px: 4 }}
+      >
         2
       </ToggleButton>
-      <ToggleButton name='priorLossCount' value='3+' aria-label='3+' sx={{ py: 2, px: 4 }}>
+      <ToggleButton
+        name='priorLossCount'
+        value='3+'
+        aria-label='3+'
+        sx={{ py: 2, px: 4 }}
+      >
         3+
       </ToggleButton>
     </FormikToggleButtonGroup>

@@ -2,15 +2,14 @@ import { round, sum } from 'lodash';
 import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 
-import type { Coords, Nullable } from '@idemand/common';
+import type {
+  Basement,
+  Coords,
+  InitRatingValues,
+  Nullable,
+} from '@idemand/common';
 import { getPropertyDetailsAttom, GetPropertyDetailsAttomRequest } from 'api';
-import {
-  ElevationResult,
-  LimitKeys,
-  Limits,
-  RatingPropertyData,
-  TBasement,
-} from 'common';
+import { ElevationResult, LimitKeys, RatingPropertyData } from 'common';
 import { logDev } from 'modules/utils';
 import { usePromptRCV } from './usePromptRCV';
 
@@ -52,11 +51,6 @@ function getDefaultsFromRCV(rcv: number) {
   const maxDeductible = round(sumCoverage * 0.2, -3);
 
   return { ...calcDefaults, deductible, maxDeductible };
-}
-
-export interface InitRatingValues extends Limits {
-  deductible: number;
-  maxDeductible: number;
 }
 
 // TODO: match response from cloud function to mirror how data is stored below
@@ -152,7 +146,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
             ratingPropertyData: {
               // @ts-ignore
               numStories: data.numStories || '',
-              basement: data.basement || ('' as TBasement),
+              basement: data.basement || ('' as Basement),
             },
             coordinates: data.coordinates,
           };
@@ -166,7 +160,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
             ratingPropertyData: {
               // @ts-ignore
               numStories: data.numStories || '',
-              basement: data.basement || ('' as TBasement),
+              basement: data.basement || ('' as Basement),
             },
             coordinates: data.coordinates,
           };
@@ -189,7 +183,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
           ratingPropertyData: {
             // @ts-ignore
             numStories: data.numStories || '',
-            basement: data.basement || ('' as TBasement),
+            basement: data.basement || ('' as Basement),
           },
         };
       }

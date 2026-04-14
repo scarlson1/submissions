@@ -322,3 +322,64 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 - policy locations grid - filter to lcnIds in `policy.locations`
 - tests
 - finish moving types to `common/`
+- integrate search into grid ?? might be better to keep separate b/c grid data is from Firestore. Add search dialog with collection filter ??
+
+### TODO: Data Pipelines
+
+[DATA_PIPELINES_PLAN.md](docs/DATA_PIPELINES_PLAN.md)
+
+#### 1. Real-Time Premium Analytics Pipeline
+
+Stream policy, transaction, and change request events into a BigQuery data warehouse.
+
+- Firestore → Pub/Sub → Dataflow (or Cloud Functions) → BigQuery
+- A streamToBigQuery trigger on policies, transactions, and changeRequests collections
+- Schema normalization layer to flatten nested Firestore documents (e.g. flattening locations, taxes, fees into rows)
+- A daily aggregation job computing written premium, earned premium, loss ratio, and commission by state, agency, and flood zone
+
+#### 2. Portfolio Aggregation & Exposure Pipeline
+
+What it is: A batch pipeline that computes aggregated flood exposure by geography for the entire book of business.
+How it fits: The app has all active policy locations with coordinates, limits, and flood zones. This data currently sits unused at a portfolio level.
+Components:
+
+A scheduled Cloud Function (or Dataflow job) that reads all active, non-cancelled locations
+Groups them by county FIPS, state, flood zone, and a Mapbox-derived geohash grid
+Computes totalInsuredValue, termPremium, locationCount, and avgDeductible per bucket
+Writes results to a portfolioExposure Firestore collection (for the UI) and BigQuery (for analysis)
+A change detection layer that computes week-over-week exposure shifts and flags concentrations above a configurable threshold
+
+Why it's interesting: Concentration risk monitoring is a real insurance concern and this would give the app a feature that currently doesn't exist at all. The geospatial bucketing piece (using geohash or H3) is a legitimately interesting data engineering problem.
+
+#### 3. Tax Reconciliation Pipeline
+
+What it is: A pipeline that reconciles tax transactions against expected tax calculations and flags discrepancies.
+How it fits: The app has taxes (the tax config), taxCalculations, taxTransactions, and transactions collections. There's currently no automated reconciliation between them.
+Components:
+
+A daily batch job that joins taxTransactions against their parent taxCalculations
+Verifies that taxAmount in each taxTransaction matches percentCaptured × taxCalc.value within a tolerance
+Computes total tax liability by state and transaction type
+Writes a daily reconciliation report to BigQuery and flags mismatches to a taxReconciliationErrors collection
+A Firestore trigger that immediately flags any taxTransaction where the reversal amount doesn't match expected refund percentage
+
+Why it's interesting: Financial reconciliation pipelines are a common enterprise data engineering task. This one has real regulatory implications since surplus lines taxes are reported to state regulators.
+
+#### 4. Agent Performance & Funnel Analytics
+
+What it is: An ETL pipeline that builds a conversion funnel from submission → quote → bind → paid for each agent and agency.
+How it fits: All the source data already exists across submissions, quotes, policies, and financialTransactions.
+Components:
+
+A Firestore → BigQuery CDC (change data capture) pipeline for all four collections
+A dbt or SQL transformation layer that builds:
+
+submissions_to_quotes conversion rate by agent and agency
+quotes_to_bind conversion rate
+Average time-to-bind
+Average premium per bound policy
+Cancellation rate by agent
+
+A summary written back to each org's Firestore document for display in the existing admin UI
+
+Why it's interesting: This is a classic ETL + dimensional modeling problem. Building the CDC piece on top of Firestore's native versioning (which the app already has) is an elegant approach.

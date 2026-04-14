@@ -1,17 +1,23 @@
 import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Box, Unstable_Grid2 as Grid, IconButton, Stack, Tooltip } from '@mui/material';
+import {
+  Box,
+  Unstable_Grid2 as Grid,
+  IconButton,
+  Stack,
+  Tooltip,
+} from '@mui/material';
 import { lastDayOfYear, startOfYear } from 'date-fns';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { boolean, date, object, string } from 'yup';
 
+import { State } from '@idemand/common';
 import {
+  addressValidationNotRequired,
   BASE_NESTED_ADDRESS_FIELD_NAMES,
   License,
-  State,
-  addressValidationNotRequired,
   phoneVal,
 } from 'common';
 import {
@@ -40,11 +46,10 @@ const licenseValidation = object().shape({
   phone: phoneVal.notRequired(),
 });
 
-export interface LicenseValues
-  extends Omit<
-    License,
-    'effectiveDate' | 'expirationDate' | 'ownerType' | 'licenseType' | 'metadata'
-  > {
+export interface LicenseValues extends Omit<
+  License,
+  'effectiveDate' | 'expirationDate' | 'ownerType' | 'licenseType' | 'metadata'
+> {
   ownerType: string;
   licenseType: string;
   effectiveDate: Date;
@@ -73,7 +78,10 @@ const DEFAULT_VALUES: LicenseValues = {
 
 interface LicenseFormProps {
   initialValues?: LicenseValues;
-  onSubmit: (values: LicenseValues, helpers: FormikHelpers<LicenseValues>) => void;
+  onSubmit: (
+    values: LicenseValues,
+    helpers: FormikHelpers<LicenseValues>,
+  ) => void;
   title?: React.ReactNode;
 }
 
@@ -176,7 +184,12 @@ export const LicenseForm = ({
                 />
               </Grid>
               <Grid xs={12} sm={6} md={3} lg={2}>
-                <FormikTextField name='licensee' label='Licensee name' fullWidth required={true} />
+                <FormikTextField
+                  name='licensee'
+                  label='Licensee name'
+                  fullWidth
+                  required={true}
+                />
               </Grid>
               <Grid xs={12} sm={6} md={3} lg={2}>
                 <FormikTextField
@@ -270,19 +283,27 @@ export const LicenseForm = ({
                 </Stack>
               </Grid>
               <Grid xs={12}>
-                <Stack direction='column' spacing={3} sx={{ ml: { xs: 3, sm: 6 } }}>
+                <Stack
+                  direction='column'
+                  spacing={3}
+                  sx={{ ml: { xs: 3, sm: 6 } }}
+                >
                   <FormikSwitch
                     name='surplusLinesProducerOfRecord'
                     label='Surplus lines producer of record'
                     formControlLabelProps={{
-                      componentsProps: { typography: { variant: 'body2', px: 2 } },
+                      componentsProps: {
+                        typography: { variant: 'body2', px: 2 },
+                      },
                     }}
                   />
                   <FormikSwitch
                     name='SLAssociationMembershipRequired'
                     label='Surplus lines association membership required'
                     formControlLabelProps={{
-                      componentsProps: { typography: { variant: 'body2', px: 2 } },
+                      componentsProps: {
+                        typography: { variant: 'body2', px: 2 },
+                      },
                     }}
                   />
                 </Stack>

@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import invariant from 'tiny-invariant';
 
+import type { State } from '@idemand/common';
 import { StateTaxResponse, TTaxRequestConfig } from 'api';
-import { TFeeItem, TState, TTaxItem, TTransactionType } from 'common';
+import { TFeeItem, TTaxItem, TTransactionType } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { sumByTypes } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
@@ -10,7 +11,7 @@ import { useCloudRunApi } from './useCloudRunApi';
 
 export const useFetchTaxes = (
   onSuccess?: (taxes: TTaxItem[]) => void,
-  onError?: (msg: string, err: any) => void
+  onError?: (msg: string, err: any) => void,
 ) => {
   const [currTaxes, setCurrTaxes] = useState<TTaxItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,11 +32,21 @@ export const useFetchTaxes = (
       invariant(annualPremium, 'annual premium required');
       invariant(address?.state, 'state required');
 
-      const mgaFees = sumByTypes<TFeeItem>(fees, 'displayName', 'MGA Fee', 'value');
-      const inspectionFees = sumByTypes<TFeeItem>(fees, 'displayName', 'Inspection Fee', 'value');
+      const mgaFees = sumByTypes<TFeeItem>(
+        fees,
+        'displayName',
+        'MGA Fee',
+        'value',
+      );
+      const inspectionFees = sumByTypes<TFeeItem>(
+        fees,
+        'displayName',
+        'Inspection Fee',
+        'value',
+      );
 
       const body = {
-        state: address.state as TState,
+        state: address.state as State,
         homeStatePremium: annualPremium,
         outStatePremium: 0,
         premium: annualPremium,
@@ -64,10 +75,14 @@ export const useFetchTaxes = (
             // id: t.id,
           }));
 
-          toast.info(`${data.lineItems.length} tax${data.lineItems.length > 1 ? 'es' : ''} found`);
+          toast.info(
+            `${data.lineItems.length} tax${data.lineItems.length > 1 ? 'es' : ''} found`,
+          );
         }
         if (data && data.lineItems?.length === 0) {
-          toast.info(`No applicable taxes for ${address?.state}`, { duration: 5000 });
+          toast.info(`No applicable taxes for ${address?.state}`, {
+            duration: 5000,
+          });
         }
 
         setCurrTaxes(newTaxes);
@@ -87,11 +102,11 @@ export const useFetchTaxes = (
         return null;
       }
     },
-    [onSuccess, onError, toast]
+    [onSuccess, onError, toast],
   );
 
   return useMemo(
     () => ({ fetchTaxes, loading, error, taxes: currTaxes }),
-    [fetchTaxes, loading, error, currTaxes]
+    [fetchTaxes, loading, error, currTaxes],
   );
 };

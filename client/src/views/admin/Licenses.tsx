@@ -1,11 +1,15 @@
 import { EditRounded } from '@mui/icons-material';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridColDef,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS } from 'common';
+import { Claim } from '@idemand/common';
 import { ServerDataGrid } from 'components';
 import { licenseCols } from 'modules/muiGrid/gridColumnDefs';
 import { ADMIN_ROUTES, createPath } from 'router';
@@ -13,16 +17,19 @@ import { ADMIN_ROUTES, createPath } from 'router';
 export const Licenses = () => {
   const navigate = useNavigate();
   const { data: isAdminResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
 
   const handleEdit = useCallback(
     (params: GridRowParams) => () => {
       navigate(
-        createPath({ path: ADMIN_ROUTES.LICENSE_EDIT, params: { licenseId: params.id.toString() } })
+        createPath({
+          path: ADMIN_ROUTES.LICENSE_EDIT,
+          params: { licenseId: params.id.toString() },
+        }),
       );
     },
-    [navigate]
+    [navigate],
   );
 
   const licenseColumns: GridColDef[] = useMemo(
@@ -47,16 +54,27 @@ export const Licenses = () => {
       },
       ...licenseCols,
     ],
-    [isAdminResult, handleEdit]
+    [isAdminResult, handleEdit],
   );
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pb: 2,
+        }}
+      >
         <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
           Licenses
         </Typography>
-        <Button onClick={() => navigate(createPath({ path: ADMIN_ROUTES.SL_LICENSE_NEW }))}>
+        <Button
+          onClick={() =>
+            navigate(createPath({ path: ADMIN_ROUTES.SL_LICENSE_NEW }))
+          }
+        >
           New
         </Button>
       </Box>

@@ -4,12 +4,11 @@ import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { kebabCase, random } from 'lodash-es';
 
-import { Invite } from '@idemand/common';
+import { Claim, Invite } from '@idemand/common';
 import {
   AGENCY_STATUS,
   agencyApplicationCollection,
   AgencySubmissionStatus,
-  CLAIMS,
   hostingBaseURL,
   invitesCollection,
   isSingleLetter,
@@ -190,7 +189,7 @@ const createTenantFromSubmission = async ({
       displayName: `${org.contact.firstName} ${org.contact.lastName}`,
       firstName: org.contact.firstName,
       lastName: org.contact.lastName,
-      customClaims: { [CLAIMS.ORG_ADMIN]: true, [CLAIMS.AGENT]: true },
+      customClaims: { [Claim.enum.orgAdmin]: true, [Claim.enum.agent]: true },
       orgName: org.orgName,
       isCreateOrgInvite: true,
       invitedBy: {

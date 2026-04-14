@@ -97,6 +97,7 @@ function getResult(
     ? null
     : {
         iDemandAdmin: !!claims?.iDemandAdmin,
+        iDemandUser: !!claims?.iDemandUser,
         orgAdmin: !!claims?.orgAdmin,
         agent: !!claims?.agent,
       };

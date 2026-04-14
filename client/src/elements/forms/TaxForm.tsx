@@ -14,22 +14,20 @@ import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import type { Product, State } from '@idemand/common';
+import { Product as ProductZ, State as StateZ } from '@idemand/common';
 import {
   LineOfBusiness,
-  Product,
+  newTaxValidation,
   RoundingType,
-  State,
   SubjectBaseItem,
+  TaxItemName,
   TLineOfBusiness,
-  TProduct,
+  TransactionType,
   TRoundingType,
-  TState,
   TSubjectBaseItem,
   TTaxItemName,
   TTransactionType,
-  TaxItemName,
-  TransactionType,
-  newTaxValidation,
 } from 'common';
 import {
   FormikCheckbox,
@@ -44,7 +42,7 @@ import {
 import { ADMIN_ROUTES, createPath } from 'router';
 
 const DEFAULT_INIT_VALUES: TaxValues = {
-  state: '' as TState,
+  state: '' as State,
   displayName: '' as TTaxItemName,
   effectiveDate: new Date(),
   expirationDate: null,
@@ -62,12 +60,12 @@ const DEFAULT_INIT_VALUES: TaxValues = {
 };
 
 export interface TaxValues {
-  state: TState;
+  state: State;
   displayName: TTaxItemName;
   effectiveDate: Date;
   expirationDate?: Date | null;
   LOB: TLineOfBusiness[];
-  products: TProduct[];
+  products: Product[];
   transactionTypes: TTransactionType[];
   subjectBase: TSubjectBaseItem[];
   rate: string;
@@ -84,7 +82,10 @@ export interface TaxFormProps {
   initialValues?: TaxValues;
 }
 
-export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFormProps) => {
+export const TaxForm = ({
+  onSubmit,
+  initialValues = DEFAULT_INIT_VALUES,
+}: TaxFormProps) => {
   const navigate = useNavigate();
   const formikRef = useRef<FormikProps<TaxValues>>(null);
 
@@ -95,13 +96,14 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
     navigate(createPath({ path: ADMIN_ROUTES.SL_TAXES }));
   }, [navigate]);
 
-  const handleRemoveChip = (field: string, fieldVal: any[], removeVal: any) => (e: any) => {
-    e.stopPropagation();
-    formikRef.current?.setFieldValue(
-      field,
-      fieldVal.filter((v) => v !== removeVal)
-    );
-  };
+  const handleRemoveChip =
+    (field: string, fieldVal: any[], removeVal: any) => (e: any) => {
+      e.stopPropagation();
+      formikRef.current?.setFieldValue(
+        field,
+        fieldVal.filter((v) => v !== removeVal),
+      );
+    };
 
   return (
     <Formik
@@ -114,7 +116,11 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
         <Grid container columnSpacing={6} rowSpacing={4}>
           <Grid xs={12}>
             <Divider sx={{ my: 2 }} />
-            <Typography variant='overline' color='text.secondary' sx={{ ml: 3 }}>
+            <Typography
+              variant='overline'
+              color='text.secondary'
+              sx={{ ml: 3 }}
+            >
               State Tax Info
             </Typography>
           </Grid>
@@ -122,7 +128,7 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='state'
               label='State'
-              selectOptions={State.options}
+              selectOptions={StateZ.options}
               required
               sx={{ minWidth: 80 }}
             />
@@ -150,7 +156,7 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
                       onDelete={handleRemoveChip(
                         'transactionTypes',
                         values.transactionTypes,
-                        value
+                        value,
                       )}
                       onMouseDown={(e) => e.stopPropagation()}
                     />
@@ -163,7 +169,7 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='products'
               label='Products'
-              selectOptions={Product.options}
+              selectOptions={ProductZ.options}
               multiple // @ts-ignore
               renderValue={(selected: string[]) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -172,7 +178,11 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
                       key={value}
                       label={value}
                       size='small'
-                      onDelete={handleRemoveChip('products', values.products, value)}
+                      onDelete={handleRemoveChip(
+                        'products',
+                        values.products,
+                        value,
+                      )}
                       onMouseDown={(e) => e.stopPropagation()}
                     />
                   ))}
@@ -260,13 +270,21 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             xs={6}
             sm={3}
             md='auto'
-            sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
           >
             <FormikCheckbox name='refundable' label='Refundable' />
           </Grid>
           <Grid xs={12}>
             <Divider sx={{ my: 2 }} />
-            <Typography variant='overline' color='text.secondary' sx={{ ml: 3 }}>
+            <Typography
+              variant='overline'
+              color='text.secondary'
+              sx={{ ml: 3 }}
+            >
               Calculation
             </Typography>
           </Grid>
@@ -284,7 +302,11 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
                       key={value}
                       label={value}
                       size='small'
-                      onDelete={handleRemoveChip('subjectBase', values.subjectBase, value)}
+                      onDelete={handleRemoveChip(
+                        'subjectBase',
+                        values.subjectBase,
+                        value,
+                      )}
                       onMouseDown={(e) => e.stopPropagation()}
                     />
                   ))}
@@ -324,7 +346,11 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
 
           <Grid xs={12}>
             <Divider sx={{ my: 2 }} />
-            <Typography variant='overline' color='text.secondary' sx={{ ml: 3 }}>
+            <Typography
+              variant='overline'
+              color='text.secondary'
+              sx={{ ml: 3 }}
+            >
               Rounding
             </Typography>
           </Grid>
@@ -338,7 +364,11 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             />
           </Grid>
           <Grid xs={6} md={3}>
-            <FormikTextField name='baseDigits' label='Base # Digits' fullWidth />
+            <FormikTextField
+              name='baseDigits'
+              label='Base # Digits'
+              fullWidth
+            />
           </Grid>
           <Grid xs={6} md={3}>
             <FormikSelect
@@ -349,7 +379,11 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             />
           </Grid>
           <Grid xs={6} md={3}>
-            <FormikTextField name='resultDigits' label='Result # Digits' fullWidth />
+            <FormikTextField
+              name='resultDigits'
+              label='Result # Digits'
+              fullWidth
+            />
           </Grid>
           <Grid xs={12}>
             <Stack direction='row' spacing={2}>

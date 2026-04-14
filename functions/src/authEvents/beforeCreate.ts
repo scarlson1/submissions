@@ -1,4 +1,4 @@
-import { Collection, InviteClass } from '@idemand/common';
+import { Claim, Collection, InviteClass } from '@idemand/common';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
@@ -7,7 +7,6 @@ import { HttpsError } from 'firebase-functions/v2/identity';
 import jwt from 'jsonwebtoken';
 import { inviteConverter } from '../common/converters/index.js';
 import {
-  CLAIMS,
   emailVerificationKey,
   functionsBaseURL,
   invitesCollection,
@@ -201,8 +200,8 @@ export default async (event: AuthBlockingEvent) => {
     const claimsColRef = userClaimsCollection(db, mgaOrgId.value());
 
     const claims = {
-      [CLAIMS.IDEMAND_ADMIN]: true, // TODO: decide whether to set as admin by default
-      [CLAIMS.IDEMAND_USER]: true,
+      [Claim.enum.iDemandAdmin]: true, // TODO: decide whether to set as admin by default
+      [Claim.enum.iDemandUser]: true,
     };
     try {
       await claimsColRef.doc(user.uid).set(claims);

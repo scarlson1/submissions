@@ -1,15 +1,8 @@
 import axios from 'axios';
 import { z } from 'zod';
 
-import type { WithId } from '@idemand/common';
-import {
-  LineOfBusiness,
-  Product,
-  State,
-  TransactionType,
-  TTax,
-  TTaxItemName,
-} from 'common';
+import { Product, State, type WithId } from '@idemand/common';
+import { LineOfBusiness, TransactionType, TTax, TTaxItemName } from 'common';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 

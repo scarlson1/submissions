@@ -1,10 +1,10 @@
-import { CLAIMS } from 'common';
+import type { Claim } from '@idemand/common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface NewUser {
   email: string;
   name: string;
-  access: CLAIMS | '';
+  access: Claim | '';
 }
 
 export interface InviteUsersRequest {

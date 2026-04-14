@@ -29,8 +29,8 @@ import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import type { WithId } from '@idemand/common';
-import { Collection } from '@idemand/common';
-import { ChangeRequest, ChangeRequestStatus, CLAIMS } from 'common';
+import { Claim, Collection } from '@idemand/common';
+import { ChangeRequest, ChangeRequestStatus } from 'common';
 import { ErrorFallback } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';
@@ -119,7 +119,7 @@ export function ChangeRequestsDialog({
   const renderShowJson = useGridShowJson<ChangeRequest>(
     Collection.Enum.policies,
     { showInMenu: true },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    { requiredClaims: { [Claim.enum.iDemandAdmin]: true } },
     (data) => `Change Request ${data.id}`,
     undefined,
     (params) =>

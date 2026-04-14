@@ -1,11 +1,15 @@
 name: Deploy Firebase Function Codebases Conditionally
 
+# TODO: need to redeploy if changes to common/ ??
+
 on:
   push:
     branches:
       - main
     paths:
       - 'functions/**'
+      - 'data-pipeline/**'
+      - 'common/**'
       - '.github/workflows/deploy-functions.yml'
       - 'firestore.rules.template'
       - 'firestore.rules'
@@ -28,6 +32,7 @@ jobs:
       storage: ${{ steps.filter.outputs.storage }}
       shared: ${{ steps.filter.outputs.shared }}
       rules: ${{ steps.filter.outputs.rules }}
+      pipeline: ${{ steps.filter.outputs.pipeline }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,6 +70,14 @@ jobs:
               - 'firestore.rules.template'
               - 'firestore.rules'
               - 'storage.rules'
+            pipeline:
+              - 'data-pipeline/src/scheduler/*.ts'
+              - 'data-pipeline/src/callables/*.ts'
+              - 'data-pipeline/src/routes/*.ts'
+              - 'data-pipeline/src/common/**'
+              - 'data-pipeline/src/services/**'
+              - 'data-pipeline/src/utils/**'
+              - 'data-pipeline/package.json'
 
   build-and-deploy:
     needs: detect-changes
@@ -80,7 +93,8 @@ jobs:
       needs.detect-changes.outputs.cron == 'true' ||
       needs.detect-changes.outputs.storage == 'true' ||
       needs.detect-changes.outputs.shared == 'true' ||
-      needs.detect-changes.outputs.rules == 'true'
+      needs.detect-changes.outputs.rules == 'true' ||
+      needs.detect-changes.outputs.pipeline == 'true'
     runs-on: ubuntu-latest
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY_DEV }}
@@ -266,6 +280,26 @@ jobs:
       - name: Deploy storage functions
         if: needs.detect-changes.outputs.storage == 'true' || needs.detect-changes.outputs.shared == 'true'
         run: pnpm exec firebase deploy --only functions:storage
+
+      - name: Write env file (data-pipeline)
+        if: needs.detect-changes.outputs.pipeline == 'true'
+        run: |
+          cat > data-pipeline/.env.${{ vars.FIREBASE_PROJECT_ID_DEV }} << EOF
+          BIGQUERY_DATASET=${{ vars.BIGQUERY_DATASET }}
+          EMULATORS=${{ vars.EMULATORS }}
+          EOF
+
+      - name: Typecheck data-pipeline
+        if: needs.detect-changes.outputs.pipeline == 'true'
+        run: pnpm turbo run typecheck --filter=pipeline
+
+      - name: Build data-pipeline
+        if: needs.detect-changes.outputs.pipeline == 'true'
+        run: pnpm turbo run build --filter=pipeline
+
+      - name: Deploy data pipeline functions
+        if: needs.detect-changes.outputs.pipeline == 'true'
+        run: pnpm exec firebase deploy --only functions:pipeline
 
       - name: Inject Domain with Fallback
         env:

@@ -2,13 +2,9 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 // import { invitesCollection } from '../common/dbCollections';
+import { Claim } from '@idemand/common';
 import { inviteConverter } from '../common/converters/index.js';
-import {
-  audience,
-  CLAIMS,
-  invitesCollection,
-  resendKey,
-} from '../common/index.js';
+import { audience, invitesCollection, resendKey } from '../common/index.js';
 import { sendUserInvite } from '../services/sendgrid/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 
@@ -25,7 +21,7 @@ const resendInvite = async ({
   if (!auth?.uid || !token) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
   }
-  if (!(token[CLAIMS.ORG_ADMIN] || token[CLAIMS.IDEMAND_ADMIN])) {
+  if (!(token[Claim.enum.orgAdmin] || token[Claim.enum.iDemandAdmin])) {
     throw new HttpsError('permission-denied', 'Admin permissions required');
   }
 

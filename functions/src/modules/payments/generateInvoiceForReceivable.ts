@@ -1,8 +1,8 @@
+import { receivablesCollection } from '@idemand/common';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { round } from 'lodash-es';
 import Stripe from 'stripe';
-import { receivablesCollection } from '../../common/index.js';
 import { getDocData } from '../db/index.js';
 
 // process idea - create draft invoice for receivable

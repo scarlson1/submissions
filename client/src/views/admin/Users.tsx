@@ -1,10 +1,15 @@
 import { CorporateFareRounded, DataObjectRounded } from '@mui/icons-material';
 import { Box, Tooltip, Typography } from '@mui/material';
-import { GridActionsCellItem, GridRowId, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridRowId,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { useCallback } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, User } from 'common';
+import { Claim } from '@idemand/common';
+import { User } from 'common';
 import InputDialog from 'components/InputDialog';
 import { useConfirmation } from 'context';
 import { UsersGrid } from 'elements/grids';
@@ -16,13 +21,13 @@ import { logDev } from 'modules/utils';
 
 export const Users = () => {
   const { status, data: signInCheckResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
   const confirm = useConfirmation();
   const toast = useAsyncToast();
   const { moveUser } = useMoveUserToTenant(
     (msg: string) => toast.success(msg),
-    (msg: string) => toast.error(msg)
+    (msg: string) => toast.error(msg),
   );
   const showJson = useShowJson('users');
 
@@ -54,19 +59,23 @@ export const Users = () => {
 
       try {
         toast.loading('Setting tenant...');
-        await moveUser(params.id.toString(), params.row.tenantId || null, toTenantId || null);
+        await moveUser(
+          params.id.toString(),
+          params.row.tenantId || null,
+          toTenantId || null,
+        );
       } catch (err) {
         console.log('ERROR MOVING USER TO TENANT: ', err);
       }
     },
-    [toast, moveUser, confirm]
+    [toast, moveUser, confirm],
   );
 
   const handleShowJson = useCallback(
     (id: GridRowId) => () => {
       showJson(id.toString());
     },
-    [showJson]
+    [showJson],
   );
 
   return (
@@ -80,7 +89,9 @@ export const Users = () => {
         autoHeight
         initialState={{
           filter: {
-            filterModel: { items: [{ field: 'email', value: null, operator: '!=' }] },
+            filterModel: {
+              items: [{ field: 'email', value: null, operator: '!=' }],
+            },
           },
         }}
         renderActions={(params: GridRowParams) => [
@@ -92,7 +103,9 @@ export const Users = () => {
             }
             onClick={handleAssignTenant(params)}
             label='Move to tenant'
-            disabled={status !== 'success' || !signInCheckResult?.hasRequiredClaims}
+            disabled={
+              status !== 'success' || !signInCheckResult?.hasRequiredClaims
+            }
           />,
           <GridActionsCellItem
             icon={
@@ -102,7 +115,9 @@ export const Users = () => {
             }
             onClick={handleShowJson(params.id)}
             label='View JSON'
-            disabled={status !== 'success' || !signInCheckResult?.hasRequiredClaims}
+            disabled={
+              status !== 'success' || !signInCheckResult?.hasRequiredClaims
+            }
           />,
         ]}
       />

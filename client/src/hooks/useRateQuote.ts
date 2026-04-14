@@ -2,17 +2,16 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import type { Optional } from '@idemand/common';
+import type { CommSource, Optional } from '@idemand/common';
 import { getAnnualPremium } from 'api';
 import { GetAnnualPremiumRequest, RatingInputs } from 'api/getAnnualPremium';
-import { TCommSource } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { validateCommonInputs } from './useCalcPremium';
 
 export interface RatingInputsWithComm extends RatingInputs {
   agentId: string | null;
   orgId: string | null;
-  commSource: TCommSource;
+  commSource: CommSource;
 }
 export interface RatingInputsWithAAL extends RatingInputsWithComm {
   inlandAAL: number | null;

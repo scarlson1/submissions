@@ -5,8 +5,13 @@ import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
 
-import { Collection, type DisclosureType } from '@idemand/common';
-import { Disclosure, TProduct, TState } from 'common';
+import {
+  Collection,
+  type DisclosureType,
+  type Product,
+  type State,
+} from '@idemand/common';
+import { Disclosure } from 'common';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements/forms';
 import { useAsyncToast } from 'hooks';
@@ -38,7 +43,7 @@ export const DisclosureEdit = () => {
         await setDoc(
           docRef,
           {
-            products: [...(products as TProduct[])],
+            products: [...(products as Product[])],
             state: state || null,
             displayName: displayName || null,
             type: type || null,
@@ -68,7 +73,7 @@ export const DisclosureEdit = () => {
       <DisclosureForm
         initialValues={{
           products: data.products,
-          state: data.state || ('' as TState),
+          state: data.state || ('' as State),
           displayName: data.displayName || '',
           type: data.type || ('' as DisclosureType),
           content: data.content,

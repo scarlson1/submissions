@@ -1,5 +1,5 @@
-import type { Coords } from '@idemand/common';
-import { Limits, TCommSource, ValueByRiskType } from 'common';
+import type { CommSource, Coords, Limits } from '@idemand/common';
+import { ValueByRiskType } from 'common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface RatingInputs {
@@ -36,7 +36,7 @@ export interface GetAnnualPremiumRequest {
   floodZone?: string | null;
   basement?: string | null;
   // commissionPct?: number | null;
-  commSource: TCommSource;
+  commSource: CommSource;
   orgId: string | null;
   agentId: string | null;
   submissionId?: string | null;

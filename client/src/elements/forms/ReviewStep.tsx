@@ -10,11 +10,11 @@ import {
 } from '@mui/material';
 import { useFormikContext } from 'formik';
 
+import type { FloodValues } from '@idemand/common';
 import { LimitKeys } from 'common';
 import { FormikCheckbox } from 'components/forms';
 import { useDisclosure, useGeneralQuoteDisclosure } from 'hooks';
 import { dollarFormat } from 'modules/utils/helpers';
-import { FloodValues } from 'views/SubmissionNew';
 
 // TODO: generalize component
 
@@ -52,7 +52,9 @@ const policyDetails: Detail[] = [
 
 export const ReviewStep = () => {
   const { values } = useFormikContext<FloodValues>();
-  const { disclosureHTML, status } = useDisclosure([['state', '==', values.address?.state || '']]);
+  const { disclosureHTML, status } = useDisclosure([
+    ['state', '==', values.address?.state || ''],
+  ]);
   const showDisclosure = useGeneralQuoteDisclosure();
 
   return (
@@ -61,7 +63,10 @@ export const ReviewStep = () => {
         <Grid container spacing={4}>
           <Grid item xs={6}>
             <Box>
-              <Typography variant='overline' sx={{ lineHeight: 1.5, color: 'text.secondary' }}>
+              <Typography
+                variant='overline'
+                sx={{ lineHeight: 1.5, color: 'text.secondary' }}
+              >
                 iDemand
               </Typography>
               <Typography variant='h5' sx={{ lineHeight: 1.5 }}>
@@ -131,7 +136,11 @@ export const ReviewStep = () => {
             <Typography variant='h6' gutterBottom>
               What's Next?
             </Typography>
-            <Typography variant='body2' sx={{ color: 'text.secondary' }} gutterBottom>
+            <Typography
+              variant='body2'
+              sx={{ color: 'text.secondary' }}
+              gutterBottom
+            >
               {`Keep an eye on your inbox! We'll deliver a quote to the provided email address  (
               ${values.contact.email}). It will include a link to proceed with binding a policy.`}
             </Typography>
@@ -140,7 +149,11 @@ export const ReviewStep = () => {
             <FormikCheckbox
               name='userAcceptance'
               label={
-                <Typography variant='body2' color='text.secondary' component='div'>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  component='div'
+                >
                   I agree to the{' '}
                   <Typography
                     component='span'
@@ -166,7 +179,13 @@ export const ReviewStep = () => {
               }}
             />
             {status === 'loading' && (
-              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              >
                 <CircularProgress size={28} />
               </Box>
             )}

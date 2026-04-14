@@ -14,20 +14,16 @@ import { useCallback } from 'react';
 import { useFirestore, useSigninCheck } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import type {
-  Basement,
-  FloodZone,
-  Quote,
-  State,
-  TaxItem,
-} from '@idemand/common';
 import {
-  CLAIMS,
-  licensesCollection,
-  QUOTE_STATUS,
-  quotesCollection,
-  Submission,
-} from 'common';
+  Claim,
+  type Basement,
+  type FloodZone,
+  type Quote,
+  type State,
+  type Submission,
+  type TaxItem,
+} from '@idemand/common';
+import { licensesCollection, QUOTE_STATUS, quotesCollection } from 'common';
 import type { QuoteValues } from 'elements/forms';
 import { createDocId } from 'modules/db/utils';
 import {
@@ -51,7 +47,7 @@ export const useCreateQuote = (
 ) => {
   const firestore = useFirestore();
   const { data: signInCheckResult } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
   const sendEmailNotifications = useSendQuoteNotification();
 

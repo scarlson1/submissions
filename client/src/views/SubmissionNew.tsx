@@ -21,8 +21,9 @@ import { createPath, ROUTES } from 'router';
 // import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
 import {
   SubmissionStatus,
-  type Address,
-  type Coords,
+  type Basement,
+  type FloodValues,
+  type InitRatingValues,
   type Nullable,
   type Organization,
 } from '@idemand/common';
@@ -33,15 +34,12 @@ import {
   deductibleValidation,
   ElevationResult,
   exclusionsValidation,
-  Limits,
   limitsValidationNested,
-  NamedInsuredDetails,
   orgsCollection,
   priorLossValidation,
   RatingPropertyData,
   reviewValidation,
   submissionsCollection,
-  TBasement,
   TPriorLossCount,
 } from 'common';
 import { ErrorFallback } from 'components';
@@ -52,7 +50,6 @@ import {
   useDocData,
   usePropertyDetailsAttom,
 } from 'hooks';
-import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { sumArr } from 'modules/utils';
 
 // TODO: useGeolocate --> add to new submission form
@@ -162,21 +159,21 @@ function useCreateSubmission(
   return { createSubmission, loading };
 }
 
-export interface FloodValues {
-  address: Address;
-  coordinates: Nullable<Coords>;
-  limits: Limits;
-  deductible: number;
-  exclusionsExist: boolean | null;
-  exclusions: string[];
-  priorLossCount: string;
-  ratingPropertyData: {
-    basement: TBasement;
-    numStories: number;
-  };
-  contact: Omit<NamedInsuredDetails, 'phone'>;
-  userAcceptance: boolean;
-}
+// export interface FloodValues {
+//   address: Address;
+//   coordinates: Nullable<Coords>;
+//   limits: Limits;
+//   deductible: number;
+//   exclusionsExist: boolean | null;
+//   exclusions: string[];
+//   priorLossCount: string;
+//   ratingPropertyData: {
+//     basement: TBasement;
+//     numStories: number;
+//   };
+//   contact: Omit<NamedInsuredDetails, 'phone'>;
+//   userAcceptance: boolean;
+// }
 
 const initialValues: FloodValues = {
   address: {
@@ -202,7 +199,7 @@ const initialValues: FloodValues = {
   exclusions: [],
   priorLossCount: '0', // 0,
   ratingPropertyData: {
-    basement: '' as TBasement, // @ts-ignore
+    basement: '' as Basement, // @ts-ignore
     numStories: '',
   },
   contact: {

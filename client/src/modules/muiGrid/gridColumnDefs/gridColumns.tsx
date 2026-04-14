@@ -45,9 +45,17 @@ import { toast } from 'react-hot-toast';
 import { Link as RouterLink } from 'react-router-dom';
 
 import {
+  Basement,
+  CBRSDesignation,
+  Claim,
   Collection,
+  FloodZone,
+  InviteStatus,
+  Product,
+  State,
   SubmissionStatus,
   type Address,
+  type CompressedAddress,
   type Nullable,
   type PolicyLocation,
   type SubmissionStatus as TSubmissionStatus,
@@ -55,21 +63,12 @@ import {
 import { LoadingButton, LoadingButtonProps } from '@mui/lab';
 import {
   AdditionalInsured,
-  Basement,
   CancelReason,
-  CBRSDesignation,
   ChangeRequestStatus,
-  Claim,
-  CompressedAddress,
-  FloodZone,
-  INVITE_STATUS,
   LineOfBusiness,
   Mortgagee,
-  POLICY_STATUS,
   PriorLossCount,
-  Product,
   QUOTE_STATUS,
-  State,
   TAgencySubmissionStatus,
   TChangeRequestStatus,
   TFeeItem,
@@ -802,9 +801,9 @@ export const statusCol: GridSingleSelectColDef = {
 export type ChipStatus =
   | TSubmissionStatus
   | QUOTE_STATUS
-  | POLICY_STATUS
+  // | POLICY_STATUS
   | TAgencySubmissionStatus
-  | INVITE_STATUS
+  // | INVITE_STATUS
   | TChangeRequestStatus
   | string;
 
@@ -832,17 +831,21 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <HourglassBottomRounded />, color: 'warning' };
     case QUOTE_STATUS.CANCELLED:
       return { icon: <CloseRounded />, color: 'default' };
-    case POLICY_STATUS.PAID:
+    // case POLICY_STATUS.PAID:
+    case 'paid':
       return { icon: <CreditScoreRounded />, color: 'success' };
-    case POLICY_STATUS.PAYMENT_PROCESSING:
+    // case POLICY_STATUS.PAYMENT_PROCESSING:
+    case 'payment:processing':
       return { icon: <CachedRounded />, color: 'info' };
-    case POLICY_STATUS.AWAITING_PAYMENT:
+    // case POLICY_STATUS.AWAITING_PAYMENT:
+    case 'awaiting:payment':
       return { icon: <HourglassTopRounded />, color: 'warning' };
-    case POLICY_STATUS.CANCELLED:
+    // case POLICY_STATUS.CANCELLED:
+    case 'cancelled':
       return { icon: <CloseRounded />, color: 'default' };
-    case INVITE_STATUS.PENDING: // NEVER REACH HERE MATCHES PENDING ABOVE
+    case InviteStatus.enum.pending: // NEVER REACH HERE MATCHES PENDING ABOVE
       return { icon: <QueryBuilderRounded />, color: 'warning' };
-    case INVITE_STATUS.ACCEPTED:
+    case InviteStatus.enum.accepted:
       return { icon: <CheckRounded />, color: 'success' };
     case 'imported':
       return { icon: <SaveAltRounded />, color: 'success' };

@@ -10,8 +10,8 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { Collection } from '@idemand/common';
-import { Disclosure, TProduct } from 'common';
+import { Collection, type Product } from '@idemand/common';
+import { Disclosure } from 'common';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements/forms';
 import { useAsyncToast } from 'hooks';
@@ -37,7 +37,7 @@ export const DisclosureNew = () => {
         toast.loading('Saving...');
 
         const docRef = await addDoc(disclosuresColl, {
-          products: [...(products as TProduct[])],
+          products: [...(products as Product[])],
           state: state || null,
           displayName: displayName || null,
           type: type || null,

@@ -1,10 +1,14 @@
 import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 
-import { CLAIMS, ServerDataGridCollectionProps, Transaction } from 'common';
+import { Claim } from '@idemand/common';
+import { ServerDataGridCollectionProps, Transaction } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson, useWidth } from 'hooks';
-import { TRANSACTION_COLUMN_VISIBILITY, transactionCols } from 'modules/muiGrid';
+import {
+  TRANSACTION_COLUMN_VISIBILITY,
+  transactionCols,
+} from 'modules/muiGrid';
 
 export type TransactionsGridProps = ServerDataGridCollectionProps;
 
@@ -18,7 +22,7 @@ export const TransactionsGrid = ({
   const renderShowJson = useGridShowJson<Transaction>(
     'transactions',
     { showInMenu: isSmall },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
+    { requiredClaims: { [Claim.enum.iDemandAdmin]: true } },
   );
 
   const columns: GridColDef[] = useMemo(() => {

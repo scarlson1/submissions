@@ -16,8 +16,8 @@ import { upperFirst } from 'lodash';
 import { useCallback, useState } from 'react';
 import { Map, Marker } from 'react-map-gl';
 
-import { StorageFolder, type Organization } from '@idemand/common';
-import { NESTED_ADDRESS_FIELD_NAMES, Product } from 'common';
+import { Product, StorageFolder, type Organization } from '@idemand/common';
+import { NESTED_ADDRESS_FIELD_NAMES } from 'common';
 import { MAPBOX_DARK, MAPBOX_LIGHT } from 'components';
 import { FormikNativeSelect, FormikTextField } from 'components/forms';
 import { FormattedAddress } from 'elements/FormattedAddress';

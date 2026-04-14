@@ -12,8 +12,8 @@ import {
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import { array, object, string } from 'yup';
 
+import { Claim } from '@idemand/common';
 import { InviteUsersResponse, NewUser } from 'api';
-import { CLAIMS } from 'common';
 import { FormikFieldArray } from 'components/forms';
 import { useInviteUsers } from 'hooks';
 
@@ -146,11 +146,11 @@ export const AddUsersDialog = ({
                       selectOptions: [
                         {
                           label: 'Agent',
-                          value: CLAIMS.AGENT,
+                          value: Claim.enum.agent,
                         },
                         {
                           label: 'Admin',
-                          value: CLAIMS.ORG_ADMIN,
+                          value: Claim.enum.orgAdmin,
                         },
                       ],
                     },

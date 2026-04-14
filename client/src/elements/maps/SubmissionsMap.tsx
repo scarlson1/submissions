@@ -15,8 +15,7 @@ import { QueryConstraint, where } from 'firebase/firestore';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // import { DataFilterExtension } from '@deck.gl/extensions';
 
-import type { WithId } from '@idemand/common';
-import { Submission } from 'common';
+import type { Submission, WithId } from '@idemand/common';
 import { useCollectionData, useFlyToBounds } from 'hooks';
 import {
   CoordObj,

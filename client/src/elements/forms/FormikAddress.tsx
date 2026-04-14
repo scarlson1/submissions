@@ -1,7 +1,13 @@
-import { Grid, Grid2Props, NativeSelectProps, TextFieldProps } from '@mui/material';
+import {
+  Grid,
+  Grid2Props,
+  NativeSelectProps,
+  TextFieldProps,
+} from '@mui/material';
 
 // import { statesAbrvSelectOptions } from 'common/statesList';
-import { DEFAULT_ADDRESS_FIELD_NAMES, State } from 'common';
+import { State } from '@idemand/common';
+import { DEFAULT_ADDRESS_FIELD_NAMES } from 'common';
 import {
   AddressAutocompleteProps,
   FormikMaskField,
@@ -27,12 +33,18 @@ export interface AddressFieldNames {
 }
 
 export interface FormikAddressProps {
-  cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void;
+  cb?: (
+    coords: { lat: number | null; lng: number | null },
+    state?: string,
+  ) => void;
   selectFieldProps?: Omit<NativeSelectProps, 'name' | 'label'>;
   gridProps?: Grid2Props;
   names?: Partial<AddressFieldNames>;
   textFieldProps?: TextFieldProps;
-  autocompleteProps?: Omit<AddressAutocompleteProps, 'resetFields' | 'handleSelection'>;
+  autocompleteProps?: Omit<
+    AddressAutocompleteProps,
+    'resetFields' | 'handleSelection'
+  >;
 }
 
 export const FormikAddress = ({
@@ -46,7 +58,11 @@ export const FormikAddress = ({
   return (
     <Grid container spacing={5} columnSpacing={3} {...gridProps}>
       <Grid item xs={12} sm={names.addressLine2 ? 8 : 12}>
-        <FormikAddressAutocomplete cb={cb} names={names} {...autocompleteProps} />
+        <FormikAddressAutocomplete
+          cb={cb}
+          names={names}
+          {...autocompleteProps}
+        />
       </Grid>
       {names.addressLine2 && (
         <Grid item xs={12} sm={4}>
@@ -96,7 +112,9 @@ export const FormikAddress = ({
             inputProps={{
               maskProps: postalMaskProps,
             }}
-            variant={textFieldProps?.variant === 'standard' ? 'standard' : 'outlined'}
+            variant={
+              textFieldProps?.variant === 'standard' ? 'standard' : 'outlined'
+            }
             size={textFieldProps?.size || 'medium'}
           />
         </Grid>

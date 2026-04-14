@@ -19,8 +19,8 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { Collection } from '@idemand/common';
-import { AgencySubmissionStatus, CLAIMS } from 'common';
+import { Claim, Collection } from '@idemand/common';
+import { AgencySubmissionStatus } from 'common';
 import { IconButtonMenu } from 'components';
 import { useConfirmation } from 'context';
 import { AgencyAppsGrid } from 'elements/grids';
@@ -38,7 +38,7 @@ export const AgencyApps = () => {
   const confirm = useConfirmation();
   const { isMobile } = useWidth();
   const { data: authCheck } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
 
   const { confirmAndSend } = useSendAgencyAppNotification(

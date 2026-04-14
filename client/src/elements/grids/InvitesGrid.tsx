@@ -10,8 +10,7 @@ import { Functions, httpsCallable } from 'firebase/functions';
 import { useCallback, useMemo } from 'react';
 import { useFunctions, useSigninCheck } from 'reactfire';
 
-import { Collection } from '@idemand/common';
-import { CLAIMS, Invite, INVITE_STATUS } from 'common';
+import { Claim, Collection, InviteStatus, type Invite } from '@idemand/common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useClaims, useUpdateDoc } from 'hooks';
 import { INVITE_COLUMN_VISIBILITY, inviteCols } from 'modules/muiGrid';
@@ -40,7 +39,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const toast = useAsyncToast();
   const { claims } = useClaims();
   const { data: signInRes } = useSigninCheck({
-    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [Claim.enum.iDemandAdmin]: true },
   });
   const { update: updateInvite } = useUpdateDoc<Invite, UpdateInviteValues>(
     'organizations',
@@ -116,7 +115,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
             }
             onClick={handleResendInvite(params)}
             label='Resend Invite'
-            disabled={params.row.status !== INVITE_STATUS.PENDING}
+            disabled={params.row.status !== InviteStatus.enum.pending}
           />,
           <GridActionsCellItem
             icon={
@@ -127,7 +126,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
             onClick={handleCancel(params)}
             label='Cancel'
             disabled={
-              params.row.status !== INVITE_STATUS.PENDING ||
+              params.row.status !== InviteStatus.enum.pending ||
               !(claims?.iDemandAdmin || claims.orgAdmin)
             }
           />,

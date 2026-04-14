@@ -1,0 +1,28 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "outDir": "dist",
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "checkJs": false,
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "compileOnSave": true,
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
+  "exclude": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "**/node_modules/*",
+    "../client/node_modules",
+    "../client"
+  ]
+  // "references": [
+  //   // Reference a local library, using the workspace protocol
+  //   { "path": "../../libs/common-ui" }
+  // ]
+}

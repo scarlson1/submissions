@@ -392,6 +392,27 @@ service cloud.firestore {
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
+    match /portfolioExposure/{docId=**} {
+      allow read: if isIDemandAdmin()
+      allow create: if false
+      allow update: if false;
+      allow delete: if isIDemandAdmin()
+    }
+
+    match /portfolioConcentrationAlerts/{docId=**} {
+      allow read: if isIDemandAdmin()
+      allow create: if false
+      allow update: if isIDemandAdmin()
+      allow delete: if isIDemandAdmin()
+    }
+
+    match /exposureConfig/{docId=**} {
+      allow read: if isIDemandAdmin()
+      allow create: if false
+      allow update: if isIDemandAdmin()
+      allow delete: if isIDemandAdmin()
+    }
+
     // TODO: remove isSignedIn from all isXXX functions
     function isIDemandAdmin() {
       return isSignedIn() && request.auth.token.get('iDemandAdmin', null) == true

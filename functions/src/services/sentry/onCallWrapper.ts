@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/node';
 import { CallableRequest } from 'firebase-functions/v2/https';
-import { Primitive } from '../../common/index.js';
+import type { Primitive } from '../../common/index.js';
 
 // https://medium.com/qualdesk/how-to-capture-typescript-firebase-functions-errors-in-sentry-d6984951ed9
 
@@ -21,7 +21,7 @@ export const onCallWrapper = <T = any>(
   // This is the handler itself, which previously
   // you would have exported directly from the
   // function file
-  handler: (request: CallableRequest<T>) => any | Promise<any>
+  handler: (request: CallableRequest<T>) => any | Promise<any>,
 ) => {
   return async (request: CallableRequest<T>) => {
     // 1. Start the Sentry transaction
@@ -61,8 +61,10 @@ export const onCallWrapper = <T = any>(
   };
 };
 
-export const reportErrorSentry = (e: any, tags: Record<string, Primitive> = {}) =>
-  Sentry.captureException(e, { tags });
+export const reportErrorSentry = (
+  e: any,
+  tags: Record<string, Primitive> = {},
+) => Sentry.captureException(e, { tags });
 
 // export interface ScopeContext {
 //   user: User;

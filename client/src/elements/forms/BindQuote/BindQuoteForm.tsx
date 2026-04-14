@@ -16,7 +16,6 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 import {
   AdditionalInterest,
   additionalInterestsValidation,
-  MailingAddress,
   mailingAddressValidation,
   NamedInsuredDetails,
   namedInsuredValidationNested,
@@ -34,7 +33,7 @@ import { QuoteExpired } from './Expired';
 import { MailingAddressStep } from './MailingAddressStep';
 import { NamedInsuredStep } from './NamedInsuredStep';
 // import { PaymentStep, billingValidation } from './PaymentStep';
-import type { BillingEntity, Quote } from '@idemand/common';
+import type { BillingEntity, MailingAddress, Quote } from '@idemand/common';
 import { BillingStep, billingValidation } from './BillingStep';
 import { ReviewStep } from './ReviewStep';
 import { useLogCheckoutProgress } from './useLogCheckoutProgress';

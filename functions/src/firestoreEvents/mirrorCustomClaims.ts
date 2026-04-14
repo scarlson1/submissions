@@ -9,7 +9,8 @@ import type { Change } from 'firebase-functions';
 import { error, info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { CLAIMS, mgaOrgId, orgsCollection } from '../common/index.js';
+import { Claim } from '@idemand/common';
+import { mgaOrgId, orgsCollection } from '../common/index.js';
 import { isJSON } from '../utils/validation.js';
 
 export interface ClaimsDocData extends DocumentData {
@@ -66,15 +67,15 @@ export default async (
     }
 
     if (
-      (Object.keys(newClaims).includes(CLAIMS.IDEMAND_ADMIN) ||
-        Object.keys(newClaims).includes(CLAIMS.IDEMAND_USER)) &&
+      (Object.keys(newClaims).includes(Claim.enum.iDemandAdmin) ||
+        Object.keys(newClaims).includes(Claim.enum.iDemandUser)) &&
       orgId !== mgaOrgId.value()
     ) {
       info(
         'New custom claims contained reserved custom claim (iDemandAdmin). Removing claim.',
       );
-      delete newClaims[CLAIMS.IDEMAND_ADMIN];
-      delete newClaims[CLAIMS.IDEMAND_USER];
+      delete newClaims[Claim.enum.iDemandAdmin];
+      delete newClaims[Claim.enum.iDemandUser];
 
       await event?.data?.after.ref.set({
         ...newClaims,

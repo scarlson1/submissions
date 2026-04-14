@@ -7,8 +7,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { SubmissionStatus, type Optional } from '@idemand/common';
-import { Submission, submissionsCollection } from 'common';
+import {
+  SubmissionStatus,
+  type Optional,
+  type Submission,
+} from '@idemand/common';
+import { submissionsCollection } from 'common';
 import {
   getRatingInputsFromSubmission,
   QuoteForm,

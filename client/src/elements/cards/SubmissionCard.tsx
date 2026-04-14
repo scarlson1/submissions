@@ -11,8 +11,8 @@ import {
 } from '@mui/material';
 import { useCallback, useState } from 'react';
 
-import type { WithId } from '@idemand/common';
-import { fallbackImages, Submission } from 'common';
+import type { Submission, WithId } from '@idemand/common';
+import { fallbackImages } from 'common';
 import {
   dollarFormat,
   formatFirestoreTimestamp,

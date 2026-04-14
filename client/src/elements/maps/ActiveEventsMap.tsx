@@ -24,7 +24,7 @@ import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl';
 import { Timestamp, where } from 'firebase/firestore';
 import { useCallback, useState } from 'react';
 
-import { State } from 'common';
+import { State } from '@idemand/common';
 import { useCollectionData } from 'hooks';
 import {
   CoordObj,

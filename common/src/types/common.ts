@@ -123,9 +123,7 @@ export type Address = z.infer<typeof Address>;
 
 export const MailingAddress = Address.and(
   z.object({
-    name: z
-      .string()
-      .min(4, 'mailing address recipient must be at least 4 characters'),
+    name: z.string(),
   }),
 );
 export type MailingAddress = z.infer<typeof MailingAddress>;
@@ -147,6 +145,16 @@ export const Coords = z.object({
     .max(180, 'invalid longitude'),
 });
 export type Coords = z.infer<typeof Coords>;
+
+// TODO: move coords outside address for consistency (with quote/policy)
+export const AddressWithCoords = Address.merge(Coords);
+export type AddressWithCoords = z.infer<typeof AddressWithCoords>;
+// export const AddressWithCoords = Address.and(
+//   z.object({
+//     latitude: z.number(),
+//     longitude: z.number(),
+//   }),
+// );
 
 export const Phone = z.string().min(10).max(12).trim(); // TODO: regex ??
 export type Phone = z.infer<typeof Phone>;
@@ -191,15 +199,6 @@ export type AgencyDetails = z.infer<typeof AgencyDetails>;
 // decide whether to use discriminating union type
 // could use on front end for input component
 // then split in submit
-
-// TODO: move coords outside address for consistency (with quote/policy)
-export const AddressWithCoords = Address.and(
-  z.object({
-    latitude: z.number(),
-    longitude: z.number(),
-  }),
-);
-export type AddressWithCoords = z.infer<typeof AddressWithCoords>;
 
 export const AdditionalInterestType = z.enum([
   'mortgagee',

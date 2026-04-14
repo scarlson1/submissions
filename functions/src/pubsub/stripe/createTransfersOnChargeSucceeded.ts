@@ -1,13 +1,12 @@
+import { receivablesCollection } from '@idemand/common';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import {
   getReportErrorFn,
-  receivablesCollection,
   stripeSecretKey,
   transfersCollection,
-  type Receivable,
 } from '../../common/index.js';
 import { getQueryData } from '../../modules/db/utils.js';
 import { getStripe } from '../../services/stripe.js';

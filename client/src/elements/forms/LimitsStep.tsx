@@ -5,10 +5,13 @@ import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { useFormikContext } from 'formik';
 import { round } from 'lodash';
 
+import type { FloodValues } from '@idemand/common';
 import { LimitKeys } from 'common/types';
-import { FormikDollarMaskField, FormikDollarMaskFieldProps } from 'components/forms';
+import {
+  FormikDollarMaskField,
+  FormikDollarMaskFieldProps,
+} from 'components/forms';
 import { extractNumber } from 'modules/utils/helpers';
-import { FloodValues } from 'views/SubmissionNew';
 
 // TODO: use increment cards & text field or slider ??
 // TODO: round value to nearest 1,000
@@ -54,7 +57,8 @@ const limitFields = [
   },
 ];
 
-const getFormattedPct = (portion: number, total: number) => round((portion / total) * 100, 1);
+const getFormattedPct = (portion: number, total: number) =>
+  round((portion / total) * 100, 1);
 
 export interface LimitsStepProps {
   gridProps?: Grid2Props;
@@ -71,7 +75,8 @@ export const LimitsStep = ({
   replacementCost,
   description,
 }: LimitsStepProps) => {
-  const { values, setFieldValue, setFieldTouched } = useFormikContext<FloodValues>();
+  const { values, setFieldValue, setFieldTouched } =
+    useFormikContext<FloodValues>();
 
   const helperText = useMemo(() => {
     let result: { [key: string]: string | undefined } = {
@@ -84,7 +89,8 @@ export const LimitsStep = ({
 
     Object.keys(result).forEach((key) => {
       const limitVal = values.limits[key as LimitKeys];
-      const limitNum = typeof limitVal === 'string' ? parseInt(limitVal) : limitVal;
+      const limitNum =
+        typeof limitVal === 'string' ? parseInt(limitVal) : limitVal;
       const ht = getFormattedPct(limitNum, replacementCost);
       if (!isNaN(ht)) {
         result[key] = `${ht}% of building replacement cost`;

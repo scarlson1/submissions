@@ -1,12 +1,9 @@
+import { receivablesCollection } from '@idemand/common';
 import { getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
-import {
-  getReportErrorFn,
-  policiesCollection,
-  receivablesCollection,
-} from '../../common/index.js';
+import { getReportErrorFn, policiesCollection } from '../../common/index.js';
 import { extractPubSubPayload } from '../utils/extractPubSubPayload.js';
 import {
   ChargeSucceededPayload,

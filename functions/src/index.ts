@@ -223,13 +223,6 @@ import {
   typesensesetup,
 } from './routes/index.js';
 
-// export const request = {
-//   authRequests,
-//   authrequeststest,
-//   copytaxes,
-//   generatepdf,
-//   // quickbooks,
-// };
 export {
   authrequests,
   authrequeststest,

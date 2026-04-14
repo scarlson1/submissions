@@ -2,6 +2,8 @@ import { Box, useTheme } from '@mui/material';
 import createGlobe from 'cobe';
 import { useCallback, useEffect, useRef } from 'react';
 
+// TODO: DELETE ?? NOT USED
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type RGBTuple = [number, number, number];

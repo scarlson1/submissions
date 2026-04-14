@@ -9,8 +9,7 @@ import { noop } from 'lodash';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { SubmissionStatus } from '@idemand/common';
-import { Submission } from 'common';
+import { SubmissionStatus, type Submission } from '@idemand/common';
 import { SubmissionsGrid } from 'elements/grids';
 import { useAsyncToast, useConfirmAndUpdate, useUpdateDoc } from 'hooks';
 import { rcvSourceUserCol } from 'modules/muiGrid/gridColumnDefs';

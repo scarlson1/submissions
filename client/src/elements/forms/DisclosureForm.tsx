@@ -13,9 +13,11 @@ import { array, object, string } from 'yup';
 
 import {
   DisclosureType,
+  Product,
+  State as StateZ,
+  type State,
   type DisclosureType as TDisclosureType,
 } from '@idemand/common';
-import { Product, State, TState } from 'common';
 import {
   FormikNativeSelect,
   FormikSelect,
@@ -39,7 +41,7 @@ const disclosureValidation = object().shape({
 
 export interface DisclosureValues {
   products: string[];
-  state: TState;
+  state: State;
   displayName: string;
   type?: TDisclosureType | null; // string | null;
   content?: JSONContent | null;
@@ -61,7 +63,7 @@ export const DisclosureForm = ({
   editorContent = '',
   initialValues = {
     products: ['flood', 'wind'],
-    state: '' as TState,
+    state: '' as State,
     displayName: '',
     type: '' as TDisclosureType,
   },
@@ -150,7 +152,7 @@ export const DisclosureForm = ({
               <FormikSelect
                 name='state'
                 label='State'
-                selectOptions={State.options}
+                selectOptions={StateZ.options}
                 fullWidth
               />
             </Grid>

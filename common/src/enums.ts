@@ -36,6 +36,10 @@ export const Collection = z.enum([
   'receivables',
   'billingEntities',
   'public',
+  'portfolioExposure',
+  'portfolioConcentrationAlerts',
+  'taxReconciliationErrors',
+  'exposureConfig',
 ]);
 export type Collection = z.infer<typeof Collection>;
 export type TCollection = z.infer<typeof Collection>;
@@ -53,6 +57,17 @@ export const StorageFolder = z.enum([
   'organizations',
 ]);
 export type TStorageFolder = z.infer<typeof StorageFolder>;
+
+export const Claim = z.enum([
+  'iDemandAdmin',
+  'iDemandUser',
+  'orgAdmin',
+  'agent',
+]);
+export type Claim = z.infer<typeof Claim>;
+
+export const ClaimArray = z.array(Claim);
+export type ClaimArray = z.infer<typeof ClaimArray>;
 
 export const SubmissionStatus = z.enum([
   'draft',
