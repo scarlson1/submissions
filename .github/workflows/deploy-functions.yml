@@ -229,6 +229,13 @@ jobs:
           EMULATORS=${{ vars.EMULATORS }}
           EOF
 
+      - name: Write env file (pipeline)
+        run: |
+          cat > pipeline/.env.${{ vars.FIREBASE_PROJECT_ID_DEV }} << EOF
+          BIGQUERY_DATASET=${{ vars.BIGQUERY_DATASET }}
+          EMULATORS=${{ vars.EMULATORS }}
+          EOF
+
       - name: Set Project Alias
         run: pnpm exec firebase use ${{ vars.FIREBASE_PROJECT_ID_DEV }} --non-interactive
 
@@ -280,14 +287,6 @@ jobs:
       - name: Deploy storage functions
         if: needs.detect-changes.outputs.storage == 'true' || needs.detect-changes.outputs.shared == 'true'
         run: pnpm exec firebase deploy --only functions:storage
-
-      - name: Write env file (pipeline)
-        if: needs.detect-changes.outputs.pipeline == 'true'
-        run: |
-          cat > pipeline/.env.${{ vars.FIREBASE_PROJECT_ID_DEV }} << EOF
-          BIGQUERY_DATASET=${{ vars.BIGQUERY_DATASET }}
-          EMULATORS=${{ vars.EMULATORS }}
-          EOF
 
       - name: Typecheck pipeline
         if: needs.detect-changes.outputs.pipeline == 'true'
