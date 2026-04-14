@@ -15,6 +15,16 @@
         "firebase-debug.*.log"
       ],
       "isolate": true
+    },
+    {
+      "source": "data-pipeline",
+      "codebase": "pipeline",
+      "runtime": "nodejs22",
+      "isolate": true,
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
     }
   ],
   "hosting": {

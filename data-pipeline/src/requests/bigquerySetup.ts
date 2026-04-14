@@ -1,7 +1,7 @@
 import { error } from 'firebase-functions/logger';
-import { bigqueryDataset } from '../common/environmentVars.js';
 import { ensureTables } from '../services/bigquery/ensureTables.js';
 import { TABLE_CONFIGS } from '../services/bigquery/schemas.js';
+import { bigqueryDataset } from '../utils/environmentVars.js';
 
 function getErrorContext(err: unknown) {
   if (err instanceof Error) {
@@ -26,7 +26,7 @@ export default async function bigquerySetup(req, res): Promise<void> {
     await ensureTables(bigqueryDataset.value(), TABLE_CONFIGS);
     res.send({ ok: true });
   } catch (err: unknown) {
-    error('Typesense setup failed', getErrorContext(err));
+    error('BigQuery setup failed', getErrorContext(err));
     throw err;
   }
 }

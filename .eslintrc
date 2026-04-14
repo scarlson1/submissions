@@ -1,5 +1,9 @@
 {
   "parserOptions": {
-    "project": ["./client/tsconfig.json", "./functions/tsconfig.json"],
+    "project": [
+      "./client/tsconfig.json",
+      "./functions/tsconfig.json",
+      "./data-pipeline/tsconfig.json",
+    ],
   },
 }

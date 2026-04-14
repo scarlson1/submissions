@@ -8,7 +8,10 @@
  * (e.g. rowTransforms/policy.ts) to build typed BQ row objects.
  */
 
-import type { GeoPoint as FirebaseGeoPoint, Timestamp as FirebaseTimestamp } from 'firebase-admin/firestore';
+import type {
+  GeoPoint as FirebaseGeoPoint,
+  Timestamp as FirebaseTimestamp,
+} from 'firebase-admin/firestore';
 
 // ---------------------------------------------------------------------------
 // Scalar conversions
@@ -19,7 +22,9 @@ import type { GeoPoint as FirebaseGeoPoint, Timestamp as FirebaseTimestamp } fro
  * TIMESTAMP columns. Returns null for missing values rather than throwing,
  * so callers don't need null-checks on every optional timestamp field.
  */
-export function toTimestamp(ts: FirebaseTimestamp | null | undefined): string | null {
+export function toTimestamp(
+  ts: FirebaseTimestamp | null | undefined,
+): string | null {
   if (ts == null) return null;
   return ts.toDate().toISOString();
 }
@@ -32,9 +37,10 @@ export function toTimestamp(ts: FirebaseTimestamp | null | undefined): string | 
  * Returns { latitude: null, longitude: null } rather than null so the caller
  * can spread the result directly into a row object without extra handling.
  */
-export function toLatLng(
-  gp: FirebaseGeoPoint | null | undefined,
-): { latitude: number | null; longitude: number | null } {
+export function toLatLng(gp: FirebaseGeoPoint | null | undefined): {
+  latitude: number | null;
+  longitude: number | null;
+} {
   if (gp == null) return { latitude: null, longitude: null };
   return { latitude: gp.latitude, longitude: gp.longitude };
 }
@@ -52,7 +58,9 @@ export function n<T>(val: T | null | undefined): T | null {
  * Converts a Firestore Timestamp to a DATE string (YYYY-MM-DD) for BQ DATE
  * columns. Uses UTC date to avoid timezone-dependent results in Cloud Functions.
  */
-export function toDateString(ts: FirebaseTimestamp | null | undefined): string | null {
+export function toDateString(
+  ts: FirebaseTimestamp | null | undefined,
+): string | null {
   if (ts == null) return null;
   return ts.toDate().toISOString().slice(0, 10);
 }
@@ -94,7 +102,7 @@ export function systemFields(
 // modules don't duplicate the field-picking logic.
 // ---------------------------------------------------------------------------
 
-import type { Address, AgentDetails, AgencyDetails } from '@idemand/common';
+import type { Address, AgencyDetails, AgentDetails } from '@idemand/common';
 
 export function transformAddress(addr: Address | null | undefined) {
   if (addr == null) return null;
@@ -129,7 +137,7 @@ export function transformAgency(agency: AgencyDetails | null | undefined) {
   };
 }
 
-import type { Limits, RCVs, RatingPropertyData } from '@idemand/common';
+import type { Limits, RatingPropertyData, RCVs } from '@idemand/common';
 
 export function transformLimits(limits: Limits | null | undefined) {
   if (limits == null) return null;
@@ -152,7 +160,9 @@ export function transformRcvs(rcvs: RCVs | null | undefined) {
   };
 }
 
-export function transformRatingPropertyData(rpd: RatingPropertyData | null | undefined) {
+export function transformRatingPropertyData(
+  rpd: RatingPropertyData | null | undefined,
+) {
   if (rpd == null) return null;
   return {
     flood_zone: n(rpd.floodZone),

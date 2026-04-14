@@ -102,7 +102,12 @@ const COMPRESSED_ADDRESS_FIELDS: TableField[] = [
   { name: 's1', type: 'STRING', mode: 'NULLABLE', description: 'addressLine1' },
   { name: 's2', type: 'STRING', mode: 'NULLABLE', description: 'addressLine2' },
   { name: 'c', type: 'STRING', mode: 'NULLABLE', description: 'city' },
-  { name: 'st', type: 'STRING', mode: 'NULLABLE', description: 'state (2-char)' },
+  {
+    name: 'st',
+    type: 'STRING',
+    mode: 'NULLABLE',
+    description: 'state (2-char)',
+  },
   { name: 'p', type: 'STRING', mode: 'NULLABLE', description: 'postal code' },
 ];
 
@@ -140,10 +145,30 @@ const NAMED_INSURED_FIELDS: TableField[] = [
 
 /** common/src/types/common.ts → Limits */
 const LIMITS_FIELDS: TableField[] = [
-  { name: 'limit_a', type: 'INTEGER', mode: 'NULLABLE', description: 'Building coverage limit' },
-  { name: 'limit_b', type: 'INTEGER', mode: 'NULLABLE', description: 'Other structures limit' },
-  { name: 'limit_c', type: 'INTEGER', mode: 'NULLABLE', description: 'Contents limit' },
-  { name: 'limit_d', type: 'INTEGER', mode: 'NULLABLE', description: 'Loss of use limit' },
+  {
+    name: 'limit_a',
+    type: 'INTEGER',
+    mode: 'NULLABLE',
+    description: 'Building coverage limit',
+  },
+  {
+    name: 'limit_b',
+    type: 'INTEGER',
+    mode: 'NULLABLE',
+    description: 'Other structures limit',
+  },
+  {
+    name: 'limit_c',
+    type: 'INTEGER',
+    mode: 'NULLABLE',
+    description: 'Contents limit',
+  },
+  {
+    name: 'limit_d',
+    type: 'INTEGER',
+    mode: 'NULLABLE',
+    description: 'Loss of use limit',
+  },
 ];
 
 /** common/src/types/common.ts → RCVs */
@@ -151,7 +176,12 @@ const RCV_FIELDS: TableField[] = [
   { name: 'building', type: 'INTEGER', mode: 'NULLABLE' },
   { name: 'other_structures', type: 'INTEGER', mode: 'NULLABLE' },
   { name: 'contents', type: 'INTEGER', mode: 'NULLABLE' },
-  { name: 'bi', type: 'INTEGER', mode: 'NULLABLE', description: 'Business income RCV' },
+  {
+    name: 'bi',
+    type: 'INTEGER',
+    mode: 'NULLABLE',
+    description: 'Business income RCV',
+  },
   { name: 'total', type: 'INTEGER', mode: 'NULLABLE' },
 ];
 
@@ -166,7 +196,12 @@ const RATING_PROPERTY_DATA_FIELDS: TableField[] = [
   { name: 'replacement_cost', type: 'FLOAT', mode: 'NULLABLE' },
   { name: 'sq_footage', type: 'INTEGER', mode: 'NULLABLE' },
   { name: 'year_built', type: 'INTEGER', mode: 'NULLABLE' },
-  { name: 'ffh', type: 'INTEGER', mode: 'NULLABLE', description: 'First floor height' },
+  {
+    name: 'ffh',
+    type: 'INTEGER',
+    mode: 'NULLABLE',
+    description: 'First floor height',
+  },
   { name: 'prior_loss_count', type: 'STRING', mode: 'NULLABLE' },
   { name: 'units', type: 'FLOAT', mode: 'NULLABLE' },
   { name: 'elevation', type: 'FLOAT', mode: 'NULLABLE' },
@@ -212,16 +247,31 @@ const TAX_ITEM_FIELDS: TableField[] = [
 export const POLICIES_SCHEMA: TableSchema = {
   fields: [
     // Core policy fields
-    { name: 'product', type: 'STRING', mode: 'NULLABLE', description: 'flood | wind' },
+    {
+      name: 'product',
+      type: 'STRING',
+      mode: 'NULLABLE',
+      description: 'flood | wind',
+    },
     { name: 'payment_status', type: 'STRING', mode: 'NULLABLE' },
-    { name: 'term', type: 'INTEGER', mode: 'NULLABLE', description: 'Policy term in days' },
+    {
+      name: 'term',
+      type: 'INTEGER',
+      mode: 'NULLABLE',
+      description: 'Policy term in days',
+    },
     { name: 'home_state', type: 'STRING', mode: 'NULLABLE' },
     { name: 'term_premium', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'term_premium_with_cancels', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'in_state_premium', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'out_state_premium', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'term_days', type: 'INTEGER', mode: 'NULLABLE' },
-    { name: 'price', type: 'FLOAT', mode: 'NULLABLE', description: 'Total charged to insured' },
+    {
+      name: 'price',
+      type: 'FLOAT',
+      mode: 'NULLABLE',
+      description: 'Total charged to insured',
+    },
     { name: 'effective_date', type: 'TIMESTAMP', mode: 'NULLABLE' },
     { name: 'expiration_date', type: 'TIMESTAMP', mode: 'NULLABLE' },
     { name: 'cancel_eff_date', type: 'TIMESTAMP', mode: 'NULLABLE' },
@@ -307,7 +357,12 @@ export const POLICY_LOCATIONS_SCHEMA: TableSchema = {
     { name: 'term_premium', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'term_days', type: 'INTEGER', mode: 'NULLABLE' },
     // Coverage
-    { name: 'tiv', type: 'FLOAT', mode: 'NULLABLE', description: 'Total insured value' },
+    {
+      name: 'tiv',
+      type: 'FLOAT',
+      mode: 'NULLABLE',
+      description: 'Total insured value',
+    },
     { name: 'deductible', type: 'INTEGER', mode: 'NULLABLE' },
     {
       name: 'limits',
@@ -346,7 +401,12 @@ export const POLICY_LOCATIONS_SCHEMA: TableSchema = {
 export const TRANSACTIONS_SCHEMA: TableSchema = {
   fields: [
     { name: 'trx_type', type: 'STRING', mode: 'NULLABLE' },
-    { name: 'trx_interface_type', type: 'STRING', mode: 'NULLABLE', description: 'premium | offset | amendment' },
+    {
+      name: 'trx_interface_type',
+      type: 'STRING',
+      mode: 'NULLABLE',
+      description: 'premium | offset | amendment',
+    },
     { name: 'product', type: 'STRING', mode: 'NULLABLE' },
     { name: 'policy_id', type: 'STRING', mode: 'NULLABLE' },
     { name: 'location_id', type: 'STRING', mode: 'NULLABLE' },
@@ -562,7 +622,12 @@ export const QUOTES_SCHEMA: TableSchema = {
  */
 export const TAX_TRANSACTIONS_SCHEMA: TableSchema = {
   fields: [
-    { name: 'type', type: 'STRING', mode: 'NULLABLE', description: 'transaction | reversal' },
+    {
+      name: 'type',
+      type: 'STRING',
+      mode: 'NULLABLE',
+      description: 'transaction | reversal',
+    },
     { name: 'tax_id', type: 'STRING', mode: 'NULLABLE' },
     { name: 'tax_calc_id', type: 'STRING', mode: 'NULLABLE' },
     { name: 'policy_id', type: 'STRING', mode: 'NULLABLE' },
@@ -577,7 +642,11 @@ export const TAX_TRANSACTIONS_SCHEMA: TableSchema = {
     { name: 'tax_date', type: 'TIMESTAMP', mode: 'NULLABLE' },
     // TaxReversalTransaction-only fields (NULL on original transactions)
     { name: 'refund_id', type: 'STRING', mode: 'NULLABLE' },
-    { name: 'reversal_original_transaction_id', type: 'STRING', mode: 'NULLABLE' },
+    {
+      name: 'reversal_original_transaction_id',
+      type: 'STRING',
+      mode: 'NULLABLE',
+    },
     // System columns
     ...SYSTEM_FIELDS,
   ],
@@ -595,7 +664,12 @@ export const TAX_CALCULATIONS_SCHEMA: TableSchema = {
     { name: 'display_name', type: 'STRING', mode: 'NULLABLE' },
     { name: 'rate', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'state', type: 'STRING', mode: 'NULLABLE' },
-    { name: 'value', type: 'FLOAT', mode: 'NULLABLE', description: 'Calculated tax amount' },
+    {
+      name: 'value',
+      type: 'FLOAT',
+      mode: 'NULLABLE',
+      description: 'Calculated tax amount',
+    },
     { name: 'subject_base_amount', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'base_digits', type: 'INTEGER', mode: 'NULLABLE' },
     { name: 'result_digits', type: 'INTEGER', mode: 'NULLABLE' },
@@ -610,7 +684,8 @@ export const TAX_CALCULATIONS_SCHEMA: TableSchema = {
       name: 'subject_base_item_values',
       type: 'RECORD',
       mode: 'NULLABLE',
-      description: 'Breakdown of the subject base amount used in the tax calculation.',
+      description:
+        'Breakdown of the subject base amount used in the tax calculation.',
       fields: [
         { name: 'premium', type: 'FLOAT', mode: 'NULLABLE' },
         { name: 'inspection_fees', type: 'FLOAT', mode: 'NULLABLE' },
@@ -631,19 +706,39 @@ export const TAX_CALCULATIONS_SCHEMA: TableSchema = {
  */
 export const PORTFOLIO_EXPOSURE_SCHEMA: TableSchema = {
   fields: [
-    { name: 'snapshot_date', type: 'DATE', mode: 'REQUIRED', description: 'YYYY-MM-DD of the batch run.' },
-    { name: 'bucket_id', type: 'STRING', mode: 'REQUIRED', description: 'state#countyFips#floodZone#geohashPrefix' },
+    {
+      name: 'snapshot_date',
+      type: 'DATE',
+      mode: 'REQUIRED',
+      description: 'YYYY-MM-DD of the batch run.',
+    },
+    {
+      name: 'bucket_id',
+      type: 'STRING',
+      mode: 'REQUIRED',
+      description: 'state#countyFips#floodZone#geohashPrefix',
+    },
     { name: 'state', type: 'STRING', mode: 'NULLABLE' },
     { name: 'county_fips', type: 'STRING', mode: 'NULLABLE' },
     { name: 'county_name', type: 'STRING', mode: 'NULLABLE' },
     { name: 'flood_zone', type: 'STRING', mode: 'NULLABLE' },
-    { name: 'geohash_prefix', type: 'STRING', mode: 'NULLABLE', description: 'First N chars of geohash (precision from config).' },
+    {
+      name: 'geohash_prefix',
+      type: 'STRING',
+      mode: 'NULLABLE',
+      description: 'First N chars of geohash (precision from config).',
+    },
     { name: 'location_count', type: 'INTEGER', mode: 'NULLABLE' },
     { name: 'total_insured_value', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'total_term_premium', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'avg_deductible', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'computed_at', type: 'TIMESTAMP', mode: 'REQUIRED' },
-    { name: 'computed_by', type: 'STRING', mode: 'NULLABLE', description: 'Function name + invocation ID for traceability.' },
+    {
+      name: 'computed_by',
+      type: 'STRING',
+      mode: 'NULLABLE',
+      description: 'Function name + invocation ID for traceability.',
+    },
   ],
 };
 
@@ -658,12 +753,22 @@ export const PORTFOLIO_CONCENTRATION_ALERTS_SCHEMA: TableSchema = {
     { name: 'county_fips', type: 'STRING', mode: 'NULLABLE' },
     { name: 'flood_zone', type: 'STRING', mode: 'NULLABLE' },
     { name: 'geohash_prefix', type: 'STRING', mode: 'NULLABLE' },
-    { name: 'alert_type', type: 'STRING', mode: 'NULLABLE', description: 'absolute_tiv | week_over_week_shift' },
+    {
+      name: 'alert_type',
+      type: 'STRING',
+      mode: 'NULLABLE',
+      description: 'absolute_tiv | week_over_week_shift',
+    },
     { name: 'current_tiv', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'threshold_tiv', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'previous_tiv', type: 'FLOAT', mode: 'NULLABLE' },
     { name: 'shift_pct', type: 'FLOAT', mode: 'NULLABLE' },
-    { name: 'status', type: 'STRING', mode: 'NULLABLE', description: 'active | resolved | acknowledged' },
+    {
+      name: 'status',
+      type: 'STRING',
+      mode: 'NULLABLE',
+      description: 'active | resolved | acknowledged',
+    },
     { name: 'detected_at', type: 'TIMESTAMP', mode: 'NULLABLE' },
     { name: 'resolved_at', type: 'TIMESTAMP', mode: 'NULLABLE' },
   ],
@@ -685,7 +790,8 @@ export const TAX_RECONCILIATION_REPORTS_SCHEMA: TableSchema = {
       name: 'by_state_json',
       type: 'STRING',
       mode: 'NULLABLE',
-      description: 'JSON: Record<State, { collected, refunded, net_liability }>',
+      description:
+        'JSON: Record<State, { collected, refunded, net_liability }>',
     },
     {
       name: 'by_transaction_type_json',
@@ -723,7 +829,8 @@ export const TABLE_CONFIGS: TableConfig[] = [
     schema: POLICY_LOCATIONS_SCHEMA,
     partitionField: 'effective_date',
     clusterFields: ['state', 'flood_zone', 'county_fips'],
-    description: 'CDC mirror of the Firestore locations collection (parentType=policy).',
+    description:
+      'CDC mirror of the Firestore locations collection (parentType=policy).',
   },
   {
     tableId: 'transactions',
@@ -765,14 +872,16 @@ export const TABLE_CONFIGS: TableConfig[] = [
     schema: PORTFOLIO_EXPOSURE_SCHEMA,
     partitionField: 'computed_at',
     clusterFields: ['state', 'flood_zone', 'county_fips'],
-    description: 'Daily exposure bucket snapshots from the portfolio aggregation job.',
+    description:
+      'Daily exposure bucket snapshots from the portfolio aggregation job.',
   },
   {
     tableId: 'portfolio_concentration_alerts',
     schema: PORTFOLIO_CONCENTRATION_ALERTS_SCHEMA,
     partitionField: 'detected_at',
     clusterFields: ['state', 'flood_zone', 'alert_type'],
-    description: 'Concentration risk alerts emitted by the portfolio aggregation job.',
+    description:
+      'Concentration risk alerts emitted by the portfolio aggregation job.',
   },
   {
     tableId: 'tax_reconciliation_reports',

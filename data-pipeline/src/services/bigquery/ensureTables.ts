@@ -1,6 +1,6 @@
 import { info } from 'firebase-functions/logger';
-import { env } from '../../common/environmentVars.js';
-import { getBigQueryClient } from './client.js';
+import { getBigQueryClient } from '../../../../data-pipeline/src/services/bigquery/client.js';
+import { env } from '../../utils/environmentVars.js';
 import type { TableConfig } from './schemas.js';
 
 // Example: https://github.com/googleapis/nodejs-bigquery/blob/main/samples/createTablePartitioned.js

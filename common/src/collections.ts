@@ -24,6 +24,9 @@ import {
   TaxTransaction,
   User,
   UserAccess,
+  type ConcentrationAlert,
+  type ExposureBucket,
+  type ExposureSnapshot,
   type Receivable,
 } from './types/index.js';
 
@@ -114,3 +117,29 @@ export const getUserAccessRef = (db: Firestore, userId: string) =>
 
 // export const getPrivilegedPolicyRef = (db: Firestore, policyId: string) =>
 //   securePolicyCollection<PrivilegedPolicyData>(db, policyId).doc('rating');
+
+// ---------- BigQuery data pipeline collections ---------
+
+export const portfolioExposureBucketsCollection = (db: Firestore) =>
+  createCollection<ExposureBucket>(
+    db,
+    `${Collection.Enum.portfolioExposure}/current/buckets`,
+  );
+
+// portfolioExposure/history/snapshots/{YYYY-MM-DD}
+//   collection      doc     collection  document
+// "history" is a stable anchor document (parallel to "current" used by buckets).
+export const portfolioExposureSnapshotCollection = (db: Firestore) =>
+  createCollection<ExposureSnapshot>(
+    db,
+    `${Collection.Enum.portfolioExposure}/history/snapshots`,
+  );
+
+export const concentrationAlertsCollection = (db: Firestore) =>
+  createCollection<ConcentrationAlert>(
+    db,
+    Collection.enum.portfolioConcentrationAlerts,
+  );
+
+export const exposureConfigDoc = (db: Firestore) =>
+  db.collection(Collection.enum.exposureConfig).doc('default');

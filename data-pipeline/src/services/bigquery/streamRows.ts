@@ -1,5 +1,5 @@
 import type { Table } from '@google-cloud/bigquery';
-import { error as logError, info } from 'firebase-functions/logger';
+import { info, error as logError } from 'firebase-functions/logger';
 
 /**
  * A raw row as expected by BigQuery's streaming insert API when `raw: true`.

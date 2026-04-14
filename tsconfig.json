@@ -1,5 +1,9 @@
 {
   "extends": "./tsconfig.base.json",
   "files": [],
-  "references": [{ "path": "./client" }, { "path": "./functions" }]
+  "references": [
+    { "path": "./client" },
+    { "path": "./functions" },
+    { "path": "./data-pipeline" }
+  ]
 }
