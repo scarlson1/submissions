@@ -1,3 +1,29 @@
+import type { Collection } from '@idemand/common';
+import type { DocumentData, Firestore } from 'firebase-admin/firestore';
+
+/**
+ * Batch-fetch documents by ID from a single collection.
+ * Splits into chunks of 500 to stay within db.getAll limits.
+ * Returns only snapshots that exist, cast to T.
+ */
+export async function getByIds<T extends DocumentData>(
+  db: Firestore,
+  collectionPath: Collection, // string,
+  ids: string[],
+): Promise<Array<{ id: string; data: T }>> {
+  if (!ids.length) return [];
+
+  const refs = ids.map((id) => db.collection(collectionPath).doc(id));
+  const chunks = splitChunks(refs, 500);
+  const snaps = (
+    await Promise.all(chunks.map((chunk) => db.getAll(...chunk)))
+  ).flat();
+
+  return snaps
+    .filter((snap) => snap.exists)
+    .map((snap) => ({ id: snap.id, data: snap.data() as T }));
+}
+
 /**
  * Split an array of items into array of provided size
  * @param {any[]} data - array of data

@@ -130,6 +130,13 @@ export enum PAYMENT_PUB_SUB_TOPICS {
 export const PaymentPubSubTopics = z.nativeEnum(PAYMENT_PUB_SUB_TOPICS);
 export type PaymentPubSubTopics = z.infer<typeof PaymentPubSubTopics>;
 
+export enum PIPELINE_PUB_SUB_TOPICS {
+  TAX_RECONCILIATION_ERROR = 'tax_reconciliation_error',
+}
+
+export const PipelinePubSubTopics = z.nativeEnum(PIPELINE_PUB_SUB_TOPICS);
+export type PipelinePubSubTopics = z.infer<typeof PipelinePubSubTopics>;
+
 // TODO: need to use zod enum to combine
 // export const PubSubTopics = z.enum([...MiscPubSubTopics.options, ...PmtPubSubTopics.options, ...TrxPubSubTopics.options] as const);
 
@@ -141,6 +148,7 @@ export const PUB_SUB_TOPICS = {
   ...PMT_PUB_SUB_TOPICS,
   ...TRX_PUB_SUB_TOPICS,
   ...PAYMENT_PUB_SUB_TOPICS,
+  ...PIPELINE_PUB_SUB_TOPICS,
 };
 
 // export enum PUB_SUB_TOPICS {

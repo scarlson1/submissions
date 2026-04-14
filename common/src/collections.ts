@@ -2,6 +2,7 @@ import {
   CollectionReference,
   DocumentData,
   Firestore,
+  type DocumentReference,
 } from 'firebase-admin/firestore';
 
 // uses firebase admin --> do not use client side
@@ -26,9 +27,14 @@ import {
   UserAccess,
   type ConcentrationAlert,
   type ExposureBucket,
+  type ExposureConfig,
   type ExposureSnapshot,
   type Receivable,
 } from './types/index.js';
+import type {
+  TaxReconciliationConfig,
+  TaxReconciliationError,
+} from './types/taxReconciliation.js';
 
 const createCollection = <T = DocumentData>(
   db: Firestore,
@@ -141,5 +147,18 @@ export const concentrationAlertsCollection = (db: Firestore) =>
     Collection.enum.portfolioConcentrationAlerts,
   );
 
+export const taxReconciliationErrorsCollection = (db: Firestore) =>
+  createCollection<TaxReconciliationError>(
+    db,
+    Collection.enum.taxReconciliationErrors,
+  );
+
 export const exposureConfigDoc = (db: Firestore) =>
-  db.collection(Collection.enum.exposureConfig).doc('default');
+  db
+    .collection(Collection.enum.config)
+    .doc('exposure') as DocumentReference<ExposureConfig>;
+
+export const taxReconciliationConfigDoc = (db: Firestore) =>
+  db
+    .collection(Collection.enum.config)
+    .doc('taxReconciliation') as DocumentReference<TaxReconciliationConfig>;

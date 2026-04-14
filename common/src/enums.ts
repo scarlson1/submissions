@@ -39,7 +39,7 @@ export const Collection = z.enum([
   'portfolioExposure',
   'portfolioConcentrationAlerts',
   'taxReconciliationErrors',
-  'exposureConfig',
+  'config',
 ]);
 export type Collection = z.infer<typeof Collection>;
 export type TCollection = z.infer<typeof Collection>;
@@ -281,3 +281,61 @@ export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude([
 export type SubmittedChangeRequestStatus = z.infer<
   typeof SubmittedChangeRequestStatus
 >;
+
+export enum MISC_PUB_SUB_TOPICS {
+  LOCATION_IMG = 'location.image',
+  POLICY_IMG = 'policy.image',
+}
+export const MiscPubSubTopics = z.nativeEnum(MISC_PUB_SUB_TOPICS);
+export type MiscPubSubTopics = z.infer<typeof MiscPubSubTopics>;
+
+// TODO: delete - from epay event handling
+export enum PMT_PUB_SUB_TOPICS {
+  PAYMENT_COMPLETE = 'payment.complete',
+}
+export const PmtPubSubTopics = z.nativeEnum(PMT_PUB_SUB_TOPICS);
+export type PmtPubSubTopics = z.infer<typeof PmtPubSubTopics>;
+
+export enum TRX_PUB_SUB_TOPICS {
+  // PAYMENT_COMPLETE = 'payment.complete',
+  POLICY_CREATED = 'policy.created',
+  POLICY_RENEWAL = 'policy.renewal',
+  ENDORSEMENT = 'location.endorsement',
+  AMENDMENT = 'policy.amendment',
+  POLICY_REINSTATEMENT = 'policy.reinstatement',
+  // POLICY_CANCELLATION = 'policy.cancellation',
+  LOCATION_CANCELLATION = 'location.cancellation',
+}
+
+export const TrxPubSubTopics = z.nativeEnum(TRX_PUB_SUB_TOPICS);
+export type TrxPubSubTopics = z.infer<typeof TrxPubSubTopics>;
+
+// stripe
+export enum PAYMENT_PUB_SUB_TOPICS {
+  CHARGE_SUCCEEDED = 'charge.succeeded',
+  REFUND_CREATED = 'refund.created',
+}
+
+export const PaymentPubSubTopics = z.nativeEnum(PAYMENT_PUB_SUB_TOPICS);
+export type PaymentPubSubTopics = z.infer<typeof PaymentPubSubTopics>;
+
+export enum PIPELINE_PUB_SUB_TOPICS {
+  TAX_RECONCILIATION_ERROR = 'tax_reconciliation_error',
+}
+
+export const PipelinePubSubTopics = z.nativeEnum(PIPELINE_PUB_SUB_TOPICS);
+export type PipelinePubSubTopics = z.infer<typeof PipelinePubSubTopics>;
+
+// TODO: need to use zod enum to combine
+// export const PubSubTopics = z.enum([...MiscPubSubTopics.options, ...PmtPubSubTopics.options, ...TrxPubSubTopics.options] as const);
+
+// export const PubSubTopics = z.union([TrxPubSubTopics, PmtPubSubTopics, MiscPubSubTopics])
+// export type PubSubTopics = z.infer<typeof PubSubTopics>
+
+export const PUB_SUB_TOPICS = {
+  ...MISC_PUB_SUB_TOPICS,
+  ...PMT_PUB_SUB_TOPICS,
+  ...TRX_PUB_SUB_TOPICS,
+  ...PAYMENT_PUB_SUB_TOPICS,
+  ...PIPELINE_PUB_SUB_TOPICS,
+};

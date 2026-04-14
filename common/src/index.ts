@@ -15,6 +15,7 @@ export * from './types/receivable.js';
 export * from './types/submission.js';
 export * from './types/swissReRes.js';
 export * from './types/taxes.js';
+export * from './types/taxReconciliation.js';
 export type {
   AmendmentTransaction,
   BaseTransaction,
