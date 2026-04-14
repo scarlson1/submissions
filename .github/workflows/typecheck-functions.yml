@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'functions/**'
-      - 'data-pipelines/**'
+      - 'data-pipeline/**'
       - 'common/**'
       - 'turbo.json'
       - 'package.json'
