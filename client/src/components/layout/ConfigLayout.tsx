@@ -65,6 +65,7 @@ export const ConfigLayout = () => {
       createPath({ path: ADMIN_ROUTES.EMAIL_ACTIVITY }),
       createPath({ path: ADMIN_ROUTES.TRANSACTIONS }),
       createPath({ path: ADMIN_ROUTES.RECEIVABLES }),
+      createPath({ path: ADMIN_ROUTES.EXPOSURE }),
     ],
     [],
   );
@@ -137,6 +138,10 @@ export const ConfigLayout = () => {
           <LinkTab
             label='Receivables'
             to={createPath({ path: ADMIN_ROUTES.RECEIVABLES })}
+          />
+          <LinkTab
+            label='Exposure'
+            to={createPath({ path: ADMIN_ROUTES.EXPOSURE })}
           />
         </Tabs>
       </Box>
