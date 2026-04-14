@@ -14,3 +14,11 @@ export const reconciletaxtransactions = onSchedule(
     await (await import('./reconcileTaxTransactions.js')).default(event);
   },
 );
+
+// Runs at 4 AM ET,
+export const syncagentfunneltofirestore = onSchedule(
+  { schedule: '0 4 * * 0', timeZone: 'America/New_York' },
+  async (event) => {
+    await (await import('./syncAgentFunnelToFirestore.js')).default(event);
+  },
+);

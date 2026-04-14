@@ -14,6 +14,8 @@ import {
 import { streamRows } from '../services/bigquery/streamRows.js';
 import { bigqueryDataset } from '../utils/environmentVars.js';
 
+// scalability: The portfolio batch job reads all policy location documents on each run. At tens of thousands of locations this is fine for a scheduled batch job with Firestore's collection group queries. If the book grows to hundreds of thousands of locations, the next step is to switch to the Firestore export → BigQuery path for the initial load, and use location-created/updated triggers to maintain incremental exposure bucket updates. The trigger-based incremental path (registering on locations/{locationId}) would replace the full batch scan.
+
 export default async (
   event: FirestoreEvent<
     Change<DocumentSnapshot> | undefined,

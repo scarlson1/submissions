@@ -3,7 +3,11 @@ import { initializeApp } from 'firebase-admin/app';
 initializeApp();
 
 import { triggerportfolioexposure } from './callables/index.js';
-import { computeportfolioexposure } from './cron/index.js';
+import {
+  computeportfolioexposure,
+  reconciletaxtransactions,
+  syncagentfunneltofirestore,
+} from './cron/index.js';
 import { bigquerysetup } from './requests/index.js';
 
 import {
@@ -21,4 +25,10 @@ export const firestore = {
   synctaxcalctobq,
 };
 
-export { bigquerysetup, computeportfolioexposure, triggerportfolioexposure };
+export {
+  bigquerysetup,
+  computeportfolioexposure,
+  reconciletaxtransactions,
+  syncagentfunneltofirestore,
+  triggerportfolioexposure,
+};

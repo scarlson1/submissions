@@ -16,6 +16,8 @@
 
 - [COMMON_PACKAGE.md](docs/COMMON_PACKAGE.md)
 
+- [DATA_PIPELINE.md](docs/DATA_PIPELINE.md)
+
 ## Development
 
 ```bash
@@ -383,3 +385,13 @@ Cancellation rate by agent
 A summary written back to each org's Firestore document for display in the existing admin UI
 
 Why it's interesting: This is a classic ETL + dimensional modeling problem. Building the CDC piece on top of Firestore's native versioning (which the app already has) is an elegant approach.
+
+### BigQuery cost controls
+
+All tables are date-partitioned. Downstream queries should always include a `WHERE _partitiondate BETWEEN ...` filter to avoid full-table scans. The deduplication views add a second scan layer, so downstream analytics should always query the `_latest` views rather than the raw tables.
+
+### TODO: pipeline tests
+
+- Pure transform functions (policyToRow, buildBucketId, reconciliation math) are pure functions and unit-testable without Firebase emulators.
+- Scheduler functions should be tested via the existing HTTP-trigger helper pattern (pubSubHelper.ts) or the new triggerPortfolioExposure callable.
+- CDC triggers are integration-tested by writing a document to the Firestore emulator and asserting the BQ streamRows mock was called with the right row shape.
