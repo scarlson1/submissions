@@ -40,9 +40,11 @@ ui-debug.log*
 .firebase/*
 
 .env*.local
+!data-pipeline/.env.local
 emulator-data
 typesense-data/
 
 # switched to pnpm (ignore npm lock files)
 package-lock.json
 .turbo
+**/.turbo

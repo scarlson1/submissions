@@ -215,7 +215,6 @@ export const stripepubsub = {
 import {
   authrequests,
   authrequeststest,
-  bigquerysetup,
   copytaxes,
   generatepdf,
   // quickbooks,
@@ -224,17 +223,9 @@ import {
   typesensesetup,
 } from './routes/index.js';
 
-// export const request = {
-//   authRequests,
-//   authrequeststest,
-//   copytaxes,
-//   generatepdf,
-//   // quickbooks,
-// };
 export {
   authrequests,
   authrequeststest,
-  bigquerysetup,
   copytaxes,
   generatepdf,
   resend,

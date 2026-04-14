@@ -608,9 +608,6 @@ importers:
 
   functions:
     dependencies:
-      '@google-cloud/bigquery':
-        specifier: ^8.1.1
-        version: 8.1.1
       '@google-cloud/functions-framework':
         specifier: ^5.0.2
         version: 5.0.2

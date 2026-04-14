@@ -1,6 +1,6 @@
 import z from 'zod';
-import { FloodZone, State } from '../enums';
-import { Timestamp } from './common';
+import { FloodZone, State } from '../enums.js';
+import { Timestamp } from './common.js';
 
 export const ExposureBucket = z.object({
   bucketId: z.string(), // "{state}#{countyFips}#{floodZone}#{geohashPrefix}"

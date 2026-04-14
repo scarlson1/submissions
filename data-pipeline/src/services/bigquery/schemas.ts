@@ -98,18 +98,18 @@ const ADDRESS_FIELDS: TableField[] = [
 ];
 
 /** common/src/types/policy.ts → CompressedAddress (embedded in PolicyLocation) */
-const COMPRESSED_ADDRESS_FIELDS: TableField[] = [
-  { name: 's1', type: 'STRING', mode: 'NULLABLE', description: 'addressLine1' },
-  { name: 's2', type: 'STRING', mode: 'NULLABLE', description: 'addressLine2' },
-  { name: 'c', type: 'STRING', mode: 'NULLABLE', description: 'city' },
-  {
-    name: 'st',
-    type: 'STRING',
-    mode: 'NULLABLE',
-    description: 'state (2-char)',
-  },
-  { name: 'p', type: 'STRING', mode: 'NULLABLE', description: 'postal code' },
-];
+// const COMPRESSED_ADDRESS_FIELDS: TableField[] = [
+//   { name: 's1', type: 'STRING', mode: 'NULLABLE', description: 'addressLine1' },
+//   { name: 's2', type: 'STRING', mode: 'NULLABLE', description: 'addressLine2' },
+//   { name: 'c', type: 'STRING', mode: 'NULLABLE', description: 'city' },
+//   {
+//     name: 'st',
+//     type: 'STRING',
+//     mode: 'NULLABLE',
+//     description: 'state (2-char)',
+//   },
+//   { name: 'p', type: 'STRING', mode: 'NULLABLE', description: 'postal code' },
+// ];
 
 /** common/src/types/common.ts → AgentDetails */
 const AGENT_FIELDS: TableField[] = [
