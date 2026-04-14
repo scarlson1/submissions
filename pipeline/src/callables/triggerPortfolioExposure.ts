@@ -22,3 +22,5 @@ export default onCallWrapper(
   'triggerPortfolioExposure',
   triggerPortfolioExposure,
 );
+
+export const noopDeleteMe = () => {};
