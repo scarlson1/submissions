@@ -2,6 +2,7 @@ import { info } from 'firebase-functions/logger';
 import { env } from '../../utils/environmentVars.js';
 import { getBigQueryClient } from './client.js';
 import type { TableConfig } from './schemas.js';
+import type { TableName } from './types.js';
 
 // Example: https://github.com/googleapis/nodejs-bigquery/blob/main/samples/createTablePartitioned.js
 
@@ -57,4 +58,9 @@ export async function ensureTables(datasetId: string, tables: TableConfig[]) {
       info(table.metadata.clustering);
     }
   }
+}
+
+export async function getTable(datasetId: string, tableId: TableName) {
+  const bq = getBigQueryClient();
+  return bq.dataset(datasetId).table(tableId);
 }

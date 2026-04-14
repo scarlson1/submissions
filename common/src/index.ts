@@ -1,5 +1,7 @@
+export * from './types/changeRequest.js';
 export * from './types/common.js';
 export * from './types/fees.js';
+export * from './types/imports.js';
 export * from './types/invite.js';
 export * from './types/license.js';
 export * from './types/location.js';
@@ -13,6 +15,18 @@ export * from './types/receivable.js';
 export * from './types/submission.js';
 export * from './types/swissReRes.js';
 export * from './types/taxes.js';
+export * from './types/taxReconciliation.js';
+export type {
+  AmendmentTransaction,
+  BaseTransaction,
+  CancellationReason,
+  OffsetTransaction,
+  OffsetTrxType,
+  PremiumTransaction,
+  PremTrxType,
+  Transaction,
+  TrxRatingData,
+} from './types/transaction.js';
 export * from './types/user.js';
 
 export * from './collections.js';

@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { DefaultCommission } from '../enums.js';
-import { Address, AgentDetails, BaseMetadata, GeoPoint } from './common.js';
+import {
+  Address,
+  AgentDetails,
+  BaseMetadata,
+  GeoPoint,
+  Timestamp,
+} from './common.js';
 
 export const AuthProviders = z.enum([
   'password',
@@ -15,11 +21,27 @@ export const AuthProviders = z.enum([
 ]);
 export type AuthProviders = z.infer<typeof AuthProviders>;
 
-export const AgencyStatus = z.enum(['submitted', 'active', 'inactive', 'pending_info']);
+export const AgencyStatus = z.enum([
+  'submitted',
+  'active',
+  'inactive',
+  'pending_info',
+]);
 export type AgencyStatus = z.infer<typeof AgencyStatus>;
 
 export const OrgType = z.enum(['agency', 'carrier']);
 export type OrgType = z.infer<typeof OrgType>;
+
+export const OrgFunnelAnalytics = z.object({
+  lastUpdated: Timestamp,
+  period: z.string(),
+  submissionCount: z.number().int(),
+  submissionToQuoteRate: z.number(),
+  quoteToBind: z.number(),
+  avgHoursToBind: z.number(),
+  avgTermPremium: z.number(),
+  cancellationRate: z.number(),
+});
 
 export const Organization = z.object({
   type: OrgType,
@@ -55,6 +77,11 @@ export const Organization = z.object({
   authProviders: z.array(AuthProviders),
   photoURL: z.string().optional().nullable(),
   website: z.string().url().optional().nullable(),
+  analytics: z
+    .object({
+      funnel: OrgFunnelAnalytics.optional(),
+    })
+    .optional(),
   metadata: BaseMetadata,
 });
 export type Organization = z.infer<typeof Organization>;

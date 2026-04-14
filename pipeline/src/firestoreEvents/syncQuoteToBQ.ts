@@ -1,0 +1,32 @@
+import type { Quote } from '@idemand/common';
+import type { DocumentSnapshot } from 'firebase-admin/firestore';
+import type { Change } from 'firebase-functions/core';
+import type { FirestoreEvent } from 'firebase-functions/firestore';
+import { getTable } from '../services/bigquery/ensureTables.js';
+import { quoteToRow } from '../services/bigquery/rowTransforms/quote.js';
+import { streamRows } from '../services/bigquery/streamRows.js';
+import { bigqueryDataset } from '../utils/environmentVars.js';
+
+export default async (
+  event: FirestoreEvent<
+    Change<DocumentSnapshot> | undefined,
+    { quoteId: string }
+  >,
+) => {
+  const { quoteId } = event.params;
+  const isDelete = !event.data?.after?.exists;
+  const data = (isDelete ? event.data?.before : event.data?.after)?.data() as
+    | Quote
+    | undefined;
+  if (!data) return;
+
+  const quoteRow = quoteToRow(quoteId, data, isDelete);
+
+  const quotesTable = await getTable(bigqueryDataset.value(), 'quotes');
+
+  await streamRows(
+    quotesTable,
+    [quoteRow],
+    (r) => `${r._id}_${r._doc_version}`,
+  );
+};

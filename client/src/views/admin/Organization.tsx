@@ -18,6 +18,7 @@ import {
   UserClaimsGrid,
 } from 'elements/grids';
 import { StripeConnectViewsLocalTabs } from 'elements/StripeConnectViewsLayout';
+import { OrgFunnelStats } from 'elements/OrgFunnelStats';
 import { useDocData } from 'hooks';
 
 // TODO: org details tab (address, default commissions, etc.)
@@ -76,6 +77,7 @@ export const Organization = () => {
                 <Tab label='Invites' value='invites' />
 
                 <Tab label='Stripe' value='stripe' />
+                <Tab label='Analytics' value='analytics' />
               </TabList>
             </Box>
             <TabPanel value='policies'>
@@ -160,6 +162,9 @@ export const Organization = () => {
                   </Suspense>
                 </ErrorBoundary>
               </>
+            </TabPanel>
+            <TabPanel value='analytics'>
+              <OrgFunnelStats org={org} />
             </TabPanel>
             <TabPanel value='stripe'>
               <ErrorBoundary

@@ -152,3 +152,10 @@ export const updateuseraccessonquotechange = onDocumentWritten(
     await (await import('./updateUserAccessOnQuoteChange.js')).default(event);
   },
 );
+
+export const validatetaxreversal = onDocumentCreated(
+  `${Collection.Enum.taxTransactions}/{transactionId}`,
+  async (event) => {
+    await (await import('./validateTaxReversal.js')).default(event);
+  },
+);

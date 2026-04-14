@@ -76,6 +76,89 @@ export interface SystemFields {
   _ingested_at: string; // ISO-8601 TIMESTAMP
 }
 
+// ---------------------------------------------------------------------------
+// Nested row types — mirror the reusable field groups in schemas.ts
+// ---------------------------------------------------------------------------
+
+export interface AddressRow {
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state: string | null;
+  postal: string | null;
+  county_fips: string | null;
+  county_name: string | null;
+}
+
+export interface AgentRow {
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  user_id: string | null;
+}
+
+export interface AgencyRow {
+  name: string | null;
+  org_id: string | null;
+  stripe_account_id: string | null;
+  address: AddressRow | null;
+}
+
+export interface LimitsRow {
+  limit_a: number | null;
+  limit_b: number | null;
+  limit_c: number | null;
+  limit_d: number | null;
+}
+
+export interface RCVsRow {
+  building: number | null;
+  other_structures: number | null;
+  contents: number | null;
+  bi: number | null;
+  total: number | null;
+}
+
+export interface RatingPropertyDataRow {
+  flood_zone: string | null;
+  basement: string | null;
+  cbrs_designation: string | null;
+  dist_to_coast_feet: number | null;
+  num_stories: number | null;
+  property_code: string | null;
+  replacement_cost: number | null;
+  sq_footage: number | null;
+  year_built: number | null;
+  ffh: number | null;
+  prior_loss_count: string | null;
+  units: number | null;
+  elevation: number | null;
+}
+
+export interface FeeItemRow {
+  display_name: string | null;
+  value: number | null;
+  refundable: boolean | null;
+}
+
+export interface TaxItemRow {
+  display_name: string | null;
+  rate: number | null;
+  state: string | null;
+  value: number | null;
+  subject_base_amount: number | null;
+  base_digits: number | null;
+  result_digits: number | null;
+  base_round_type: string | null;
+  result_round_type: string | null;
+  transaction_types: string[];
+  refundable: boolean | null;
+  calc_date: string | null;
+  expiration_date: string | null;
+  tax_id: string | null;
+  tax_calc_id: string | null;
+}
+
 /**
  * Builds the four system columns that appear on every CDC table row.
  *

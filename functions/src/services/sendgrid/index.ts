@@ -49,7 +49,7 @@ export interface CreateMsgContentProps extends Omit<MailData, 'from'> {
   attachments?: AttachmentJSON[];
 }
 
-const EmailType = z.enum([
+export const EmailType = z.enum([
   'submission_received',
   'submission_received_admin',
   'email_confirmation',
@@ -64,6 +64,7 @@ const EmailType = z.enum([
   'quote_expiring',
   'custom',
   'move_tenant_verification',
+  'general',
 ]);
 
 // function uniqueEmails(to: EmailData | EmailData[]) {
