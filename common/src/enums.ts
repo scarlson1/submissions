@@ -263,3 +263,21 @@ export const State = z.enum([
   'WY',
 ]);
 export type State = z.infer<typeof State>;
+
+export const ChangeRequestStatus = z.enum([
+  'draft',
+  'submitted',
+  'accepted',
+  'denied',
+  'under_review',
+  'cancelled',
+  'error',
+]); // z.nativeEnum(CHANGE_REQUEST_STATUS);
+export type ChangeRequestStatus = z.infer<typeof ChangeRequestStatus>;
+
+export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude([
+  'draft',
+]);
+export type SubmittedChangeRequestStatus = z.infer<
+  typeof SubmittedChangeRequestStatus
+>;

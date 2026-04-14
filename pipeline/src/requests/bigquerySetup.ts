@@ -1,6 +1,7 @@
 import { error } from 'firebase-functions/logger';
 import { ensureTables } from '../services/bigquery/ensureTables.js';
 import { TABLE_CONFIGS } from '../services/bigquery/schemas.js';
+import { ensureViews, VIEW_CONFIGS } from '../services/bigquery/views.js';
 import { bigqueryDataset } from '../utils/environmentVars.js';
 
 function getErrorContext(err: unknown) {
@@ -23,7 +24,9 @@ function getErrorContext(err: unknown) {
 
 export default async function bigquerySetup(req, res): Promise<void> {
   try {
-    await ensureTables(bigqueryDataset.value(), TABLE_CONFIGS);
+    const dataset = bigqueryDataset.value();
+    await ensureTables(dataset, TABLE_CONFIGS);
+    await ensureViews(dataset, VIEW_CONFIGS);
     res.send({ ok: true });
   } catch (err: unknown) {
     error('BigQuery setup failed', getErrorContext(err));

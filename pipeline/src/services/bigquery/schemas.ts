@@ -13,6 +13,8 @@
  *    serialized as a JSON STRING so the schema stays stable as enum values evolve.
  */
 
+import type { TableName } from './types.js';
+
 // ---------------------------------------------------------------------------
 // Local type alias — mirrors BigQuery's TableField interface without importing
 // the deep private type path from the package.
@@ -45,7 +47,7 @@ export interface TableSchema {
 
 /** Full config passed to table-provisioning helpers. */
 export interface TableConfig {
-  tableId: string;
+  tableId: TableName;
   schema: TableSchema;
   /** Column used for date-range partitioning (must be TIMESTAMP or DATE). */
   partitionField: string;

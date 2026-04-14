@@ -110,6 +110,11 @@ export const BaseMetadata = z.object({
 });
 export type BaseMetadata = z.infer<typeof BaseMetadata>;
 
+export const BaseDoc = z.object({
+  metadata: BaseMetadata,
+});
+export type BaseDoc = z.infer<typeof BaseDoc>;
+
 export const Address = z.object({
   addressLine1: z.string(),
   addressLine2: z.string().default(''),
