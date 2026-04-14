@@ -13,11 +13,7 @@
     "typeRoots": ["./node_modules/@types"]
   },
   "compileOnSave": true,
-  "include": [
-    "./src/**/*.ts",
-    "./src/**/*.tsx",
-    "../data-pipeline/src/services/bigquery/client.ts"
-  ],
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
   "exclude": [
     "src/**/*.js",
     "src/**/*.jsx",

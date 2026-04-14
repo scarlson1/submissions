@@ -3,7 +3,7 @@ packages:
   - functions
   - common
   - api
-  - data-pipeline
+  - pipeline
 
 ignoredBuiltDependencies:
   - '@vaadin/vaadin-usage-statistics'

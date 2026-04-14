@@ -4,6 +4,7 @@ import { requireIDemandAdminClaims } from './utils/auth.js';
 
 const triggerPortfolioExposure = async ({ auth }: CallableRequest) => {
   requireIDemandAdminClaims(auth?.token);
+  console.log('running portfolio exposure...');
 
   const runCore = (await import('../cron/computePortfolioExposure.js')).default;
 
