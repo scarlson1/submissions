@@ -1,5 +1,5 @@
 {
-  "name": "data-pipeline",
+  "name": "pipeline",
   "type": "module",
   "scripts": {
     "lint": "eslint --ext .js,.ts",
@@ -9,8 +9,8 @@
     "shell": "npm run build && firebase functions:shell",
     "shell:inspect": "npm run build:watch && firebase functions:shell --inspect-functions",
     "start": "npm run shell",
-    "deploy:dev": "npm run use:dev && npx firebase deploy --only functions",
-    "deploy:prod": "npm run use:prod && npx firebase deploy --only functions",
+    "deploy:dev": "npm run use:dev && npx firebase deploy --only functions:pipeline",
+    "deploy:prod": "npm run use:prod && npx firebase deploy --only functions:pipeline",
     "use:dev": "firebase use dev",
     "use:prod": "firebase use prod",
     "test": "jest",
