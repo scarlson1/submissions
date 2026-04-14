@@ -227,6 +227,7 @@ jobs:
           DEFAULT_COMMISSION_AS_INT=${{ vars.DEFAULT_COMMISSION_AS_INT }}
           CARD_FEE_PCT=${{ vars.CARD_FEE_PCT }}
           EMULATORS=${{ vars.EMULATORS }}
+          BIGQUERY_DATASET=${{ vars.BIGQUERY_DATASET }}
           EOF
 
       - name: Write env file (pipeline)
