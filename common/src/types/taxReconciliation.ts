@@ -1,6 +1,6 @@
 import z from 'zod';
-import { State, TransactionType } from '../enums';
-import { BaseMetadata, Timestamp } from './common';
+import { State, TransactionType } from '../enums.js';
+import { BaseMetadata, Timestamp } from './common.js';
 
 export const TaxReconciliationConfig = z.object({
   lookbackDays: z.number().int().min(1).max(90).default(7),
