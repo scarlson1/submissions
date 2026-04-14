@@ -17,7 +17,7 @@
       "isolate": true
     },
     {
-      "source": "data-pipeline",
+      "source": "pipeline",
       "codebase": "pipeline",
       "runtime": "nodejs22",
       "isolate": true,

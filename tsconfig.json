@@ -4,6 +4,6 @@
   "references": [
     { "path": "./client" },
     { "path": "./functions" },
-    { "path": "./data-pipeline" }
+    { "path": "./pipeline" }
   ]
 }
