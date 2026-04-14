@@ -8,7 +8,7 @@ on:
       - main
     paths:
       - 'functions/**'
-      - 'data-pipeline/**'
+      - 'pipeline/**'
       - 'common/**'
       - '.github/workflows/deploy-functions.yml'
       - 'firestore.rules.template'
@@ -71,13 +71,13 @@ jobs:
               - 'firestore.rules'
               - 'storage.rules'
             pipeline:
-              - 'data-pipeline/src/scheduler/*.ts'
-              - 'data-pipeline/src/callables/*.ts'
-              - 'data-pipeline/src/routes/*.ts'
-              - 'data-pipeline/src/common/**'
-              - 'data-pipeline/src/services/**'
-              - 'data-pipeline/src/utils/**'
-              - 'data-pipeline/package.json'
+              - 'pipeline/src/scheduler/*.ts'
+              - 'pipeline/src/callables/*.ts'
+              - 'pipeline/src/routes/*.ts'
+              - 'pipeline/src/common/**'
+              - 'pipeline/src/services/**'
+              - 'pipeline/src/utils/**'
+              - 'pipeline/package.json'
 
   build-and-deploy:
     needs: detect-changes
@@ -281,19 +281,19 @@ jobs:
         if: needs.detect-changes.outputs.storage == 'true' || needs.detect-changes.outputs.shared == 'true'
         run: pnpm exec firebase deploy --only functions:storage
 
-      - name: Write env file (data-pipeline)
+      - name: Write env file (pipeline)
         if: needs.detect-changes.outputs.pipeline == 'true'
         run: |
-          cat > data-pipeline/.env.${{ vars.FIREBASE_PROJECT_ID_DEV }} << EOF
+          cat > pipeline/.env.${{ vars.FIREBASE_PROJECT_ID_DEV }} << EOF
           BIGQUERY_DATASET=${{ vars.BIGQUERY_DATASET }}
           EMULATORS=${{ vars.EMULATORS }}
           EOF
 
-      - name: Typecheck data-pipeline
+      - name: Typecheck pipeline
         if: needs.detect-changes.outputs.pipeline == 'true'
         run: pnpm turbo run typecheck --filter=pipeline
 
-      - name: Build data-pipeline
+      - name: Build pipeline
         if: needs.detect-changes.outputs.pipeline == 'true'
         run: pnpm turbo run build --filter=pipeline
 

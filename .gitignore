@@ -40,7 +40,7 @@ ui-debug.log*
 .firebase/*
 
 .env*.local
-!data-pipeline/.env.local
+!pipeline/.env.local
 emulator-data
 typesense-data/
 

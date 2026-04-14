@@ -3,7 +3,7 @@
     "project": [
       "./client/tsconfig.json",
       "./functions/tsconfig.json",
-      "./data-pipeline/tsconfig.json",
+      "./pipeline/tsconfig.json",
     ],
   },
 }
