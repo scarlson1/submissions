@@ -1,4 +1,11 @@
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
 import {
   AccountBalanceRounded,
@@ -14,6 +21,7 @@ import {
   PasswordRounded,
   PersonRounded,
   PolicyRounded,
+  ReceiptLongRounded,
   RequestQuoteRounded,
   TuneRounded,
   WaterRounded,
@@ -75,8 +83,8 @@ import { NavMenu as PopperNavMenu } from './NavMenu';
 export interface NavItem {
   title: string;
   route?: string;
-  items?: { title: string; route: string }[];
-  icon?: React.ReactNode;
+  items?: NavItem[];
+  icon?: ReactNode;
 }
 
 export interface HeaderProps {}
@@ -90,8 +98,8 @@ export const Header = (props: HeaderProps) => {
   const location = useLocation();
   const { user, claims } = useClaims();
 
-  const authedNavPages = useMemo(
-    () => [
+  const authedNavPages = useMemo(() => {
+    const routes: NavItem[] = [
       {
         title: 'New Submission',
         route: createPath({
@@ -115,9 +123,20 @@ export const Header = (props: HeaderProps) => {
         route: createPath({ path: ROUTES.POLICIES }),
         icon: <PolicyRounded color='primary' fontSize='small' />,
       },
-    ],
-    [],
-  );
+    ];
+    if (!claims.iDemandAdmin)
+      routes.push({
+        title: 'More',
+        items: [
+          {
+            title: 'Billing',
+            route: createPath({ path: ROUTES.BILLING }),
+            icon: <ReceiptLongRounded color='primary' fontSize='small' />,
+          },
+        ],
+      });
+    return routes;
+  }, []);
 
   const adminNavPages = useMemo(
     () => [
@@ -154,6 +173,11 @@ export const Header = (props: HeaderProps) => {
             icon: <TuneRounded color='primary' fontSize='small' />,
             // TODO: add items ??
           },
+          {
+            title: 'Billing',
+            route: createPath({ path: ROUTES.BILLING }),
+            icon: <ReceiptLongRounded color='primary' fontSize='small' />,
+          },
         ],
       },
     ],
@@ -184,6 +208,10 @@ export const Header = (props: HeaderProps) => {
         userPages.push({
           title: 'Policies',
           route: createPath({ path: ROUTES.POLICIES }),
+        });
+        userPages.push({
+          title: 'Billing',
+          route: createPath({ path: ROUTES.BILLING }),
         });
       }
     }

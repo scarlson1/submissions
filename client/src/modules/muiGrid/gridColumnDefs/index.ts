@@ -17,6 +17,10 @@ export {
   adminReceivableCols,
   receivableCols,
 } from './receivableCols';
+export {
+  USER_RECEIVABLE_COLUMN_VISIBILITY,
+  userReceivableCols,
+} from './userReceivableCols';
 export { SUBMISSION_COLUMN_VISIBILITY, submissionCols } from './submissionCols';
 export { taxCols } from './taxCols';
 export { TRANSACTION_COLUMN_VISIBILITY, transactionCols } from './transactionCols';

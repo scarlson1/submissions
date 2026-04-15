@@ -8,6 +8,7 @@ import {
   GridViewRounded,
   MapRounded,
   PhoneRounded,
+  ReceiptLongRounded,
   TableRowsRounded,
 } from '@mui/icons-material';
 import {
@@ -63,6 +64,7 @@ import {
   ClaimsGrid,
   LocationsGrid,
   PolicyVersionsGrid,
+  ReceivablesPolicyGrid,
   TransactionsGrid,
 } from 'elements/grids';
 import { SuspenseDialog } from 'elements/SuspenseDialog';
@@ -583,6 +585,7 @@ function useViewClaimDialogProps(
 function PolicyIconMenu({ policyId }: { policyId: string }) {
   const [trxOpen, setTrxOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [billingOpen, setBillingOpen] = useState(false);
 
   const policyChangeRequest = useCreatePolicyChangeRequest();
 
@@ -617,6 +620,17 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
   return (
     <>
       <Stack direction='row' spacing={1}>
+        <Tooltip title='billing'>
+          <IconButton
+            size='small'
+            color='primary'
+            aria-label='view billing'
+            onClick={() => setBillingOpen(true)}
+          >
+            <ReceiptLongRounded fontSize='inherit' />
+          </IconButton>
+        </Tooltip>
+
         <Tooltip title='claims'>
           <Badge badgeContent={claimCount || undefined} color='primary'>
             <IconButton
@@ -696,6 +710,15 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
             toolbar: null,
           }}
         />
+      </SuspenseDialog>
+      <SuspenseDialog
+        open={billingOpen}
+        onClose={() => setBillingOpen(false)}
+        title={`Billing - Policy ${policyId}`}
+        fullWidth
+        maxWidth='xl'
+      >
+        <ReceivablesPolicyGrid policyId={policyId} />
       </SuspenseDialog>
     </>
   );

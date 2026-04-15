@@ -834,6 +834,10 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
     // case POLICY_STATUS.PAID:
     case 'paid':
       return { icon: <CreditScoreRounded />, color: 'success' };
+    case 'outstanding':
+      return { icon: <HourglassTopRounded />, color: 'warning' };
+    case 'expired':
+      return { icon: <HourglassBottomRounded />, color: 'default' };
     // case POLICY_STATUS.PAYMENT_PROCESSING:
     case 'payment:processing':
       return { icon: <CachedRounded />, color: 'info' };

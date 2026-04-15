@@ -10,6 +10,7 @@ export { PoliciesGrid } from './PoliciesGrid';
 export { PolicyVersionsGrid } from './PolicyVersionsGrid';
 export { QuotesGrid } from './QuotesGrid';
 export { ReceivablesGrid } from './ReceivablesGrid';
+export { ReceivablesPolicyGrid } from './ReceivablesPolicyGrid';
 export { SubmissionsGrid } from './SubmissionsGrid';
 export { TransactionsGrid } from './TransactionsGrid';
 export { UserClaimsGrid } from './UserClaimsGrid';

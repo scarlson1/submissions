@@ -1,4 +1,5 @@
 export { ActionHandler } from './ActionHandler';
+export { ReceivableDetailDrawer } from './ReceivableDetailDrawer';
 export { CSVUploadDialog, RequiredHeaders } from './CSVUploadDialog';
 export { DevWarningBanner } from './DevWarningBanner';
 export { FormattedAddress } from './FormattedAddress';
