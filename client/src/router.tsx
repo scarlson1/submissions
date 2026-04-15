@@ -42,6 +42,7 @@ import { StripeConnectViewsLayout } from 'elements/StripeConnectViewsLayout';
 import {
   AddLocation,
   AgencyNew,
+  Claims,
   ContactUs,
   CreateAccount,
   Home,
@@ -89,6 +90,7 @@ import {
   Users,
 } from 'views/admin';
 import { Disclosures } from 'views/admin/Disclosures';
+import { Exposure } from 'views/admin/Exposure';
 import { ViewReceivables } from 'views/admin/ViewReceivables';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ClaimNew } from 'views/ClaimNew';
@@ -134,6 +136,7 @@ export enum ROUTES {
   QUOTE_BIND_SUCCESS_EPAY = '/quotes/:quoteId/bind/epay/success/:transactionId?', // OLD EPAY
   CONTACT = '/contact',
   USER_QUOTES = '/quotes/list/:userId', // TODO: use users view instead (with query param to initialize tab state)
+  CLAIMS = '/claims',
   POLICIES = '/policies',
   POLICY = '/policies/:policyId',
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
@@ -181,6 +184,7 @@ export enum ADMIN_ROUTES {
   EMAIL_ACTIVITY = '/admin/config/email-activity',
   TRANSACTIONS = '/admin/config/transactions',
   RECEIVABLES = '/admin/config/receivables', // TODO: move to non admin route once permissions fixed
+  EXPOSURE = '/admin/config/exposure',
   LOCATIONS = '/admin/locations',
 }
 
@@ -222,6 +226,7 @@ type TArgs =
       path: ROUTES.QUOTE_BIND_SUCCESS_EPAY;
       params: { quoteId: string; transactionId?: string };
     }
+  | { path: ROUTES.CLAIMS }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | {
       path: ROUTES.POLICY;
@@ -278,6 +283,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.EMAIL_ACTIVITY }
   | { path: ADMIN_ROUTES.TRANSACTIONS }
   | { path: ADMIN_ROUTES.RECEIVABLES }
+  | { path: ADMIN_ROUTES.EXPOSURE }
   | { path: ADMIN_ROUTES.LOCATIONS }
   | {
       path: AUTH_ROUTES.CREATE_ACCOUNT;
@@ -1079,6 +1085,30 @@ export const router = sentryCreateBrowserRouter([
                 <EmailVerified />
               </>
             ),
+          },
+        ],
+      },
+      {
+        path: ROUTES.CLAIMS,
+        element: (
+          <RequireAuth>
+            <Layout />
+          </RequireAuth>
+        ),
+        errorElement: <RouterErrorBoundary />,
+        handle: {
+          crumb: () => [{ label: 'Claims', link: createPath({ path: ROUTES.CLAIMS }) }],
+        },
+        children: [
+          {
+            index: true,
+            element: (
+              <>
+                <PageMeta title='iDemand - Claims' />
+                <Claims />
+              </>
+            ),
+            errorElement: <RouterErrorBoundary />,
           },
         ],
       },
@@ -2269,6 +2299,28 @@ export const router = sentryCreateBrowserRouter([
                   crumb: (match: CrumbMatch) => [
                     {
                       label: 'Receivables',
+                    },
+                  ],
+                },
+              },
+              {
+                path: 'exposure',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{
+                      requiredClaims: { [Claim.enum.iDemandAdmin]: true },
+                    }}
+                  >
+                    <>
+                      <PageMeta title='iDemand - Exposure' />
+                      <Exposure />
+                    </>
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => [
+                    {
+                      label: 'Exposure',
                     },
                   ],
                 },

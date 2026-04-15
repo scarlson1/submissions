@@ -282,6 +282,17 @@ export type SubmittedChangeRequestStatus = z.infer<
   typeof SubmittedChangeRequestStatus
 >;
 
+export const PolicyClaimStatus = z.enum([
+  'draft',
+  'submitted',
+  'under_review',
+  'approved',
+  'denied',
+  'paid',
+  'closed',
+]);
+export type PolicyClaimStatus = z.infer<typeof PolicyClaimStatus>;
+
 export enum MISC_PUB_SUB_TOPICS {
   LOCATION_IMG = 'location.image',
   POLICY_IMG = 'policy.image',

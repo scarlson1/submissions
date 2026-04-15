@@ -13,8 +13,11 @@ import {
 import { getDownloadURL, UploadResult } from 'firebase/storage';
 import { useCallback, useState } from 'react';
 
-import { StorageFolder } from '@idemand/common';
-import { ClaimFormValues, DraftPolicyClaim } from 'common';
+import {
+  StorageFolder,
+  type ClaimFormValues,
+  type DraftPolicyClaim,
+} from '@idemand/common';
 import { FlexCard } from 'components';
 import { WizardNavButtons } from 'components/forms';
 import UploadFilesDialog from 'elements/UploadFilesDialog';

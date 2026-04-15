@@ -13,8 +13,8 @@ import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { object, string } from 'yup';
 
-import type { Policy } from '@idemand/common';
-import { ClaimFormValues, emailVal, phoneVal } from 'common';
+import type { ClaimFormValues, Policy } from '@idemand/common';
+import { emailVal, phoneVal } from 'common';
 import {
   FormikMaskField,
   FormikNativeSelect,

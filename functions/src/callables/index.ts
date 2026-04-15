@@ -35,7 +35,7 @@ export const approveimport = onCall(async (request) => {
 });
 
 export const assignquote = onCall(
-  { minInstances: minInstances, memory: '128MiB' },
+  { minInstances: minInstances },
   async (request) => {
     return (await import('./assignQuote.js')).default(request);
   },

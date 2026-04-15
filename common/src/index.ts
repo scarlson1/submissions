@@ -8,6 +8,7 @@ export * from './types/location.js';
 export * from './types/moratorium.js';
 export * from './types/organization.js';
 export * from './types/policy.js';
+export * from './types/policyClaim.js';
 export * from './types/portfolioExposure.js';
 export * from './types/quote.js';
 export * from './types/ratingData.js';

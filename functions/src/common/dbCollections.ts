@@ -11,6 +11,7 @@ import {
   swissReResCollection,
   taxesCollection,
   usersCollection,
+  type PolicyClaim,
 } from '@idemand/common';
 import {
   CollectionReference,
@@ -25,7 +26,6 @@ import {
   Disclosure,
   ImportSummary,
   PaymentMethod,
-  PolicyClaim,
   PropertyDataRes,
   RatingData,
   StageImportRecord,

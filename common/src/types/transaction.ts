@@ -73,7 +73,7 @@ export type OffsetTrxType = 'endorsement' | 'cancellation' | 'flat_cancel';
 export interface OffsetTransaction extends BaseTransaction {
   trxType: OffsetTrxType;
   trxInterfaceType: 'offset';
-  insuredLocation: Location;
+  insuredLocation: ILocationPolicy;
   termPremium: number;
   MGACommission: number; // idemand & subproducer
   MGACommissionPct: number;
@@ -97,7 +97,7 @@ export type PremTrxType = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
 export interface PremiumTransaction extends BaseTransaction {
   trxType: PremTrxType;
   trxInterfaceType: 'premium';
-  insuredLocation: Location;
+  insuredLocation: ILocationPolicy;
   ratingPropertyData: TrxRatingData;
   deductible: number;
   limits: Limits;

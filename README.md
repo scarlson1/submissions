@@ -395,3 +395,30 @@ All tables are date-partitioned. Downstream queries should always include a `WHE
 - Pure transform functions (policyToRow, buildBucketId, reconciliation math) are pure functions and unit-testable without Firebase emulators.
 - Scheduler functions should be tested via the existing HTTP-trigger helper pattern (pubSubHelper.ts) or the new triggerPortfolioExposure callable.
 - CDC triggers are integration-tested by writing a document to the Firestore emulator and asserting the BQ streamRows mock was called with the right row shape.
+
+### TODO: UI components
+
+- claim status / follow up / add info
+- user facing change request status
+- user facing transaction history / policy history
+- payment history - invoices, amounts, etc.
+- renewal pipeline
+
+Agents
+
+- agent book of business dashboard
+- admin claims management ?? currently in account/org
+- commission statements
+
+UI improvements
+
+- Authenticated Home - should land on dashboard with contextual cards, open change requests, upcoming renewals, recent activity
+- status timeline / audit trail on detail views (submissions / change requests, etc.). Add vertical timeline component to SubmissionView and policy detail
+- before/after diff on endorsements. similar to change request
+- coverage & premium breakdown visualizations
+- upcoming expirations widget
+- surface notes property on quotes doc
+- moratorium / ineligibility feedback - when submission is marked as ineligible, explanation is not tied to moratorium rules or flood zone constraints.
+- search prominence
+- Empty State Design - Lists like Submissions.tsx, Quotes.tsx, Policies.tsx likely have no special treatment for new users with no data. Onboarding-style empty states with a clear CTA ("Start your first submission") improve conversion for new agents.
+- Receivable Line Item Transparency - the Receivable type has lineItems, taxes, and fees in detail, but the checkout flow may not fully explain what the user is paying. An itemized receipt before and after payment would reduce disputes.

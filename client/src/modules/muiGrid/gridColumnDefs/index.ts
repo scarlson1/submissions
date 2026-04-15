@@ -1,4 +1,5 @@
 export { agencyAppCols } from './agencyAppCols';
+export { CLAIM_COLUMN_VISIBILITY, claimCols } from './claimCols';
 export { changeRequestCols } from './changeRequestCols';
 export { disclosureCols } from './disclosureCols';
 export { emailCols } from './emailCols';

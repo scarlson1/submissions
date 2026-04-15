@@ -1,15 +1,15 @@
 import {
+  addDoc,
   CollectionReference,
   DocumentReference,
-  Timestamp,
-  addDoc,
   getFirestore,
+  Timestamp,
 } from 'firebase/firestore';
 
+import type { DraftPolicyClaim } from '@idemand/common';
 import {
   BaseChangeRequest,
   ChangeRequest,
-  DraftPolicyClaim,
   changeRequestsCollection,
   policyClaimsCollection,
 } from 'common';
@@ -19,11 +19,12 @@ import { createResource } from 'modules/utils';
 // BUG: security rules using doc owner instead of policy owner & not setting user/agent Id on create draft
 function createDraftChangeRequest<T extends BaseChangeRequest = ChangeRequest>(
   policyId: string,
-  initialValues?: Partial<T>
+  initialValues?: Partial<T>,
 ): Promise<DocumentReference<Partial<T>>> {
-  const colRef = changeRequestsCollection(getFirestore(), policyId) as CollectionReference<
-    Partial<T>
-  >;
+  const colRef = changeRequestsCollection(
+    getFirestore(),
+    policyId,
+  ) as CollectionReference<Partial<T>>;
 
   const initialData = {
     status: 'draft',
@@ -39,19 +40,18 @@ function createDraftChangeRequest<T extends BaseChangeRequest = ChangeRequest>(
   return addDoc<Partial<T>, Partial<T>>(colRef, initialData);
 }
 
-export function createChangeRequest<T extends BaseChangeRequest = ChangeRequest>(
-  policyId: string,
-  initialValues?: Partial<T>
-) {
+export function createChangeRequest<
+  T extends BaseChangeRequest = ChangeRequest,
+>(policyId: string, initialValues?: Partial<T>) {
   return createResource<DocumentReference<Partial<T>>>(
-    createDraftChangeRequest<T>(policyId, initialValues)
+    createDraftChangeRequest<T>(policyId, initialValues),
   );
 }
 
 function createDraftClaim(
   policyId: string,
   locationId: string,
-  initialValues: Partial<DraftPolicyClaim> = {}
+  initialValues: Partial<DraftPolicyClaim> = {},
 ) {
   const colRef = policyClaimsCollection(getFirestore(), policyId);
 
@@ -66,13 +66,16 @@ function createDraftClaim(
     },
   };
 
-  return addDoc<Partial<DraftPolicyClaim>, Partial<DraftPolicyClaim>>(colRef, initialData);
+  return addDoc<Partial<DraftPolicyClaim>, Partial<DraftPolicyClaim>>(
+    colRef,
+    initialData,
+  );
 }
 
 export function createClaim(
   policyId: string,
   locationId: string,
-  initialValues: Partial<DraftPolicyClaim> = {}
+  initialValues: Partial<DraftPolicyClaim> = {},
 ) {
   return createResource(createDraftClaim(policyId, locationId, initialValues));
 }

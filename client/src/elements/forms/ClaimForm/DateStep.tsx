@@ -3,7 +3,7 @@ import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { date, object } from 'yup';
 
-import { ClaimFormValues } from 'common';
+import type { ClaimFormValues } from '@idemand/common';
 import { FormikDatePicker, FormikWizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import { logDev } from 'modules/utils';
@@ -22,7 +22,11 @@ const maxDate = new Date();
 
 export type DateStepProps = BaseStepProps<DateValues>;
 
-export const DateStep = ({ saveFormValues, onError, ...props }: DateStepProps) => {
+export const DateStep = ({
+  saveFormValues,
+  onError,
+  ...props
+}: DateStepProps) => {
   const { nextStep } = useWizard();
 
   const handleStepSubmit = useCallback(
@@ -35,7 +39,7 @@ export const DateStep = ({ saveFormValues, onError, ...props }: DateStepProps) =
         onError && onError('error saving values');
       }
     },
-    [nextStep, saveFormValues, onError]
+    [nextStep, saveFormValues, onError],
   );
 
   return (

@@ -30,6 +30,10 @@ export { moveUserToTenant } from './moveUserToTenant';
 export { sendEmail } from './sendEmail';
 export { setQuoteUserId } from './setQuoteUserId';
 export { submitClaim } from './submitClaim';
+export {
+  triggerPortfolioExposure,
+  type TriggerPortfolioExposureResponse,
+} from './triggerPortfolioExposure';
 export { verifyEPayToken } from './verifyEPayToken';
 
 export type {

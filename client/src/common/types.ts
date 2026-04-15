@@ -14,11 +14,7 @@ import {
   BaseMetadata as BaseMetadataZ,
   CBRSDesignation,
   FloodZone,
-  GeoPoint as GeoPointZ,
-  ILocationPolicy,
-  Limits as LimitsZ,
   Phone as PhoneZ,
-  Policy as PolicyZ,
   Product,
   State,
   Timestamp as TimestampZ,
@@ -1601,63 +1597,61 @@ export type StagedQuoteImport = Quote & {
 
 export type StageImportRecord = StagedPolicyImport | StagedTransactionImport;
 
-// TODO: extend contact from new submission / agency, etc. forms
-export const ContactZ = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string().email(),
-  phone: PhoneZ,
-});
-export const PreferredMethodEnum = z.enum(['email', 'phone']);
-export type PreferredMethod = z.infer<typeof PreferredMethodEnum>;
-export const ClaimContactZ = ContactZ.and(
-  z.object({
-    preferredMethod: PreferredMethodEnum,
-    entityType: z.enum(['namedInsured', 'agent', 'other']),
-  }),
-);
-export type ClaimContact = z.infer<typeof ClaimContactZ>;
+// export const ContactZ = z.object({
+//   firstName: z.string(),
+//   lastName: z.string(),
+//   email: z.string().email(),
+//   phone: PhoneZ,
+// });
+// export const PreferredMethodEnum = z.enum(['email', 'phone']);
+// export type PreferredMethod = z.infer<typeof PreferredMethodEnum>;
 
-// TODO: create draft claim from policy claim
-export const PolicyClaimZ = z.object({
-  occurrenceDate: TimestampZ,
-  description: z.string().min(30),
-  images: z.array(z.string()).max(10),
-  contact: ClaimContactZ,
-  status: z.string(), // TODO: status
-  policyId: z.string(),
-  locationId: z.string(),
-  namedInsured: NamedInsuredZ,
-  agent: AgentDetailsZ,
-  agency: AgencyDetailsZ,
-  submittedAt: TimestampZ,
-  address: AddressZ,
-  coordinates: GeoPointZ, // GeoPoint
-  limits: LimitsZ,
-  locationData: ILocationPolicy,
-  policyData: PolicyZ,
-  submittedBy: z.object({
-    userId: z.string(),
-    email: z.string().email().nullable(),
-    orgId: z.string().nullable(),
-  }),
-  metadata: BaseMetadataZ,
-});
-export type PolicyClaim = z.infer<typeof PolicyClaimZ>;
+// export const ClaimContactZ = ContactZ.and(
+//   z.object({
+//     preferredMethod: PreferredMethodEnum,
+//     entityType: z.enum(['namedInsured', 'agent', 'other']),
+//   }),
+// );
+// export type ClaimContact = z.infer<typeof ClaimContactZ>;
 
-const ClaimFormValuesZ = PolicyClaimZ.pick({
-  occurrenceDate: true,
-  description: true,
-  images: true,
-  contact: true,
-});
-export type ClaimFormValues = z.infer<typeof ClaimFormValuesZ>;
+// export const PolicyClaimZ = z.object({
+//   occurrenceDate: TimestampZ,
+//   description: z.string().min(30),
+//   images: z.array(z.string()).max(10),
+//   contact: ClaimContactZ,
+//   status: PolicyClaimStatus, // z.string(), // TODO: status
+//   policyId: z.string(),
+//   locationId: z.string(),
+//   namedInsured: NamedInsuredZ,
+//   agent: AgentDetailsZ,
+//   agency: AgencyDetailsZ,
+//   submittedAt: TimestampZ,
+//   address: AddressZ,
+//   coordinates: GeoPointZ, // GeoPoint
+//   limits: LimitsZ,
+//   locationData: ILocationPolicy,
+//   policyData: PolicyZ,
+//   submittedBy: z.object({
+//     userId: z.string(),
+//     email: z.string().email().nullable(),
+//     orgId: z.string().nullable(),
+//   }),
+//   metadata: BaseMetadataZ,
+// });
+// export type PolicyClaim = z.infer<typeof PolicyClaimZ>;
 
-// const DraftPolicyClaimZ = z.union([ClaimFormValuesZ.partial(), PolicyClaimZ.pick({ policyId: true, locationId: true, metadata: true }), z.object({ status: z.literal('draft')})])
-const DraftPolicyClaimZ = ClaimFormValuesZ.partial()
-  .and(PolicyClaimZ.pick({ policyId: true, locationId: true, metadata: true }))
-  .and(z.object({ status: z.literal('draft') }));
-export type DraftPolicyClaim = z.infer<typeof DraftPolicyClaimZ>;
+// const ClaimFormValuesZ = PolicyClaimZ.pick({
+//   occurrenceDate: true,
+//   description: true,
+//   images: true,
+//   contact: true,
+// });
+// export type ClaimFormValues = z.infer<typeof ClaimFormValuesZ>;
+
+// const DraftPolicyClaimZ = ClaimFormValuesZ.partial()
+//   .and(PolicyClaimZ.pick({ policyId: true, locationId: true, metadata: true }))
+//   .and(z.object({ status: z.literal('draft') }));
+// export type DraftPolicyClaim = z.infer<typeof DraftPolicyClaimZ>;
 
 // const PolicyClaimFormValuesZ = z.object({
 //   occurrenceDate: TimestampZ,

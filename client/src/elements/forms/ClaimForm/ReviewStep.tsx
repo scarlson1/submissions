@@ -1,14 +1,13 @@
 import { Box, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import { useFunctions } from 'reactfire';
 
-import type { WithId } from '@idemand/common';
+import type { DraftPolicyClaim, WithId } from '@idemand/common';
 import {
   AccountBalanceRounded,
   EmailRounded,
   PhoneRounded,
 } from '@mui/icons-material';
 import { submitClaim } from 'api';
-import { DraftPolicyClaim } from 'common';
 import { WizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import {

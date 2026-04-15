@@ -3,7 +3,7 @@ import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { object, string } from 'yup';
 
-import { ClaimFormValues } from 'common';
+import type { ClaimFormValues } from '@idemand/common';
 import { FormikTextField, FormikWizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import { logDev } from 'modules/utils';
@@ -11,7 +11,9 @@ import { BaseStepProps } from './ClaimFormWizard';
 
 const MIN_CHARACTERS = 30;
 const descriptionStepVal = object().shape({
-  description: string().required().min(MIN_CHARACTERS, 'please add more detail'),
+  description: string()
+    .required()
+    .min(MIN_CHARACTERS, 'please add more detail'),
 });
 
 // export interface DescriptionValues {
@@ -21,7 +23,11 @@ export type DescriptionValues = Pick<ClaimFormValues, 'description'>;
 
 export type DescriptionStepProps = BaseStepProps<DescriptionValues>;
 
-export const DescriptionStep = ({ saveFormValues, onError, ...props }: DescriptionStepProps) => {
+export const DescriptionStep = ({
+  saveFormValues,
+  onError,
+  ...props
+}: DescriptionStepProps) => {
   const { nextStep } = useWizard();
 
   const handleStepSubmit = useCallback(
@@ -34,7 +40,7 @@ export const DescriptionStep = ({ saveFormValues, onError, ...props }: Descripti
         onError && onError('error saving values');
       }
     },
-    [nextStep, saveFormValues, onError]
+    [nextStep, saveFormValues, onError],
   );
 
   return (
@@ -66,7 +72,7 @@ export const DescriptionStep = ({ saveFormValues, onError, ...props }: Descripti
                 helperText={
                   MIN_CHARACTERS - values.description.length > 0
                     ? `${Math.abs(
-                        MIN_CHARACTERS - values.description.length
+                        MIN_CHARACTERS - values.description.length,
                       )} characters to minimum`
                     : null
                 }

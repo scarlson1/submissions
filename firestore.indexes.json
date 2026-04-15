@@ -161,6 +161,63 @@
       "density": "SPARSE_ALL"
     },
     {
+      "collectionGroup": "claims",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "agency.orgId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "occurrenceDate",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "claims",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "agent.userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "occurrenceDate",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "claims",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "submittedBy.userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "occurrenceDate",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
       "collectionGroup": "licenses",
       "queryScope": "COLLECTION",
       "fields": [

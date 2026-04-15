@@ -1,4 +1,5 @@
 import {
+  GavelRounded,
   GridViewRounded,
   InfoRounded,
   MapRounded,
@@ -9,11 +10,14 @@ import {
   Alert,
   AlertTitle,
   alpha,
+  Badge,
   Box,
   Collapse,
   Container,
+  IconButton,
   Link,
   MenuItem,
+  Tooltip,
   Typography,
   type Theme,
 } from '@mui/material';
@@ -22,6 +26,8 @@ import { camelCase } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import invariant from 'tiny-invariant';
+
+import { z } from 'zod';
 
 import { Collection, StorageFolder } from '@idemand/common';
 import { POLICY_IMPORT_REQUIRED_HEADERS, VIEW_QUERY_KEY } from 'common';
@@ -32,13 +38,18 @@ import { ToggleViewPanel } from 'components/toggleView/ToggleViewPanel';
 import { CSVUploadDialog } from 'elements';
 import { PolicyCards } from 'elements/cards';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
-import { PoliciesGrid } from 'elements/grids';
+import { ClaimsGrid, PoliciesGrid } from 'elements/grids';
 import { PoliciesMap } from 'elements/maps';
-import { DataViewType, TDataViewType, useAsyncToast, useClaims } from 'hooks';
+import { DataViewType, useAsyncToast, useClaims } from 'hooks';
+
+import { useToggleContext } from 'context';
 import { getPoliciesQueryProps } from 'modules/db/query';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { createPath, ROUTES } from 'router';
+
+const PoliciesViewType = z.enum(['cards', 'grid', 'map', 'claims']);
+type TPoliciesViewType = z.infer<typeof PoliciesViewType>;
 
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
 // TODO: make sure component is wrapped in must be authed wrapper in router
@@ -51,17 +62,19 @@ function getLayoutProps(claims: {
   agent: boolean;
 }) {
   let props: Pick<
-    ToggleViewLayoutProps<TDataViewType>,
+    ToggleViewLayoutProps<TPoliciesViewType>,
     'defaultOption' | 'actions'
   > = {
     defaultOption: 'cards',
   };
+  // TODO: pass "compact" prop --> show dialog buttons within menu on small screens
   if (claims?.iDemandAdmin) {
     props = {
       defaultOption: 'grid',
       actions: (
         <>
           <ControlledChangeRequestDialog />
+          <ViewClaimsButton />
           <AdminPoliciesActionMenu />
         </>
       ),
@@ -88,6 +101,27 @@ function getLayoutProps(claims: {
   return props;
 }
 
+function ViewClaimsButton() {
+  const context = useToggleContext();
+
+  return (
+    <Tooltip title='claims'>
+      <Badge badgeContent={0 || undefined} color='primary'>
+        <IconButton
+          size='small'
+          color='primary'
+          aria-label='view claims'
+          onClick={() => {
+            context.onToggle(PoliciesViewType.Enum.claims);
+          }}
+        >
+          <GavelRounded fontSize='inherit' />
+        </IconButton>
+      </Badge>
+    </Tooltip>
+  );
+}
+
 export const Policies = () => {
   const navigate = useNavigate();
   const { claims, user } = useClaims();
@@ -108,7 +142,7 @@ export const Policies = () => {
 
   return (
     <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-      <ToggleViewLayout<TDataViewType>
+      <ToggleViewLayout<TPoliciesViewType>
         title='Policies'
         queryKey={VIEW_QUERY_KEY}
         options={DataViewType.options}
@@ -116,6 +150,7 @@ export const Policies = () => {
           cards: <GridViewRounded />,
           grid: <TableRowsRounded />,
           map: <MapRounded />,
+          claims: <GavelRounded />,
         }}
         isFetchingOptions={{
           queryKey: [`infinite-${Collection.Enum.policies}`],
@@ -145,6 +180,9 @@ export const Policies = () => {
         </ToggleViewPanel>
         <ToggleViewPanel value={DataViewType.Enum.map}>
           <PoliciesMap {...queryProps} />
+        </ToggleViewPanel>
+        <ToggleViewPanel value={PoliciesViewType.Enum.claims}>
+          <ClaimsGrid />
         </ToggleViewPanel>
       </ToggleViewLayout>
     </Container>

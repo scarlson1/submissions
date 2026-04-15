@@ -5,7 +5,7 @@ import { ReactNode, createContext, useContext, useEffect, useMemo, useState } fr
 interface ToggleButtonContext<T extends string> {
   idPrefix: string;
   value: string;
-  // handleToggleChange: (event: React.MouseEvent<HTMLElement>, newValue: T | null) => void;
+  onToggle: (value: T) => void;
   // options: T[];
 }
 
@@ -29,11 +29,13 @@ interface ToggleButtonProviderProps<T extends string> {
   // options: T[];
   // defaultValue: T;
   value: T;
+  onToggle: (value: T) => void;
 }
 
 export default function ToggleButtonProvider<T extends string = string>({
   children,
   value,
+  onToggle,
 }: // queryKey,
 // options,
 // defaultValue,
@@ -43,8 +45,8 @@ ToggleButtonProviderProps<T>) {
 
   // @ts-ignore // TODO: fix type
   const context = useMemo<ToggleButtonContext<T>>(() => {
-    return { idPrefix, value } as ToggleButtonContext<T>;
-  }, [idPrefix, value]);
+    return { idPrefix, value, onToggle } as ToggleButtonContext<T>;
+  }, [idPrefix, value, onToggle]);
 
   // // @ts-ignore // TODO: fix type
   // const context = useMemo<ToggleButtonContext<T>>(() => {
@@ -62,6 +64,14 @@ export function useToggleContext() {
   }
 
   return context;
+}
+
+export function useToggleSetValue<T extends string = string>() {
+  const context = useContext(ToggleButtonContext);
+  if (context === null) {
+    throw new TypeError('useToggleSetValue must be within ToggleButtonProvider');
+  }
+  return context.onToggle as (value: T) => void;
 }
 
 export function getPanelId<T extends string = string>(

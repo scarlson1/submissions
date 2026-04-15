@@ -5,7 +5,7 @@ rules_version = '2';
 // custom claims
 // For attribute-based access control, check for an admin claim
 // allow write: if request.auth.token.admin == true;
-// Alterntatively, for role-based access, assign specific roles to users
+// Alternatively, for role-based access, assign specific roles to users
 // allow read: if request.auth.token.reader == "true";
 
 // For tenant-based access control, check for a tenantID
@@ -105,17 +105,18 @@ service cloud.firestore {
       return isUser(existingData().get(['namedInsured', 'userId'], null))
     }
 
-    // TODO: use isUserOrAgentOrAdminOfDocData instead ??
     function isPolicyUser(policyId) {
       let policy = getPolicy(policyId);
       let policyData = policy.data;
 
-      return (
-      	isUser(policyData.get('userId', null))
-        || isUser(policyData.get(['namedInsured','userId'], null))
-        || isUser(policyData.get(['agency', 'userId'], null)) 
-        || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId'], null)))
-      )
+      return isUserOrAgentOrAdminOfDocData(policyData)
+
+      // return (
+      // 	isUser(policyData.get('userId', null))
+      //   || isUser(policyData.get(['namedInsured','userId'], null))
+      //   || isUser(policyData.get(['agency', 'userId'], null)) 
+      //   || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId'], null)))
+      // )
     }
 
     function isPolicyOrgUser(policyId) {
@@ -123,6 +124,17 @@ service cloud.firestore {
       let policyData = policy.data;
 
       return policyId != null && (isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null)))
+    }
+
+    // Collection group rule for cross-policy claims queries (count, list).
+    // Uses denormalized fields on the claim doc itself since policyId is not
+    // available in the path segment when querying via collectionGroup().
+    match /{path=**}/claims/{claimId} {
+      allow read: if isIDemandAdmin()
+        || isUser(resource.data.get(['submittedBy', 'userId'], null))
+        || isUser(resource.data.get(['namedInsured', 'userId'], null))
+        || (isAgent() && isUser(resource.data.get(['agent', 'userId'], null)))
+        || (isOrgAdmin() && isTenantUser(resource.data.get(['agency', 'orgId'], null)));
     }
 
     // TODO: temp - might want diff rules for policy/location vs submission
