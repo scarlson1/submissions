@@ -540,6 +540,124 @@ There is also a separate bulk transaction import path:
 
 This is separate from quote/policy import, but it is relevant because policy imports can pull in matching staged transaction rows during approval.
 
+## Policy Renewal
+
+### How It Works
+
+Renewals are fully automated. A daily scheduler identifies expiring policies, triggers re-rating, creates draft renewal quotes, sends reminder emails, and marks policies as lapsed if they expire without being renewed.
+
+The binding step reuses the same `createpolicy` callable as a new policy—the callable detects `isRenewal: true` on the quote and routes accordingly.
+
+### Renewal Data Model
+
+Fields added to `Policy` for renewal tracking:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `renewalStatus` | `'pending' \| 'quoted' \| 'bound' \| 'lapsed' \| 'non_renewed'` | Lifecycle state of the renewal |
+| `renewalQuoteId` | `string` | ID of the draft renewal quote created for this policy |
+| `priorPolicyId` | `string` | On the new policy: ID of the prior (expiring) policy |
+| `renewalNotifications.sent60` | `Timestamp` | When the 60-day renewal request was triggered |
+| `renewalNotifications.sent30` | `Timestamp` | When the 30-day reminder was sent |
+| `renewalNotifications.sent7` | `Timestamp` | When the 7-day reminder was sent |
+
+Fields added to `Quote` for renewal:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `isRenewal` | `boolean` | True for system-generated renewal quotes |
+| `priorPolicyId` | `string` | ID of the expiring policy this quote renews |
+
+### Renewal Lifecycle
+
+```text
+Day -60:  checkRenewalStatus (scheduler, daily 6 AM UTC)
+            └─► publishRenewalRequested({ policyId })
+            └─► policy.renewalStatus = 'pending'
+
+            └─► renewalQuoteRequestedListener (pubsub: policy.renewal.requested)
+                  └─► rerateForRenewal
+                        └─► fetch prior RCVs from prior ratingData doc
+                        └─► getAALsWithRCVs → Swiss Re
+                        └─► getPremium → new annualPremium
+                        └─► create new ratingData doc
+                  └─► create Quote { status: 'draft', isRenewal: true, priorPolicyId }
+                  └─► policy.renewalStatus = 'quoted', policy.renewalQuoteId = <new quote id>
+
+Day -30:  checkRenewalStatus
+            └─► send 30-day renewal reminder (insured + agent)
+            └─► policy.renewalNotifications.sent30
+
+Day -7:   checkRenewalStatus
+            └─► send 7-day renewal reminder (insured + agent)
+            └─► policy.renewalNotifications.sent7
+
+Insured pays:
+          createpolicy callable (quoteId)
+            └─► detect isRenewal on quote
+            └─► create new Policy { priorPolicyId }
+            └─► create location docs
+            └─► update prior policy: renewalStatus = 'bound'
+            └─► update quote: status = 'bound'
+            └─► publishRenewal({ policyId }) → policy.renewal pubsub
+                  └─► policyRenewalListener → create renewal premium transactions
+
+Day 0 (no action):
+          checkRenewalStatus
+            └─► policy expired without renewal → renewalStatus = 'lapsed'
+            └─► publishRenewalLapsed({ policyId })
+                  └─► renewalLapsedListener → send lapse notification (insured + agent)
+```
+
+### Re-rating Strategy (Option B)
+
+Renewal quotes are priced by re-rating against Swiss Re using the RCVs stored on the prior policy's `ratingData` document, rather than requiring the original `replacementCost` (which is not persisted on `ratingData`).
+
+Key functions:
+
+- **`rerateForRenewal`** (`functions/src/modules/rating/rerateForRenewal.ts`)
+  - Fetches `RCVs` and `numStories` from the prior `ratingData` doc (`location.ratingDocId`)
+  - Calls `getAALsWithRCVs` to hit Swiss Re with pre-computed RCVs
+  - Computes premium with the current commission rate
+  - Persists a new `ratingData` doc and returns `{ annualPremium, ratingDocId }`
+  - Throws if no usable RCVs are found on the prior ratingData doc
+
+- **`getAALsWithRCVs`** (`functions/src/modules/rating/getAALs.ts`)
+  - Variant of `getAALs` that accepts pre-computed `RCVs` instead of a raw `replacementCost`
+  - Includes mock support for local development
+
+### Idempotency
+
+- `renewalQuoteRequestedListener`: skips if `policy.renewalQuoteId` is already set
+- `createpolicy`: skips if the policy document already exists (pre-existing behavior)
+- `policyRenewalListener`: uses a deterministic transaction ID (`policyId_locationId_eventId`) to avoid duplicate transactions
+
+### Graceful Fallback
+
+If `rerateForRenewal` fails (e.g., missing prior RCVs, Swiss Re error), `renewalQuoteRequestedListener` falls back to copying the prior location's `annualPremium` and `ratingDocId` onto the renewal quote rather than failing the whole event. The queue does not retry indefinitely.
+
+### Admin Review
+
+Renewal quotes are created with `status: 'draft'`. An admin should review and optionally reprice the quote before the insured is notified. The 30-day and 7-day reminder emails link directly to the quote (`/quotes/:renewalQuoteId`).
+
+To publish a draft renewal quote for the insured, the admin updates the quote's `status` to `awaiting:user` via the admin quote edit UI—the same flow used for new quotes.
+
+### Pub/Sub Topics Used
+
+| Topic | Publisher | Subscriber |
+| --- | --- | --- |
+| `policy.renewal.requested` | `checkRenewalStatus` scheduler | `renewalquoterequestedlistener` |
+| `policy.renewal` | `createpolicy` (on bind) | `policyrenewallistener` |
+| `policy.renewal.lapsed` | `checkRenewalStatus` scheduler | `renewallapsedlistener` |
+
+### Renewal Email Touchpoints
+
+| Trigger | Recipients |
+| --- | --- |
+| 30 days before expiration | Insured, agent |
+| 7 days before expiration | Insured, agent |
+| Policy lapses | Insured, agent |
+
 ## Emails Delivered Across the Quote Lifecycle
 
 Implemented email touchpoints in or adjacent to the quote flow:

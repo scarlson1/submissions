@@ -435,7 +435,7 @@ This supports admin/import workloads that are too heavy or too async for the cli
 Pub/Sub listeners handle asynchronous workflows such as:
 
 - payment completion
-- policy creation and renewal processing
+- policy creation and renewal processing (`renewalquoterequestedlistener`, `renewallapsedlistener`)
 - endorsements and amendments
 - location cancellations
 - static map/image generation
@@ -447,7 +447,10 @@ see [QUOTES_AND_POLICIES.md](docs/QUOTES_AND_POLICIES.md) for quote and policy d
 
 #### Scheduled Jobs
 
-Scheduled work currently includes ACH status checking, filling a webhook gap in the payment provider workflow.
+Scheduled work currently includes:
+
+- ACH status checking, filling a webhook gap in the payment provider workflow
+- `checkRenewalStatus` (daily, 6 AM UTC): manages the full renewal lifecycle—triggering draft quote generation at 60 days, sending 30- and 7-day reminder emails, and marking policies as lapsed when they expire without renewal
 
 #### HTTP Routes
 
@@ -579,6 +582,19 @@ Policy changes are modeled through change requests and follow an async workflow:
 4. Updated policy data is written back and projected into related documents/search indexes.
 
 see [QUOTES_AND_POLICIES.md](docs/QUOTES_AND_POLICIES.md)
+
+### Policy Renewal Flow
+
+Renewals are handled automatically through a daily scheduled job and Pub/Sub listeners:
+
+1. `checkRenewalStatus` runs daily and publishes `policy.renewal.requested` for policies expiring within 60 days.
+2. `renewalquoterequestedlistener` re-rates the policy against Swiss Re using prior RCVs and creates a draft renewal quote.
+3. The scheduler sends 30- and 7-day reminder emails linking to the draft quote.
+4. The insured reviews and pays through the standard bind flow, which calls `createpolicy`.
+5. `createpolicy` detects `isRenewal` on the quote, marks the prior policy as `renewalStatus: 'bound'`, and publishes `policy.renewal` to trigger renewal transactions.
+6. If the policy expires without renewal, `checkRenewalStatus` marks it as `lapsed` and `renewallapsedlistener` notifies the insured and agent.
+
+see [QUOTES_AND_POLICIES.md — Policy Renewal](docs/QUOTES_AND_POLICIES.md)
 
 ### Agency and Tenant Management
 
