@@ -1,6 +1,6 @@
 import { Box, Stack, SxProps, Typography } from '@mui/material';
 import { QueryFilters, useIsFetching } from '@tanstack/react-query';
-import { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense, useCallback } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import { ErrorFallback } from 'components/ErrorFallback';
@@ -39,8 +39,13 @@ export function ToggleViewLayout<T extends string>({
     defaultOption,
   );
 
+  const handleToggle = useCallback(
+    (value: T) => handleViewChange(null as any, value),
+    [handleViewChange],
+  );
+
   return (
-    <ToggleButtonProvider value={view as string}>
+    <ToggleButtonProvider value={view as T} onToggle={handleToggle}>
       <Box
         sx={{
           display: 'flex',

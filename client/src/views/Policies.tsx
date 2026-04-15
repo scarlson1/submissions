@@ -42,6 +42,7 @@ import { ClaimsGrid, PoliciesGrid } from 'elements/grids';
 import { PoliciesMap } from 'elements/maps';
 import { DataViewType, useAsyncToast, useClaims } from 'hooks';
 
+import { useToggleContext } from 'context';
 import { getPoliciesQueryProps } from 'modules/db/query';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
@@ -66,12 +67,14 @@ function getLayoutProps(claims: {
   > = {
     defaultOption: 'cards',
   };
+  // TODO: pass "compact" prop --> show dialog buttons within menu on small screens
   if (claims?.iDemandAdmin) {
     props = {
       defaultOption: 'grid',
       actions: (
         <>
           <ControlledChangeRequestDialog />
+          <ViewClaimsButton />
           <AdminPoliciesActionMenu />
         </>
       ),
@@ -96,6 +99,27 @@ function getLayoutProps(claims: {
     };
   }
   return props;
+}
+
+function ViewClaimsButton() {
+  const context = useToggleContext();
+
+  return (
+    <Tooltip title='claims'>
+      <Badge badgeContent={0 || undefined} color='primary'>
+        <IconButton
+          size='small'
+          color='primary'
+          aria-label='view claims'
+          onClick={() => {
+            context.onToggle(PoliciesViewType.Enum.claims);
+          }}
+        >
+          <GavelRounded fontSize='inherit' />
+        </IconButton>
+      </Badge>
+    </Tooltip>
+  );
 }
 
 export const Policies = () => {
@@ -143,26 +167,6 @@ export const Policies = () => {
           borderRadius: 1,
           backdropFilter: 'blur(10px)',
         }}
-        actions={
-          <>
-            <Tooltip title='claims'>
-              <Badge badgeContent={0 || undefined} color='primary'>
-                <IconButton
-                  size='small'
-                  color='primary'
-                  aria-label='view claims'
-                  onClick={() => {
-                    // TODO: open dialog setClaimsOpen(true)
-                    alert('TODO: open claims dialog');
-                    // move to layout instead of dialog
-                  }}
-                >
-                  <GavelRounded fontSize='inherit' />
-                </IconButton>
-              </Badge>
-            </Tooltip>
-          </>
-        }
         {...layoutProps}
       >
         <ToggleViewPanel value={DataViewType.Enum.cards}>
