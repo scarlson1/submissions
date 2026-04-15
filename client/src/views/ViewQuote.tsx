@@ -1,4 +1,4 @@
-import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
+import { AutorenewRounded, CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import {
   Alert,
   alpha,
@@ -8,8 +8,10 @@ import {
   Button,
   CardContentProps,
   CardProps,
+  Chip,
   Divider,
   Unstable_Grid2 as Grid,
+  Link,
   Stack,
   Tooltip,
   Typography,
@@ -66,14 +68,40 @@ export const ViewQuote = () => {
       <PageMeta title={`iDemand - Quote ${quoteId}`} />
       <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
         <Box sx={{ flex: '1 1 auto' }}>
-          <Typography variant='h5' gutterBottom>
-            Quote
-          </Typography>
+          <Stack direction='row' spacing={1} alignItems='center' sx={{ mb: 0.5 }}>
+            <Typography variant='h5'>
+              {data.isRenewal ? 'Renewal Quote' : 'Quote'}
+            </Typography>
+            {data.isRenewal && (
+              <Chip
+                label='Renewal'
+                size='small'
+                color='warning'
+                variant='outlined'
+                icon={<AutorenewRounded />}
+              />
+            )}
+          </Stack>
           <Typography
             variant='body2'
             color='text.secondary'
-            sx={{ fontSize: '0.8rem', textTransform: 'uppercase', pb: 4 }}
+            sx={{ fontSize: '0.8rem', textTransform: 'uppercase' }}
           >{`Quote ID: ${quoteId}`}</Typography>
+          {data.isRenewal && data.priorPolicyId && (
+            <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.8rem', pb: 4 }}>
+              {'Renewing policy: '}
+              <Link
+                href={`/policies/${data.priorPolicyId}`}
+                underline='hover'
+                color='primary'
+              >
+                {data.priorPolicyId}
+              </Link>
+            </Typography>
+          )}
+          {(!data.isRenewal || !data.priorPolicyId) && (
+            <Box sx={{ pb: 4 }} />
+          )}
         </Box>
         <Stack direction='row' spacing={1}>
           <Button

@@ -121,6 +121,15 @@ export enum TRX_PUB_SUB_TOPICS {
 export const TrxPubSubTopics = z.nativeEnum(TRX_PUB_SUB_TOPICS);
 export type TrxPubSubTopics = z.infer<typeof TrxPubSubTopics>;
 
+export enum RENEWAL_PUB_SUB_TOPICS {
+  RENEWAL_REQUESTED = 'policy.renewal.requested',
+  RENEWAL_APPROVED = 'policy.renewal.approved',
+  RENEWAL_LAPSED = 'policy.renewal.lapsed',
+}
+
+export const RenewalPubSubTopics = z.nativeEnum(RENEWAL_PUB_SUB_TOPICS);
+export type RenewalPubSubTopics = z.infer<typeof RenewalPubSubTopics>;
+
 // stripe
 export enum PAYMENT_PUB_SUB_TOPICS {
   CHARGE_SUCCEEDED = 'charge.succeeded',
@@ -147,6 +156,7 @@ export const PUB_SUB_TOPICS = {
   ...MISC_PUB_SUB_TOPICS,
   ...PMT_PUB_SUB_TOPICS,
   ...TRX_PUB_SUB_TOPICS,
+  ...RENEWAL_PUB_SUB_TOPICS,
   ...PAYMENT_PUB_SUB_TOPICS,
   ...PIPELINE_PUB_SUB_TOPICS,
 };

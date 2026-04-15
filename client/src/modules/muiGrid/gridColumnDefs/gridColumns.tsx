@@ -1,5 +1,7 @@
 import {
   AccountBalanceRounded,
+  AutorenewRounded,
+  BlockRounded,
   CachedRounded,
   CancelRounded,
   CancelScheduleSendRounded,
@@ -865,6 +867,17 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <DisabledByDefaultRounded />, color: 'default' };
     case 'new':
       return { icon: <FiberNewRounded />, color: 'primary' };
+    // Renewal statuses
+    case 'pending':
+      return { icon: <AutorenewRounded />, color: 'info' };
+    case 'quoted':
+      return { icon: <RequestQuoteRounded />, color: 'warning' };
+    case 'bound':
+      return { icon: <DoneRounded />, color: 'success' };
+    case 'lapsed':
+      return { icon: <ErrorOutlineRounded />, color: 'error' };
+    case 'non_renewed':
+      return { icon: <BlockRounded />, color: 'default' };
     default:
       return { color: 'default' };
   }

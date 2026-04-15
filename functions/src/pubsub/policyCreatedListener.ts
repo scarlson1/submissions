@@ -109,8 +109,11 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
 
           // any validation needed ??
 
+          // Use 'renewal' trxType for policies bound from a renewal quote
+          const trxType = policy.priorPolicyId ? 'renewal' : 'new';
+
           const locationTrx = formatPremiumTrx(
-            'new',
+            trxType,
             policy,
             location,
             ratingData,

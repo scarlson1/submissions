@@ -50,6 +50,8 @@ export type ReceivableStatus = z.infer<typeof ReceivableStatus>;
 export const Receivable = z.object({
   policyId: z.string(),
   orgId: z.string().optional(),
+  isRenewal: z.boolean().optional(),
+  priorPolicyId: z.string().optional(),
   stripeCustomerId: z.string(),
   billingEntityDetails: z.object({
     name: z.string().nullable(),

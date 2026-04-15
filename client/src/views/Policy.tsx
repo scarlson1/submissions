@@ -54,7 +54,7 @@ import {
   PageMeta,
 } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
-import { LocationsMap, PolicyLocationCards } from 'elements';
+import { LocationsMap, PolicyLocationCards, RenewalBanner } from 'elements';
 import {
   ChangeRequestsDialog,
   useViewChangeRequestsDialogProps,
@@ -383,6 +383,9 @@ export const Policy = () => {
           </Grid>
         </Box>
         <Divider />
+        <Box sx={{ pt: 3 }}>
+          <RenewalBanner policy={data} />
+        </Box>
         <Box>
           <Box
             sx={{

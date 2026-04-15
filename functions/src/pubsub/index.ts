@@ -5,6 +5,7 @@ import {
   MiscPubSubTopics,
   PmtPubSubTopics,
   PUB_SUB_TOPICS,
+  RENEWAL_PUB_SUB_TOPICS,
   resendKey,
   TrxPubSubTopics,
 } from '../common/index.js';
@@ -81,9 +82,25 @@ export const locationcancellistener = onMessagePublished(
   },
 );
 
+export const renewalquoterequestedlistener = onMessagePublished(
+  { topic: RENEWAL_PUB_SUB_TOPICS.RENEWAL_REQUESTED },
+  async (event) => {
+    await (await import('./renewalQuoteRequestedListener.js')).default(event);
+  },
+);
+
+export const renewallapsedlistener = onMessagePublished(
+  { topic: RENEWAL_PUB_SUB_TOPICS.RENEWAL_LAPSED, secrets: [resendKey] },
+  async (event) => {
+    await (await import('./renewalLapsedListener.js')).default(event);
+  },
+);
+
 export type { AmendmentPayload } from './amendmentListener.js';
 export type { EndorsementPayload } from './endorsementListener.js';
 export type { LocationCancelPayload } from './locationCancelListener.js';
 export { PolicyCreatedPayload } from './policyCreatedListener.js';
 export { PolicyRenewalPayload } from './policyRenewalListener.js';
 export { ReinstatementPayload } from './reinstatementListener.js';
+export type { RenewalRequestedPayload } from './renewalQuoteRequestedListener.js';
+export type { RenewalLapsedPayload } from './renewalLapsedListener.js';
