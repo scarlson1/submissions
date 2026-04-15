@@ -127,6 +127,17 @@ service cloud.firestore {
       return policyId != null && (isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null)))
     }
 
+    // Collection group rule for cross-policy claims queries (count, list).
+    // Uses denormalized fields on the claim doc itself since policyId is not
+    // available in the path segment when querying via collectionGroup().
+    match /{path=**}/claims/{claimId} {
+      allow read: if isIDemandAdmin()
+        || isUser(resource.data.get(['submittedBy', 'userId'], null))
+        || isUser(resource.data.get(['namedInsured', 'userId'], null))
+        || (isAgent() && isUser(resource.data.get(['agent', 'userId'], null)))
+        || (isOrgAdmin() && isTenantUser(resource.data.get(['agency', 'orgId'], null)));
+    }
+
     // TODO: temp - might want diff rules for policy/location vs submission
     match /{path=**}/versions/{v} {
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin();
