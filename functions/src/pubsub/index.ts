@@ -7,6 +7,9 @@ import {
   PUB_SUB_TOPICS,
   RENEWAL_PUB_SUB_TOPICS,
   resendKey,
+  swissReClientId,
+  swissReClientSecret,
+  swissReSubscriptionKey,
   TrxPubSubTopics,
 } from '../common/index.js';
 
@@ -83,7 +86,11 @@ export const locationcancellistener = onMessagePublished(
 );
 
 export const renewalquoterequestedlistener = onMessagePublished(
-  { topic: RENEWAL_PUB_SUB_TOPICS.RENEWAL_REQUESTED },
+  {
+    topic: RENEWAL_PUB_SUB_TOPICS.RENEWAL_REQUESTED,
+    secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey],
+    timeoutSeconds: 120,
+  },
   async (event) => {
     await (await import('./renewalQuoteRequestedListener.js')).default(event);
   },

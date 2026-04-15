@@ -1,6 +1,6 @@
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { info, warn } from 'firebase-functions/logger';
+import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { ILocation, Policy, Quote, RenewalStatus, WithId } from '@idemand/common';
@@ -9,8 +9,13 @@ import {
   locationsCollection,
   policiesCollection,
   quotesCollection,
+  swissReClientId,
+  swissReClientSecret,
+  swissReSubscriptionKey,
 } from '../common/index.js';
 import { createDocId, getAllById } from '../modules/db/index.js';
+import { rerateForRenewal } from '../modules/rating/rerateForRenewal.js';
+import { getComm } from '../modules/rating/utils.js';
 import { fetchPolicyData } from '../modules/transactions/index.js';
 import { verify } from '../utils/index.js';
 import { extractPubSubPayload } from './utils/extractPubSubPayload.js';
@@ -91,6 +96,36 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalRequestedPay
     return;
   }
 
+  // ── Re-rate against Swiss Re (Option B: live re-rating) ───────────────────
+
+  let annualPremium: number;
+  let ratingDocId: string;
+
+  try {
+    const commData = await getComm(
+      policy.commSource,
+      policy.agency?.orgId ?? null,
+      policy.agent?.userId ?? null,
+      policy.product,
+    );
+
+    ({ annualPremium, ratingDocId } = await rerateForRenewal({
+      db,
+      location: primaryLocation,
+      commissionPct: commData.subproducerCommissionPct,
+      srClientId: swissReClientId.value(),
+      srClientSecret: swissReClientSecret.value(),
+      srSubKey: swissReSubscriptionKey.value(),
+    }));
+
+    info(`RENEWAL QUOTE REQUESTED: Re-rated policy ${policyId} — annualPremium=${annualPremium}`);
+  } catch (err: any) {
+    reportErr('Error re-rating for renewal — falling back to prior premium', { policyId }, err);
+    // Graceful fallback: copy forward the prior annualPremium so the queue doesn't retry forever
+    annualPremium = primaryLocation.annualPremium;
+    ratingDocId = primaryLocation.ratingDocId ?? '';
+  }
+
   // ── Build the renewal Quote document ───────────────────────────────────────
 
   try {
@@ -104,23 +139,28 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalRequestedPay
 
     const now = Timestamp.now();
 
+    // Derive quoteTotal from fresh annualPremium + existing fees/taxes
+    const feesTotal = (policy.fees ?? []).reduce((sum, f) => sum + (f.amount ?? 0), 0);
+    const taxesTotal = (policy.taxes ?? []).reduce((sum, t) => sum + (t.amount ?? 0), 0);
+    const quoteTotal = annualPremium + feesTotal + taxesTotal;
+
     const renewalQuote: Quote = {
       policyId: renewalPolicyId,
       product: policy.product,
-      // Location-derived fields from primary location document
+      // Location-derived fields — use fresh rating
       address: primaryLocation.address,
       coordinates: primaryLocation.coordinates,
       deductible: primaryLocation.deductible,
       limits: primaryLocation.limits,
-      annualPremium: primaryLocation.annualPremium,
-      ratingDocId: primaryLocation.ratingDocId,
+      annualPremium,
+      ratingDocId,
       ratingPropertyData: primaryLocation.ratingPropertyData,
       // Policy-level fields
       homeState: policy.homeState,
       fees: policy.fees,
       taxes: policy.taxes,
       cardFee: 0,
-      quoteTotal: policy.price,
+      quoteTotal,
       effectiveDate: newEffectiveDate,
       quotePublishedDate: now,
       quoteExpirationDate,

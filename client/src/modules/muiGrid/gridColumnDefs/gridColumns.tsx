@@ -54,11 +54,13 @@ import {
   FloodZone,
   InviteStatus,
   Product,
+  RenewalStatus,
   State,
   SubmissionStatus,
   type Address,
   type CompressedAddress,
   type Nullable,
+  type Policy,
   type PolicyLocation,
   type SubmissionStatus as TSubmissionStatus,
 } from '@idemand/common';
@@ -966,6 +968,28 @@ export const cancelEffDateCol: GridColDef = {
   valueSetter: (params) => {
     const effDateTS = params.value ? Timestamp.fromDate(params.value) : null;
     return { ...params.row, expirationDate: effDateTS };
+  },
+};
+
+export const renewalStatusCol: GridSingleSelectColDef<Policy> = {
+  field: 'renewalStatus',
+  headerName: 'Renewal',
+  type: 'singleSelect',
+  valueOptions: RenewalStatus.options,
+  minWidth: 140,
+  flex: 0.5,
+  sortable: false,
+  filterable: true,
+  renderCell: (params: GridRenderCellParams) => {
+    if (!params.value) return null;
+    return (
+      <Chip
+        label={params.value}
+        size='small'
+        variant='outlined'
+        {...getChipProps(params.value)}
+      />
+    );
   },
 };
 
