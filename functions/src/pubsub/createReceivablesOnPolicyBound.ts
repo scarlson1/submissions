@@ -103,6 +103,7 @@ export default async (
 
       const receivable: Receivable = {
         policyId,
+        orgId: policy.agency.orgId,
         stripeCustomerId: cusId,
         billingEntityDetails: {
           email: customer.email,

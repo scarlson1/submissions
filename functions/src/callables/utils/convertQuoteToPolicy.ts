@@ -216,6 +216,7 @@ export function getPolicyFromQuote(
     commSource: data.commSource,
     documents: [],
     quoteId: data.id,
+    ...(data.isRenewal && data.priorPolicyId ? { priorPolicyId: data.priorPolicyId } : {}),
     metadata: {
       created: Timestamp.now(),
       updated: Timestamp.now(),

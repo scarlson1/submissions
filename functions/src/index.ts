@@ -183,6 +183,8 @@ import {
   markpaidonpaymentcomplete,
   policycreatedlistener,
   policyrenewallistener,
+  renewallapsedlistener,
+  renewalquoterequestedlistener,
 } from './pubsub/index.js';
 
 export const pubsub = {
@@ -194,6 +196,8 @@ export const pubsub = {
   markpaidonpaymentcomplete,
   policycreatedlistener,
   policyrenewallistener,
+  renewalquoterequestedlistener,
+  renewallapsedlistener,
 };
 
 import {
@@ -236,10 +240,12 @@ export {
 import {
   // checkachstatus // legacy epay - replaced by stripe webhook
   checkquoteexpiration,
+  checkrenewalstatus,
 } from './scheduler/index.js';
 
 export const cron = {
   checkquoteexpiration,
+  checkrenewalstatus,
 };
 
 import {

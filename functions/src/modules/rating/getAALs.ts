@@ -33,6 +33,17 @@ export const GetAALRes = z.object({
 });
 export type GetAALRes = z.infer<typeof GetAALRes>;
 
+export interface GetAALsWithRCVsProps {
+  srClientId: string;
+  srClientSecret: string;
+  srSubKey: string;
+  RCVs: z.infer<typeof RCVs>;
+  limits: GetAALRequest['limits'];
+  deductible: number;
+  coordinates: GetAALRequest['coordinates'];
+  numStories?: number;
+}
+
 // TODO: zod error handling
 export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   console.log('MOCK: ', mockSwissRe.value());
@@ -86,6 +97,82 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   const parsed = GetAALRes.parse({ srRes, AALs, RCVs: RCVs });
 
   return parsed;
+};
+
+/**
+ * Like getAALs, but accepts pre-computed RCVs (e.g. from a prior ratingData doc)
+ * instead of a raw replacementCost. Use this for renewals where replacementCost
+ * may not be stored on the ratingData document.
+ */
+export const getAALsWithRCVs = async (props: GetAALsWithRCVsProps): Promise<GetAALRes> => {
+  const {
+    srClientId, srClientSecret, srSubKey,
+    RCVs: precomputedRCVs,
+    limits: { limitA, limitB, limitC, limitD },
+    deductible,
+    coordinates,
+    numStories = 1,
+  } = props;
+
+  if (mockSwissRe.value()) {
+    // Build a minimal mock response using the pre-computed RCVs
+    const rcvTotal = precomputedRCVs.total;
+    const tiv = limitA + limitB + limitC + limitD;
+    const pmInland = 1.2;
+    const aalInland = round((pmInland * rcvTotal) / 10000, 2);
+    const aalSurge = round((0.8 * rcvTotal) / 10000, 2);
+    const aalTsunami = round((0.3 * rcvTotal) / 10000, 2);
+    const expectedLosses = [
+      { perilCode: '300', preCatLoss: aalInland, tiv, fguLoss: 0 },
+      { perilCode: '200', preCatLoss: aalSurge, tiv, fguLoss: 0 },
+      { perilCode: '104', preCatLoss: aalTsunami, tiv, fguLoss: 0 },
+    ];
+    const AALs = extractSRAALs(expectedLosses);
+    info(`MOCKED AALs (getAALsWithRCVs): ${JSON.stringify(AALs)}`);
+    return GetAALRes.parse({
+      srRes: { expectedLosses, correlationId: 'mock', bound: false },
+      AALs,
+      RCVs: precomputedRCVs,
+    });
+  }
+
+  swissReInstance =
+    swissReInstance || getSwissReInstance(srClientId, srClientSecret, srSubKey);
+
+  const rcvAB = precomputedRCVs.building + precomputedRCVs.otherStructures;
+  const limitAB = limitA + limitB;
+
+  const body = swissReBody({
+    lat: coordinates.latitude,
+    lng: coordinates.longitude,
+    rcvTotal: precomputedRCVs.total,
+    rcvAB,
+    rcvC: precomputedRCVs.contents,
+    rcvD: precomputedRCVs.BI,
+    limitAB,
+    limitC,
+    limitD,
+    deductible,
+    numStories,
+  });
+
+  info('Swiss Re AALs (getAALsWithRCVs) XML Variables', {
+    lat: coordinates.latitude, lng: coordinates.longitude,
+    rcvTotal: precomputedRCVs.total, rcvAB, rcvC: precomputedRCVs.contents, rcvD: precomputedRCVs.BI,
+    limitAB, limitC, limitD, deductible, numStories,
+  });
+
+  const { data: srRes } = await swissReInstance.post(
+    '/rate/sync/srxplus/losses',
+    body,
+    { headers: { 'Content-Type': 'application/octet-stream' } },
+  );
+
+  info('SWISS RE RES (getAALsWithRCVs): ', { ...srRes });
+  const AALs = extractSRAALs(srRes?.expectedLosses);
+  info(`AALs (getAALsWithRCVs): ${JSON.stringify(AALs)}`);
+
+  return GetAALRes.parse({ srRes, AALs, RCVs: precomputedRCVs });
 };
 
 export function extractSRAALs(expectedLosses?: SRPerilAAL[]) {

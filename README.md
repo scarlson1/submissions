@@ -398,11 +398,11 @@ All tables are date-partitioned. Downstream queries should always include a `WHE
 
 ### TODO: UI components
 
+- app wide search
 - claim status / follow up / add info
 - user facing change request status
 - user facing transaction history / policy history
-- payment history - invoices, amounts, etc.
-- renewal pipeline
+- docs: data lineage graph
 
 Agents
 

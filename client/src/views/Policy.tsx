@@ -8,6 +8,7 @@ import {
   GridViewRounded,
   MapRounded,
   PhoneRounded,
+  ReceiptLongRounded,
   TableRowsRounded,
 } from '@mui/icons-material';
 import {
@@ -53,7 +54,7 @@ import {
   PageMeta,
 } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
-import { LocationsMap, PolicyLocationCards } from 'elements';
+import { LocationsMap, PolicyLocationCards, RenewalBanner } from 'elements';
 import {
   ChangeRequestsDialog,
   useViewChangeRequestsDialogProps,
@@ -63,6 +64,7 @@ import {
   ClaimsGrid,
   LocationsGrid,
   PolicyVersionsGrid,
+  ReceivablesPolicyGrid,
   TransactionsGrid,
 } from 'elements/grids';
 import { SuspenseDialog } from 'elements/SuspenseDialog';
@@ -381,6 +383,9 @@ export const Policy = () => {
           </Grid>
         </Box>
         <Divider />
+        <Box sx={{ pt: 3 }}>
+          <RenewalBanner policy={data} />
+        </Box>
         <Box>
           <Box
             sx={{
@@ -583,6 +588,7 @@ function useViewClaimDialogProps(
 function PolicyIconMenu({ policyId }: { policyId: string }) {
   const [trxOpen, setTrxOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [billingOpen, setBillingOpen] = useState(false);
 
   const policyChangeRequest = useCreatePolicyChangeRequest();
 
@@ -617,6 +623,17 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
   return (
     <>
       <Stack direction='row' spacing={1}>
+        <Tooltip title='billing'>
+          <IconButton
+            size='small'
+            color='primary'
+            aria-label='view billing'
+            onClick={() => setBillingOpen(true)}
+          >
+            <ReceiptLongRounded fontSize='inherit' />
+          </IconButton>
+        </Tooltip>
+
         <Tooltip title='claims'>
           <Badge badgeContent={claimCount || undefined} color='primary'>
             <IconButton
@@ -696,6 +713,15 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
             toolbar: null,
           }}
         />
+      </SuspenseDialog>
+      <SuspenseDialog
+        open={billingOpen}
+        onClose={() => setBillingOpen(false)}
+        title={`Billing - Policy ${policyId}`}
+        fullWidth
+        maxWidth='xl'
+      >
+        <ReceivablesPolicyGrid policyId={policyId} />
       </SuspenseDialog>
     </>
   );

@@ -1,5 +1,7 @@
 import {
   AccountBalanceRounded,
+  AutorenewRounded,
+  BlockRounded,
   CachedRounded,
   CancelRounded,
   CancelScheduleSendRounded,
@@ -52,11 +54,13 @@ import {
   FloodZone,
   InviteStatus,
   Product,
+  RenewalStatus,
   State,
   SubmissionStatus,
   type Address,
   type CompressedAddress,
   type Nullable,
+  type Policy,
   type PolicyLocation,
   type SubmissionStatus as TSubmissionStatus,
 } from '@idemand/common';
@@ -834,6 +838,10 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
     // case POLICY_STATUS.PAID:
     case 'paid':
       return { icon: <CreditScoreRounded />, color: 'success' };
+    case 'outstanding':
+      return { icon: <HourglassTopRounded />, color: 'warning' };
+    case 'expired':
+      return { icon: <HourglassBottomRounded />, color: 'default' };
     // case POLICY_STATUS.PAYMENT_PROCESSING:
     case 'payment:processing':
       return { icon: <CachedRounded />, color: 'info' };
@@ -861,6 +869,17 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <DisabledByDefaultRounded />, color: 'default' };
     case 'new':
       return { icon: <FiberNewRounded />, color: 'primary' };
+    // Renewal statuses
+    case 'pending':
+      return { icon: <AutorenewRounded />, color: 'info' };
+    case 'quoted':
+      return { icon: <RequestQuoteRounded />, color: 'warning' };
+    case 'bound':
+      return { icon: <DoneRounded />, color: 'success' };
+    case 'lapsed':
+      return { icon: <ErrorOutlineRounded />, color: 'error' };
+    case 'non_renewed':
+      return { icon: <BlockRounded />, color: 'default' };
     default:
       return { color: 'default' };
   }
@@ -949,6 +968,28 @@ export const cancelEffDateCol: GridColDef = {
   valueSetter: (params) => {
     const effDateTS = params.value ? Timestamp.fromDate(params.value) : null;
     return { ...params.row, expirationDate: effDateTS };
+  },
+};
+
+export const renewalStatusCol: GridSingleSelectColDef<Policy> = {
+  field: 'renewalStatus',
+  headerName: 'Renewal',
+  type: 'singleSelect',
+  valueOptions: RenewalStatus.options,
+  minWidth: 140,
+  flex: 0.5,
+  sortable: false,
+  filterable: true,
+  renderCell: (params: GridRenderCellParams) => {
+    if (!params.value) return null;
+    return (
+      <Chip
+        label={params.value}
+        size='small'
+        variant='outlined'
+        {...getChipProps(params.value)}
+      />
+    );
   },
 };
 

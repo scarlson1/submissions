@@ -1,5 +1,5 @@
 import { PubSub } from '@google-cloud/pubsub';
-import { ILocation, Policy } from '@idemand/common';
+import { ILocation, Policy, RenewalStatus } from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
@@ -164,6 +164,8 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     info(`CREATING POLICY (quoteId: ${quoteId})`, { quoteData, policyData, locationData });
 
     const locationsCol = locationsCollection(db);
+    const isRenewal = !!quoteData.isRenewal && !!quoteData.priorPolicyId;
+    const now = Timestamp.now();
 
     const batch = db.batch();
 
@@ -177,10 +179,19 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
     batch.update(quoteSnap.ref, {
       status: QUOTE_STATUS.BOUND,
-      quoteBoundDate: Timestamp.now(),
-      'metadata.updated': Timestamp.now(),
+      quoteBoundDate: now,
+      'metadata.updated': now,
       policyId,
     });
+
+    // For renewals: mark the prior policy as bound
+    if (isRenewal) {
+      const priorPolicyRef = policiesCol.doc(quoteData.priorPolicyId);
+      batch.update(priorPolicyRef, {
+        renewalStatus: 'bound' as RenewalStatus,
+        'metadata.updated': now,
+      });
+    }
 
     // check if policy doc already exists (avoid duplicating transactions)
     const policyAlreadyCreated = await docExists(policyRef);
@@ -188,29 +199,27 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
     await batch.commit();
 
-    info(`POLICY CREATED => policy ID: ${policyRef.id}`, { ...policyData, uid });
+    info(`POLICY CREATED => policy ID: ${policyRef.id}`, { ...policyData, uid, isRenewal });
 
     try {
       // TODO: better idempotency ?? use policyId_lcnId_new for trx ID ??
       // only call if creating policy doc
       if (!policyAlreadyCreated) {
+        const topicNameOrId = isRenewal
+          ? TRX_PUB_SUB_TOPICS.POLICY_RENEWAL
+          : TRX_PUB_SUB_TOPICS.POLICY_CREATED;
         const dataBuffer = Buffer.from(JSON.stringify({ policyId }));
-        const topicNameOrId = TRX_PUB_SUB_TOPICS.POLICY_CREATED;
         info(`Publishing new message to ${topicNameOrId}`, { data });
         const messageId = await pubSubClient
           .topic(topicNameOrId)
           .publishMessage({ data: dataBuffer });
 
         info(`Message ${messageId} published to ${topicNameOrId}.`);
-        // TODO: debug
-        // await publishPolicyCreated({
-        //   policyId: policyRef.id,
-        // });
       }
     } catch (err: any) {
       reportErr(
-        `Error publishing policy.created pubsub event (${policyRef?.id})`,
-        { policyId: policyRef?.id || null },
+        `Error publishing pubsub event on policy create (${policyRef?.id})`,
+        { policyId: policyRef?.id || null, isRenewal },
         err
       );
     }

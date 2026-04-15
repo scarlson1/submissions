@@ -5,6 +5,7 @@ import {
   CommSource,
   PaymentStatus,
   Product,
+  RenewalStatus,
   State,
 } from '../enums.js';
 import {
@@ -160,6 +161,15 @@ export const Policy = z.object({
   commSource: CommSource,
   quoteId: z.string().optional().nullable(),
   externalId: z.string().optional().nullable(),
+  // Renewal fields
+  renewalStatus: RenewalStatus.optional(),
+  renewalQuoteId: z.string().optional(),
+  priorPolicyId: z.string().optional(),
+  renewalNotifications: z.object({
+    sent60: Timestamp.optional(),
+    sent30: Timestamp.optional(),
+    sent7: Timestamp.optional(),
+  }).optional(),
   imageURLs: LocationImages.optional().nullable(),
   imagePaths: LocationImages.optional().nullable(),
   // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload

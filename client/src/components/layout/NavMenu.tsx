@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactElement } from 'react';
 
 import {
   Box,
@@ -8,22 +8,20 @@ import {
   List,
   Popper,
 } from '@mui/material';
+import type { NavItem } from 'components/layout/Header';
 // import { useSpring, animated } from '@react-spring/web';
 
 export interface NavMenuProps {
   btnTitle: string;
   btnProps?: Partial<ButtonProps>;
-  items: { route: string; title: string }[];
+  items: NavItem[];
   renderItem: ({
     route,
     title,
     handleClose,
-  }: {
-    route: string;
-    title: string;
+  }: NavItem & {
     handleClose: () => void;
-  }) => React.ReactElement;
-  // children?: React.ReactNode;
+  }) => ReactElement;
 }
 
 export const NavMenu = ({

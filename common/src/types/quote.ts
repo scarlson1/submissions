@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CommSource, Product, State } from '../enums.js';
+import { CommSource, Product, RenewalStatus, State } from '../enums.js';
 import {
   AdditionalInterest,
   Address,
@@ -76,6 +76,11 @@ export const Quote = z.object({
   externalId: z.string().optional().nullable(),
   // commDocId: z.string(),
   commSource: CommSource,
+  // Renewal fields
+  isRenewal: z.boolean().optional(),
+  priorPolicyId: z.string().optional(),
+  renewalStatus: RenewalStatus.optional(),
+  renewalApprovedBy: z.string().optional(),
   metadata: BaseMetadata,
 });
 export type Quote = z.infer<typeof Quote>;

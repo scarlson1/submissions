@@ -1,5 +1,6 @@
 // export { Account } from './Account';
 export { AccountDetails } from './AccountDetails';
+export { Billing } from './Billing';
 export { AddLocation } from './AddLocation';
 export { AgencyNew } from './AgencyNew';
 export { ClaimNew } from './ClaimNew';

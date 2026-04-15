@@ -42,6 +42,7 @@ import { StripeConnectViewsLayout } from 'elements/StripeConnectViewsLayout';
 import {
   AddLocation,
   AgencyNew,
+  Billing,
   Claims,
   ContactUs,
   CreateAccount,
@@ -136,6 +137,7 @@ export enum ROUTES {
   QUOTE_BIND_SUCCESS_EPAY = '/quotes/:quoteId/bind/epay/success/:transactionId?', // OLD EPAY
   CONTACT = '/contact',
   USER_QUOTES = '/quotes/list/:userId', // TODO: use users view instead (with query param to initialize tab state)
+  BILLING = '/billing',
   CLAIMS = '/claims',
   POLICIES = '/policies',
   POLICY = '/policies/:policyId',
@@ -226,6 +228,7 @@ type TArgs =
       path: ROUTES.QUOTE_BIND_SUCCESS_EPAY;
       params: { quoteId: string; transactionId?: string };
     }
+  | { path: ROUTES.BILLING }
   | { path: ROUTES.CLAIMS }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | {
@@ -1085,6 +1088,25 @@ export const router = sentryCreateBrowserRouter([
                 <EmailVerified />
               </>
             ),
+          },
+        ],
+      },
+      {
+        path: ROUTES.BILLING,
+        element: (
+          <RequireAuth>
+            <Layout />
+          </RequireAuth>
+        ),
+        errorElement: <RouterErrorBoundary />,
+        handle: {
+          crumb: () => [{ label: 'Billing', link: createPath({ path: ROUTES.BILLING }) }],
+        },
+        children: [
+          {
+            index: true,
+            element: <Billing />,
+            errorElement: <RouterErrorBoundary />,
           },
         ],
       },
