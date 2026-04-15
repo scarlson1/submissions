@@ -11,7 +11,9 @@ import { ToggleViewButtons, ToggleViewButtonsProps } from './ToggleViewButtons';
 
 // TODO: use slots (loading indicator, title, etc.) ??
 
-export interface ToggleViewLayoutProps<T extends string> extends ToggleViewButtonsProps<T> {
+export interface ToggleViewLayoutProps<
+  T extends string,
+> extends ToggleViewButtonsProps<T> {
   title?: string;
   children: ReactNode;
   isFetchingOptions?: QueryFilters;
@@ -31,7 +33,11 @@ export function ToggleViewLayout<T extends string>({
   headerContainerSx = {},
 }: ToggleViewLayoutProps<T>) {
   const isFetching = useIsFetching(isFetchingOptions);
-  const [view, handleViewChange] = useSearchParamToggle<T>(queryKey, options, defaultOption);
+  const [view, handleViewChange] = useSearchParamToggle<T>(
+    queryKey,
+    options,
+    defaultOption,
+  );
 
   return (
     <ToggleButtonProvider value={view as string}>
@@ -49,7 +55,12 @@ export function ToggleViewLayout<T extends string>({
             {title}
           </Typography>
         ) : null}
-        <Stack direction='row' spacing={2} alignItems='center' sx={{ ml: 'auto' }}>
+        <Stack
+          direction='row'
+          spacing={2}
+          alignItems='center'
+          sx={{ ml: 'auto' }}
+        >
           <LoadingSpinner loading={isFetching > 0} size={18} />
           <ToggleViewButtons<T>
             queryKey={queryKey}
@@ -62,7 +73,9 @@ export function ToggleViewLayout<T extends string>({
         </Stack>
       </Box>
       <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[view]}>
-        <Suspense fallback={<LoadingSpinner loading={true} />}>{children}</Suspense>
+        <Suspense fallback={<LoadingSpinner loading={true} />}>
+          {children}
+        </Suspense>
       </ErrorBoundary>
     </ToggleButtonProvider>
   );

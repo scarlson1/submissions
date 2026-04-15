@@ -10,11 +10,14 @@ import {
   Alert,
   AlertTitle,
   alpha,
+  Badge,
   Box,
   Collapse,
   Container,
+  IconButton,
   Link,
   MenuItem,
+  Tooltip,
   Typography,
   type Theme,
 } from '@mui/material';
@@ -39,12 +42,13 @@ import { ClaimsGrid, PoliciesGrid } from 'elements/grids';
 import { PoliciesMap } from 'elements/maps';
 import { DataViewType, useAsyncToast, useClaims } from 'hooks';
 
-const PoliciesViewType = z.enum(['cards', 'grid', 'map', 'claims']);
-type TPoliciesViewType = z.infer<typeof PoliciesViewType>;
 import { getPoliciesQueryProps } from 'modules/db/query';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { createPath, ROUTES } from 'router';
+
+const PoliciesViewType = z.enum(['cards', 'grid', 'map', 'claims']);
+type TPoliciesViewType = z.infer<typeof PoliciesViewType>;
 
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
 // TODO: make sure component is wrapped in must be authed wrapper in router
@@ -117,7 +121,7 @@ export const Policies = () => {
       <ToggleViewLayout<TPoliciesViewType>
         title='Policies'
         queryKey={VIEW_QUERY_KEY}
-        options={PoliciesViewType.options}
+        options={DataViewType.options}
         icons={{
           cards: <GridViewRounded />,
           grid: <TableRowsRounded />,
@@ -139,6 +143,26 @@ export const Policies = () => {
           borderRadius: 1,
           backdropFilter: 'blur(10px)',
         }}
+        actions={
+          <>
+            <Tooltip title='claims'>
+              <Badge badgeContent={0 || undefined} color='primary'>
+                <IconButton
+                  size='small'
+                  color='primary'
+                  aria-label='view claims'
+                  onClick={() => {
+                    // TODO: open dialog setClaimsOpen(true)
+                    alert('TODO: open claims dialog');
+                    // move to layout instead of dialog
+                  }}
+                >
+                  <GavelRounded fontSize='inherit' />
+                </IconButton>
+              </Badge>
+            </Tooltip>
+          </>
+        }
         {...layoutProps}
       >
         <ToggleViewPanel value={DataViewType.Enum.cards}>

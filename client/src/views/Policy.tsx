@@ -4,6 +4,7 @@ import {
   EditRounded,
   EmailRounded,
   FiberNewRounded,
+  GavelRounded,
   GridViewRounded,
   MapRounded,
   PhoneRounded,
@@ -18,6 +19,7 @@ import {
   CardHeader,
   Divider,
   Unstable_Grid2 as Grid,
+  IconButton,
   Link,
   MenuItem,
   Paper,
@@ -29,13 +31,20 @@ import {
 } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { PickingInfo } from 'deck.gl';
-import { where } from 'firebase/firestore';
+import { where, type QueryFieldFilterConstraint } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 
-import type { ILocation, Policy as IPolicy, WithId } from '@idemand/common';
+import {
+  Collection,
+  PolicyClaimStatus,
+  type ILocation,
+  type Policy as IPolicy,
+  type PolicyClaimStatus as IPolicyClaimStatus,
+  type WithId,
+} from '@idemand/common';
 import {
   ClaimsGuard,
   ErrorFallback,
@@ -60,7 +69,9 @@ import { SuspenseDialog } from 'elements/SuspenseDialog';
 import {
   DataViewType,
   TDataViewType,
+  useClaims,
   useCreatePolicyChangeRequest,
+  useDocCount,
   useDocData,
   useGeneratePDF,
   useSafeParams,
@@ -523,13 +534,66 @@ function StatBox({ title, value }: StatBoxProps) {
   );
 }
 
+function useViewClaimDialogProps(
+  policyId?: string,
+  status: IPolicyClaimStatus[] = [
+    PolicyClaimStatus.enum.draft,
+    PolicyClaimStatus.enum.submitted,
+    PolicyClaimStatus.enum.under_review,
+  ],
+) {
+  const { claims, user, orgId } = useClaims();
+  const [open, setOpen] = useState(false);
+
+  const countConstraints = useMemo(() => {
+    let constraints: QueryFieldFilterConstraint[] = [
+      where('status', 'in', status),
+    ];
+
+    if (policyId) {
+      constraints.push(where('policyId', '==', policyId));
+    }
+    if (claims?.iDemandAdmin) return constraints;
+    if (claims?.orgAdmin && orgId) {
+      constraints.push(where('agency.orgId', '==', orgId));
+      return constraints;
+    }
+    if (claims?.agent && user?.uid) {
+      constraints.push(where('agent.userId', '==', user.uid));
+      return constraints;
+    }
+
+    constraints.push(where('userId', '==', user?.uid));
+    return constraints;
+  }, [claims, user, orgId, policyId]);
+
+  const { data: count } = useDocCount(
+    Collection.Enum.claims,
+    countConstraints,
+    true,
+  );
+
+  return {
+    count,
+    claimsOpen: open,
+    setClaimsOpen: setOpen,
+  };
+}
+
 function PolicyIconMenu({ policyId }: { policyId: string }) {
-  const policyChangeRequest = useCreatePolicyChangeRequest();
-  const { open, handleOpen, handleClose, count } =
-    useViewChangeRequestsDialogProps(policyId);
   const [trxOpen, setTrxOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
-  const [claimsOpen, setClaimsOpen] = useState(false);
+
+  const policyChangeRequest = useCreatePolicyChangeRequest();
+
+  const { open, handleOpen, handleClose, count } =
+    useViewChangeRequestsDialogProps(policyId);
+
+  const {
+    count: claimCount,
+    claimsOpen,
+    setClaimsOpen,
+  } = useViewClaimDialogProps(policyId);
 
   // could use one dialog component ?? different state for component to display ??
 
@@ -552,28 +616,45 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
 
   return (
     <>
-      <Badge badgeContent={count || 0} color='primary'>
-        <IconMenu iconButtonProps={{ sx: { ml: 2, borderRadius: 1 } }}>
-          <MenuItem onClick={handleNewRequest}>Request policy change</MenuItem>
-          <Badge
-            badgeContent={count || 0}
-            color='primary'
-            sx={{ '& .MuiBadge-badge': { right: '8px' } }}
-          >
-            <MenuItem onClick={handleOpen}>View change requests</MenuItem>
+      <Stack direction='row' spacing={1}>
+        <Tooltip title='claims'>
+          <Badge badgeContent={claimCount || undefined} color='primary'>
+            <IconButton
+              size='small'
+              color='primary'
+              aria-label='view claims'
+              onClick={() => setClaimsOpen(true)}
+            >
+              <GavelRounded fontSize='inherit' />
+            </IconButton>
           </Badge>
-          <MenuItem onClick={() => setClaimsOpen(true)}>Claims</MenuItem>
-          <ClaimsGuard requiredClaims={['iDemandAdmin']}>
-            <MenuItem onClick={() => setTrxOpen(true)}>Transactions</MenuItem>
-          </ClaimsGuard>
-          <ClaimsGuard requiredClaims={['iDemandAdmin']}>
-            <MenuItem onClick={() => setVersionsOpen(true)}>History</MenuItem>
-          </ClaimsGuard>
-          {/* <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
+        </Tooltip>
+
+        <Badge badgeContent={count || 0} color='primary'>
+          <IconMenu iconButtonProps={{ sx: { ml: 2, borderRadius: 1 } }}>
+            <MenuItem onClick={handleNewRequest}>
+              Request policy change
+            </MenuItem>
+            <Badge
+              badgeContent={count || 0}
+              color='primary'
+              sx={{ '& .MuiBadge-badge': { right: '8px' } }}
+            >
+              <MenuItem onClick={handleOpen}>View change requests</MenuItem>
+            </Badge>
+            {/* <MenuItem onClick={() => setClaimsOpen(true)}>Claims</MenuItem> */}
+            <ClaimsGuard requiredClaims={['iDemandAdmin']}>
+              <MenuItem onClick={() => setTrxOpen(true)}>Transactions</MenuItem>
+            </ClaimsGuard>
+            <ClaimsGuard requiredClaims={['iDemandAdmin']}>
+              <MenuItem onClick={() => setVersionsOpen(true)}>History</MenuItem>
+            </ClaimsGuard>
+            {/* <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
             <MenuItem onClick={handleConvertPolicy}>Convert Policy</MenuItem>
           </ClaimsGuard> */}
-        </IconMenu>
-      </Badge>
+          </IconMenu>
+        </Badge>
+      </Stack>
       <ChangeRequestsDialog
         open={open}
         handleClose={handleClose}
@@ -586,10 +667,7 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
         fullWidth
         maxWidth='xl'
       >
-        <ClaimsGrid
-          policyId={policyId}
-          slots={{ toolbar: null }}
-        />
+        <ClaimsGrid policyId={policyId} slots={{ toolbar: null }} />
       </SuspenseDialog>
       <SuspenseDialog
         open={trxOpen}
