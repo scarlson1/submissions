@@ -728,9 +728,6 @@ export type PolicyLcnWithPrem = PartialRequired<
 // });
 // export type Policy = z.infer<typeof Policy>;
 
-export const PolicyClaim = z.record(z.any());
-export type PolicyClaim = z.infer<typeof PolicyClaim>;
-
 // export const PolicyBase = z.object({
 //   product: Product,
 //   paymentStatus: PaymentStatus,

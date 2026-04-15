@@ -1,5 +1,6 @@
 export { AgencyAppsGrid } from './AgencyAppsGrid';
 export { ChangeRequestsGrid } from './ChangeRequestsGrid';
+export { ClaimsGrid } from './ClaimsGrid';
 export { EmailsGrid } from './EmailsGrid';
 export { ImportsSummaryGrid } from './ImportsSummaryGrid';
 export { InvitesGrid } from './InvitesGrid';

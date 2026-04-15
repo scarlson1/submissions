@@ -42,6 +42,7 @@ import { StripeConnectViewsLayout } from 'elements/StripeConnectViewsLayout';
 import {
   AddLocation,
   AgencyNew,
+  Claims,
   ContactUs,
   CreateAccount,
   Home,
@@ -135,6 +136,7 @@ export enum ROUTES {
   QUOTE_BIND_SUCCESS_EPAY = '/quotes/:quoteId/bind/epay/success/:transactionId?', // OLD EPAY
   CONTACT = '/contact',
   USER_QUOTES = '/quotes/list/:userId', // TODO: use users view instead (with query param to initialize tab state)
+  CLAIMS = '/claims',
   POLICIES = '/policies',
   POLICY = '/policies/:policyId',
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
@@ -224,6 +226,7 @@ type TArgs =
       path: ROUTES.QUOTE_BIND_SUCCESS_EPAY;
       params: { quoteId: string; transactionId?: string };
     }
+  | { path: ROUTES.CLAIMS }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | {
       path: ROUTES.POLICY;
@@ -1082,6 +1085,30 @@ export const router = sentryCreateBrowserRouter([
                 <EmailVerified />
               </>
             ),
+          },
+        ],
+      },
+      {
+        path: ROUTES.CLAIMS,
+        element: (
+          <RequireAuth>
+            <Layout />
+          </RequireAuth>
+        ),
+        errorElement: <RouterErrorBoundary />,
+        handle: {
+          crumb: () => [{ label: 'Claims', link: createPath({ path: ROUTES.CLAIMS }) }],
+        },
+        children: [
+          {
+            index: true,
+            element: (
+              <>
+                <PageMeta title='iDemand - Claims' />
+                <Claims />
+              </>
+            ),
+            errorElement: <RouterErrorBoundary />,
           },
         ],
       },

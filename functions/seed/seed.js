@@ -206,6 +206,9 @@ const COASTAL = [
   'CT',
 ];
 const FLOOD_ZONES = ['A', 'AE', 'X', 'V', 'VE', 'B', 'C', 'AO', 'AH'];
+// Small fixed pools keep bucket counts reasonable (3–6 buckets per state).
+const GEOHASH_POOL = ['9q8yy', 'dp3wj', 'djv93', '9vg5b', 'dqcjq'];
+const COUNTY_FIPS_POOL = ['12021', '48201', '06037', '22071', '13121'];
 const BASEMENTS = ['no', 'finished', 'unfinished', 'unknown'];
 const PRIOR_LOSS = ['0', '1', '2'];
 const CANCEL_REASONS = [
@@ -437,6 +440,21 @@ function fakeRatingPropData() {
   };
 }
 
+function fakeOrgFunnel() {
+  const now = new Date();
+  const start = sub(now, { days: 90 });
+  return {
+    lastUpdated: tsNow(),
+    period: `${start.toISOString().slice(0, 10)}/${now.toISOString().slice(0, 10)}`,
+    submissionCount: faker.number.int({ min: 20, max: 150 }),
+    submissionToQuoteRate: faker.number.float({ min: 0.55, max: 0.92, fractionDigits: 3 }),
+    quoteToBind: faker.number.float({ min: 0.25, max: 0.70, fractionDigits: 3 }),
+    avgHoursToBind: faker.number.float({ min: 8, max: 96, fractionDigits: 1 }),
+    avgTermPremium: faker.number.float({ min: 800, max: 3500, fractionDigits: 2 }),
+    cancellationRate: faker.number.float({ min: 0.02, max: 0.12, fractionDigits: 3 }),
+  };
+}
+
 function fakeAgentDoc(agent) {
   return {
     name: `${agent.firstName} ${agent.lastName}`,
@@ -542,6 +560,11 @@ const RESET_COLS = [
   'licenses',
   'disclosures',
   'moratoriums',
+  'portfolioConcentrationAlerts',
+  'portfolioExposure/current/buckets',
+  'portfolioExposure/history/snapshots',
+  'taxCalculations',
+  'taxTransactions',
 ];
 async function delCol(path, size = 200) {
   const snap = await db.collection(path).limit(size).get();
@@ -691,6 +714,7 @@ function seedIdemandOrg(bw) {
     authProviders: ['password'],
     defaultCommission: { flood: 0.15, wind: 0.15 },
     photoURL: null,
+    analytics: { funnel: fakeOrgFunnel() },
     ...meta(created),
   });
 }
@@ -753,6 +777,7 @@ async function seedAgency(bw, index) {
       email,
       phone: faker.phone.number('##########'),
     },
+    analytics: { funnel: fakeOrgFunnel() },
     ...meta(created),
   });
   return { oid, tenantId, stripeAcct, state, orgName, address, created, email };
@@ -941,7 +966,6 @@ function seedLocation(
     parentType: 'policy',
     address: fakeAddress(state),
     coordinates: new GeoPoint(coords.latitude, coords.longitude),
-    geoHash: `u${faker.string.alphanumeric(8)}`,
     annualPremium,
     termPremium,
     termDays,
@@ -959,6 +983,7 @@ function seedLocation(
     cancelReason: null,
     imageURLs: null,
     imagePaths: null,
+    geoHash: `${faker.helpers.arrayElement(GEOHASH_POOL)}${faker.string.alphanumeric(3)}`,
     locationId: locationDocId,
     policyId: policyDocId,
     externalId: `EXT-${faker.string.alphanumeric(8).toUpperCase()}`,
@@ -975,6 +1000,7 @@ function seedPolicy(
     agent,
     orgData,
     insuredUser,
+    coords,
     limits,
     termPremium,
     annualPremium,
@@ -985,6 +1011,7 @@ function seedPolicy(
     fees,
     taxes,
     ratingDocId,
+    quoteId,
   },
 ) {
   const namedInsured = {
@@ -1004,7 +1031,7 @@ function seedPolicy(
     termPremium,
     annualPremium,
     address: compressAddress(fakeAddress(state)),
-    coords: new GeoPoint(coords_dummy().lat, coords_dummy().lng),
+    coords: new GeoPoint(coords.latitude, coords.longitude),
     billingEntityId: billingId,
   };
   bw.set(db.collection('policies').doc(policyDocId), {
@@ -1040,20 +1067,13 @@ function seedPolicy(
         : 'Rockingham Specialty, Inc.',
     carrier: fakeCarrier(),
     commSource: 'default',
-    quoteId: null,
+    quoteId: quoteId || null,
     externalId: null,
     documents: [],
     ...meta(effDate),
   });
   return policyLoc;
 }
-function coords_dummy() {
-  return {
-    lat: faker.number.float({ min: 25, max: 45, fractionDigits: 6 }),
-    lng: faker.number.float({ min: -125, max: -66, fractionDigits: 6 }),
-  };
-}
-
 // ─── Premium Transaction ─────────────────────────────
 function seedPremTrx(
   bw,
@@ -1063,6 +1083,7 @@ function seedPremTrx(
     agent,
     orgData,
     insuredUser,
+    coords,
     state,
     effDate,
     expDate,
@@ -1113,8 +1134,8 @@ function seedPremTrx(
       address: fakeAddress(state),
       locationId: locationDocId,
       policyId: policyDocId,
-      coordinates: new GeoPoint(coords_dummy().lat, coords_dummy().lng),
-      geoHash: `u${faker.string.alphanumeric(8)}`,
+      coordinates: new GeoPoint(coords.latitude, coords.longitude),
+      geoHash: `${faker.helpers.arrayElement(GEOHASH_POOL)}${faker.string.alphanumeric(3)}`,
       annualPremium,
       termPremium,
       termDays,
@@ -1401,6 +1422,9 @@ function seedReceivable(
     fees.filter((f) => f.refundable !== false).reduce((s, f) => s + f.value, 0),
   );
   const cusId = stripeCustomerId;
+  const invoiceId = `in_${nano9()}`;
+  const paymentIntentId = `pi_${nano9()}`;
+  const chargeId = `ch_${nano9()}`;
 
   bw.set(db.collection('receivables').doc(rid), {
     policyId: policyDocId,
@@ -1440,8 +1464,8 @@ function seedReceivable(
     status: 'paid',
     paid: true,
     paidOutOfBand: false,
-    invoiceId: `in_${nano9()}`,
-    paymentIntentId: `pi_${nano9()}`,
+    invoiceId,
+    paymentIntentId,
     invoiceNumber: `INV-${faker.string.numeric(6)}`,
     hostedInvoiceUrl: faker.internet.url(),
     invoicePdfUrl: faker.internet.url(),
@@ -1456,10 +1480,10 @@ function seedReceivable(
     dueDate: ts(add(effDate, { days: 14 })),
     totalTransferred: toAmt(termPremium * 0.15),
     totalAmountPaid: toAmt(total),
-    transfersByCharge: { [`ch_${nano9()}`]: toAmt(termPremium * 0.15) },
+    transfersByCharge: { [chargeId]: toAmt(termPremium * 0.15) },
     ...meta(effDate),
   });
-  return rid;
+  return { receivableId: rid, invoiceId, paymentIntentId, chargeId };
 }
 
 // ─── Financial Transaction ───────────────────────────
@@ -1642,14 +1666,16 @@ function seedClaim(bw, { policyDocId, locationDocId, insuredUser }) {
 }
 
 // ─── Submission ───────────────────────────────────────
-function seedSubmission(bw, { agent, orgData, state }) {
+function seedSubmission(bw, { agent, orgData, state, coords, status }) {
+  const subId = `sub_${nano9()}`;
   const created = sub(new Date(), {
     days: faker.number.int({ min: 5, max: 90 }),
   });
-  bw.set(db.collection('submissions').doc(`sub_${nano9()}`), {
+  const c = coords || fakeCoords(state);
+  bw.set(db.collection('submissions').doc(subId), {
     product: 'flood',
     address: fakeAddress(state),
-    coordinates: new GeoPoint(coords_dummy().lat, coords_dummy().lng),
+    coordinates: new GeoPoint(c.latitude, c.longitude),
     limits: fakeLimits(),
     deductible: fakeDeductible(),
     exclusionsExist: false,
@@ -1666,7 +1692,7 @@ function seedSubmission(bw, { agent, orgData, state }) {
     ratingPropertyData: fakeRatingPropData(),
     propertyDataDocId: null,
     rcvSourceUser: null,
-    status: faker.helpers.arrayElement([
+    status: status || faker.helpers.arrayElement([
       'submitted',
       'quoted',
       'under_review',
@@ -1677,10 +1703,12 @@ function seedSubmission(bw, { agent, orgData, state }) {
     commSource: 'default',
     ...meta(created),
   });
+  return subId;
 }
 
 // ─── Quote ────────────────────────────────────────────
-function seedQuote(bw, { agent, orgData, insuredUser, state }) {
+function seedQuote(bw, { agent, orgData, insuredUser, state, submissionId, policyDocId, status, coords: passedCoords }) {
+  const quoteId = `QT${nano9()}`;
   const created = sub(new Date(), {
     days: faker.number.int({ min: 1, max: 30 }),
   });
@@ -1695,10 +1723,10 @@ function seedQuote(bw, { agent, orgData, insuredUser, state }) {
   const annual = premiumCalcData.annualPremium;
   const fees = fakeFeeItems();
   const taxes = fakeTaxItems(annual, state);
-  const coords = fakeCoords(state);
+  const coords = passedCoords || fakeCoords(state);
   const rid = mkRatingId();
   bw.set(db.collection('ratingData').doc(rid), {
-    submissionId: null,
+    submissionId: submissionId || null,
     locationId: null,
     limits,
     TIV: tiv(limits),
@@ -1715,8 +1743,9 @@ function seedQuote(bw, { agent, orgData, insuredUser, state }) {
       taxes.reduce((s, t) => s + t.value, 0) +
       fees.reduce((s, f) => s + f.value, 0),
   );
-  bw.set(db.collection('quotes').doc(`QT${nano9()}`), {
-    policyId: mkPolicyId(),
+  bw.set(db.collection('quotes').doc(quoteId), {
+    policyId: policyDocId || null,
+    submissionId: submissionId || null,
     product: 'flood',
     deductible,
     limits,
@@ -1748,13 +1777,14 @@ function seedQuote(bw, { agent, orgData, insuredUser, state }) {
     carrier: fakeCarrier(),
     billingEntities: {},
     defaultBillingEntityId: 'namedInsured',
-    status: faker.helpers.arrayElement(['awaiting:user', 'bound', 'expired']),
+    status: status || faker.helpers.arrayElement(['awaiting:user', 'bound', 'expired']),
     ratingPropertyData: rpd,
     ratingDocId: rid,
     geoHash: null,
     commSource: 'default',
     ...meta(created),
   });
+  return quoteId;
 }
 
 // ─── Agency Application ───────────────────────────────
@@ -1867,6 +1897,165 @@ function seedImport(bw, { state }) {
   });
 }
 
+// ─── Tax Calculations ─────────────────────────────────
+function seedTaxCalcs(bw, taxes, { stripeCustomerId, policyId, premium, state }) {
+  for (const tax of taxes) {
+    bw.set(db.collection('taxCalculations').doc(tax.taxCalcId), {
+      ...tax,
+      stripeCustomerId,
+      subjectBaseItemValues: {
+        premium,
+        inspectionFees: 0,
+        mgaFees: 0,
+        outStatePremium: 0,
+        homeStatePremium: premium,
+      },
+      customerDetails: { policyId, state },
+      ...meta(new Date()),
+    });
+  }
+}
+
+// ─── Tax Transactions ─────────────────────────────────
+function seedTaxTransactions(
+  bw,
+  taxes,
+  { policyId, receivableId, invoiceId, paymentIntentId, chargeId, effDate },
+) {
+  for (const tax of taxes) {
+    bw.set(db.collection('taxTransactions').doc(`txtxn_${nano9()}`), {
+      type: 'charge',
+      taxId: tax.taxId,
+      taxCalcId: tax.taxCalcId,
+      chargeAmount: Math.round((tax.subjectBaseAmount || 0) * 100),
+      taxAmount: Math.round(tax.value * 100),
+      chargeId,
+      receivableId,
+      policyId,
+      invoiceId,
+      paymentIntentId,
+      taxDate: ts(effDate),
+      reversal: null,
+      refundable: tax.refundable,
+      metadata: { state: tax.state },
+    });
+  }
+}
+
+// ─── Portfolio Exposure (buckets, snapshots, alerts) ──
+/**
+ * @param {BatchWriter} bw
+ * @param {{ policyDocId: string, state: string, floodZone: string,
+ *           countyFips: string, tiv: number, termPremium: number,
+ *           deductible: number }[]} policies
+ */
+function seedPipelineData(bw, policies) {
+  const now = new Date();
+
+  // ── Bucket aggregation ──────────────────────────────
+  const bucketMap = new Map();
+  for (const p of policies) {
+    const geohash5 = faker.helpers.arrayElement(GEOHASH_POOL);
+    const bucketId = `${p.state}#${p.countyFips}#${p.floodZone}#${geohash5}`;
+    if (!bucketMap.has(bucketId)) {
+      bucketMap.set(bucketId, {
+        bucketId,
+        state: p.state,
+        countyFips: p.countyFips,
+        countyName: null,
+        floodZone: p.floodZone,
+        geohashPrefix: geohash5,
+        locationCount: 0,
+        totalInsuredValue: 0,
+        totalTermPremium: 0,
+        avgDeductible: 0,
+        policyIds: [],
+        computedAt: ts(now),
+      });
+    }
+    const b = bucketMap.get(bucketId);
+    b.locationCount++;
+    b.totalInsuredValue += p.tiv;
+    b.totalTermPremium += p.termPremium;
+    b.avgDeductible =
+      (b.avgDeductible * (b.locationCount - 1) + p.deductible) /
+      b.locationCount;
+    if (!b.policyIds.includes(p.policyDocId)) b.policyIds.push(p.policyDocId);
+  }
+  const buckets = [...bucketMap.values()];
+
+  // ── Current buckets ────────────────────────────────
+  for (const bucket of buckets) {
+    bw.set(
+      db
+        .collection('portfolioExposure')
+        .doc('current')
+        .collection('buckets')
+        .doc(bucket.bucketId),
+      bucket,
+    );
+  }
+
+  const totalTiv = buckets.reduce((s, b) => s + b.totalInsuredValue, 0);
+  const totalPrem = buckets.reduce((s, b) => s + b.totalTermPremium, 0);
+  const totalLocs = buckets.reduce((s, b) => s + b.locationCount, 0);
+
+  // ── 7 daily snapshots ──────────────────────────────
+  for (let d = 0; d < 7; d++) {
+    const snapDate = sub(now, { days: d });
+    const dateStr = snapDate.toISOString().slice(0, 10);
+    // Introduce minor day-over-day variance on historical days
+    const v =
+      d === 0
+        ? 1
+        : 1 + faker.number.float({ min: -0.05, max: 0.05, fractionDigits: 3 });
+    bw.set(
+      db
+        .collection('portfolioExposure')
+        .doc('history')
+        .collection('snapshots')
+        .doc(dateStr),
+      {
+        snapshotDate: dateStr,
+        totalInsuredValue: Math.round(totalTiv * v),
+        totalTermPremium: Math.round(totalPrem * v),
+        totalLocationCount: Math.max(1, Math.round(totalLocs * v)),
+        bucketCount: buckets.length,
+        computedAt: ts(snapDate),
+        computedBy: 'computePortfolioExposure/scheduled',
+      },
+    );
+  }
+
+  // ── Concentration alerts (top-2 TIV buckets) ───────
+  const topBuckets = [...buckets]
+    .sort((a, b) => b.totalInsuredValue - a.totalInsuredValue)
+    .slice(0, 2);
+  for (const bucket of topBuckets) {
+    const isAbsolute = faker.datatype.boolean();
+    bw.set(db.collection('portfolioConcentrationAlerts').doc(`alert_${nano9()}`), {
+      bucketId: bucket.bucketId,
+      state: bucket.state,
+      countyFips: bucket.countyFips,
+      floodZone: bucket.floodZone,
+      geohashPrefix: bucket.geohashPrefix,
+      alertType: isAbsolute ? 'absolute_tiv' : 'week_over_week_shift',
+      currentTiv: bucket.totalInsuredValue,
+      thresholdTiv: isAbsolute
+        ? Math.round(bucket.totalInsuredValue * 0.85)
+        : null,
+      previousTiv: isAbsolute
+        ? null
+        : Math.round(bucket.totalInsuredValue * 0.72),
+      shiftPct: isAbsolute ? null : 0.39,
+      detectedAt: ts(sub(now, { days: faker.number.int({ min: 0, max: 3 }) })),
+      status: faker.helpers.arrayElement(['active', 'active', 'acknowledged']),
+    });
+  }
+
+  return { bucketCount: buckets.length, alertCount: topBuckets.length };
+}
+
 // ═══════════════════════════════════════════════════════
 //  MAIN
 // ═══════════════════════════════════════════════════════
@@ -1892,6 +2081,11 @@ const C = {
   licenses: 0,
   disclosures: 0,
   moratoriums: 0,
+  exposureBuckets: 0,
+  exposureSnapshots: 0,
+  concentrationAlerts: 0,
+  taxCalcs: 0,
+  taxTransactions: 0,
 };
 
 async function main() {
@@ -1904,6 +2098,8 @@ async function main() {
   if (DO_RESET && !DRY_RUN) await resetCollections();
 
   const bw = new BatchWriter();
+  /** @type {{ policyDocId: string, state: string, floodZone: string, countyFips: string, tiv: number, termPremium: number, deductible: number }[]} */
+  const allPolicies = [];
 
   seedIdemandOrg(bw);
   seedIdemandAdmin(bw);
@@ -1953,9 +2149,10 @@ async function main() {
       const agent = seedAgent(bw, agencyData);
       C.users++;
 
+      // Unlinked submissions (no policy)
       const subCount = faker.number.int({ min: 1, max: 3 });
       for (let si = 0; si < subCount; si++) {
-        seedSubmission(bw, { agent, orgData, state: agencyData.state });
+        seedSubmission(bw, { agent, orgData, state: agencyData.state, coords: fakeCoords(agencyData.state) });
         C.submissions++;
       }
 
@@ -1985,6 +2182,21 @@ async function main() {
         const policyDocId = mkPolicyId();
         const locationDocId = mkLocationId();
 
+        // Submission → Quote → Policy chain
+        const subId = seedSubmission(bw, { agent, orgData, state, coords, status: 'bound' });
+        C.submissions++;
+        const quoteId = seedQuote(bw, {
+          agent,
+          orgData,
+          insuredUser,
+          state,
+          coords,
+          submissionId: subId,
+          policyDocId,
+          status: 'bound',
+        });
+        C.quotes++;
+
         const ratingDocId = seedRatingDoc(bw, {
           limits,
           rcvs,
@@ -2013,12 +2225,13 @@ async function main() {
           state,
         });
         C.locations++;
-        const policyLoc = seedPolicy(bw, {
+        seedPolicy(bw, {
           policyDocId,
           locationDocId,
           agent,
           orgData,
           insuredUser,
+          coords,
           limits,
           termPremium,
           annualPremium: annual,
@@ -2029,16 +2242,25 @@ async function main() {
           fees,
           taxes,
           ratingDocId,
+          quoteId,
         });
         C.policies++;
-        seedQuote(bw, { agent, orgData, insuredUser, state });
-        C.quotes++;
+        allPolicies.push({
+          policyDocId,
+          state,
+          floodZone: rpd.floodZone,
+          countyFips: faker.helpers.arrayElement(COUNTY_FIPS_POOL),
+          tiv: tiv(limits),
+          termPremium,
+          deductible,
+        });
         seedPremTrx(bw, {
           policyDocId,
           locationDocId,
           agent,
           orgData,
           insuredUser,
+          coords,
           state,
           effDate,
           expDate,
@@ -2056,7 +2278,7 @@ async function main() {
         });
         C.transactions++;
 
-        // Receivable uses the real stripe customer ID stored on the user
+        // Receivable — real Stripe customer ID; capture IDs for tax transactions
         const loc4rec = {
           termPremium,
           annualPremium: annual,
@@ -2064,7 +2286,7 @@ async function main() {
           coords: new GeoPoint(coords.latitude, coords.longitude),
           billingEntityId: insuredUser.id,
         };
-        seedReceivable(bw, {
+        const { receivableId, invoiceId, paymentIntentId, chargeId } = seedReceivable(bw, {
           policyDocId,
           locationDocId,
           insuredUser,
@@ -2076,6 +2298,26 @@ async function main() {
           policyLoc: loc4rec,
         });
         C.receivables++;
+
+        // TaxCalc docs (one per tax item — required by reconciliation pipeline)
+        seedTaxCalcs(bw, taxes, {
+          stripeCustomerId: insuredUser.stripeCustomerId,
+          policyId: policyDocId,
+          premium: termPremium,
+          state,
+        });
+        C.taxCalcs += taxes.length;
+
+        // TaxTransaction docs (one per tax item)
+        seedTaxTransactions(bw, taxes, {
+          policyId: policyDocId,
+          receivableId,
+          invoiceId,
+          paymentIntentId,
+          chargeId,
+          effDate,
+        });
+        C.taxTransactions += taxes.length;
         seedFinTrx(bw, {
           policyDocId,
           insuredUser,
@@ -2147,6 +2389,12 @@ async function main() {
     }
   }
 
+  // Pipeline data (buckets, snapshots, alerts) — depends on allPolicies
+  const { bucketCount, alertCount } = seedPipelineData(bw, allPolicies);
+  C.exposureBuckets = bucketCount;
+  C.exposureSnapshots = 7;
+  C.concentrationAlerts = alertCount;
+
   await bw.commit();
 
   // Summary
@@ -2170,8 +2418,13 @@ async function main() {
     ['├─ Endorsement pairs', C.endorsementTrx],
     ['└─ Cancellations', C.cancelTrx],
     ['Receivables', C.receivables],
+    ['Tax calculations', C.taxCalcs],
+    ['Tax transactions', C.taxTransactions],
     ['Financial transactions', C.finTrx],
     ['Email activity', C.emailActivity],
+    ['Exposure buckets (current)', C.exposureBuckets],
+    ['Exposure snapshots (history)', C.exposureSnapshots],
+    ['Concentration alerts', C.concentrationAlerts],
     ['─────────────────────────────────────────', ''],
     ['Total Firestore writes', bw.total],
   ];

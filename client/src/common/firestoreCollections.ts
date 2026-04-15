@@ -6,9 +6,11 @@ import {
 } from 'firebase/firestore';
 
 import type {
+  DraftPolicyClaim,
   ILocation,
   Organization,
   Policy,
+  PolicyClaim,
   Quote,
   Receivable,
   Submission,
@@ -20,14 +22,12 @@ import {
   AgencyApplication,
   ChangeRequest,
   Charge,
-  DraftPolicyClaim,
   ImportSummary,
   Invite,
   License,
   Moratorium,
   NotifyRegistration,
   PaymentMethod,
-  PolicyClaim,
   PortfolioSubmission,
   PropertyDataRes,
   RatingData,

@@ -4,13 +4,13 @@ import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useFirestoreDocData } from 'reactfire';
 
-import type { OptionalKeys } from '@idemand/common';
-import {
+import type {
   ClaimFormValues,
   DraftPolicyClaim,
+  OptionalKeys,
   PolicyClaim,
   PreferredMethod,
-} from 'common';
+} from '@idemand/common';
 import { Wizard } from 'components/forms';
 import { createClaim } from 'modules/db';
 import { ContactStep, ContactValues } from './ContactStep';

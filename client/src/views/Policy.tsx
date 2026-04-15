@@ -51,6 +51,7 @@ import {
 } from 'elements/ChangeRequestDialog';
 import { ContactList } from 'elements/forms';
 import {
+  ClaimsGrid,
   LocationsGrid,
   PolicyVersionsGrid,
   TransactionsGrid,
@@ -528,6 +529,7 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
     useViewChangeRequestsDialogProps(policyId);
   const [trxOpen, setTrxOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [claimsOpen, setClaimsOpen] = useState(false);
 
   // could use one dialog component ?? different state for component to display ??
 
@@ -560,6 +562,7 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
           >
             <MenuItem onClick={handleOpen}>View change requests</MenuItem>
           </Badge>
+          <MenuItem onClick={() => setClaimsOpen(true)}>Claims</MenuItem>
           <ClaimsGuard requiredClaims={['iDemandAdmin']}>
             <MenuItem onClick={() => setTrxOpen(true)}>Transactions</MenuItem>
           </ClaimsGuard>
@@ -576,6 +579,18 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
         handleClose={handleClose}
         policyId={policyId}
       />
+      <SuspenseDialog
+        open={claimsOpen}
+        onClose={() => setClaimsOpen(false)}
+        title={`Claims - Policy ${policyId}`}
+        fullWidth
+        maxWidth='xl'
+      >
+        <ClaimsGrid
+          policyId={policyId}
+          slots={{ toolbar: null }}
+        />
+      </SuspenseDialog>
       <SuspenseDialog
         open={trxOpen}
         onClose={() => setTrxOpen(false)}

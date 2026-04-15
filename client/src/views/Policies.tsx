@@ -1,4 +1,5 @@
 import {
+  GavelRounded,
   GridViewRounded,
   InfoRounded,
   MapRounded,
@@ -23,6 +24,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import invariant from 'tiny-invariant';
 
+import { z } from 'zod';
+
 import { Collection, StorageFolder } from '@idemand/common';
 import { POLICY_IMPORT_REQUIRED_HEADERS, VIEW_QUERY_KEY } from 'common';
 import { DownloadStorageFileButton } from 'components';
@@ -32,9 +35,12 @@ import { ToggleViewPanel } from 'components/toggleView/ToggleViewPanel';
 import { CSVUploadDialog } from 'elements';
 import { PolicyCards } from 'elements/cards';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
-import { PoliciesGrid } from 'elements/grids';
+import { ClaimsGrid, PoliciesGrid } from 'elements/grids';
 import { PoliciesMap } from 'elements/maps';
-import { DataViewType, TDataViewType, useAsyncToast, useClaims } from 'hooks';
+import { DataViewType, useAsyncToast, useClaims } from 'hooks';
+
+const PoliciesViewType = z.enum(['cards', 'grid', 'map', 'claims']);
+type TPoliciesViewType = z.infer<typeof PoliciesViewType>;
 import { getPoliciesQueryProps } from 'modules/db/query';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
@@ -51,7 +57,7 @@ function getLayoutProps(claims: {
   agent: boolean;
 }) {
   let props: Pick<
-    ToggleViewLayoutProps<TDataViewType>,
+    ToggleViewLayoutProps<TPoliciesViewType>,
     'defaultOption' | 'actions'
   > = {
     defaultOption: 'cards',
@@ -108,14 +114,15 @@ export const Policies = () => {
 
   return (
     <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-      <ToggleViewLayout<TDataViewType>
+      <ToggleViewLayout<TPoliciesViewType>
         title='Policies'
         queryKey={VIEW_QUERY_KEY}
-        options={DataViewType.options}
+        options={PoliciesViewType.options}
         icons={{
           cards: <GridViewRounded />,
           grid: <TableRowsRounded />,
           map: <MapRounded />,
+          claims: <GavelRounded />,
         }}
         isFetchingOptions={{
           queryKey: [`infinite-${Collection.Enum.policies}`],
@@ -145,6 +152,9 @@ export const Policies = () => {
         </ToggleViewPanel>
         <ToggleViewPanel value={DataViewType.Enum.map}>
           <PoliciesMap {...queryProps} />
+        </ToggleViewPanel>
+        <ToggleViewPanel value={PoliciesViewType.Enum.claims}>
+          <ClaimsGrid />
         </ToggleViewPanel>
       </ToggleViewLayout>
     </Container>

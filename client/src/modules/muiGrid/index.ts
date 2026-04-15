@@ -10,6 +10,7 @@ export { getGridFirestoreSelectOperators } from './operators/gridSelectOperators
 export { getGridFirestoreStringOperators } from './operators/gridStringOperators';
 
 export { agencyAppCols } from './gridColumnDefs/agencyAppCols';
+export { CLAIM_COLUMN_VISIBILITY, claimCols } from './gridColumnDefs/claimCols';
 export { changeRequestCols } from './gridColumnDefs/changeRequestCols';
 export { emailCols } from './gridColumnDefs/emailCols';
 export { importSummaryCols } from './gridColumnDefs/importSummaryCols';

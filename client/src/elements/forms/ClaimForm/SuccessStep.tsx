@@ -13,9 +13,8 @@ import { DocumentReference } from 'firebase/firestore';
 import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
-import { Collection } from '@idemand/common';
+import { Collection, type PolicyClaim } from '@idemand/common';
 import { CheckmarkLottie } from 'assets';
-import { PolicyClaim } from 'common';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import { useDocData } from 'hooks';
 import { createPath, ROUTES } from 'router';
