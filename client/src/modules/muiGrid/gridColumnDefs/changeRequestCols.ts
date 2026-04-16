@@ -1,6 +1,6 @@
 import { GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 
-import { ChangeRequest } from 'common';
+import type { ChangeRequest } from '@idemand/common';
 import { ChangeRequestStatus } from 'common/enums';
 import {
   createdCol,

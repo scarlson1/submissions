@@ -7,10 +7,10 @@ import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
-import type { ILocation, Limits } from '@idemand/common';
+import type { ILocation, Limits, LocationChangeRequest } from '@idemand/common';
 import { calcLocationChanges } from 'api';
 import { CheckmarkLottie } from 'assets';
-import { AdditionalInterest, LocationChangeRequest } from 'common';
+import { AdditionalInterest } from 'common';
 import { Wizard } from 'components/forms';
 import { useDialog, useDocData } from 'hooks';
 import { createChangeRequest } from 'modules/db';

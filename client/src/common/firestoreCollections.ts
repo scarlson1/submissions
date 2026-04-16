@@ -6,6 +6,7 @@ import {
 } from 'firebase/firestore';
 
 import type {
+  ChangeRequest,
   DraftPolicyClaim,
   ILocation,
   Invite,
@@ -20,12 +21,12 @@ import type {
   Tax,
   TaxTransaction,
   TCollection,
+  User,
 } from '@idemand/common';
 import { Collection } from '@idemand/common';
 import {
   ActiveStates,
   AgencyApplication,
-  ChangeRequest,
   Charge,
   ImportSummary,
   License,
@@ -34,7 +35,6 @@ import {
   PortfolioSubmission,
   PropertyDataRes,
   StageImportRecord,
-  User,
   UserAccess,
   UserClaims,
 } from './types';

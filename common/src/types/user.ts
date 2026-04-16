@@ -9,7 +9,7 @@ import {
 
 export interface User {
   displayName?: string;
-  email?: string;
+  email?: string | null;
   phone?: string;
   photoURL?: string;
   // stripe_customer_id?: string; // TODO: add back ?? currently set as billingEntity.stripeCustomerId

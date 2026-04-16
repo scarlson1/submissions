@@ -13,8 +13,8 @@ import { map, switchMap } from 'rxjs/operators';
 import invariant from 'tiny-invariant';
 import { useClaims } from './useClaims';
 
-import { Collection } from '@idemand/common';
-import { User, UserAccess, usersCollection } from 'common';
+import { type User, Collection } from '@idemand/common';
+import { UserAccess, usersCollection } from 'common';
 
 // TODO: replace deprecated combineLatest
 

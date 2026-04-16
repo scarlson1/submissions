@@ -1,4 +1,4 @@
-import { DraftAddLocationRequest } from 'common';
+import type { DraftAddLocationRequest } from '@idemand/common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface CalcAddLocationRequest {

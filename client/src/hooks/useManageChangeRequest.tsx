@@ -4,17 +4,17 @@ import { get, isNumber, set } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { useFirestore, useFunctions, useUser } from 'reactfire';
 
-import { Collection, type ILocation } from '@idemand/common';
+import {
+  Collection,
+  type ChangeRequest,
+  type ILocation,
+} from '@idemand/common';
 import {
   approveChangeRequest,
   ApproveChangeResponse,
   calcPolicyChanges,
 } from 'api';
-import {
-  ChangeRequest,
-  changeRequestsCollection,
-  policiesCollection,
-} from 'common';
+import { changeRequestsCollection, policiesCollection } from 'common';
 import { ChangeRequestStatus } from 'common/enums';
 import { getAll, getFirebaseDoc } from 'modules/db';
 import { deepMergeOverwriteArrays } from 'modules/utils';

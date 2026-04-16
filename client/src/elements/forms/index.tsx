@@ -1,10 +1,14 @@
 export { AddAgents } from './AddAgents';
 export { AddPaymentDialog, Transition } from './AddPaymentDialog';
-export { AddUsersDialog } from './AddUsersDialog';
 export { AddressStep } from './AddressStep';
 export { AddressStepQuote } from './AddressStepQuote';
+export { AddUsersDialog } from './AddUsersDialog';
 export { AgencyBankingStep, TooltipContent } from './AgencyBankingStep';
-export { AgencyReviewStep, ContactList, DisplayFilename } from './AgencyReviewStep';
+export {
+  AgencyReviewStep,
+  ContactList,
+  DisplayFilename,
+} from './AgencyReviewStep';
 // export { ConnectOnboarding } from './ConnectOnboarding';
 export { ContactForm } from './ContactForm';
 export { ContactStep } from './ContactStep';
@@ -33,10 +37,13 @@ export { UpdateUserEmail } from './UpdateUserEmail';
 export { UpdateUserPhone } from './UpdateUserPhone';
 export { UserDetailsForm } from './UserDetailsForm';
 
-export type { AddLocationValues } from './AddLocation/AddLocationWizard';
 export type { AddPaymentMethodValues } from './AddPaymentDialog';
 export type { AddUserValues } from './AddUsersDialog';
-export type { AgencyReviewStepProps, ContactCardProps, ContactItem } from './AgencyReviewStep';
+export type {
+  AgencyReviewStepProps,
+  ContactCardProps,
+  ContactItem,
+} from './AgencyReviewStep';
 export type { ContactFormProps } from './ContactForm';
 export type { ContactStepProps } from './ContactStep';
 export type { DeductibleStepProps } from './DeductibleStep';

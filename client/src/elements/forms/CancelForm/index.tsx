@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import { CancellationRequest } from 'common';
+import type { CancellationRequest } from '@idemand/common';
 import { ErrorFallback } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { usePrevious } from 'hooks/utils';
@@ -21,9 +21,14 @@ export default function CancelForm({ policyId, locationId }: CancelFormProps) {
     useState<ReturnType<typeof createChangeRequest<CancellationRequest>>>();
 
   useEffect(() => {
-    if (!changeRequestResource && (policyId !== prev || locationId !== prevLcnId)) {
+    if (
+      !changeRequestResource &&
+      (policyId !== prev || locationId !== prevLcnId)
+    ) {
       setChangeRequestResource(
-        createChangeRequest<CancellationRequest>(policyId, { locationId: locationId || '' })
+        createChangeRequest<CancellationRequest>(policyId, {
+          locationId: locationId || '',
+        }),
       );
     }
   }, [policyId, locationId, prev, prevLcnId, changeRequestResource]);

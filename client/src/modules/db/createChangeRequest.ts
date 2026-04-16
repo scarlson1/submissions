@@ -6,13 +6,12 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 
-import type { DraftPolicyClaim } from '@idemand/common';
-import {
+import type {
   BaseChangeRequest,
   ChangeRequest,
-  changeRequestsCollection,
-  policyClaimsCollection,
-} from 'common';
+  DraftPolicyClaim,
+} from '@idemand/common';
+import { changeRequestsCollection, policyClaimsCollection } from 'common';
 import { createResource } from 'modules/utils';
 
 // TODO: omit values from initialValues prop type

@@ -50,6 +50,7 @@ import {
   WithId,
   type FeeItem,
   type RatingPropertyData,
+  type User,
   type ValueByRiskType,
 } from '@idemand/common';
 import {
@@ -60,7 +61,6 @@ import {
   orgsCollection,
   PriorLossCount,
   typesenseIndexName,
-  User,
 } from 'common';
 import { ErrorFallback, IconButtonMenu } from 'components';
 import {

@@ -3,9 +3,8 @@ import { Box, Button, Divider, Stack, Typography } from '@mui/material';
 import Lottie from 'lottie-react';
 import { Fragment, useMemo } from 'react';
 
-import type { Policy } from '@idemand/common';
+import type { CancellationRequest, Policy } from '@idemand/common';
 import { CheckmarkLottie } from 'assets';
-import { CancellationRequest } from 'common';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import { useDialog } from 'hooks';
 import { compressedToAddress } from 'modules/utils';

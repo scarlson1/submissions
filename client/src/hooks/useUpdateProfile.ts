@@ -1,6 +1,6 @@
 import { FirebaseError } from 'firebase/app';
 import { updateProfile as updateAuthProfile } from 'firebase/auth';
-import { Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { useCallback, useState } from 'react';
 import { useFirestore, useUser } from 'reactfire';
 import invariant from 'tiny-invariant';
@@ -29,7 +29,7 @@ export interface FormattedError {
 
 export const useUpdateProfile = (
   onSuccess?: (updateValues: UpdateProfileRes) => void,
-  onError?: (msg: string, err?: unknown) => void
+  onError?: (msg: string, err?: unknown) => void,
 ) => {
   // const { user, isAuthenticated } = useAuth();
   const firestore = useFirestore();
@@ -43,19 +43,26 @@ export const useUpdateProfile = (
       if (err instanceof FirebaseError) {
         formattedErr = { code: err.code, message: err.message };
       } else {
-        formattedErr = { code: 'unknown', message: 'An error occurred. See console for details.' };
+        formattedErr = {
+          code: 'unknown',
+          message: 'An error occurred. See console for details.',
+        };
       }
       setError(formattedErr);
       if (onError) onError(formattedErr.message, err);
     },
-    [onError]
+    [onError],
   );
 
   const updateDBUser = useCallback(
     async (args: UpdateProfileRes) => {
       try {
         const userRef = doc(usersCollection(firestore), user.uid);
-        await updateDoc(userRef, { ...args, 'metadata.updated': Timestamp.now() });
+        // @ts-expect-error TODO: fix type
+        await updateDoc(userRef, {
+          ...args,
+          'metadata.updated': Timestamp.now(),
+        });
         if (onSuccess) onSuccess(args);
       } catch (err: any) {
         let msg = 'updated auth user. failed to update DB user record.';
@@ -63,13 +70,16 @@ export const useUpdateProfile = (
         if (onError) onError(msg, err);
       }
     },
-    [firestore, user]
+    [firestore, user],
   );
 
   const updateProfile = useCallback(
     async (args: UpdateProfileArgs) => {
       if (!user) {
-        updateError({ code: 'auth-required', message: 'Must be signed in to update profile' });
+        updateError({
+          code: 'auth-required',
+          message: 'Must be signed in to update profile',
+        });
         if (onError) onError('must be signed in');
         return;
       }
@@ -83,7 +93,8 @@ export const useUpdateProfile = (
           updateBody.displayName = displayName;
         }
         if (args.photoURL) updateBody.photoURL = args.photoURL;
-        if (Object.keys(updateBody).length < 1) throw new Error('missing values to update profile');
+        if (Object.keys(updateBody).length < 1)
+          throw new Error('missing values to update profile');
 
         await updateAuthProfile(user, updateBody);
         await user.getIdToken(true);
@@ -94,7 +105,7 @@ export const useUpdateProfile = (
         updateError(err);
       }
     },
-    [onSuccess, onError, updateError, updateDBUser, user]
+    [onSuccess, onError, updateError, updateDBUser, user],
   );
 
   return { updateProfile, error };
