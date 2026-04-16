@@ -9,11 +9,15 @@ import type {
   DraftPolicyClaim,
   ILocation,
   Organization,
+  PaymentMethod,
   Policy,
   PolicyClaim,
   Quote,
+  RatingData,
   Receivable,
   Submission,
+  Tax,
+  TaxTransaction,
   TCollection,
 } from '@idemand/common';
 import { Collection } from '@idemand/common';
@@ -27,13 +31,9 @@ import {
   License,
   Moratorium,
   NotifyRegistration,
-  PaymentMethod,
   PortfolioSubmission,
   PropertyDataRes,
-  RatingData,
   StageImportRecord,
-  TaxTransaction,
-  TTax,
   User,
   UserAccess,
   UserClaims,
@@ -94,7 +94,7 @@ export const notifyRegistration = (db: Firestore) =>
   );
 
 export const taxesCollection = (db: Firestore) =>
-  createCollection<TTax, TTax>(db, 'taxes');
+  createCollection<Tax, Tax>(db, 'taxes');
 
 export const statesCollection = (db: Firestore) =>
   createCollection<ActiveStates, ActiveStates>(db, 'states');

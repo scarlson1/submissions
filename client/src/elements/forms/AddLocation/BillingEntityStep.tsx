@@ -1,7 +1,8 @@
 import type { BillingEntity, Policy } from '@idemand/common';
 import { AddCardRounded } from '@mui/icons-material';
 import { Box, Typography } from '@mui/material';
-import { PaymentMethod, policiesCollection } from 'common';
+import type { VerifyEPayTokenResponse } from 'api';
+import { policiesCollection } from 'common';
 import { FormikSelect, FormikWizardNavButtons } from 'components/forms';
 import { doc, setDoc } from 'firebase/firestore';
 import { Form, Formik, FormikProps } from 'formik';
@@ -83,7 +84,7 @@ export const BillingEntityStep = ({
   );
 
   const handleMethodAdded = useCallback(
-    async (pmtMethod: PaymentMethod) => {
+    async (pmtMethod: VerifyEPayTokenResponse) => {
       // add billing entity to policy
       try {
         const policyRef = doc(policiesCollection(firestore), policyId);

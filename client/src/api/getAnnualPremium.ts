@@ -1,5 +1,9 @@
-import type { CommSource, Coords, Limits } from '@idemand/common';
-import { ValueByRiskType } from 'common';
+import type {
+  CommSource,
+  Coords,
+  Limits,
+  ValueByRiskType,
+} from '@idemand/common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface RatingInputs {

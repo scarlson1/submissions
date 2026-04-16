@@ -34,6 +34,10 @@ export type PartialRequired<T, K extends keyof T> = Partial<T> & {
 
 export type Maybe<T> = T | null | undefined;
 
+export type Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
 export type Concrete<Type> = {
   [Property in keyof Type]-?: NonNullable<Type[Property]>;
 };
@@ -49,6 +53,38 @@ export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
 export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> &
   Omit<T, K>;
+
+export type FlattenObjectKeys<
+  T extends Record<string, any>,
+  Key = keyof T,
+> = Key extends string
+  ? T[Key] extends Record<string, any>
+    ? `${Key}.${FlattenObjectKeys<T[Key]>}`
+    : `${Key}`
+  : never;
+
+// const example = {
+//   a: {
+//     b: 'red',
+//     c: 'green',
+//   },
+//   d: {
+//     e: 'blue',
+//     f: 'yellow',
+//   },
+//   g: 'pink',
+//   h: {
+//     i: {
+//       j: {
+//         k: 'gray',
+//         l: 'grey',
+//       },
+//     },
+//   },
+// } as const;
+
+// type FlatKeys = FlattenObjectKeys<typeof example>;
+// type FlatKeys = "g" | "a.b" | "a.c" | "d.e" | "d.f" | "h.i.j.k" | "h.i.j.l"
 
 //  When using TypeScript interfaces, a field that uses serverTimestamp() should be typed as FieldValue or Timestamp depending on whether it is being written or rea
 
@@ -171,6 +207,9 @@ export const ValueByRiskType = z.object({
 });
 export type ValueByRiskType = z.infer<typeof ValueByRiskType>;
 
+const FloodPerilCategories = ValueByRiskType.keyof();
+export type FloodPerilCategories = z.infer<typeof FloodPerilCategories>;
+
 // TODO: replace with NamedInsured used in policy
 export const NamedInsuredDetails = z.object({
   firstName: z.string(),
@@ -232,6 +271,9 @@ export const Limits = z.object({
 });
 export type Limits = z.infer<typeof Limits>;
 
+export const LimitKey = Limits.keyof();
+export type LimitKey = z.infer<typeof LimitKey>;
+
 export const RCVs = z.object({
   building: z.number().int().min(100000),
   otherStructures: z.number().int().nonnegative(),
@@ -241,8 +283,8 @@ export const RCVs = z.object({
 });
 export type RCVs = z.infer<typeof RCVs>;
 
-export const RCVKeys = RCVs.keyof();
-export type RCVKeys = z.infer<typeof RCVKeys>;
+export const RCVKey = RCVs.keyof();
+export type RCVKey = z.infer<typeof RCVKey>;
 
 export const Deductible = z.number().int().min(1000);
 export type Deductible = z.infer<typeof Deductible>;

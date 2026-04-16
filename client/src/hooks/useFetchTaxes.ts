@@ -1,19 +1,19 @@
 import { useCallback, useMemo, useState } from 'react';
 import invariant from 'tiny-invariant';
 
-import type { State } from '@idemand/common';
+import type { FeeItem, State, TaxItem } from '@idemand/common';
 import { StateTaxResponse, TTaxRequestConfig } from 'api';
-import { TFeeItem, TTaxItem, TTransactionType } from 'common';
+import { TTransactionType } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { sumByTypes } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
 import { useCloudRunApi } from './useCloudRunApi';
 
 export const useFetchTaxes = (
-  onSuccess?: (taxes: TTaxItem[]) => void,
+  onSuccess?: (taxes: TaxItem[]) => void,
   onError?: (msg: string, err: any) => void,
 ) => {
-  const [currTaxes, setCurrTaxes] = useState<TTaxItem[]>([]);
+  const [currTaxes, setCurrTaxes] = useState<TaxItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toast = useAsyncToast({ position: 'bottom-center' });
@@ -32,13 +32,13 @@ export const useFetchTaxes = (
       invariant(annualPremium, 'annual premium required');
       invariant(address?.state, 'state required');
 
-      const mgaFees = sumByTypes<TFeeItem>(
+      const mgaFees = sumByTypes<FeeItem>(
         fees,
         'displayName',
         'MGA Fee',
         'value',
       );
-      const inspectionFees = sumByTypes<TFeeItem>(
+      const inspectionFees = sumByTypes<FeeItem>(
         fees,
         'displayName',
         'Inspection Fee',
@@ -60,7 +60,7 @@ export const useFetchTaxes = (
         const data = await getTaxes({ data: body });
         // console.log('TAXES: ', data);
 
-        let newTaxes: TTaxItem[] = [];
+        let newTaxes: TaxItem[] = [];
         if (data && data.lineItems?.length > 0) {
           // TODO: fix typing
           // @ts-ignore

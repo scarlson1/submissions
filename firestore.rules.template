@@ -563,7 +563,7 @@ service cloud.firestore {
         incomingData().address.postal is string
     }
 
-    function hasLimitKeys() {
+    function hasLimitKey() {
       return incomingData().limits.keys().hasAll(['limitA', 'limitB', 'limitC', 'limitD']);
     }
 

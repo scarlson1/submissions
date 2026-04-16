@@ -1,4 +1,8 @@
-import { AccountBalanceRounded, CloseRounded, CreditCardRounded } from '@mui/icons-material';
+import {
+  AccountBalanceRounded,
+  CloseRounded,
+  CreditCardRounded,
+} from '@mui/icons-material';
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
 import {
   Box,
@@ -23,6 +27,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { object, string } from 'yup';
 
+import type { EPayVerifiedResponse } from '@idemand/common';
 import { VerifyEPayTokenResponse } from 'api';
 import { FormikTextField } from 'components/forms';
 import { useAuth } from 'context/AuthContext';
@@ -89,7 +94,13 @@ const addPaymentMethodValidation = object().shape({
   routingNumber: string().when(['cardPaymentMethod'], {
     is: false,
     then: () =>
-      string().required().test('routing-number', 'Invalid routing number', validateRoutingNumber),
+      string()
+        .required()
+        .test(
+          'routing-number',
+          'Invalid routing number',
+          validateRoutingNumber,
+        ),
     otherwise: () => string().notRequired(),
   }),
   accountNumber: string().when(['cardPaymentMethod'], {
@@ -107,7 +118,7 @@ export const Transition = forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement;
   },
-  ref: React.Ref<unknown>
+  ref: React.Ref<unknown>,
 ) {
   return <Slide direction='up' ref={ref} {...props} />;
 });
@@ -120,14 +131,18 @@ export interface AddPaymentMethodValues {
   cardExpDate: string;
   cvc: string;
   postalCode: string;
-  accountType: 'PersonalChecking' | 'PersonalSavings' | 'CorporateChecking' | 'CorporateSavings';
+  accountType:
+    | 'PersonalChecking'
+    | 'PersonalSavings'
+    | 'CorporateChecking'
+    | 'CorporateSavings';
   routingNumber: string;
   accountNumber: string;
   cardPaymentMethod: boolean;
 }
 
 export interface AddPaymentDialogProps {
-  cb?: (data: VerifyEPayTokenResponse) => void;
+  cb?: (data: EPayVerifiedResponse) => void;
   openButtonText?: string;
   initialValues?: AddPaymentMethodValues;
   buttonProps?: ButtonProps;
@@ -162,7 +177,9 @@ const DEV_INITIAL_VALUES: AddPaymentMethodValues = {
   cardPaymentMethod: false,
 };
 const DEFAULT_INITIAL_VALUES =
-  import.meta.env.VITE_DEV === 'true' ? DEV_INITIAL_VALUES : PROD_INITIAL_VALUES;
+  import.meta.env.VITE_DEV === 'true'
+    ? DEV_INITIAL_VALUES
+    : PROD_INITIAL_VALUES;
 
 export const AddPaymentDialog = ({
   cb,
@@ -191,7 +208,7 @@ export const AddPaymentDialog = ({
       // toast.success(`Payment method added! (${data.maskedAccountNumber})`);
       if (cb) cb(data);
       handleClose();
-    }
+    },
     // (msg, err) => toast.error(msg)
   );
 
@@ -210,12 +227,12 @@ export const AddPaymentDialog = ({
   const handleSubmit = useCallback(
     async (
       values: AddPaymentMethodValues,
-      { setSubmitting }: FormikHelpers<AddPaymentMethodValues>
+      { setSubmitting }: FormikHelpers<AddPaymentMethodValues>,
     ) => {
       await verifyPaymentMethod(values);
       setSubmitting(false);
     },
-    [verifyPaymentMethod]
+    [verifyPaymentMethod],
   );
 
   return (
@@ -246,8 +263,15 @@ export const AddPaymentDialog = ({
             dirty,
           }: FormikProps<AddPaymentMethodValues>) => (
             <Form>
-              <DialogTitle sx={{ display: 'flex', alignItems: 'center' }} component='div'>
-                <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
+              <DialogTitle
+                sx={{ display: 'flex', alignItems: 'center' }}
+                component='div'
+              >
+                <Typography
+                  sx={{ ml: 2, flex: 1 }}
+                  variant='h6'
+                  component='div'
+                >
                   Add Payment Method
                 </Typography>
                 <LoadingButton
@@ -277,16 +301,29 @@ export const AddPaymentDialog = ({
                 </Typography>
                 <Grid container {...GRID_PROPS} sx={{ mt: 2, mb: 4 }}>
                   <Grid xs={12} sm={6}>
-                    <FormikTextField name='payerName' label='Payer Name' required fullWidth />
+                    <FormikTextField
+                      name='payerName'
+                      label='Payer Name'
+                      required
+                      fullWidth
+                    />
                   </Grid>
                   <Grid xs={12} sm={6}>
-                    <FormikTextField name='payerEmail' label='Payer Email' required fullWidth />
+                    <FormikTextField
+                      name='payerEmail'
+                      label='Payer Email'
+                      required
+                      fullWidth
+                    />
                   </Grid>
                 </Grid>
                 <TabContext value={values.cardPaymentMethod ? '0' : '1'}>
                   <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <TabList
-                      onChange={(event: React.SyntheticEvent, newValue: string) => {
+                      onChange={(
+                        event: React.SyntheticEvent,
+                        newValue: string,
+                      ) => {
                         setFieldValue('cardPaymentMethod', newValue === '0');
                       }}
                       aria-label='payment method type'
@@ -310,7 +347,11 @@ export const AddPaymentDialog = ({
                   </Box>
                   <TabPanel value='0' sx={{ px: 0, mx: 0 }}>
                     <Box>
-                      <Typography variant='overline' gutterBottom sx={{ px: 3 }}>
+                      <Typography
+                        variant='overline'
+                        gutterBottom
+                        sx={{ px: 3 }}
+                      >
                         Payment Method Details
                       </Typography>
                       <FormikCardDetails gridProps={GRID_PROPS} />
@@ -318,7 +359,11 @@ export const AddPaymentDialog = ({
                   </TabPanel>
                   <TabPanel value='1' sx={{ px: 0, mx: 0 }}>
                     <Box>
-                      <Typography variant='overline' gutterBottom sx={{ px: 3 }}>
+                      <Typography
+                        variant='overline'
+                        gutterBottom
+                        sx={{ px: 3 }}
+                      >
                         Payment Method Details
                       </Typography>
                       <FormikBankFields gridProps={GRID_PROPS} />

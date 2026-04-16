@@ -8,8 +8,7 @@ import {
 import { useCallback, useMemo, useState } from 'react';
 import { useFirestore } from 'reactfire';
 
-import type { TCollection, WithId } from '@idemand/common';
-import { RatingData } from 'common';
+import type { RatingData, TCollection, WithId } from '@idemand/common';
 
 // TODO: fix - not working
 

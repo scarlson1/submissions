@@ -1,5 +1,5 @@
 import { File, GetSignedUrlResponse } from '@google-cloud/storage';
-import { SRRes } from '@idemand/common';
+import { SRRes, type ValueByRiskType } from '@idemand/common';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { addDays } from 'date-fns';
 import { getStorage } from 'firebase-admin/storage';
@@ -17,7 +17,6 @@ import {
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-  ValueByRiskType,
 } from '../common/index.js';
 import { extractSRAALs } from '../modules/rating/getAALs.js';
 import { getPremium } from '../modules/rating/index.js';

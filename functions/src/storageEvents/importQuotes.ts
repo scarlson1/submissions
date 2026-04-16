@@ -7,14 +7,13 @@ import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { StorageEvent } from 'firebase-functions/v2/storage';
 
-import { Collection, Quote } from '@idemand/common';
+import { Collection, Quote, type StagedQuoteImport } from '@idemand/common';
 import {
   getCardFee,
   hostingBaseURL,
   importSummaryCollection,
   resendKey,
   stagedImportsCollection,
-  StagedQuoteImport,
 } from '../common/index.js';
 import { createRatingDoc, fetchTaxes } from '../modules/db/index.js';
 import { getRCVs, sumFeesTaxesPremium } from '../modules/rating/index.js';

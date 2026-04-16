@@ -26,6 +26,7 @@ import {
   type InitRatingValues,
   type Nullable,
   type Organization,
+  type RatingPropertyData,
 } from '@idemand/common';
 import {
   addressValidationActiveStatesNested,
@@ -37,7 +38,6 @@ import {
   limitsValidationNested,
   orgsCollection,
   priorLossValidation,
-  RatingPropertyData,
   reviewValidation,
   submissionsCollection,
   TPriorLossCount,

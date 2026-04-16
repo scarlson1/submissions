@@ -1,7 +1,6 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import type { CommSource, Limits } from '@idemand/common';
-import { ValueByRiskType } from 'common';
+import type { CommSource, Limits, ValueByRiskType } from '@idemand/common';
 
 export interface CalcQuoteRequest {
   limits: Limits;

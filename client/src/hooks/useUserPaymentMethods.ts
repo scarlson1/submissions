@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
-import { getFirestore, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
+import { getFirestore, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 
-import { PaymentMethod, paymentMethodsCollection } from 'common';
+import type { PaymentMethod } from '@idemand/common';
+import { paymentMethodsCollection } from 'common';
 import { useAuth } from 'context/AuthContext';
 
-export const useUserPaymentMethods = (onError?: (err: any, msg: string) => void) => {
+export const useUserPaymentMethods = (
+  onError?: (err: any, msg: string) => void,
+) => {
   const { user } = useAuth();
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
 
@@ -14,7 +17,7 @@ export const useUserPaymentMethods = (onError?: (err: any, msg: string) => void)
 
     const q = query(
       paymentMethodsCollection(getFirestore(), user.uid),
-      orderBy('metadata.created', 'desc')
+      orderBy('metadata.created', 'desc'),
     );
 
     const unsubscribe = onSnapshot(
@@ -25,9 +28,10 @@ export const useUserPaymentMethods = (onError?: (err: any, msg: string) => void)
       },
       (err: FirebaseError) => {
         console.log('ERROR FETCHING PAYMENT METHODS: ', err);
-        if (onError) onError(err, `Error fetching payment methods. ${err.message}.`);
+        if (onError)
+          onError(err, `Error fetching payment methods. ${err.message}.`);
         setMethods([]);
-      }
+      },
     );
 
     return () => unsubscribe();

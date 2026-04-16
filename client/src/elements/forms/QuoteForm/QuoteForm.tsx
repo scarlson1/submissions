@@ -48,6 +48,9 @@ import {
   Submission,
   TaxItem,
   WithId,
+  type FeeItem,
+  type RatingPropertyData,
+  type ValueByRiskType,
 } from '@idemand/common';
 import {
   AgencyDetails,
@@ -56,12 +59,8 @@ import {
   NamedInsuredDetails,
   orgsCollection,
   PriorLossCount,
-  RatingPropertyData,
-  TFeeItem,
-  TTaxItem,
   typesenseIndexName,
   User,
-  ValueByRiskType,
 } from 'common';
 import { ErrorFallback, IconButtonMenu } from 'components';
 import {
@@ -124,6 +123,7 @@ import { getQuoteValidation } from './validation';
 
 // TODO: store subproducer comm /policies/{policyId}/secure/rating (switch to dev branch ??)
 
+// TODO: move to common ??
 export interface QuoteValues {
   address: Address;
   coordinates: Nullable<Coords>;
@@ -132,7 +132,7 @@ export interface QuoteValues {
   deductible: number;
   effectiveExceptionRequested: boolean;
   effectiveDate: Date;
-  fees: TFeeItem[];
+  fees: FeeItem[];
   taxes: TaxItem[]; // TTaxItem[];
   annualPremium: number | null;
   // subproducerCommission: number;
@@ -195,7 +195,7 @@ export const QuoteForm = ({
   });
 
   const { fetchTaxes, loading: taxesLoading } = useFetchTaxes(
-    (newTaxes: TTaxItem[]) => {
+    (newTaxes: TaxItem[]) => {
       setTimeout(() => {
         formikRef.current?.setFieldValue('taxes', [...newTaxes]);
         setTimeout(() => {

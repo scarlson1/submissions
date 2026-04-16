@@ -42,16 +42,13 @@ import { Location } from 'react-router-dom';
 import type {
   Address,
   CompressedAddress,
+  FeeItem,
+  FlattenObjectKeys,
   Policy,
+  TaxItem,
   Timestamp,
 } from '@idemand/common';
-import {
-  FlattenObjectKeys,
-  Path,
-  TFeeItem,
-  TRoundingType,
-  TTaxItem,
-} from 'common';
+import { Path, TRoundingType } from 'common';
 import {
   AddressComponent,
   AddressComponentType,
@@ -668,8 +665,8 @@ export const flattenObj = <T extends Record<string, any>>(obj: T) => {
 };
 
 export function sumFeesTaxesPremium(
-  fees: TFeeItem[],
-  taxes: TTaxItem[],
+  fees: FeeItem[],
+  taxes: TaxItem[],
   premium: number,
 ) {
   const feeTotal = sumArr(fees.map((f) => f.value));

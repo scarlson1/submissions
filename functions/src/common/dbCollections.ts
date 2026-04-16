@@ -11,7 +11,9 @@ import {
   swissReResCollection,
   taxesCollection,
   usersCollection,
+  type ImportSummary,
   type PolicyClaim,
+  type StageImportRecord,
 } from '@idemand/common';
 import {
   CollectionReference,
@@ -24,11 +26,9 @@ import {
   ChangeRequest,
   Charge,
   Disclosure,
-  ImportSummary,
   PaymentMethod,
   PropertyDataRes,
   RatingData,
-  StageImportRecord,
   Transaction,
 } from '../common/index.js';
 import { ClaimsDocData } from '../firestoreEvents/index.js';

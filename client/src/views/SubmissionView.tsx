@@ -33,10 +33,10 @@ import { useFirestore } from 'reactfire';
 
 import {
   SubmissionStatus,
+  type RatingData,
   type Submission,
   type TCollection,
 } from '@idemand/common';
-import { RatingData } from 'common';
 import { ClaimsGuard } from 'components';
 import {
   useAsyncToast,

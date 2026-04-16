@@ -1,0 +1,42 @@
+name: Test Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'pipeline/**'
+      - 'common/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'pipeline/**'
+      - 'common/**'
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @idemand/common
+        run: pnpm --filter @idemand/common build
+
+      - name: Run tests
+        run: pnpm --filter pipeline test

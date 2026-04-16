@@ -15,15 +15,17 @@ import {
   PolicyLocation,
   PriorLossCount,
   Product,
-  Quote,
   Timestamp,
   Totals,
   TransactionType,
   type Address,
   type Coords,
   type GeoPoint,
+  type Limits,
   type Nullable,
   type OptionalKeys,
+  type RCVs,
+  type ValueByRiskType,
   type WithRequired,
 } from '@idemand/common';
 import { Request } from 'express';
@@ -478,57 +480,6 @@ export interface Organization {
   authProviders: AuthProviders[];
   photoURL?: string | null;
 }
-
-// export type Product = 'flood' | 'wind';
-
-// export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
-// export interface Limits {
-//   limitA: number;
-//   limitB: number;
-//   limitC: number;
-//   limitD: number;
-// }
-
-export const Limits = z.object({
-  limitA: z
-    .number()
-    .int()
-    .min(100000, 'limitA must be > $100k')
-    .max(1000000, 'limitA must be < $1M'),
-  limitB: z.number().int().max(1000000, 'limitB must be < $1M'),
-  limitC: z.number().int().max(1000000, 'limitC must be < $1M'),
-  limitD: z.number().int().max(1000000, 'limitD must be < $1M'),
-});
-export type Limits = z.infer<typeof Limits>;
-
-const LimitTypes = Limits.keyof();
-export type LimitTypes = z.infer<typeof LimitTypes>;
-
-export const RCVs = z.object({
-  building: z.number().int().min(100000),
-  otherStructures: z.number().int().nonnegative(),
-  contents: z.number().int().nonnegative(),
-  BI: z.number().int().nonnegative(),
-  total: z.number().int().nonnegative(),
-});
-export type RCVs = z.infer<typeof RCVs>;
-
-export const RCVKeys = RCVs.keyof();
-export type RCVKeys = z.infer<typeof RCVKeys>;
-
-export const Deductible = z.number().int().min(1000);
-export type Deductible = z.infer<typeof Deductible>;
-
-// export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
-// export type ValueByRiskType = Record<FloodPerilCategories, number>;
-export const ValueByRiskType = z.object({
-  inland: z.number(),
-  surge: z.number(),
-  tsunami: z.number(),
-});
-export type ValueByRiskType = z.infer<typeof ValueByRiskType>;
-const FloodPerilCategories = ValueByRiskType.keyof();
-export type FloodPerilCategories = z.infer<typeof FloodPerilCategories>;
 
 // TODO: derive getAAL props from RatingPropertyData ??
 const currentYear = new Date().getFullYear();
@@ -1559,56 +1510,56 @@ export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
 // TODO: swiss re property data res type
 export type PropertyDataRes = Record<string, any>;
 
-export interface ImportSummary {
-  targetCollection: string;
-  importDocIds: string[];
-  docCreationErrors: any[];
-  invalidRows: { rowNum: string | number; rowData: Record<string, any> }[];
-  metadata: {
-    created: Timestamp;
-  };
-}
+// export interface ImportSummary {
+//   targetCollection: string;
+//   importDocIds: string[];
+//   docCreationErrors: any[];
+//   invalidRows: { rowNum: string | number; rowData: Record<string, any> }[];
+//   metadata: {
+//     created: Timestamp;
+//   };
+// }
 
-export interface ImportMeta {
-  reviewBy?: {
-    userId: string | null;
-    name: string | null;
-  };
-  status: 'imported' | 'new' | 'declined';
-  eventId?: string;
-}
+// export interface ImportMeta {
+//   reviewBy?: {
+//     userId: string | null;
+//     name: string | null;
+//   };
+//   status: 'imported' | 'new' | 'declined';
+//   eventId?: string;
+// }
 
 // TODO: fix types
 
-export interface PolicyImportMeta extends ImportMeta {
-  targetCollection: 'policies'; // COLLECTIONS.POLICIES;
-}
+// export interface PolicyImportMeta extends ImportMeta {
+//   targetCollection: 'policies'; // COLLECTIONS.POLICIES;
+// }
 
-export type StagedPolicyImport = Policy & {
-  importMeta: PolicyImportMeta;
-  lcnIdMap: Record<string, string>;
-};
+// export type StagedPolicyImport = Policy & {
+//   importMeta: PolicyImportMeta;
+//   lcnIdMap: Record<string, string>;
+// };
 
-export interface TransactionsImportMeta extends ImportMeta {
-  targetCollection: 'transactions'; // Collection.enum.transaction; // COLLECTIONS.TRANSACTIONS;
-}
+// export interface TransactionsImportMeta extends ImportMeta {
+//   targetCollection: 'transactions'; // Collection.enum.transaction; // COLLECTIONS.TRANSACTIONS;
+// }
 
-export type StagedTransactionImport = Transaction & {
-  importMeta: TransactionsImportMeta;
-};
+// export type StagedTransactionImport = Transaction & {
+//   importMeta: TransactionsImportMeta;
+// };
 
-export interface QuoteImportMeta extends ImportMeta {
-  targetCollection: 'quotes'; // COLLECTIONS.QUOTES;
-}
+// export interface QuoteImportMeta extends ImportMeta {
+//   targetCollection: 'quotes'; // COLLECTIONS.QUOTES;
+// }
 
-export type StagedQuoteImport = Quote & {
-  importMeta: QuoteImportMeta;
-};
+// export type StagedQuoteImport = Quote & {
+//   importMeta: QuoteImportMeta;
+// };
 
-export type StageImportRecord =
-  | StagedPolicyImport
-  | StagedTransactionImport
-  | StagedQuoteImport;
+// export type StageImportRecord =
+//   | StagedPolicyImport
+//   | StagedTransactionImport
+//   | StagedQuoteImport;
 
 export interface EmailRecord extends CreateMsgContentProps {
   metadata: {

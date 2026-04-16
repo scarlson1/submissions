@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { z } from 'zod';
 
-import { Product, State, type WithId } from '@idemand/common';
-import { LineOfBusiness, TransactionType, TTax, TTaxItemName } from 'common';
+import { Product, State, type Tax, type WithId } from '@idemand/common';
+import { LineOfBusiness, TransactionType, TTaxItemName } from 'common';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -17,7 +17,7 @@ export const ApiClient = axios.create({
 // TODO: interceptors (handle express validator errors)
 
 interface TaxResLineItem extends Omit<
-  WithId<TTax>,
+  WithId<Tax>,
   'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'
 > {
   displayName: TTaxItemName;
