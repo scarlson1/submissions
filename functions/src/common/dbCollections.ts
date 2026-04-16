@@ -11,6 +11,7 @@ import {
   swissReResCollection,
   taxesCollection,
   usersCollection,
+  type ChangeRequest,
   type ImportSummary,
   type PolicyClaim,
   type StageImportRecord,
@@ -23,7 +24,6 @@ import {
 import Stripe from 'stripe';
 import {
   AgencyApplication,
-  ChangeRequest,
   Charge,
   Disclosure,
   PaymentMethod,

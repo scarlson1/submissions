@@ -8,6 +8,7 @@ import {
 import type {
   DraftPolicyClaim,
   ILocation,
+  Invite,
   Organization,
   PaymentMethod,
   Policy,
@@ -27,7 +28,6 @@ import {
   ChangeRequest,
   Charge,
   ImportSummary,
-  Invite,
   License,
   Moratorium,
   NotifyRegistration,

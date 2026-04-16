@@ -1,13 +1,15 @@
-import { ILocation } from '@idemand/common';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import {
+  ILocation,
+  type LocationChangeValues,
+  type PolicyChangeRequest,
+} from '@idemand/common';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { isEmpty } from 'lodash-es';
 import {
-  DeepPartial,
-  LocationChangeValues,
-  PolicyChangeRequest,
   changeRequestsCollection,
+  DeepPartial,
   getReportErrorFn,
   locationsCollection,
   policiesCollection,
@@ -18,11 +20,11 @@ import {
 } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
 import {
-  GetPremiumProps,
   calcPolicyEndorsementChanges,
   getAALs,
   getGetPremProps,
   getPremium,
+  GetPremiumProps,
   requiresRerate,
   validateAALs,
   validateCoords,
@@ -59,7 +61,10 @@ interface CalcLocationChangesProps {
   policyId: string;
 }
 
-const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationChangesProps>) => {
+const calcLocationChanges = async ({
+  data,
+  auth,
+}: CallableRequest<CalcLocationChangesProps>) => {
   info(`Calc location changes called`, { ...data });
 
   requireAuth(auth);
@@ -70,23 +75,33 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
 
   const db = getFirestore();
   const policiesCol = policiesCollection(db);
-  const changeRequestCol = changeRequestsCollection<PolicyChangeRequest>(db, policyId);
+  const changeRequestCol = changeRequestsCollection<PolicyChangeRequest>(
+    db,
+    policyId,
+  );
   // const locationsCol = locationsCollection(db);
   const ratingCol = ratingDataCollection(db);
 
   const policyRef = policiesCol.doc(policyId);
   const changeReqRef = changeRequestCol.doc(requestId);
-  const [policySnap, changeReqSnap] = await Promise.all([policyRef.get(), changeReqRef.get()]);
+  const [policySnap, changeReqSnap] = await Promise.all([
+    policyRef.get(),
+    changeReqRef.get(),
+  ]);
 
   const policy = policySnap.data();
   const changeRequest = changeReqSnap.data();
 
   validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
-  validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
+  validate(
+    changeRequest,
+    'not-found',
+    `change request does not exist (ID: ${requestId})`,
+  );
   validate(
     changeRequest.status === 'draft',
     'failed-precondition',
-    'change request already submitted. please create a new one.'
+    'change request already submitted. please create a new one.',
   );
   const { trxType, scope, requestEffDate } = changeRequest;
 
@@ -95,14 +110,22 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
   // remove once using new schema ??
   validate(trxType, 'failed-precondition', 'transaction type required');
   validate(scope, 'failed-precondition', 'scope required');
-  validate(requestEffDate, 'failed-precondition', 'request effective date required');
+  validate(
+    requestEffDate,
+    'failed-precondition',
+    'request effective date required',
+  );
 
   // TODO: delete once moved to multi-location interface
-  if (scope !== 'location') throw new HttpsError('internal', 'scope must be "location"');
+  if (scope !== 'location')
+    throw new HttpsError('internal', 'scope must be "location"');
   const lcnId = changeRequest.locationId;
   validate(lcnId, 'failed-precondition', 'missing locationId');
   if (trxType !== 'endorsement')
-    throw new HttpsError('unimplemented', 'only set up to handle trxType = "endorsement"');
+    throw new HttpsError(
+      'unimplemented',
+      'only set up to handle trxType = "endorsement"',
+    );
 
   try {
     // TODO: loop through form values for each location (once stored as array)
@@ -125,7 +148,9 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
       if (s.exists) locationsObj[s.id] = s.data() as ILocation;
     });
 
-    info(`Location docs retrieved - calculating location rating`, { locationsObj });
+    info(`Location docs retrieved - calculating location rating`, {
+      locationsObj,
+    });
 
     // once using multi-location schema
     let endorsementChanges: Record<string, DeepPartial<ILocation>> = {};
@@ -143,11 +168,12 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     // add to "endorsementChanges" and "amendmentChanges" object (for multi-location purposes)
     if (!isEmpty(providedEndorsementChanges))
       endorsementChanges[lcnId] = providedEndorsementChanges;
-    if (!isEmpty(providedAmendmentChanges)) amendmentChanges[lcnId] = providedAmendmentChanges;
+    if (!isEmpty(providedAmendmentChanges))
+      amendmentChanges[lcnId] = providedAmendmentChanges;
 
     // check for limit or deductible change
-    const requireReratingEntries = Object.entries(endorsementChanges).filter(([lcnId, l]) =>
-      requiresRerate(Object.keys(l))
+    const requireReratingEntries = Object.entries(endorsementChanges).filter(
+      ([lcnId, l]) => requiresRerate(Object.keys(l)),
     );
 
     // return early if only amendment changes (no rerating required)
@@ -157,7 +183,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
           endorsementChanges, // does endorsement changes overwrite existing object when merges = true ??
           amendmentChanges,
         },
-        { merge: true }
+        { merge: true },
       );
       return amendmentChanges;
     }
@@ -200,7 +226,10 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
           replacementCost: RCVs.building,
           limits,
           deductible: lcnChanges.deductible, // || lcn.deductible,
-          coordinates: { latitude: lcn.coordinates.latitude, longitude: lcn.coordinates.longitude },
+          coordinates: {
+            latitude: lcn.coordinates.latitude,
+            longitude: lcn.coordinates.longitude,
+          },
           numStories: lcn.ratingPropertyData?.numStories || 1,
         });
       } catch (err: any) {
@@ -216,7 +245,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
         lcn,
         limits,
         AALsRes.AALs,
-        prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15
+        prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15,
       );
     } else {
       // TODO: unreachable ?? eff/exp dates removed from change request
@@ -227,7 +256,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
         lcn,
         lcn.limits,
         AALs,
-        prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15
+        prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15,
       );
     }
 
@@ -244,14 +273,17 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     };
 
     const { premiumData } = result;
-    verify(premiumData?.annualPremium && premiumData?.annualPremium > 100, 'premium < 100');
+    verify(
+      premiumData?.annualPremium && premiumData?.annualPremium > 100,
+      'premium < 100',
+    );
     // TODO: validate results (premium, etc.)
 
     // new location term premium
     const { termPremium, termDays } = calcTerm(
       premiumData.annualPremium,
       requestEffDate.toDate(),
-      lcn.expirationDate.toDate()
+      lcn.expirationDate.toDate(),
     );
 
     // TODO: reusable function createRatingDoc(location, premResult, ...rest) rest = optional overrides for stuff like deductible, etc.
@@ -306,7 +338,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
         {
           [lcnId]: locationChanges,
         },
-        requestEffDate
+        requestEffDate,
       );
     }
     info(`policy changes (policy ID: ${policyId})`, policyChanges);
@@ -344,7 +376,10 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
   }
 };
 
-export default onCallWrapper<CalcLocationChangesProps>('calclocationchanges', calcLocationChanges);
+export default onCallWrapper<CalcLocationChangesProps>(
+  'calclocationchanges',
+  calcLocationChanges,
+);
 
 const lcnEndKeys = [
   'limits',
@@ -363,7 +398,10 @@ export type AmendmentChangesProvided = Partial<
   Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>
 >;
 
-function changeReqFormValuesToLocationChanges(values: LocationChangeValues, location: ILocation) {
+function changeReqFormValuesToLocationChanges(
+  values: LocationChangeValues,
+  location: ILocation,
+) {
   let providedEndorsementChanges: EndorsementChangesProvided = {};
   let providedAmendmentChanges: AmendmentChangesProvided = {};
 
@@ -374,7 +412,8 @@ function changeReqFormValuesToLocationChanges(values: LocationChangeValues, loca
 
   for (let [key, val] of Object.entries(values)) {
     if (key === 'additionalInterests' && hasAmendments) {
-      const { additionalInsureds, mortgageeInterest } = separateAdditionalInterests(val);
+      const { additionalInsureds, mortgageeInterest } =
+        separateAdditionalInterests(val);
       providedAmendmentChanges['additionalInsureds'] = additionalInsureds;
       providedAmendmentChanges['mortgageeInterest'] = mortgageeInterest;
     }
@@ -388,7 +427,7 @@ function changeReqFormValuesToLocationChanges(values: LocationChangeValues, loca
 }
 
 function getFormValuesFromLocation(
-  lcn: ILocation
+  lcn: ILocation,
 ): Omit<LocationChangeValues, 'requestEffDate' | 'externalId'> {
   return {
     limits: lcn.limits,
@@ -396,7 +435,7 @@ function getFormValuesFromLocation(
     // effectiveDate: lcn.effectiveDate.toDate(),
     additionalInterests: combineToAdditionalInterests(
       lcn.additionalInsureds,
-      lcn.mortgageeInterest
+      lcn.mortgageeInterest,
     ),
   };
 }

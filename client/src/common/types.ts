@@ -15,11 +15,8 @@ import {
   type AuthProviders,
   type BaseDoc,
   type BaseMetadata,
-  type DeepPartial,
-  type DefaultCommission,
   type GeoPoint,
   type ILocation,
-  type InviteStatus,
   type Limits,
   type Nullable,
   type OrgType,
@@ -36,14 +33,8 @@ import {
   type State as TState,
 } from '@idemand/common';
 import { ServerDataGridProps } from 'components';
-import { AddLocationValues } from 'elements/forms';
-import { CancelValues } from 'elements/forms/CancelForm';
-import { LocationChangeValues } from 'elements/forms/LocationChangeForm/LocationChangeWizard';
-import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import {
   TAgencySubmissionStatus,
-  TChangeRequestStatus,
-  TChangeRequestTrxType,
   TLicenseOwner,
   TTransactionType,
   UW_NOTE_CODE,
@@ -884,202 +875,194 @@ export type Transaction =
 //   homeState: string;
 // }
 
-export interface BaseChangeRequest extends BaseDoc {
-  trxType: TChangeRequestTrxType;
-  requestEffDate: Timestamp;
-  policyId: string;
-  userId: string;
-  createdAtPolicyVersion?: number | null;
-  policyChangesCalcVersion?: number | null;
-  mergedWithPolicyVersion?: number | null; // remove in favor of object
-  mergedWithVersions?: Record<string, number>; // TODO: make required once extending with ProcessedPolicyChangeRequest
-  agent: {
-    userId: string | null;
-  };
-  agency: {
-    orgId: string | null;
-  };
-  status: TChangeRequestStatus;
-  processedTimestamp?: Timestamp;
-  processedByUserId?: string;
-  submittedBy: {
-    userId: string | null;
-    displayName: string;
-    email: string | null;
-  };
-  underwriterNotes?: string | null;
-  error?: string;
-  _lastCommitted?: Timestamp;
-}
+// export interface BaseChangeRequest extends BaseDoc {
+//   trxType: TChangeRequestTrxType;
+//   requestEffDate: Timestamp;
+//   policyId: string;
+//   userId: string;
+//   createdAtPolicyVersion?: number | null;
+//   policyChangesCalcVersion?: number | null;
+//   mergedWithPolicyVersion?: number | null; // remove in favor of object
+//   mergedWithVersions?: Record<string, number>; // TODO: make required once extending with ProcessedPolicyChangeRequest
+//   agent: {
+//     userId: string | null;
+//   };
+//   agency: {
+//     orgId: string | null;
+//   };
+//   status: TChangeRequestStatus;
+//   processedTimestamp?: Timestamp;
+//   processedByUserId?: string;
+//   submittedBy: {
+//     userId: string | null;
+//     displayName: string;
+//     email: string | null;
+//   };
+//   underwriterNotes?: string | null;
+//   error?: string;
+//   _lastCommitted?: Timestamp;
+// }
 
-// TODO: same as policy change request --> use policy change request instead (locationID moved inside changes objects)
-// TODO: create extend to create ProcessedPolicyChangeRequest (mergedPolicyVersion, status: 'accepted' 'cancelled', etc., or mergedVersions: { [id]: number })
-export interface PolicyChangeRequest extends BaseChangeRequest {
-  formValues: LocationChangeValues; // TODO: support multi-location. remove req eff date from form values
-  endorsementChanges: Record<
-    string,
-    Pick<
-      ILocation,
-      | 'limits'
-      | 'deductible'
-      | 'annualPremium'
-      | 'ratingDocId'
-      | 'TIV'
-      | 'RCVs'
-      | 'termPremium'
-      | 'termDays'
-    >
-  >;
-  amendmentChanges: Record<
-    string,
-    Partial<Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>>
-  >;
-  locationChanges: PolicyChangeRequest['endorsementChanges'] &
-    PolicyChangeRequest['amendmentChanges'];
-  policyChanges: DeepPartial<Policy>;
-  policyChangesCalcVersion?: number;
-  locationId: string; // TODO: delete once using multi-location (store ID in form values)
-  scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
-  mergedVersions?: Record<string, number | null>;
-}
+// // TODO: same as policy change request --> use policy change request instead (locationID moved inside changes objects)
+// // TODO: create extend to create ProcessedPolicyChangeRequest (mergedPolicyVersion, status: 'accepted' 'cancelled', etc., or mergedVersions: { [id]: number })
+// export interface PolicyChangeRequest extends BaseChangeRequest {
+//   formValues: LocationChangeValues; // TODO: support multi-location. remove req eff date from form values
+//   endorsementChanges: Record<
+//     string,
+//     Pick<
+//       ILocation,
+//       | 'limits'
+//       | 'deductible'
+//       | 'annualPremium'
+//       | 'ratingDocId'
+//       | 'TIV'
+//       | 'RCVs'
+//       | 'termPremium'
+//       | 'termDays'
+//     >
+//   >;
+//   amendmentChanges: Record<
+//     string,
+//     Partial<Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>>
+//   >;
+//   locationChanges: PolicyChangeRequest['endorsementChanges'] &
+//     PolicyChangeRequest['amendmentChanges'];
+//   policyChanges: DeepPartial<Policy>;
+//   policyChangesCalcVersion?: number;
+//   locationId: string; // TODO: delete once using multi-location (store ID in form values)
+//   scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
+//   mergedVersions?: Record<string, number | null>;
+// }
 
-// new cancel request interface - not in use yet
-export interface CancellationRequest extends BaseChangeRequest {
-  trxType: 'cancellation' | 'flat_cancel';
-  formValues: {
-    requestEffDate: Timestamp;
-    cancelReason: CancellationReason;
-  };
-  locationChanges: Record<
-    string,
-    Pick<
-      ILocation,
-      'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
-    >
-  >;
-  cancellationChanges: Record<
-    string,
-    Pick<
-      ILocation,
-      'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
-    >
-  >;
-  policyChanges?: Pick<
-    Policy,
-    | 'termPremium'
-    | 'termDays'
-    | 'price'
-    | 'inStatePremium'
-    | 'outStatePremium'
-    | 'locations'
-    | 'termPremiumWithCancels'
-    | 'taxes'
-    | 'fees' // keep or delete fees ?? (added to remove typescript error in ReviewStep)
-  > &
-    Partial<Pick<Policy, 'cancelEffDate' | 'cancelReason'>>;
-  locationId: string; // TODO: delete once using multi-location (store ID in form values)
-}
+// // new cancel request interface - not in use yet
+// export interface CancellationRequest extends BaseChangeRequest {
+//   trxType: 'cancellation' | 'flat_cancel';
+//   formValues: {
+//     requestEffDate: Timestamp;
+//     cancelReason: CancellationReason;
+//   };
+//   locationChanges: Record<
+//     string,
+//     Pick<
+//       ILocation,
+//       'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+//     >
+//   >;
+//   cancellationChanges: Record<
+//     string,
+//     Pick<
+//       ILocation,
+//       'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+//     >
+//   >;
+//   policyChanges?: Pick<
+//     Policy,
+//     | 'termPremium'
+//     | 'termDays'
+//     | 'price'
+//     | 'inStatePremium'
+//     | 'outStatePremium'
+//     | 'locations'
+//     | 'termPremiumWithCancels'
+//     | 'taxes'
+//     | 'fees' // keep or delete fees ?? (added to remove typescript error in ReviewStep)
+//   > &
+//     Partial<Pick<Policy, 'cancelEffDate' | 'cancelReason'>>;
+//   locationId: string; // TODO: delete once using multi-location (store ID in form values)
+// }
 
-export interface LocationChangeRequest extends BaseChangeRequest {
-  scope: 'location';
-  policyChanges?: DeepPartial<Policy>; // TODO: rename policyChanges
-  locationChanges: DeepPartial<ILocation>;
-  formValues: LocationChangeValues;
-  locationId: string;
-  externalId?: string | null;
-  cancelReason?: CancellationReason;
-  isAddLocationRequest?: false;
-}
+// export interface LocationChangeRequest extends BaseChangeRequest {
+//   scope: 'location';
+//   policyChanges?: DeepPartial<Policy>; // TODO: rename policyChanges
+//   locationChanges: DeepPartial<ILocation>;
+//   formValues: LocationChangeValues;
+//   locationId: string;
+//   externalId?: string | null;
+//   cancelReason?: CancellationReason;
+//   isAddLocationRequest?: false;
+// }
 
-export interface LocationCancellationRequest extends Omit<
-  LocationChangeRequest,
-  'formValues' | 'locationChanges'
-> {
-  trxType: 'cancellation' | 'flat_cancel';
-  cancelReason: CancellationReason;
-  formValues: CancelValues;
-  policyChanges?: DeepPartial<Policy>;
-  locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??)
-  isAddLocationRequest?: false;
-}
+// export interface LocationCancellationRequest extends Omit<
+//   LocationChangeRequest,
+//   'formValues' | 'locationChanges'
+// > {
+//   trxType: 'cancellation' | 'flat_cancel';
+//   cancelReason: CancellationReason;
+//   formValues: CancelValues;
+//   policyChanges?: DeepPartial<Policy>;
+//   locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??)
+//   isAddLocationRequest?: false;
+// }
 
-export interface PolicyChangeRequestOld extends BaseChangeRequest {
-  scope: 'policy';
-  policyChanges?: DeepPartial<Policy>;
-  formValues: PolicyChangeValues;
-  cancelReason?: CancellationReason;
-  isAddLocationRequest?: false;
-}
+// export interface PolicyChangeRequestOld extends BaseChangeRequest {
+//   scope: 'policy';
+//   policyChanges?: DeepPartial<Policy>;
+//   formValues: PolicyChangeValues;
+//   cancelReason?: CancellationReason;
+//   isAddLocationRequest?: false;
+// }
 
-export interface PolicyCancellationRequest extends Omit<
-  PolicyChangeRequestOld,
-  'formValues'
-> {
-  trxType: 'cancellation' | 'flat_cancel';
-  cancelReason: CancellationReason;
-  formValues: CancelValues;
-  isAddLocationRequest?: false;
-  locationId?: null;
-}
+// export interface PolicyCancellationRequest extends Omit<
+//   PolicyChangeRequestOld,
+//   'formValues'
+// > {
+//   trxType: 'cancellation' | 'flat_cancel';
+//   cancelReason: CancellationReason;
+//   formValues: CancelValues;
+//   isAddLocationRequest?: false;
+//   locationId?: null;
+// }
 
-export interface AddLocationRequest extends BaseChangeRequest {
-  trxType: 'endorsement';
-  scope: 'add_location';
-  status:
-    | 'submitted'
-    | 'accepted'
-    | 'denied'
-    | 'under_review'
-    | 'cancelled'
-    | 'error';
-  formValues: AddLocationValues;
-  policyChanges?: DeepPartial<Policy>;
-  locationChanges?: DeepPartial<ILocation>;
-  endorsementChanges?: Record<string, ILocation>; // PolicyChangeRequest['endorsementChanges'];
-  isAddLocationRequest: true;
-  locationId: string;
-}
+// export interface AddLocationRequest extends BaseChangeRequest {
+//   trxType: 'endorsement';
+//   scope: 'add_location';
+//   status:
+//     | 'submitted'
+//     | 'accepted'
+//     | 'denied'
+//     | 'under_review'
+//     | 'cancelled'
+//     | 'error';
+//   formValues: AddLocationValues;
+//   policyChanges?: DeepPartial<Policy>;
+//   locationChanges?: DeepPartial<ILocation>;
+//   endorsementChanges?: Record<string, ILocation>; // PolicyChangeRequest['endorsementChanges'];
+//   isAddLocationRequest: true;
+//   locationId: string;
+// }
 
-export interface DraftAddLocationRequest extends Omit<
-  AddLocationRequest,
-  'formValues' | 'status' | 'locationId'
-> {
-  status: 'draft';
-  formValues: Partial<AddLocationValues>;
-  locationId?: string;
-}
+// export interface DraftAddLocationRequest extends Omit<
+//   AddLocationRequest,
+//   'formValues' | 'status' | 'locationId'
+// > {
+//   status: 'draft';
+//   formValues: Partial<AddLocationValues>;
+//   locationId?: string;
+// }
 
-export type ChangeRequest =
-  | LocationChangeRequest
-  | PolicyChangeRequestOld
-  | LocationCancellationRequest
-  | PolicyCancellationRequest
-  | AddLocationRequest
-  | DraftAddLocationRequest;
+// export type ChangeRequest =
+//   | LocationChangeRequest
+//   | PolicyChangeRequestOld
+//   | LocationCancellationRequest
+//   | PolicyCancellationRequest
+//   | AddLocationRequest
+//   | DraftAddLocationRequest;
 
-// export type DefaultCommission = {
-//   [key in TProduct]?: number;
-// };
-
-// export type DefaultCommission = {
-//   [key in PRODUCT]?: number;
-// };
-
-export interface User extends BaseDoc {
-  displayName?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string | null;
-  phone?: string;
-  photoURL?: string | null;
-  stripeCustomerId?: string;
-  insuredOfAgency?: string[];
-  tenantId?: string | null;
-  orgId?: string | null; // org doc id (not always tenant (ex 'idemand'))
-  orgName?: string | null;
-  // store org address ??
-  defaultCommission?: DefaultCommission;
-}
+// export interface User extends BaseDoc {
+//   displayName?: string;
+//   firstName?: string;
+//   lastName?: string;
+//   email?: string | null;
+//   phone?: string;
+//   photoURL?: string | null;
+//   stripeCustomerId?: string;
+//   insuredOfAgency?: string[]; // abandoned ??
+//   tenantId?: string | null;
+//   orgId?: string | null; // org doc id (not always tenant (ex 'idemand'))
+//   orgName?: string | null;
+//   // store org address ??
+//   defaultCommission?: DefaultCommission;
+// }
 
 export interface UserClaims {
   lastCommitted?: Timestamp; // FirestoreTimestamp;
@@ -1171,77 +1154,6 @@ export interface Agency {
 //   'hotmail.com',
 // ]);
 // export type AuthProviders = z.infer<typeof AuthProvidersZ>;
-
-// export const AgencyStatus = z.enum([
-//   'submitted',
-//   'active',
-//   'inactive',
-//   'pending_info',
-// ]);
-// export type AgencyStatus = z.infer<typeof AgencyStatus>;
-
-// export const OrgType = z.enum(['agency', 'carrier']);
-// export type TOrgType = z.infer<typeof OrgType>;
-
-// export const OrganizationZ = z.object({
-//   type: OrgType,
-//   address: AddressZ.optional(),
-//   coordinates: GeoPointZ.nullable().optional(),
-//   orgName: z.string().min(2, 'orgName must be at least 2 characters'),
-//   orgId: z.string().min(5, 'orgId must be at least 5 characters'),
-//   tenantId: z.string().nullable(),
-//   stripeAccountId: z.string().nullable(),
-//   primaryContact: AgentDetailsZ.omit({ name: true })
-//     .extend({
-//       firstName: z.string(),
-//       lastName: z.string(),
-//       displayName: z.string(),
-//     })
-//     .optional(),
-//   principalProducer: AgentDetailsZ.omit({ name: true })
-//     .extend({
-//       firstName: z.string(),
-//       lastName: z.string(),
-//       displayName: z.string(),
-//       NPN: z.string(),
-//     })
-//     .optional(),
-//   FEIN: z.string().optional(),
-//   EandOURL: z.string().optional(),
-//   // accountNumber: z.string(), // TODO: handle in stripe or separate collection
-//   // routingNumber: z.string(),
-//   // TODO: change domain restrictions to an array ??
-//   emailDomains: z.array(z.string()).optional().nullable(), // TODO: add regex ?? reuse in form validation ??
-//   enforceDomainRestriction: z.boolean().optional(),
-//   status: AgencyStatus,
-//   defaultCommission: DefaultCommission,
-//   authProviders: z.array(AuthProvidersZ),
-//   photoURL: z.string().optional().nullable(),
-//   website: z.string().url().optional().nullable(),
-//   metadata: BaseMetadataZ,
-// });
-// export type Organization = z.infer<typeof OrganizationZ>;
-
-// TODO: convert dates to Firestore timestamps so that they're queryable
-
-export interface Invite extends BaseDoc {
-  email: string;
-  displayName?: string;
-  firstName?: string;
-  lastName?: string;
-  link: string;
-  customClaims?: { [key: string]: any };
-  orgId: string | null;
-  orgName?: string;
-  status: InviteStatus;
-  id: string;
-  invitedBy?: {
-    userId?: string;
-    name?: string;
-    email: string;
-  } | null;
-  // metadata: BaseMetadata;
-}
 
 // TODO: create Transaction type to used like: Transaction['charge'] and Transaction['refund']
 

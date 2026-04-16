@@ -2,11 +2,14 @@ import { Firestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { merge, set } from 'lodash-es';
 
-import { ILocation, Policy } from '@idemand/common';
 import {
-  CancellationRequest,
   ChangeRequestStatus,
-  PolicyChangeRequest,
+  ILocation,
+  Policy,
+  type CancellationRequest,
+  type PolicyChangeRequest,
+} from '@idemand/common';
+import {
   changeRequestsCollection,
   locationsCollection,
   policiesCollection,
@@ -27,7 +30,7 @@ export const mergePolicyLocationChanges = async (
   db: Firestore,
   policyId: string,
   requestId: string,
-  reqUpdates: { processedByUserId: string; underwriterNotes?: string | null }
+  reqUpdates: { processedByUserId: string; underwriterNotes?: string | null },
 ) => {
   const requestRef = changeRequestsCollection(db, policyId).doc(requestId);
   const policyRef = policiesCollection(db).doc(policyId);
@@ -38,8 +41,12 @@ export const mergePolicyLocationChanges = async (
     const request = requestSnap.data();
     verify(requestSnap.exists && request, 'change request not found');
 
-    const { endorsementChanges, amendmentChanges, cancellationChanges, policyChanges } =
-      request as unknown as PolicyChangeRequest & CancellationRequest;
+    const {
+      endorsementChanges,
+      amendmentChanges,
+      cancellationChanges,
+      policyChanges,
+    } = request as unknown as PolicyChangeRequest & CancellationRequest;
 
     // const { policyChanges, trxType } = request;
 
@@ -72,7 +79,7 @@ export const mergePolicyLocationChanges = async (
     const locationChanges = merge(
       endorsementChanges || {},
       amendmentChanges || {},
-      cancellationChanges || {}
+      cancellationChanges || {},
     ); // TODO: add cancelChanges ?? (add location should store values under endorsementChanges ??)
     // what about reinstatement
     const locationIds = Object.keys(locationChanges);
@@ -82,11 +89,15 @@ export const mergePolicyLocationChanges = async (
     const locationSnaps = await transaction.getAll(...locationRefs);
     locationSnaps.forEach((snap) => {
       const lcnData = snap.data();
-      if (!snap.exists || !lcnData) throw new Error(`location doc does not exist (${snap.id})`);
+      if (!snap.exists || !lcnData)
+        throw new Error(`location doc does not exist (${snap.id})`);
       locations[snap.id] = lcnData;
     });
 
-    info(`Updating policy (${policyId}) with changes (requestId: ${requestId})`, { ...request });
+    info(
+      `Updating policy (${policyId}) with changes (requestId: ${requestId})`,
+      { ...request },
+    );
 
     const meta = { metadata: { updated: Timestamp.now() } };
     let res: { locationData?: Record<string, ILocation> } = {};
@@ -94,7 +105,10 @@ export const mergePolicyLocationChanges = async (
     for (let [lcnId, lcnChanges] of Object.entries(locationChanges)) {
       // TODO: need to deep merge ?? instead of update ??
       let lcnData = locations[lcnId];
-      const mergedLcn = deepMergeOverwriteArrays(lcnData, { ...lcnChanges, ...meta }) as ILocation;
+      const mergedLcn = deepMergeOverwriteArrays(lcnData, {
+        ...lcnChanges,
+        ...meta,
+      }) as ILocation;
       info(`merging location data ${lcnId}`, { lcnData, lcnChanges });
 
       transaction.set(locationsCol.doc(lcnId), mergedLcn, { merge: true });

@@ -260,6 +260,7 @@ app.post('/webhook', async (req: StripeWebhookRequest, res: Response) => {
       const deletedCustomer = event.data.object as Stripe.Customer;
       console.log('customer deleted', deletedCustomer);
       // await removeStripeCustomerId(deletedCustomer.id); // get by email & delete if id === deletedId ??
+      // TODO: handle updating user doc
 
       break;
     }

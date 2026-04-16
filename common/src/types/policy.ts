@@ -55,6 +55,7 @@ export interface PaymentMethod extends EPayVerifiedResponse {
 }
 
 // DELETE ?? only used in epay implementation ?? oddly used in Charge type ??
+// also being used to store stripe's paymentMethodDetails (TODO: fully prioritize stripe)
 const PaymentMethod = z.object({
   id: z.string(),
   emailAddress: z.string(),

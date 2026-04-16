@@ -1,8 +1,7 @@
 import { Box, Chip } from '@mui/material';
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
-import { InviteStatus } from '@idemand/common';
-import { Invite } from 'common';
+import { InviteStatus, type Invite } from '@idemand/common';
 import {
   createdCol,
   displayNameCol,

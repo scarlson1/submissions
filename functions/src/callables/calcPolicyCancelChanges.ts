@@ -1,5 +1,10 @@
 // TODO: combine with location cancel ??
-import { ILocation, WithId } from '@idemand/common';
+import {
+  ILocation,
+  WithId,
+  type CancellationRequest,
+  type ChangeRequest,
+} from '@idemand/common';
 import { isValid } from 'date-fns';
 import { getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
@@ -7,8 +12,6 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { z } from 'zod';
 import { errorMap, fromZodError } from 'zod-validation-error';
 import {
-  CancellationRequest,
-  ChangeRequest,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
@@ -61,14 +64,19 @@ const calcPolicyCancelChanges = async ({
     // TODO: wrap fetching docs in try catch??
 
     const policy = policySnap.data();
-    const changeRequest = changeRequestSnap.data() as unknown as CancellationRequest;
+    const changeRequest =
+      changeRequestSnap.data() as unknown as CancellationRequest;
 
     validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
-    validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
+    validate(
+      changeRequest,
+      'not-found',
+      `change request does not exist (ID: ${requestId})`,
+    );
     validate(
       changeRequest.status === 'draft',
       'failed-precondition',
-      'Change request already submitted. Please create a new one.'
+      'Change request already submitted. Please create a new one.',
     );
 
     const { requestEffDate, formValues } = changeRequest;
@@ -77,9 +85,13 @@ const calcPolicyCancelChanges = async ({
     validate(
       isValid(requestEffDate.toMillis()),
       'failed-precondition',
-      'invalid cancel effective date'
+      'invalid cancel effective date',
     );
-    validate(formValues.cancelReason, 'failed-precondition', 'cancel reason required');
+    validate(
+      formValues.cancelReason,
+      'failed-precondition',
+      'cancel reason required',
+    );
 
     // TODO: how will transactions work if location cancel date if after policy nad needs to be recalculated ??
     // need to offset previous cancel trx
@@ -87,12 +99,16 @@ const calcPolicyCancelChanges = async ({
     const policyLcnEntries = Object.entries(policy.locations).filter(
       ([id, lcnSum]) =>
         !lcnSum.cancelEffDate ||
-        (lcnSum.cancelEffDate && lcnSum.cancelEffDate.toMillis() > requestEffDate.toMillis())
+        (lcnSum.cancelEffDate &&
+          lcnSum.cancelEffDate.toMillis() > requestEffDate.toMillis()),
     );
 
     const locationRefs = policyLcnEntries.map(([id]) => locationsCol.doc(id));
     const locationSnaps = await db.getAll(...locationRefs);
-    const locations = locationSnaps.map((s) => ({ ...s.data(), id: s.id })) as WithId<ILocation>[];
+    const locations = locationSnaps.map((s) => ({
+      ...s.data(),
+      id: s.id,
+    })) as WithId<ILocation>[];
     // TODO: validate locations ?? getAll with throw if one not found ??
     // use zod ??
 
@@ -104,7 +120,7 @@ const calcPolicyCancelChanges = async ({
       const { termPremium, termDays } = calcTerm(
         annualPremium,
         effectiveDate.toDate(),
-        requestEffDate.toDate()
+        requestEffDate.toDate(),
       );
 
       const lcnChanges = {
@@ -117,7 +133,11 @@ const calcPolicyCancelChanges = async ({
       cancellationChanges[lcn.id] = lcnChanges;
     }
 
-    const policyChanges = calcPolicyEndorsementChanges(policy, cancellationChanges, requestEffDate);
+    const policyChanges = calcPolicyEndorsementChanges(
+      policy,
+      cancellationChanges,
+      requestEffDate,
+    );
 
     const changeRequestUpdates: Partial<CancellationRequest> = {
       // locationChanges: cancellationChanges, // TODO: change locationChanges to object
@@ -128,7 +148,10 @@ const calcPolicyCancelChanges = async ({
     info(`saving cancel request changes...`, { changeRequestUpdates });
 
     // TODO: fix typing
-    await changeRequestRef.set(changeRequestUpdates as unknown as ChangeRequest, { merge: true });
+    await changeRequestRef.set(
+      changeRequestUpdates as unknown as ChangeRequest,
+      { merge: true },
+    );
 
     return { formValues, policyChanges };
   } catch (err: any) {
@@ -145,5 +168,5 @@ const calcPolicyCancelChanges = async ({
 
 export default onCallWrapper<CalcPolicyCancelChangesProps>(
   'calcpolicycancelchanges',
-  calcPolicyCancelChanges
+  calcPolicyCancelChanges,
 );
