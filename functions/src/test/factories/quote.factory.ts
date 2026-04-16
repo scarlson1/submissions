@@ -5,7 +5,6 @@ import { makeGeoPoint, makeMetadata, makeTimestamp, merge } from './helpers.js';
 
 export function makeQuote(overrides: Partial<Quote> = {}): Quote {
   const effectiveDate = new Date();
-  const expirationDate = add(effectiveDate, { years: 1 });
   const billingEntityId = faker.string.alphanumeric(8);
 
   return merge<Quote>(

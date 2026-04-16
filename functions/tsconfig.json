@@ -9,7 +9,7 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "checkJs": false,
-    "types": ["node"], // Only include the types you need
+    "types": ["node", "jest"], // jest included for test files (src/test/**)
     "typeRoots": ["./node_modules/@types"]
   },
   "compileOnSave": true,
