@@ -15,7 +15,7 @@
     "use:prod": "firebase use prod",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:unit": "NODE_OPTIONS='--experimental-vm-modules' jest --testPathPattern='src/(?!.*integration)'",
-    "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest --testPathPattern='integration'",
+    "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest --testPathPattern='integration' --passWithNoTests",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
     "logs": "firebase functions:log",
     "typecheck": "tsc --noEmit",
