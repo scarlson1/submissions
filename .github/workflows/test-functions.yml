@@ -71,6 +71,12 @@ jobs:
       - name: Build @idemand/common
         run: pnpm --filter @idemand/common build
 
+      - name: Set up Java 21 (required by Firebase emulators)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
