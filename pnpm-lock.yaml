@@ -710,6 +710,9 @@ importers:
       '@faker-js/faker':
         specifier: ^8.4.1
         version: 8.4.1
+      '@jest/globals':
+        specifier: ^30.3.0
+        version: 30.3.0
       '@react-pdf/types':
         specifier: ^2.9.2
         version: 2.9.2

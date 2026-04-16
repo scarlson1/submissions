@@ -6,6 +6,8 @@ const config = {
   moduleNameMapper: {
     // Strip .js extensions from relative imports so Jest can resolve .ts files
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    // Resolve workspace package from its built dist (common/dist must be built first)
+    '^@idemand/common$': '<rootDir>/../common/dist/index.js',
   },
   transform: {
     '^.+\\.tsx?$': [
