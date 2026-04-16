@@ -65,17 +65,24 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build @idemand/common
-        run: pnpm --filter @idemand/common build
-
       - name: Set up Java 21 (required by Firebase emulators)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
+
+      - name: Cache Firebase emulator binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ runner.os }}
+          restore-keys: firebase-emulators-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @idemand/common
+        run: pnpm --filter @idemand/common build
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
