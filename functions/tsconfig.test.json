@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // ESNext module output lets ts-jest emit ESM that Node's VM can execute
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // Relax strictness for test files
+    "noUnusedLocals": false,
+    "noImplicitReturns": false,
+    // Include jest types
+    "types": ["node", "jest"]
+  },
+  "include": ["./src/**/*.ts"]
+}

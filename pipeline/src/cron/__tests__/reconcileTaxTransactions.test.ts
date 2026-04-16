@@ -8,31 +8,35 @@ import type { ScheduledEvent } from 'firebase-functions/scheduler';
 // Mock state — defined at module scope, populated lazily in beforeAll
 // ---------------------------------------------------------------------------
 
+// All mocks cast to jest.Mock<any> so .mockResolvedValue / .mockImplementation
+// don't error under the stricter @jest/globals types.
+const fn = () => jest.fn() as jest.Mock<any>;
+
 const mockBatch = {
-  create: jest.fn(),
-  commit: jest.fn().mockResolvedValue(undefined),
+  create: fn(),
+  commit: fn().mockResolvedValue(undefined),
 };
 
 const mockConfigDoc = {
-  get: jest.fn(),
-  set: jest.fn().mockResolvedValue(undefined),
+  get: fn(),
+  set: fn().mockResolvedValue(undefined),
 };
 
-const mockTaxTrxCollection = { where: jest.fn() };
-const mockErrorsCollection = { doc: jest.fn(() => ({})) };
+const mockTaxTrxCollection = { where: fn() };
+const mockErrorsCollection = { doc: fn().mockReturnValue({}) };
 
 const mockDb = {
-  batch: jest.fn(() => mockBatch),
-  collection: jest.fn(),
-  getAll: jest.fn(),
+  batch: fn().mockReturnValue(mockBatch),
+  collection: fn(),
+  getAll: fn(),
 };
 
 const NOW = { seconds: 1713139200, nanoseconds: 0 };
 
-const mockStreamRows = jest.fn().mockResolvedValue(undefined);
-const mockGetTable = jest.fn().mockResolvedValue({ id: 'tax_reconciliation_reports' });
-const mockPublishReconciliationError = jest.fn().mockResolvedValue(undefined);
-const mockGetByIds = jest.fn();
+const mockStreamRows = fn().mockResolvedValue(undefined);
+const mockGetTable = fn().mockResolvedValue({ id: 'tax_reconciliation_reports' });
+const mockPublishReconciliationError = fn().mockResolvedValue(undefined);
+const mockGetByIds = fn();
 
 // ---------------------------------------------------------------------------
 // Module mocks — must be set up before dynamic import of the handler
@@ -103,10 +107,10 @@ function setupCleanRun() {
     reversal: null,
   });
   mockTaxTrxCollection.where.mockReturnValue({
-    get: jest.fn().mockResolvedValue(makeQuerySnap([trxSnap])),
+    get: fn().mockResolvedValue(makeQuerySnap([trxSnap])),
   });
 
-  mockGetByIds.mockImplementation((_db: any, collection: string) => {
+  mockGetByIds.mockImplementation((_db: any, collection: any) => {
     if (collection === 'taxCalculations') {
       return Promise.resolve([
         { id: 'calc_1', data: { value: 50, state: 'CA', transactionTypes: ['new_business'] } },
@@ -129,10 +133,10 @@ function setupErrorRun() {
     reversal: null,
   });
   mockTaxTrxCollection.where.mockReturnValue({
-    get: jest.fn().mockResolvedValue(makeQuerySnap([trxSnap])),
+    get: fn().mockResolvedValue(makeQuerySnap([trxSnap])),
   });
 
-  mockGetByIds.mockImplementation((_db: any, collection: string) => {
+  mockGetByIds.mockImplementation((_db: any, collection: any) => {
     if (collection === 'taxCalculations') {
       return Promise.resolve([
         { id: 'calc_1', data: { value: 50, state: 'CA', transactionTypes: ['new_business'] } },
@@ -234,7 +238,7 @@ describe('reconcileTaxTransactions handler — empty window', () => {
   test('streams a BQ row with all-zero counts when no transactions exist', async () => {
     mockConfigDoc.get.mockResolvedValue({ data: () => ({ lookbackDays: 7 }) });
     mockTaxTrxCollection.where.mockReturnValue({
-      get: jest.fn().mockResolvedValue(makeQuerySnap([])),
+      get: fn().mockResolvedValue(makeQuerySnap([])),
     });
     mockGetByIds.mockResolvedValue([]);
 
