@@ -1,78 +1,18 @@
-//https://firebase.google.com/docs/functions/unit-testing#online-mode
-// import firebaseFunctionsTest from 'firebase-functions-test';
-
-// export const test = firebaseFunctionsTest(
-//   {
-//     databaseURL: 'https://idemand-submissions-dev.firebaseio.com',
-//     storageBucket: 'idemand-submissions-dev.appspot.com',
-//     projectId: 'idemand-submissions-dev',
-//   },
-//   '/Users/spencercarlson/code/idemand-submissions-dev-firebase-admin.json'
-// );
-
-// afterAll(async () => {
-//   await test.cleanup();
-// });
+/**
+ * Injected via jest.config.js `setupFilesAfterEnv`.
+ *
+ * env.ts (setupFiles) has already run by this point, so GCLOUD_PROJECT and
+ * emulator hosts are set before any firebase-admin code initialises.
+ *
+ * How to use firebase-functions-test in individual test files:
+ *
+ *   import firebaseFunctionsTest from 'firebase-functions-test';
+ *   const testEnv = firebaseFunctionsTest(); // offline mode — no credentials
+ *   afterAll(() => testEnv.cleanup());
+ *
+ * For integration tests that need the Firestore emulator, make sure
+ * FIRESTORE_EMULATOR_HOST is set (already done in env.ts) and the emulator
+ * is running before the test suite starts.
+ */
 
 export {};
-
-// import { MongoMemoryServer } from 'mongodb-memory-server';
-// import mongoose from 'mongoose';
-// import jwt from 'jsonwebtoken';
-
-// declare global {
-//   namespace NodeJS {
-//     interface Global {
-//       signin(): string[];
-//     }
-//   }
-// }
-
-// jest.mock('../nats-wrapper');
-
-// let mongo: any;
-// beforeAll(async () => {
-//   r_process.env.JWT_KEY = 'asdf';
-//   r_process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-//   mongo = new MongoMemoryServer();
-//   const mongoUri = await mongo.getUri();
-
-//   await mongoose.connect(mongoUri, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-//   });
-// });
-
-// beforeEach(async () => {
-//   jest.clearAllMocks();
-//   const collections = await mongoose.connection.db.collections();
-
-//   for (let collection of collections) {
-//     await collection.deleteMany({});
-//   }
-// });
-
-// afterAll(async () => {
-//   await mongo.stop();
-//   await mongoose.connection.close();
-// });
-
-// global.signin = () => {
-//   // Build a JWT payload { id, email }
-//   const payload = {
-//     id: new mongoose.Types.ObjectId().toHexString(),
-//     email: 'test@test.com',
-//   };
-
-//   // Create the JWT
-//   const token = jwt.sign(payload, r_process.env.JWT_KEY!);
-//   // Build session object {jwt: MY_JWT }
-//   const session = { jwt: token };
-//   // Turn session into JSON
-//   const sessionJSON = JSON.stringify(session);
-//   // Take JSON and encode it as base64
-//   const base64 = Buffer.from(sessionJSON).toString('base64');
-
-//   return [`express:sess=${base64}`];
-// };

@@ -13,7 +13,10 @@
     "deploy:prod": "npm run use:prod && npx firebase deploy --only functions",
     "use:dev": "firebase use dev",
     "use:prod": "firebase use prod",
-    "test": "jest",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:unit": "NODE_OPTIONS='--experimental-vm-modules' jest --testPathPattern='src/(?!.*integration)'",
+    "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest --testPathPattern='integration'",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
     "logs": "firebase functions:log",
     "typecheck": "tsc --noEmit",
     "ngrok": "ngrok http --url=wondrous-opossum-sensible.ngrok-free.app 5001"
@@ -22,16 +25,6 @@
     "src",
     "dist"
   ],
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "setupFilesAfterEnv": [
-      "./src/test/setup.ts"
-    ]
-  },
   "engines": {
     "node": "22"
   },

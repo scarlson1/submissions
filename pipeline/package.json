@@ -13,7 +13,7 @@
     "deploy:prod": "npm run use:prod && npx firebase deploy --only functions:pipeline",
     "use:dev": "firebase use dev",
     "use:prod": "firebase use prod",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "logs": "firebase functions:log",
     "typecheck": "tsc --noEmit"
   },
@@ -22,11 +22,26 @@
     "dist"
   ],
   "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+    "preset": "ts-jest/presets/default-esm",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
     },
-    "preset": "ts-jest",
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!@idemand/)"
+    ],
     "testEnvironment": "node",
+    "testTimeout": 10000,
     "setupFilesAfterEnv": [
       "./src/test/setup.ts"
     ]
@@ -50,7 +65,9 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@jest/globals": "^30.3.0",
     "@sentry/types": "^10.44.0",
+    "@types/jest": "^29.5.14",
     "@types/node": "~22.19.15",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
