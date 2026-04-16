@@ -1,9 +1,15 @@
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info, warn } from 'firebase-functions/logger';
+import { info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { ILocation, Policy, Quote, RenewalStatus, WithId } from '@idemand/common';
+import {
+  ILocation,
+  Policy,
+  Quote,
+  RenewalStatus,
+  WithId,
+} from '@idemand/common';
 import {
   getReportErrorFn,
   locationsCollection,
@@ -36,8 +42,12 @@ export interface RenewalRequestedPayload {
  *
  * Idempotent: if the policy already has a renewalQuoteId the message is a no-op.
  */
-export default async (event: CloudEvent<MessagePublishedData<RenewalRequestedPayload>>) => {
-  info('RENEWAL QUOTE REQUESTED EVENT', { ...(event.data?.message?.json || {}) });
+export default async (
+  event: CloudEvent<MessagePublishedData<RenewalRequestedPayload>>,
+) => {
+  info('RENEWAL QUOTE REQUESTED EVENT', {
+    ...(event.data?.message?.json || {}),
+  });
 
   const { policyId } = extractPubSubPayload(event, ['policyId']);
 
@@ -49,7 +59,10 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalRequestedPay
   let policy: WithId<Policy>;
 
   try {
-    verify(policyId && typeof policyId === 'string', 'invalid/missing policyId');
+    verify(
+      policyId && typeof policyId === 'string',
+      'invalid/missing policyId',
+    );
 
     const policyData = await fetchPolicyData(db, policyId);
     verify(policyData, `Policy not found (${policyId})`);
@@ -57,13 +70,21 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalRequestedPay
 
     // Idempotency: skip if renewal quote already exists
     if (policy.renewalQuoteId) {
-      warn(`RENEWAL QUOTE REQUESTED: policy ${policyId} already has renewalQuoteId ${policy.renewalQuoteId}. Skipping.`);
+      warn(
+        `RENEWAL QUOTE REQUESTED: policy ${policyId} already has renewalQuoteId ${policy.renewalQuoteId}. Skipping.`,
+      );
       return;
     }
 
     // Skip cancelled or already-lapsed policies
-    if (policy.cancelEffDate || policy.renewalStatus === 'lapsed' || policy.renewalStatus === 'non_renewed') {
-      warn(`RENEWAL QUOTE REQUESTED: policy ${policyId} is not eligible for renewal (cancelEffDate=${policy.cancelEffDate}, renewalStatus=${policy.renewalStatus}). Skipping.`);
+    if (
+      policy.cancelEffDate ||
+      policy.renewalStatus === 'lapsed' ||
+      policy.renewalStatus === 'non_renewed'
+    ) {
+      warn(
+        `RENEWAL QUOTE REQUESTED: policy ${policyId} is not eligible for renewal (cancelEffDate=${policy.cancelEffDate}, renewalStatus=${policy.renewalStatus}). Skipping.`,
+      );
       return;
     }
   } catch (err: any) {
@@ -82,17 +103,27 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalRequestedPay
       .filter(([, lcn]) => !lcn.cancelEffDate)
       .map(([id]) => id);
 
-    verify(locationIds.length, `No active locations found on policy ${policyId}`);
+    verify(
+      locationIds.length,
+      `No active locations found on policy ${policyId}`,
+    );
 
     const locationSnaps = await getAllById(locationsCol, locationIds);
     const locations = locationSnaps.docs
       .filter((s) => s.exists)
       .map((s) => ({ ...s.data(), id: s.id }));
 
-    verify(locations.length, `No location documents found for policy ${policyId}`);
+    verify(
+      locations.length,
+      `No location documents found for policy ${policyId}`,
+    );
     primaryLocation = locations[0];
   } catch (err: any) {
-    reportErr(err?.message || 'Error fetching location documents', { policyId }, err);
+    reportErr(
+      err?.message || 'Error fetching location documents',
+      { policyId },
+      err,
+    );
     return;
   }
 
@@ -118,9 +149,15 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalRequestedPay
       srSubKey: swissReSubscriptionKey.value(),
     }));
 
-    info(`RENEWAL QUOTE REQUESTED: Re-rated policy ${policyId} — annualPremium=${annualPremium}`);
+    info(
+      `RENEWAL QUOTE REQUESTED: Re-rated policy ${policyId} — annualPremium=${annualPremium}`,
+    );
   } catch (err: any) {
-    reportErr('Error re-rating for renewal — falling back to prior premium', { policyId }, err);
+    reportErr(
+      'Error re-rating for renewal — falling back to prior premium',
+      { policyId },
+      err,
+    );
     // Graceful fallback: copy forward the prior annualPremium so the queue doesn't retry forever
     annualPremium = primaryLocation.annualPremium;
     ratingDocId = primaryLocation.ratingDocId ?? '';
@@ -140,8 +177,14 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalRequestedPay
     const now = Timestamp.now();
 
     // Derive quoteTotal from fresh annualPremium + existing fees/taxes
-    const feesTotal = (policy.fees ?? []).reduce((sum, f) => sum + (f.amount ?? 0), 0);
-    const taxesTotal = (policy.taxes ?? []).reduce((sum, t) => sum + (t.amount ?? 0), 0);
+    const feesTotal = (policy.fees ?? []).reduce(
+      (sum, f) => sum + (f.value ?? 0),
+      0,
+    );
+    const taxesTotal = (policy.taxes ?? []).reduce(
+      (sum, t) => sum + (t.value ?? 0),
+      0,
+    );
     const quoteTotal = annualPremium + feesTotal + taxesTotal;
 
     const renewalQuote: Quote = {
@@ -203,7 +246,9 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalRequestedPay
 
     await batch.commit();
 
-    info(`RENEWAL QUOTE REQUESTED: Created draft renewal quote ${renewalQuoteId} for policy ${policyId}`);
+    info(
+      `RENEWAL QUOTE REQUESTED: Created draft renewal quote ${renewalQuoteId} for policy ${policyId}`,
+    );
   } catch (err: any) {
     reportErr('Error creating renewal quote', { policyId }, err);
   }

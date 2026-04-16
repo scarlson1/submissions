@@ -1,9 +1,15 @@
 import { Firestore, GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 
-import { ILocation, type RCVs as RCVsType, type ValueByRiskType } from '@idemand/common';
+import {
+  ILocation,
+  type Optional,
+  type RCVs as RCVsType,
+  type ValueByRiskType,
+  ValueByRiskType as ValueByRiskTypeZ,
+} from '@idemand/common';
 import { ratingDataCollection } from '../../common/index.js';
-import { getAALsWithRCVs, GetAALRes } from './getAALs.js';
+import { GetAALRes, getAALsWithRCVs } from './getAALs.js';
 import { getGetPremProps, getPremium } from './getPremium.js';
 
 export interface RerateForRenewalProps {
@@ -35,12 +41,18 @@ export const rerateForRenewal = async ({
   srClientSecret,
   srSubKey,
 }: RerateForRenewalProps): Promise<RerateForRenewalResult> => {
-  const { ratingDocId: priorRatingDocId, limits, deductible, coordinates, ratingPropertyData } = location;
+  const {
+    ratingDocId: priorRatingDocId,
+    limits,
+    deductible,
+    coordinates,
+    ratingPropertyData,
+  } = location;
 
   // ── Fetch prior ratingData to get stored RCVs ─────────────────────────────
   const ratingDataCol = ratingDataCollection(db);
 
-  let priorRCVs: RCVsType | null = null;
+  let priorRCVs: Optional<RCVsType> | null = null;
   let numStories = 1;
 
   if (priorRatingDocId) {
@@ -52,7 +64,10 @@ export const rerateForRenewal = async ({
         numStories = priorData?.ratingPropertyData?.numStories ?? 1;
       }
     } catch (err) {
-      error('rerateForRenewal: failed to fetch prior ratingData', { priorRatingDocId, err });
+      error('rerateForRenewal: failed to fetch prior ratingData', {
+        priorRatingDocId,
+        err,
+      });
     }
   }
 
@@ -83,14 +98,23 @@ export const rerateForRenewal = async ({
       numStories,
     });
   } catch (err: any) {
-    throw new Error(`rerateForRenewal: Swiss Re call failed — ${err?.message || err}`);
+    throw new Error(
+      `rerateForRenewal: Swiss Re call failed — ${err?.message || err}`,
+    );
   }
 
+  // TODO: too strick of validation?
+  // unsure API always returns all types ??
+  const AALs = ValueByRiskTypeZ.parse(aalRes.AALs);
+
   // ── Calculate premium ─────────────────────────────────────────────────────
-  const premProps = getGetPremProps(location, limits, aalRes.AALs, commissionPct);
+  // const premProps = getGetPremProps(location, limits, aalRes.AALs, commissionPct);
+  const premProps = getGetPremProps(location, limits, AALs, commissionPct);
   const result = getPremium(premProps);
 
-  info('rerateForRenewal: premium calculated', { annualPremium: result.premiumData.annualPremium });
+  info('rerateForRenewal: premium calculated', {
+    annualPremium: result.premiumData.annualPremium,
+  });
 
   // ── Persist new ratingData doc ────────────────────────────────────────────
   const newRatingDocRef = await ratingDataCol.add({
