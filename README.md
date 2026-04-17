@@ -278,7 +278,8 @@ All tables are date-partitioned. Downstream queries should always include a `WHE
 
 ### TODO: UI components
 
-- app wide search
+- ~~app wide search~~
+- admin/orgs/orgId - support query by carrier if orgType = carrier
 - claim status / follow up / add info
 - user facing change request status
 - user facing transaction history / policy history
