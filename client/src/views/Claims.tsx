@@ -8,6 +8,7 @@ import {
   ToggleViewPanel,
   type ToggleViewLayoutProps,
 } from 'components/toggleView';
+import { PolicyClaimCards } from 'elements/cards';
 import { ClaimsGrid } from 'elements/grids';
 import { DataViewType, useClaims } from 'hooks';
 import { getClaimsQueryProps } from 'modules/db/query';
@@ -81,7 +82,7 @@ export const Claims = () => {
     >
       <ToggleViewPanel value={DataViewType.Enum.cards}>
         {/* <QuoteCards {...queryProps} onClick={handleViewQuote} /> */}
-        TODO: cards
+        <PolicyClaimCards constraints={queryProps.constraints} />
       </ToggleViewPanel>
       <ToggleViewPanel value={DataViewType.Enum.grid}>
         <ClaimsGrid />
