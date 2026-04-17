@@ -178,6 +178,8 @@ pnpm deploy:rules:storage # firebase deploy --only storage
 
 ## File Storage
 
+TODO: bucket/folder structure and rules
+
 ## External Data (outside Google Cloud Project)
 
 TODO
@@ -190,68 +192,6 @@ Large, static, public data files are hosted in github:
 - State GeoJSON
 
 TODO: counties initialized in public/fips
-
-<!-- ## App structure
-
-## Cloud Functions
-
-Cloud Functions are kind of like an API or server. They serve as the backend in most cases. Some boilerplate is handled by Firebase (like including user auth token and some metadata). There are different types of Cloud Functions, categorized by how the function is triggered:
-
-- **Callables** - triggered ("called") by the client/frontend
-- **HTTPS** - very similar to callables. Can be called with URL, like a regular api
-- **Storage** - triggered from a file upload or metadata change
-- **Auth** - triggered when a new user is created (including anonymous user)
-- **Blocking Function** - two types: **_before sign in_** and **_before create_**. Executed before their respective actions and can block the action from proceeding if the function finds a reason to block it. -->
-
-<!-- ### Callables
-
-- TODO: LIST CLOUD FUNCTIONS & SUMMARY OF WHAT THEY DO
-
-- `assignQuote`
-  - called when user 'claims' quote when moving the bind step and either signing into their account or creating a new one.
-- `calcQuote`
-  - called by idemand admin when button is clicked to recalculate quote
-  - Required Claims: iDemandAdmin
-- `createPolicy`
-- `createTenantFromSubmission`
-- `executePayment`
-- `getAnnualPremium` - runs swiss re to get AALs and recalculates quote
-- `getPropertyDetailsAttom` - called after address step in the new submission form. Fetch property data from Attom
-- `getTenantIdFromEmail` - called when "user not found" error code is returned from sign in attempt. Searches across all users in _users_ collection (all tenants). If user is found, returns the tenantId and retries signing the user in. This would happen is user was a tenant auth user (agent) and tried to sign into the non tenant-aware login page (_`/auth/login`_ instead of _`/auth/login/:tenantId`_)
-- `inviteUsers` - takes an array (list) of users (email, name, userClaims/permissions/role) and creates a new invite doc under _`organizations/:orgId/invitations`_ collection. Another Firestore triggered Cloud Function executes when a new document is created in this sub collection, which will send an email to the invited user(s)
-- `resendInvite`
-- `sendAgencyApprovedNotification`
-- `sendContactEmail`
-- `sendPolicyDoc`
-- `verifyEPayToken` - calls ePay endpoint with provided token and receives a few details about the payment method, which are saved under _`users/userId/paymentMethods`_. Can later be used to execute payment
-- `moveUserToTenant` - moves user from non-tenant auth or tenant-auth to a new tenant. -->
-
-<!-- ### Storage Triggered
-
-- `getAALPortfolio` - runs Swiss Re api call for each row in csv. Triggered by upload to _/portfolio-aal_ folder. Saves result to the same folder with "processed\_" prefixed to the file name.
-- `importPolicies` - creates a new policy doc for each row in csv. Triggered by csv upload to _/importPolicies_ folder.
-- `tempGetFIPS` - not sure if we're still using this. Adds county FIPS to csv file. Uses counties GeoJSON and latitude & longitude columns from csv to find which county the coordinates are located within. -->
-
-<!-- ### HTTPS Triggered
-
-- `authrequests` - used to verify idemand email addresses. Link in verification email calls this endpoint. Returns "example@email.com has been verified, if successful. (weird bug with blocking function prevents using the Firebase SDK email verification method) -->
-
-<!-- ### Pub/Sub
-
-- `checkAchStatus` - ePay doesn't have webooks to determine when ACH payment is confirmed. This function is scheduled to run at 10:35 AM Monday-Friday. It fetches all transactions where the status is 'processing,' then calls `/api/v1/transactions/${charge.id}` to check the status of the transaction. Not well tested because ePay's documentation isn't great and the development emulator doesnt support pub/sub. Need further testing in dev.
-- `markpaidonpaymentcomplete` - triggered when '`payment.complete` event is published (either from ACH scheduled pubsub or from payment execution if method is a card). Updates the status on the policy doc to 'paid' and sends notification to iDemand admins, which contains a link to /admin/policy-delivery, so the policy documents can be uploaded to storage and delivered to the insured. -->
-
-<!-- ### Firestore Triggered
-
-- `getStaticSubmissionImg`
-- `getSubmissionAAL`
-- `getSubmissionFIPS`
-- `mirrorCustomClaims` - monitors changes to documents located at _`organizations/:orgId/userClaims/:userId`_. When a change is detected, the function will take the properties from the doc and assign each property as a Custom Claim (role/permission) in Auth for the user with an id matching the document ID. Necessary for a couple reasons:
-  - No way to view Auth Custom Claims (even in the Google Cloud Dashboard). Since this is stored in the database, and then mirrored as Custom Claims in Auth (user token), we can display the data in the Firestore database to show all claims by userId
-  - Frontend can subscribe to changes to the document, and force a token refresh when a change is detected (`getIdToken(true)`). Without this, the user would have to sign out and sign back in in order to get current Custom Claims.
-- `newAgencyAppNotification` - email iDemand Admins when a new agency 'partner with us' doc is created
-- `newSubmissionNotification`
-- `sendInviteEmail` - sends invite to create an account when a new doc is created under _`organizations/:orgId/invitations`_ -->
 
 ---
 
@@ -325,66 +265,6 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 - tests
 - finish moving types to `common/`
 - integrate search into grid ?? might be better to keep separate b/c grid data is from Firestore. Add search dialog with collection filter ??
-
-### TODO: Data Pipelines
-
-[DATA_PIPELINES_PLAN.md](docs/DATA_PIPELINES_PLAN.md)
-
-#### 1. Real-Time Premium Analytics Pipeline
-
-Stream policy, transaction, and change request events into a BigQuery data warehouse.
-
-- Firestore → Pub/Sub → Dataflow (or Cloud Functions) → BigQuery
-- A streamToBigQuery trigger on policies, transactions, and changeRequests collections
-- Schema normalization layer to flatten nested Firestore documents (e.g. flattening locations, taxes, fees into rows)
-- A daily aggregation job computing written premium, earned premium, loss ratio, and commission by state, agency, and flood zone
-
-#### 2. Portfolio Aggregation & Exposure Pipeline
-
-What it is: A batch pipeline that computes aggregated flood exposure by geography for the entire book of business.
-How it fits: The app has all active policy locations with coordinates, limits, and flood zones. This data currently sits unused at a portfolio level.
-Components:
-
-A scheduled Cloud Function (or Dataflow job) that reads all active, non-cancelled locations
-Groups them by county FIPS, state, flood zone, and a Mapbox-derived geohash grid
-Computes totalInsuredValue, termPremium, locationCount, and avgDeductible per bucket
-Writes results to a portfolioExposure Firestore collection (for the UI) and BigQuery (for analysis)
-A change detection layer that computes week-over-week exposure shifts and flags concentrations above a configurable threshold
-
-Why it's interesting: Concentration risk monitoring is a real insurance concern and this would give the app a feature that currently doesn't exist at all. The geospatial bucketing piece (using geohash or H3) is a legitimately interesting data engineering problem.
-
-#### 3. Tax Reconciliation Pipeline
-
-What it is: A pipeline that reconciles tax transactions against expected tax calculations and flags discrepancies.
-How it fits: The app has taxes (the tax config), taxCalculations, taxTransactions, and transactions collections. There's currently no automated reconciliation between them.
-Components:
-
-A daily batch job that joins taxTransactions against their parent taxCalculations
-Verifies that taxAmount in each taxTransaction matches percentCaptured × taxCalc.value within a tolerance
-Computes total tax liability by state and transaction type
-Writes a daily reconciliation report to BigQuery and flags mismatches to a taxReconciliationErrors collection
-A Firestore trigger that immediately flags any taxTransaction where the reversal amount doesn't match expected refund percentage
-
-Why it's interesting: Financial reconciliation pipelines are a common enterprise data engineering task. This one has real regulatory implications since surplus lines taxes are reported to state regulators.
-
-#### 4. Agent Performance & Funnel Analytics
-
-What it is: An ETL pipeline that builds a conversion funnel from submission → quote → bind → paid for each agent and agency.
-How it fits: All the source data already exists across submissions, quotes, policies, and financialTransactions.
-Components:
-
-A Firestore → BigQuery CDC (change data capture) pipeline for all four collections
-A dbt or SQL transformation layer that builds:
-
-submissions_to_quotes conversion rate by agent and agency
-quotes_to_bind conversion rate
-Average time-to-bind
-Average premium per bound policy
-Cancellation rate by agent
-
-A summary written back to each org's Firestore document for display in the existing admin UI
-
-Why it's interesting: This is a classic ETL + dimensional modeling problem. Building the CDC piece on top of Firestore's native versioning (which the app already has) is an elegant approach.
 
 ### BigQuery cost controls
 

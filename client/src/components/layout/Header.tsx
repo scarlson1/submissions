@@ -58,6 +58,7 @@ import {
   MAPBOX_LIGHT,
   usePreferredMapStyle,
 } from 'components/MapStyleControl';
+import { AppSearch } from 'components/search/AppSearch';
 import { AuthActionsProvider, useAuthActions } from 'context';
 import { useClaims } from 'hooks';
 import { stringAvatar } from 'modules/utils';
@@ -451,6 +452,7 @@ export const Header = (props: HeaderProps) => {
               textAlign: 'center',
             }}
           >
+            <AppSearch />
             <IconButton
               sx={{ mx: { xs: 1, sm: 2, md: 3 } }}
               onClick={toggleTheme}
