@@ -5,7 +5,7 @@ import { SubmitHandler, useForm, useFormState } from 'react-hook-form';
 import { useUser } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { User } from 'common';
+import type { User } from '@idemand/common';
 import { RHFTextField } from 'components/forms';
 import {
   useAsyncToast,

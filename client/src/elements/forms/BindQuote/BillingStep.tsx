@@ -4,7 +4,8 @@ import { useFormikContext } from 'formik';
 import { useCallback, useMemo } from 'react';
 import { array, object, string } from 'yup';
 
-import { emailVal, PaymentMethod, phoneVal } from 'common';
+import type { VerifyEPayTokenResponse } from 'api';
+import { emailVal, phoneVal } from 'common';
 import { AddPaymentDialog } from '../AddPaymentDialog';
 import { BindQuoteValues } from './BindQuoteForm';
 import { PaymentCard } from './PaymentCard';
@@ -42,7 +43,7 @@ export const BillingStep = () => {
   // console.log('VALUES: ', values);
 
   const handleMethodAdded = useCallback(
-    (data: PaymentMethod) => {
+    (data: VerifyEPayTokenResponse) => {
       // const currentBillingEntities = formik.values?.billingEntities // TODO: spread operator to add multiple methods
       setFieldValue('billingEntities', [
         {

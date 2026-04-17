@@ -3,13 +3,17 @@ import { info, warn } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { capitalize } from 'lodash-es';
 
-import { Collection, ILocation, Policy } from '@idemand/common';
+import {
+  Collection,
+  ILocation,
+  Policy,
+  type StagedPolicyImport,
+} from '@idemand/common';
 import {
   getReportErrorFn,
   importSummaryCollection,
   policiesCollection,
   quotesCollection,
-  StagedPolicyImport,
   submissionsCollection,
   typesenseCollectionPrefix,
 } from '../../common/index.js';

@@ -9,6 +9,7 @@ import {
   State,
   ValueByRiskType,
   type CommSource,
+  type StagedPolicyImport,
 } from '@idemand/common';
 import {
   Firestore,
@@ -37,7 +38,6 @@ import {
   ratingDataCollection,
   resendKey,
   stagedImportsCollection,
-  StagedPolicyImport,
   throwIfExists,
 } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';

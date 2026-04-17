@@ -59,9 +59,11 @@ import {
   SubmissionStatus,
   type Address,
   type CompressedAddress,
+  type FeeItem,
   type Nullable,
   type Policy,
   type PolicyLocation,
+  type TaxItem,
   type SubmissionStatus as TSubmissionStatus,
 } from '@idemand/common';
 import { LoadingButton, LoadingButtonProps } from '@mui/lab';
@@ -75,9 +77,7 @@ import {
   QUOTE_STATUS,
   TAgencySubmissionStatus,
   TChangeRequestStatus,
-  TFeeItem,
   TransactionType,
-  TTaxItem,
 } from 'common';
 import { CONSTRUCTION_TYPE } from 'common/constants';
 import {
@@ -1943,7 +1943,7 @@ export const taxesSumCol: GridColDef = {
   valueGetter: ({ row }) => {
     let taxesArr = row.taxes;
     if (!taxesArr || !Array.isArray(taxesArr)) return null;
-    return round(sumBy<TTaxItem>(taxesArr, 'value'), 2);
+    return round(sumBy<TaxItem>(taxesArr, 'value'), 2);
   },
 };
 
@@ -1958,7 +1958,7 @@ export const feesSumCol: GridColDef = {
   valueGetter: ({ row }) => {
     let feesArr = row.fees;
     if (!feesArr || !Array.isArray(feesArr)) return null;
-    return round(sumBy<TFeeItem>(feesArr, 'value'), 2);
+    return round(sumBy<FeeItem>(feesArr, 'value'), 2);
   },
 };
 

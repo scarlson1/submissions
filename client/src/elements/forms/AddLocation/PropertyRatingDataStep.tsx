@@ -6,13 +6,13 @@ import { useClaims, useDocDataOnce, useWizard } from 'hooks';
 import { useCallback, useMemo } from 'react';
 import { date, number, object, string } from 'yup';
 
-import { Basement, type Nullable, type Policy } from '@idemand/common';
 import {
-  AllowString,
-  PriorLossCount,
-  priorLossVal,
-  RatingPropertyData,
-} from 'common';
+  Basement,
+  type Nullable,
+  type Policy,
+  type RatingPropertyData,
+} from '@idemand/common';
+import { AllowString, PriorLossCount, priorLossVal } from 'common';
 import {
   FormikDatePicker,
   FormikDollarMaskField,

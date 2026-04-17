@@ -1,6 +1,5 @@
+import type { PolicyChangeRequest } from '@idemand/common';
 import { Functions, httpsCallable } from 'firebase/functions';
-
-import { PolicyChangeRequest } from 'common';
 
 export interface CalcPolicyChangesRequest {
   requestId: string;

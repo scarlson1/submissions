@@ -1,8 +1,8 @@
+import type { ChangeRequestStatus } from '@idemand/common';
 import { getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
-  ChangeRequestStatus,
   changeRequestsCollection,
   getReportErrorFn,
   policiesCollection,
@@ -27,9 +27,16 @@ const reportErr = getReportErrorFn('calcpolicychanges');
 //        - should values be stored in change request ?? add "calc date" field, and lock down document once status is approved
 //  - should "locationChanges" be stored in the doc or calculated each time ?? (need to update to new schema for multi-location)
 
-export const PROCESSED_STATUS: ChangeRequestStatus[] = ['accepted', 'cancelled', 'denied'];
+export const PROCESSED_STATUS: ChangeRequestStatus[] = [
+  'accepted',
+  'cancelled',
+  'denied',
+];
 
-const calcPolicyChanges = async ({ data, auth }: CallableRequest<CalcPolicyChangesProps>) => {
+const calcPolicyChanges = async ({
+  data,
+  auth,
+}: CallableRequest<CalcPolicyChangesProps>) => {
   info(`Calc Policy Changes called`, { ...data });
 
   const { requestId, policyId } = data;
@@ -44,11 +51,15 @@ const calcPolicyChanges = async ({ data, auth }: CallableRequest<CalcPolicyChang
   const changeRequestSnap = await changeRequestCol.doc(requestId).get();
   const changeRequest = changeRequestSnap.data();
 
-  validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
+  validate(
+    changeRequest,
+    'not-found',
+    `change request does not exist (ID: ${requestId})`,
+  );
   validate(
     !PROCESSED_STATUS.includes(changeRequest?.status),
     'failed-precondition',
-    `change request already processed`
+    `change request already processed`,
   );
 
   // TODO: validate location changes exist (if location change request)
@@ -78,12 +89,16 @@ const calcPolicyChanges = async ({ data, auth }: CallableRequest<CalcPolicyChang
           ...(changeRequest.locationChanges || {}),
         },
       };
-      policyChanges = calcPolicyEndorsementChanges(policy, tempLocationsObj, requestEffDate);
+      policyChanges = calcPolicyEndorsementChanges(
+        policy,
+        tempLocationsObj,
+        requestEffDate,
+      );
     } else {
       // TODO: handle add location, reinstatement, amendment, etc.
       throw new HttpsError(
         'unimplemented',
-        'function not set up to handle trx other than endorsement'
+        'function not set up to handle trx other than endorsement',
       );
     }
 
@@ -108,7 +123,7 @@ const calcPolicyChanges = async ({ data, auth }: CallableRequest<CalcPolicyChang
         policyChanges, // @ts-ignore TODO: remove ignore once using new type
         policyChangesCalcVersion: policy?.metadata?.version ?? null,
       },
-      { merge: true }
+      { merge: true },
     );
 
     return { ...policyChanges };
@@ -120,4 +135,7 @@ const calcPolicyChanges = async ({ data, auth }: CallableRequest<CalcPolicyChang
   }
 };
 
-export default onCallWrapper<CalcPolicyChangesProps>('calcpolicychanges', calcPolicyChanges);
+export default onCallWrapper<CalcPolicyChangesProps>(
+  'calcpolicychanges',
+  calcPolicyChanges,
+);

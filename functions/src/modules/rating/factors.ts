@@ -1,5 +1,5 @@
-import type { Nullable } from '@idemand/common';
-import { extractNumberNeg, ValueByRiskType } from '../../common/index.js';
+import type { Nullable, ValueByRiskType } from '@idemand/common';
+import { extractNumberNeg } from '../../common/index.js';
 import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 
 const CONTENTS_RCV_MULT = 1;

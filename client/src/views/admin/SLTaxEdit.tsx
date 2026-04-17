@@ -1,11 +1,12 @@
 import { Box, Typography } from '@mui/material';
-import { Timestamp, doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
 import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { TTax, taxesCollection } from 'common';
+import type { Tax } from '@idemand/common';
+import { taxesCollection } from 'common';
 import { TaxForm, TaxValues } from 'elements/forms/TaxForm';
 import { useAsyncToast, useDocData } from 'hooks';
 import { round } from 'lodash';
@@ -18,10 +19,13 @@ export const SLTaxEdit = () => {
   const toast = useAsyncToast({ position: 'top-right' });
   const { taxId } = useParams();
   if (!taxId) throw new Error('taxId required to edit.');
-  const { data } = useDocData<TTax>('taxes', taxId);
+  const { data } = useDocData<Tax>('taxes', taxId);
 
   const handleSubmit = useCallback(
-    async (values: TaxValues, { setSubmitting, setFieldError }: FormikHelpers<TaxValues>) => {
+    async (
+      values: TaxValues,
+      { setSubmitting, setFieldError }: FormikHelpers<TaxValues>,
+    ) => {
       try {
         const isFixedRate = values.subjectBase[0] === 'fixedFee';
         const rate = isFixedRate
@@ -51,7 +55,7 @@ export const SLTaxEdit = () => {
             expirationDate: expTimestamp,
             metadata: { updated: Timestamp.now() },
           },
-          { merge: true }
+          { merge: true },
         );
 
         setSubmitting(false);
@@ -62,7 +66,7 @@ export const SLTaxEdit = () => {
         setSubmitting(false);
       }
     },
-    [navigate, firestore, toast, taxId]
+    [navigate, firestore, toast, taxId],
   );
 
   return (
@@ -83,11 +87,13 @@ export const SLTaxEdit = () => {
           subjectBase: data?.subjectBase || [], // TODO: uncomment after prod data updated
           // rate: data?.rateType === 'percent' ? `${data?.rate * 100}` : '',
           rate:
-            data?.subjectBase[0] !== 'fixedFee' && typeof data?.rate === 'number'
+            data?.subjectBase[0] !== 'fixedFee' &&
+            typeof data?.rate === 'number'
               ? `${data?.rate * 100}`
               : '',
           fixedRate:
-            data?.subjectBase[0] === 'fixedFee' && typeof data?.rate === 'number'
+            data?.subjectBase[0] === 'fixedFee' &&
+            typeof data?.rate === 'number'
               ? data?.rate || null
               : null,
           baseRoundType: data?.baseRoundType || 'nearest',

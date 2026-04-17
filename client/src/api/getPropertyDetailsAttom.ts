@@ -1,7 +1,12 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import type { Address, Coords, Nullable } from '@idemand/common';
-import { ElevationResult, RatingPropertyData } from 'common/types';
+import type {
+  Address,
+  Coords,
+  Nullable,
+  RatingPropertyData,
+} from '@idemand/common';
+import { ElevationResult } from 'common/types';
 
 export interface GetPropertyDetailsAttomRequest extends Omit<
   Address,

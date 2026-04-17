@@ -4,12 +4,17 @@ import { useCallback, useMemo } from 'react';
 import { useFunctions } from 'reactfire';
 import { object } from 'yup';
 
-import type { Address, Coords, Nullable, Product } from '@idemand/common';
+import type {
+  Address,
+  Coords,
+  DraftAddLocationRequest,
+  Nullable,
+  Product,
+} from '@idemand/common';
 import { getPropertyDetailsAttom } from 'api';
 import {
   addressValidationActiveStates,
   coordinatesValidation,
-  DraftAddLocationRequest,
   NESTED_ADDRESS_FIELD_NAMES,
 } from 'common';
 import { FormikWizardNavButtons } from 'components/forms';

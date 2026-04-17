@@ -1,20 +1,21 @@
 import { useAuth } from 'context/AuthContext';
 import {
-  EmailAuthProvider,
-  User,
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
   getAuth,
   // fetchSignInMethodsForEmail,
   // signInWithPopup,
   linkWithCredential,
   sendEmailVerification,
   updateProfile,
+  User,
 } from 'firebase/auth';
-import { Timestamp, doc, getFirestore, setDoc } from 'firebase/firestore';
+import { doc, getFirestore, setDoc, Timestamp } from 'firebase/firestore';
 import { useCallback, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { User as DBUser, usersCollection } from 'common';
+import type { User as DBUser } from '@idemand/common';
+import { usersCollection } from 'common';
 import { useAuthActions } from 'context';
 import { getErrorDetails, logDev } from 'modules/utils';
 import { AUTH_ROUTES, createPath } from 'router';
@@ -53,8 +54,12 @@ export const useCreateAccount = () => {
 
   // TODO: use useUpdateProfile hook
   const updateUserDocOnCreate = useCallback(
-    async (user: User, { firstName, lastName }: { firstName: string; lastName: string }) => {
-      let displayName = `${firstName?.trim() || ''} ${lastName?.trim() || ''}`.trim();
+    async (
+      user: User,
+      { firstName, lastName }: { firstName: string; lastName: string },
+    ) => {
+      let displayName =
+        `${firstName?.trim() || ''} ${lastName?.trim() || ''}`.trim();
       await updateProfile(user, { displayName });
 
       let userRef = doc(usersCollection(getFirestore()), user.uid);
@@ -74,7 +79,7 @@ export const useCreateAccount = () => {
 
       await setDoc(userRef, initUserProperties, { merge: true });
     },
-    [auth]
+    [auth],
   );
 
   const createAccount = useCallback(
@@ -93,9 +98,12 @@ export const useCreateAccount = () => {
           logDev('linking anonymous user');
           const credential = EmailAuthProvider.credential(
             email.trim().toLowerCase(),
-            password.trim()
+            password.trim(),
           );
-          const { user: userLinkRes } = await linkWithCredential(user, credential);
+          const { user: userLinkRes } = await linkWithCredential(
+            user,
+            credential,
+          );
 
           await userLinkRes.getIdToken(true);
 
@@ -109,7 +117,7 @@ export const useCreateAccount = () => {
           const { user: userCreateRes } = await createUserWithEmailAndPassword(
             auth,
             email.trim().toLowerCase(),
-            password.trim()
+            password.trim(),
           );
 
           await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
@@ -135,7 +143,7 @@ export const useCreateAccount = () => {
         return Promise.reject(err);
       }
     },
-    [auth, isAnonymous, isSignedIn, updateUserDocOnCreate, user]
+    [auth, isAnonymous, isSignedIn, updateUserDocOnCreate, user],
   );
 
   // TODO: move to it's own hook (shared error handling with sign in) ??
@@ -146,7 +154,7 @@ export const useCreateAccount = () => {
       password: string,
       successRedirect: string,
       firstName?: string,
-      lastName?: string
+      lastName?: string,
     ) => {
       console.log('AUTH ERROR: ', err);
 
@@ -178,7 +186,7 @@ export const useCreateAccount = () => {
               }),
               {
                 state: { ...location.state },
-              }
+              },
             );
           }
           // TODO: handle other blocking fn errors, if any
@@ -186,7 +194,10 @@ export const useCreateAccount = () => {
           // TODO: figure out how to update user name - handle in blocking fn ??
           // await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
         }
-        if (msg.indexOf('ALREADY_EXISTS') !== -1 || msg.indexOf('already exists') !== -1) {
+        if (
+          msg.indexOf('ALREADY_EXISTS') !== -1 ||
+          msg.indexOf('already exists') !== -1
+        ) {
           let msg = 'Account already exists.';
           if (msg.indexOf('click link in email') !== -1) {
             msg += ' Check your email to move account to new org.';
@@ -195,24 +206,26 @@ export const useCreateAccount = () => {
           return toast.error(msg);
         }
         if (msg.indexOf('tenant doc not found') !== -1) {
-          return toast.error('Tenant not found. Please verify the ID in the URL is correct.');
+          return toast.error(
+            'Tenant not found. Please verify the ID in the URL is correct.',
+          );
         }
         if (msg.indexOf('Unauthorized email') !== -1) {
           return toast.error(
             `Org has email domain restrictions enabled that do not match "@${email.split('@')[1]}"`,
-            { duration: 6000 }
+            { duration: 6000 },
           );
         }
         if (msg.indexOf('Invitation required') !== -1) {
           return toast.error(
             `Invite required to join org. Please contact the organization to create an invite.`,
-            { duration: 6000 }
+            { duration: 6000 },
           );
         }
         // }
         if (msg.indexOf('Email matched invite') !== -1) {
           return toast.error(
-            `Your email matched an outstanding invite. Please check your inbox and use the provided link.`
+            `Your email matched an outstanding invite. Please check your inbox and use the provided link.`,
           );
         }
         if (msg.indexOf('Cloud function deadline exceeded') !== -1) {
@@ -230,7 +243,9 @@ export const useCreateAccount = () => {
         toast.error(`Auth error: ${code}`);
       } else if (code === 'auth/email-already-in-use') {
         if (!isAnonymous) {
-          toast.error(`Account with email ${email} already exists. Please login.`);
+          toast.error(
+            `Account with email ${email} already exists. Please login.`,
+          );
           // TODO: forward success redirect, if in state (move logic to this hook from component?)
           navigate(
             createPath({
@@ -240,7 +255,7 @@ export const useCreateAccount = () => {
             }),
             {
               state: { ...location.state },
-            }
+            },
           );
           // try {
           //   // TODO: set up to handle below when attempting to sign in with provider instead of email ??
@@ -294,13 +309,13 @@ export const useCreateAccount = () => {
           // TODO: abstract this out to handle in quote component ?? return err
           toast.error(
             `Account with email ${email} already exists. Please sign into your existing account and start a new quote.`,
-            { duration: 8000 }
+            { duration: 8000 },
           );
           logout(() =>
             navigate('/auth/login', {
               replace: true,
               state: { redirectPath: '/application/flood' },
-            })
+            }),
           );
         }
       } else if (code === 'auth/network-request-failed') {
@@ -309,7 +324,7 @@ export const useCreateAccount = () => {
         toast.error(`Auth error: ${code}`);
       }
     },
-    [isAnonymous, logout, navigate, location, params, toast, createAccount]
+    [isAnonymous, logout, navigate, location, params, toast, createAccount],
   );
 
   return useMemo(
@@ -320,6 +335,6 @@ export const useCreateAccount = () => {
       // errCode,
       loading,
     }),
-    [createAccount, handleEmailAuthError, loading]
+    [createAccount, handleEmailAuthError, loading],
   );
 };

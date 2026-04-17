@@ -21,8 +21,8 @@ import type { CancellationReason } from './transaction.js';
 export interface PolicyChangeValues {
   namedInsured: Omit<NamedInsured, 'userId' | 'orgId'>;
   mailingAddress: Address;
-  effectiveDate: Date | null;
-  expirationDate: Date | null; // TODO: ability to request date changes ??
+  // effectiveDate: Date | null;
+  // expirationDate: Date | null; // TODO: ability to request date changes ??
   requestEffDate: Date; // change to timestamp ??
 }
 
@@ -45,7 +45,7 @@ export interface LocationChangeValues {
 // TODO: change security rules to fetch policy instead of storing agentId and agencyId
 // OR are they there for querying purposes ?? (would require rxjs if not ??)
 
-interface BaseChangeRequest extends BaseDoc {
+export interface BaseChangeRequest extends BaseDoc {
   trxType: ChangeRequestTrxType; // TODO: delete - handle trx by looping through endorsement and amendment changes
   requestEffDate: Timestamp;
   policyId: string;

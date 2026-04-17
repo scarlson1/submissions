@@ -10,8 +10,7 @@ import {
 } from '@mui/material';
 import { useFormikContext } from 'formik';
 
-import type { FloodValues } from '@idemand/common';
-import { LimitKeys } from 'common';
+import type { FloodValues, LimitKey } from '@idemand/common';
 import { FormikCheckbox } from 'components/forms';
 import { useDisclosure, useGeneralQuoteDisclosure } from 'hooks';
 import { dollarFormat } from 'modules/utils/helpers';
@@ -24,7 +23,7 @@ import { dollarFormat } from 'modules/utils/helpers';
 
 interface Detail {
   title: string;
-  valueKey: LimitKeys | 'deductible'; //  keyof NestedLimits | 'deductible'
+  valueKey: LimitKey | 'deductible'; //  keyof NestedLimits | 'deductible'
 }
 
 const policyDetails: Detail[] = [

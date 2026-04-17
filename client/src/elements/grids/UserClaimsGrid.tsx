@@ -17,8 +17,8 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { Claim, Collection } from '@idemand/common';
-import { User, usersCollection } from 'common';
+import { Claim, Collection, type User } from '@idemand/common';
+import { usersCollection } from 'common';
 import { BasicDataGrid, GridEditMultiSelectCell } from 'components';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAsyncToast, useGridEditMode, useUpdateClaims } from 'hooks';

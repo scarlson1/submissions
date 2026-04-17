@@ -7,15 +7,18 @@ import {
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { Collection, type WithId } from '@idemand/common';
+import {
+  Collection,
+  type StagedPolicyImport,
+  type StagedTransactionImport,
+  type StageImportRecord,
+  type WithId,
+} from '@idemand/common';
 import invariant from 'tiny-invariant';
 import {
   getReportErrorFn,
   importSummaryCollection,
   stagedImportsCollection,
-  StagedPolicyImport,
-  StagedTransactionImport,
-  StageImportRecord,
   transactionsCollection,
 } from '../common/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';

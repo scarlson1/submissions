@@ -22,14 +22,16 @@ import { isNumber, merge } from 'lodash';
 import { Fragment, ReactNode, useCallback, useMemo, useState } from 'react';
 import { useFirestore } from 'reactfire';
 
-import { Collection, type ILocation, type WithId } from '@idemand/common';
 import {
-  AddLocationRequest,
-  CancellationRequest,
-  DraftAddLocationRequest,
-  fallbackImages,
-  PolicyChangeRequest,
-} from 'common';
+  Collection,
+  type AddLocationRequest,
+  type CancellationRequest,
+  type DraftAddLocationRequest,
+  type ILocation,
+  type PolicyChangeRequest,
+  type WithId,
+} from '@idemand/common';
+import { fallbackImages } from 'common';
 import { WizardNavButtons } from 'components/forms';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
 import { useFirstRender } from 'hooks/utils';
@@ -282,8 +284,10 @@ export const ReviewStepComponent = ({
                 </Fragment>
               ))
             : null}
+          {/* @ts-expect-error TODO: fix type */}
           {changeRequest.policyChanges?.fees?.length
-            ? changeRequest.policyChanges.fees.map((f, i) => (
+            ? // @ts-expect-error TODO: fix type
+              changeRequest.policyChanges.fees.map((f, i) => (
                 <Fragment key={`fee-${i}`}>
                   <Grid xs={8}>
                     <Typography variant='body1' sx={{ fontSize: '0.875rem' }}>

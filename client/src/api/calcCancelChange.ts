@@ -1,6 +1,5 @@
+import type { LocationChangeRequest } from '@idemand/common';
 import { Functions, httpsCallable } from 'firebase/functions';
-
-import { LocationChangeRequest } from 'common';
 
 export interface CalcCancellationChangeRequest {
   requestId: string;

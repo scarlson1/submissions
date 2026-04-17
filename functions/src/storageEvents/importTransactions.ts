@@ -1,4 +1,4 @@
-import { Collection } from '@idemand/common';
+import { Collection, type StagedTransactionImport } from '@idemand/common';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
@@ -13,7 +13,6 @@ import {
   importSummaryCollection,
   resendKey,
   stagedImportsCollection,
-  StagedTransactionImport,
   Transaction,
 } from '../common/index.js';
 import {

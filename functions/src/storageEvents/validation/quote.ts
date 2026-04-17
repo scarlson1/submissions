@@ -1,6 +1,10 @@
-import { AgentDetails, CommSource, type DeepNullable } from '@idemand/common';
+import {
+  AgentDetails,
+  CommSource,
+  type DeepNullable,
+  type Limits,
+} from '@idemand/common';
 import invariant from 'tiny-invariant';
-import { Limits } from '../../common/index.js';
 import {
   validateAddress,
   validateAgentDetails,

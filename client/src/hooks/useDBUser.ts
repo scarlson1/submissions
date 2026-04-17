@@ -8,11 +8,12 @@ import {
   useObservable,
 } from 'reactfire';
 import { user } from 'rxfire/auth';
+import { doc as rxDoc } from 'rxfire/firestore';
 import { from, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { doc as rxDoc } from 'rxfire/firestore';
 
-import { usersCollection, type User as DBUser } from 'common';
+import type { User as DBUser } from '@idemand/common';
+import { usersCollection } from 'common';
 
 // REF: https://github.com/FirebaseExtended/reactfire/blob/main/src/auth.tsx
 
@@ -21,7 +22,9 @@ interface DBUserResult {
   dbUser: DBUser | null;
 }
 
-export const useDBUser = <T>(options?: ReactFireOptions<T>): ObservableStatus<DBUserResult> => {
+export const useDBUser = <T>(
+  options?: ReactFireOptions<T>,
+): ObservableStatus<DBUserResult> => {
   const auth = useAuth();
   const firestore = useFirestore();
 
@@ -41,7 +44,7 @@ export const useDBUser = <T>(options?: ReactFireOptions<T>): ObservableStatus<DB
               dbUser: userData || null,
             };
             return result;
-          })
+          }),
         );
       } else {
         let result: DBUserResult = {
@@ -50,7 +53,7 @@ export const useDBUser = <T>(options?: ReactFireOptions<T>): ObservableStatus<DB
         };
         return of(result);
       }
-    })
+    }),
   );
 
   return useObservable(observableId, observable$, options);

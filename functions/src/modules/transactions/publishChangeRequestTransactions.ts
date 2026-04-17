@@ -1,12 +1,14 @@
-import { Policy } from '@idemand/common';
+import {
+  Policy,
+  type CancellationRequest,
+  type ChangeRequest,
+  type PolicyChangeRequest,
+} from '@idemand/common';
 import { isValid } from 'date-fns';
 import { getFirestore } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
 import {
   CancellationReason,
-  CancellationRequest,
-  ChangeRequest,
-  PolicyChangeRequest,
   getReportErrorFn,
   policiesCollection,
   printObj,
@@ -18,11 +20,15 @@ import {
 } from '../../services/pubsub/index.js';
 import { getDocData } from '../db/utils.js';
 
-const reportErr = getReportErrorFn('policyChangeRequest.publishChangeRequestTransactions');
+const reportErr = getReportErrorFn(
+  'policyChangeRequest.publishChangeRequestTransactions',
+);
 
 export function isPolicyChangeRequest(data: any): data is PolicyChangeRequest {
   const keys = Object.keys(data);
-  return keys.includes('endorsementChanges') || keys.includes('amendmentChanges');
+  return (
+    keys.includes('endorsementChanges') || keys.includes('amendmentChanges')
+  );
 }
 
 export function isCancellationRequest(data: any): data is CancellationRequest {
@@ -31,7 +37,10 @@ export function isCancellationRequest(data: any): data is CancellationRequest {
 }
 
 // Emit pubsub event
-export async function publishChangeRequestTransactions(data: ChangeRequest, policyId: string) {
+export async function publishChangeRequestTransactions(
+  data: ChangeRequest,
+  policyId: string,
+) {
   try {
     // TODO: status check sufficient ?? what if there was an error and requires re-emitting ??
     // need to update change request for each trx to show published trx status ??
@@ -69,7 +78,8 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
       const { endorsementChanges, amendmentChanges, requestEffDate } = data;
 
       const effDateMS = requestEffDate.toMillis();
-      if (!requestEffDate || !isValid(effDateMS)) throw new Error(`invalid request effective date`);
+      if (!requestEffDate || !isValid(effDateMS))
+        throw new Error(`invalid request effective date`);
 
       const endorsementsLcnIds = Object.keys(endorsementChanges);
       for (let lcnId of endorsementsLcnIds) {
@@ -151,32 +161,40 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
         // or publishLocationCancel for each location ??
         case 'reinstatement':
           throw new Error('reinstatement handling not set up yet');
-          // TODO: location reinstatement listener not built yet ?? create on its own or build into policy reinstatement ??
-          break;
         default:
-          error('location trxType not matched in switch statement. no pub/sub event emitted.');
+          error(
+            'location trxType not matched in switch statement. no pub/sub event emitted.',
+          );
       }
     }
     if (data.scope === 'policy') {
       switch (data.trxType) {
         case 'endorsement':
-          throw new Error('TODO: handle publish policy endorsement pubsub message');
+          throw new Error(
+            'TODO: handle publish policy endorsement pubsub message',
+          );
         // TODO: does policy endorsement scenario exist ?? (exp date ??)
         // would effDate request change actually be a cancel ?? can eff date be move later ??
 
         // break;
         case 'amendment':
-          throw new Error('TODO: handle publish policy amendment pubsub message');
+          throw new Error(
+            'TODO: handle publish policy amendment pubsub message',
+          );
 
         // break;
         case 'cancellation': {
-          console.log('TODO: handle publish policy cancellation pubsub message');
+          console.log(
+            'TODO: handle publish policy cancellation pubsub message',
+          );
           const db = getFirestore();
           const policyRef = policiesCollection(db).doc(policyId);
           const policy = await getDocData<Policy>(policyRef);
 
           // TODO: handle in batch instead of pubsub for each location ??
-          let lcnEntries = Object.entries(policy.locations).filter(([id, l]) => !l.cancelEffDate);
+          let lcnEntries = Object.entries(policy.locations).filter(
+            ([id, l]) => !l.cancelEffDate,
+          );
           for (const [id] of lcnEntries) {
             await publishLocationCancel({
               policyId,
@@ -198,7 +216,9 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
         }
         case 'flat_cancel':
           // TODO: flat cancel should look up prev trx --> use as base to offset instead of calculation using "getOffsetTrx"
-          throw new Error('TODO: handle publish policy cancellation pubsub message');
+          throw new Error(
+            'TODO: handle publish policy cancellation pubsub message',
+          );
         // TODO: different transactions than regular cancel ?? can a location be flat_cancelled or just policy ?? location can b/c all trx is location
 
         // break;

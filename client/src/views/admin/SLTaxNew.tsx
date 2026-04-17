@@ -5,7 +5,8 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { taxesCollection, TTax } from 'common';
+import type { Tax } from '@idemand/common';
+import { taxesCollection } from 'common';
 import { TaxForm, TaxValues } from 'elements/forms/TaxForm';
 import { useAsyncToast } from 'hooks';
 import { nanoId } from 'modules/db/utils';
@@ -39,10 +40,8 @@ export const SLTaxNew = () => {
 
         const id = nanoId(10);
 
-        const tax: TTax = {
+        const tax: Tax = {
           ...rest,
-          // id,
-          taxId: id,
           rate,
           rateType: isFixedRate ? 'fixed' : 'percent',
           effectiveDate: effTimestamp,

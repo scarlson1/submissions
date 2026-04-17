@@ -7,8 +7,7 @@ import {
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 
-import type { Policy, WithId } from '@idemand/common';
-import { User } from 'common';
+import type { Policy, User, WithId } from '@idemand/common';
 import { useCollectionData } from './useCollectionData';
 
 // TODO: use subcollection group query instead (users/uid/permissions/private) - rxjs switchMap ??

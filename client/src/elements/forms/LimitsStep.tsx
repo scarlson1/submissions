@@ -5,8 +5,7 @@ import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { useFormikContext } from 'formik';
 import { round } from 'lodash';
 
-import type { FloodValues } from '@idemand/common';
-import { LimitKeys } from 'common/types';
+import type { FloodValues, LimitKey } from '@idemand/common';
 import {
   FormikDollarMaskField,
   FormikDollarMaskFieldProps,
@@ -88,7 +87,7 @@ export const LimitsStep = ({
     if (!replacementCost) return result;
 
     Object.keys(result).forEach((key) => {
-      const limitVal = values.limits[key as LimitKeys];
+      const limitVal = values.limits[key as LimitKey];
       const limitNum =
         typeof limitVal === 'string' ? parseInt(limitVal) : limitVal;
       const ht = getFormattedPct(limitNum, replacementCost);

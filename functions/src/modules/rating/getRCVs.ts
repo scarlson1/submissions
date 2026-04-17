@@ -1,6 +1,6 @@
-import type { Limits, RCVs } from '../../common/index.js';
-
 // TODO: change to using RCVs from @idemand/common
+
+import type { Limits, RCVs } from '@idemand/common';
 
 /**
  * Calculate RCVs for each limit from building RCV & limits

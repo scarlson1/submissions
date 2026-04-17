@@ -2,9 +2,9 @@ import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { useCallback, useMemo, useState } from 'react';
 import { useFirestore, useFunctions } from 'reactfire';
 
+import type { DeepPartial } from '@idemand/common';
 import { approveImport } from 'api';
 import {
-  DeepPartial,
   importSummaryCollection,
   stagedImportsCollection,
   StageImportRecord,

@@ -403,6 +403,7 @@ All tables are date-partitioned. Downstream queries should always include a `WHE
 - user facing change request status
 - user facing transaction history / policy history
 - docs: data lineage graph
+- need to set stripe customer ID on user ?? needed for seed ??
 
 Agents
 

@@ -1,10 +1,9 @@
+import type { CancellationRequest, ChangeRequest } from '@idemand/common';
 import { isValid } from 'date-fns';
 import { getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
-  CancellationRequest,
-  ChangeRequest,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
@@ -33,7 +32,10 @@ type CalcCancelChangesResponse = Pick<
   'locationChanges' | 'policyChanges' | 'formValues'
 >;
 
-const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChangesProps>) => {
+const calcCancelChange = async ({
+  data,
+  auth,
+}: CallableRequest<CalcCancelChangesProps>) => {
   const { policyId, requestId } = data;
 
   requireAuth(auth);
@@ -53,14 +55,19 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
   ]);
 
   const policy = policySnap.data();
-  const changeRequest = changeRequestSnap.data() as unknown as CancellationRequest;
+  const changeRequest =
+    changeRequestSnap.data() as unknown as CancellationRequest;
 
   validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
-  validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
+  validate(
+    changeRequest,
+    'not-found',
+    `change request does not exist (ID: ${requestId})`,
+  );
   validate(
     changeRequest.status === 'draft',
     'failed-precondition',
-    'Change request already submitted. Please create a new one.'
+    'Change request already submitted. Please create a new one.',
   );
 
   try {
@@ -70,9 +77,13 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
     validate(
       isValid(requestEffDate.toMillis()),
       'failed-precondition',
-      'invalid cancel effective date'
+      'invalid cancel effective date',
     );
-    validate(formValues.cancelReason, 'failed-precondition', 'cancel reason required');
+    validate(
+      formValues.cancelReason,
+      'failed-precondition',
+      'cancel reason required',
+    );
     // TODO: validate after today ?? allow admin to have past date
 
     const locationSnap = await locationsCol.doc(locationId).get();
@@ -86,9 +97,13 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
     const { termPremium, termDays } = calcTerm(
       annualPremium || lcnTermPrem,
       effectiveDate.toDate(),
-      requestEffDate.toDate()
+      requestEffDate.toDate(),
     );
-    validate(termPremium && termDays, 'internal', 'error calculating location term premium');
+    validate(
+      termPremium && termDays,
+      'internal',
+      'error calculating location term premium',
+    );
 
     const locationChanges = {
       termPremium,
@@ -103,7 +118,7 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
       {
         [locationId]: locationChanges,
       },
-      requestEffDate
+      requestEffDate,
     );
 
     const changeRequestUpdates: Partial<CancellationRequest> = {
@@ -116,11 +131,18 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
     };
     info(`saving cancel request changes...`, { changeRequestUpdates });
     // TODO: fix typing (new schema)
-    await changeRequestRef.set(changeRequestUpdates as unknown as ChangeRequest, { merge: true });
+    await changeRequestRef.set(
+      changeRequestUpdates as unknown as ChangeRequest,
+      { merge: true },
+    );
 
     // TODO: fix typing
     // @ts-ignore
-    const res: CalcCancelChangesResponse = { formValues, locationChanges, policyChanges };
+    const res: CalcCancelChangesResponse = {
+      formValues,
+      locationChanges,
+      policyChanges,
+    };
 
     return res;
   } catch (err: any) {
@@ -133,4 +155,7 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
   }
 };
 
-export default onCallWrapper<CalcCancelChangesProps>('calccancelchange', calcCancelChange);
+export default onCallWrapper<CalcCancelChangesProps>(
+  'calccancelchange',
+  calcCancelChange,
+);

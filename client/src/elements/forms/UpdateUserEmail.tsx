@@ -4,7 +4,7 @@ import { useCallback, useEffect } from 'react';
 import { SubmitHandler, useForm, useFormState } from 'react-hook-form';
 import { useFirestore, useUser } from 'reactfire';
 
-import { User } from 'common';
+import type { User } from '@idemand/common';
 import { RHFTextField } from 'components/forms';
 import { useAuthActions } from 'context';
 import { useAsyncToast, useUpdateDoc } from 'hooks';
@@ -38,7 +38,7 @@ export function UpdateUserEmail() {
   const { update: updateUserDoc } = useUpdateDoc<User>(
     'users',
     () => toast.success('email updated!'),
-    () => toast.error('error updating email') // need to handle db out of sync with auth ?? could fail if user db doc doesn't exist (hook is using update method)
+    () => toast.error('error updating email'), // need to handle db out of sync with auth ?? could fail if user db doc doesn't exist (hook is using update method)
   );
 
   const {
@@ -84,7 +84,7 @@ export function UpdateUserEmail() {
         toast.error('Error updating email');
       }
     },
-    [toast, updateUserEmail, firestore, user]
+    [toast, updateUserEmail, firestore, user],
   );
 
   return (

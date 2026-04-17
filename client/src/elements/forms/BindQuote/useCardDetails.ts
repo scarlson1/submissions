@@ -2,7 +2,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 import { useFirestore, useUser } from 'reactfire';
 
-import { PaymentMethod, paymentMethodsCollection } from 'common';
+import type { PaymentMethod } from '@idemand/common';
+import { paymentMethodsCollection } from 'common';
 
 export const useCardDetails = (id: string) => {
   const firestore = useFirestore();
@@ -30,5 +31,8 @@ export const useCardDetails = (id: string) => {
     });
   }, [user, firestore, id]);
 
-  return useMemo(() => ({ cardDetails, loading, error }), [cardDetails, loading, error]);
+  return useMemo(
+    () => ({ cardDetails, loading, error }),
+    [cardDetails, loading, error],
+  );
 };

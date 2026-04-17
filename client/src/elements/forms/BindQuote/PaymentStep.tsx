@@ -1,4 +1,8 @@
-import { AccountBalanceRounded, AddCardRounded, CreditCardRounded } from '@mui/icons-material';
+import {
+  AccountBalanceRounded,
+  AddCardRounded,
+  CreditCardRounded,
+} from '@mui/icons-material';
 import {
   Box,
   Checkbox,
@@ -16,7 +20,8 @@ import { useFormikContext } from 'formik';
 import { useCallback, useEffect } from 'react';
 import { object, string } from 'yup';
 
-import { PaymentMethod } from 'common';
+import type { PaymentMethod } from '@idemand/common';
+import type { VerifyEPayTokenResponse } from 'api';
 import { AddPaymentDialog } from '../AddPaymentDialog';
 
 export const billingValidation = object().shape({
@@ -30,7 +35,9 @@ export interface RadioListItemProps {
   listItemButtonProps?: ListItemButtonProps;
   listItemTextProps?: ListItemTextProps;
   value: RadioListVal;
-  onClick: (newValue: RadioListVal) => void | ((newValue: RadioListVal) => Promise<void>);
+  onClick: (
+    newValue: RadioListVal,
+  ) => void | ((newValue: RadioListVal) => Promise<void>);
   selected?: boolean;
 }
 
@@ -45,7 +52,12 @@ export const RadioListItem = ({
   const labelId = `Option - ${value}`;
 
   return (
-    <ListItem key={`key-${labelId}`} disablePadding sx={{ py: 2 }} {...listItemProps}>
+    <ListItem
+      key={`key-${labelId}`}
+      disablePadding
+      sx={{ py: 2 }}
+      {...listItemProps}
+    >
       <ListItemButton
         role={undefined}
         onClick={() => onClick(value)}
@@ -89,7 +101,10 @@ export interface PaymentStepProps {
   logAnalyticsStep?: (step: number, stepName?: string) => void;
 }
 
-export const PaymentStep = ({ pmtOptions, logAnalyticsStep }: PaymentStepProps) => {
+export const PaymentStep = ({
+  pmtOptions,
+  logAnalyticsStep,
+}: PaymentStepProps) => {
   const { values, setFieldValue } = useFormikContext<any>();
 
   // TODO: abstract step analytics so index isn't manual
@@ -102,14 +117,14 @@ export const PaymentStep = ({ pmtOptions, logAnalyticsStep }: PaymentStepProps) 
       const newValue = values.paymentMethodId === value ? '' : value;
       setFieldValue('paymentMethodId', newValue);
     },
-    [setFieldValue, values]
+    [setFieldValue, values],
   );
 
   const handleMethodAdded = useCallback(
-    (data: PaymentMethod) => {
+    (data: VerifyEPayTokenResponse) => {
       setFieldValue('paymentMethodId', data.id);
     },
-    [setFieldValue]
+    [setFieldValue],
   );
 
   return (
@@ -140,7 +155,11 @@ export const PaymentStep = ({ pmtOptions, logAnalyticsStep }: PaymentStepProps) 
                   // divider: a.length !== i + 1,
                   divider: true,
                   secondaryAction:
-                    o.type === 'card' ? <CreditCardRounded /> : <AccountBalanceRounded />,
+                    o.type === 'card' ? (
+                      <CreditCardRounded />
+                    ) : (
+                      <AccountBalanceRounded />
+                    ),
                 }}
                 listItemButtonProps={{}}
                 listItemTextProps={{
@@ -151,16 +170,27 @@ export const PaymentStep = ({ pmtOptions, logAnalyticsStep }: PaymentStepProps) 
             ))}
           </List>
         ) : (
-          <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ my: 5 }}>
+          <Typography
+            variant='subtitle2'
+            color='text.secondary'
+            align='center'
+            sx={{ my: 5 }}
+          >
             No saved payment methods found
           </Typography>
         )}
       </Box>
       <AddPaymentDialog
         openButtonText='Add Payment Method'
-        buttonProps={{ variant: 'text', startIcon: <AddCardRounded />, sx: { mx: 'auto' } }}
+        buttonProps={{
+          variant: 'text',
+          startIcon: <AddCardRounded />,
+          sx: { mx: 'auto' },
+        }}
         cb={handleMethodAdded}
-        containerProps={{ sx: { my: 2, display: 'flex', justifyContent: 'center' } }}
+        containerProps={{
+          sx: { my: 2, display: 'flex', justifyContent: 'center' },
+        }}
       />
     </Box>
   );

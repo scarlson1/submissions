@@ -6,8 +6,8 @@ import {
   GridRenderEditCellParams,
 } from '@mui/x-data-grid';
 
+import type { User } from '@idemand/common';
 import { Claim } from '@idemand/common';
-import { User } from 'common';
 import {
   GridEditMultiSelectCell,
   GridMultiSelectColDef,

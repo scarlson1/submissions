@@ -19,6 +19,7 @@ import {
   Phone,
   Timestamp,
 } from './common.js';
+import type { EPayVerifiedResponse } from './epay.js';
 import { FeeItem } from './fees.js';
 import { LocationImages } from './location.js';
 import { TaxItem } from './taxes.js';
@@ -44,26 +45,6 @@ export const CarrierDetails = z.object({
 });
 export type CarrierDetails = z.infer<typeof CarrierDetails>;
 
-export const EPayVerifiedResponse = z.object({
-  id: z.string(),
-  attributeValues: z.array(z.any()),
-  emailAddress: z.string().email(),
-  country: z.string(),
-  maskedAccountNumber: z.string(),
-  payer: z.string(),
-  transactionType: z.string(),
-});
-export type EPayVerifiedResponse = z.infer<typeof EPayVerifiedResponse>;
-// export interface EPayVerifiedResponse {
-//   id: string;
-//   attributeValues: any[];
-//   emailAddress: string;
-//   country: string;
-//   maskedAccountNumber: string;
-//   payer: string;
-//   transactionType: string;
-// }
-
 export interface PaymentMethod extends EPayVerifiedResponse {
   expiration?: Timestamp | null;
   type: string;
@@ -73,6 +54,8 @@ export interface PaymentMethod extends EPayVerifiedResponse {
   metadata: BaseMetadata;
 }
 
+// DELETE ?? only used in epay implementation ?? oddly used in Charge type ??
+// also being used to store stripe's paymentMethodDetails (TODO: fully prioritize stripe)
 const PaymentMethod = z.object({
   id: z.string(),
   emailAddress: z.string(),
@@ -165,11 +148,13 @@ export const Policy = z.object({
   renewalStatus: RenewalStatus.optional(),
   renewalQuoteId: z.string().optional(),
   priorPolicyId: z.string().optional(),
-  renewalNotifications: z.object({
-    sent60: Timestamp.optional(),
-    sent30: Timestamp.optional(),
-    sent7: Timestamp.optional(),
-  }).optional(),
+  renewalNotifications: z
+    .object({
+      sent60: Timestamp.optional(),
+      sent30: Timestamp.optional(),
+      sent7: Timestamp.optional(),
+    })
+    .optional(),
   imageURLs: LocationImages.optional().nullable(),
   imagePaths: LocationImages.optional().nullable(),
   // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload

@@ -3,16 +3,16 @@ import { info } from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
 import { z } from 'zod';
 
-import { GetAALRequest, SRPerilAAL, SRRes } from '@idemand/common';
-import { round } from 'lodash-es';
 import {
-  maxA,
-  maxBCD,
-  minA,
-  mockSwissRe,
-  RCVs,
+  GetAALRequest,
+  type RCVs,
+  RCVs as RCVsZ,
+  SRPerilAAL,
+  SRRes,
   ValueByRiskType,
-} from '../../common/index.js';
+} from '@idemand/common';
+import { round } from 'lodash-es';
+import { maxA, maxBCD, minA, mockSwissRe } from '../../common/index.js';
 import { getSwissReInstance } from '../../services/index.js';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
@@ -27,9 +27,9 @@ export interface GetAALsProps extends GetAALRequest {
 }
 
 export const GetAALRes = z.object({
-  AALs: ValueByRiskType, // AALs,
+  AALs: ValueByRiskType,
   srRes: SRRes,
-  RCVs: RCVs,
+  RCVs: RCVsZ,
 });
 export type GetAALRes = z.infer<typeof GetAALRes>;
 
@@ -37,7 +37,7 @@ export interface GetAALsWithRCVsProps {
   srClientId: string;
   srClientSecret: string;
   srSubKey: string;
-  RCVs: z.infer<typeof RCVs>;
+  RCVs: RCVs;
   limits: GetAALRequest['limits'];
   deductible: number;
   coordinates: GetAALRequest['coordinates'];
@@ -104,9 +104,13 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
  * instead of a raw replacementCost. Use this for renewals where replacementCost
  * may not be stored on the ratingData document.
  */
-export const getAALsWithRCVs = async (props: GetAALsWithRCVsProps): Promise<GetAALRes> => {
+export const getAALsWithRCVs = async (
+  props: GetAALsWithRCVsProps,
+): Promise<GetAALRes> => {
   const {
-    srClientId, srClientSecret, srSubKey,
+    srClientId,
+    srClientSecret,
+    srSubKey,
     RCVs: precomputedRCVs,
     limits: { limitA, limitB, limitC, limitD },
     deductible,
@@ -157,9 +161,17 @@ export const getAALsWithRCVs = async (props: GetAALsWithRCVsProps): Promise<GetA
   });
 
   info('Swiss Re AALs (getAALsWithRCVs) XML Variables', {
-    lat: coordinates.latitude, lng: coordinates.longitude,
-    rcvTotal: precomputedRCVs.total, rcvAB, rcvC: precomputedRCVs.contents, rcvD: precomputedRCVs.BI,
-    limitAB, limitC, limitD, deductible, numStories,
+    lat: coordinates.latitude,
+    lng: coordinates.longitude,
+    rcvTotal: precomputedRCVs.total,
+    rcvAB,
+    rcvC: precomputedRCVs.contents,
+    rcvD: precomputedRCVs.BI,
+    limitAB,
+    limitC,
+    limitD,
+    deductible,
+    numStories,
   });
 
   const { data: srRes } = await swissReInstance.post(

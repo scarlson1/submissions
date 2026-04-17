@@ -11,7 +11,10 @@ import {
   swissReResCollection,
   taxesCollection,
   usersCollection,
+  type ChangeRequest,
+  type ImportSummary,
   type PolicyClaim,
+  type StageImportRecord,
 } from '@idemand/common';
 import {
   CollectionReference,
@@ -21,14 +24,11 @@ import {
 import Stripe from 'stripe';
 import {
   AgencyApplication,
-  ChangeRequest,
   Charge,
   Disclosure,
-  ImportSummary,
   PaymentMethod,
   PropertyDataRes,
   RatingData,
-  StageImportRecord,
   Transaction,
 } from '../common/index.js';
 import { ClaimsDocData } from '../firestoreEvents/index.js';

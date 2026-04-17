@@ -4,7 +4,8 @@ import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { object } from 'yup';
 
-import { phoneVal, User } from 'common';
+import type { User } from '@idemand/common';
+import { phoneVal } from 'common';
 import { FormikMaskField, IMask, phoneMaskProps } from 'components/forms';
 import { useAsyncToast, useDocData, useUpdateDoc } from 'hooks';
 

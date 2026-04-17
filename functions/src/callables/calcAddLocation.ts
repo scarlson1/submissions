@@ -3,6 +3,7 @@ import {
   PolicyLocation,
   type AdditionalInterest,
   type Address,
+  type DraftAddLocationRequest,
 } from '@idemand/common';
 import { isValid } from 'date-fns';
 import { GeoPoint, getFirestore, Timestamp } from 'firebase-admin/firestore';
@@ -13,7 +14,6 @@ import { isFinite, sum } from 'lodash-es';
 import {
   changeRequestsCollection,
   defaultFloodZone,
-  DraftAddLocationRequest,
   getReportErrorFn,
   locationsCollection,
   policiesCollection,

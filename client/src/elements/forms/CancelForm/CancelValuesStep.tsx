@@ -3,8 +3,13 @@ import { Form, Formik, FormikHelpers } from 'formik';
 import { useCallback } from 'react';
 import { date, object, string } from 'yup';
 
-import { CancellationReason, CancellationRequest } from 'common';
-import { FormikDatePicker, FormikNativeSelect, FormikWizardNavButtons } from 'components/forms';
+import type { CancellationRequest } from '@idemand/common';
+import { CancellationReason } from 'common';
+import {
+  FormikDatePicker,
+  FormikNativeSelect,
+  FormikWizardNavButtons,
+} from 'components/forms';
 import { useWizard } from 'hooks';
 import { BaseStepProps } from './CancelWizard';
 
@@ -43,7 +48,10 @@ export const CancelValuesStep = ({
   const { nextStep } = useWizard();
 
   const handleStepSubmit = useCallback(
-    async (values: CancelValues, { setSubmitting }: FormikHelpers<CancelValues>) => {
+    async (
+      values: CancelValues,
+      { setSubmitting }: FormikHelpers<CancelValues>,
+    ) => {
       try {
         await onNextStep(values);
 
@@ -55,11 +63,16 @@ export const CancelValuesStep = ({
         setSubmitting(false);
       }
     },
-    [onNextStep, onError, nextStep]
+    [onNextStep, onError, nextStep],
   );
 
   return (
-    <Formik {...props} onSubmit={handleStepSubmit} enableReinitialize validationSchema={validation}>
+    <Formik
+      {...props}
+      onSubmit={handleStepSubmit}
+      enableReinitialize
+      validationSchema={validation}
+    >
       {({ handleSubmit, submitForm }) => (
         <Form onSubmit={handleSubmit}>
           <Container maxWidth='xs' disableGutters sx={{ py: 4 }}>

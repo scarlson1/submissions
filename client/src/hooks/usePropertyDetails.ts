@@ -6,10 +6,12 @@ import type {
   Basement,
   Coords,
   InitRatingValues,
+  LimitKey,
   Nullable,
+  RatingPropertyData,
 } from '@idemand/common';
 import { getPropertyDetailsAttom, GetPropertyDetailsAttomRequest } from 'api';
-import { ElevationResult, LimitKeys, RatingPropertyData } from 'common';
+import { ElevationResult } from 'common';
 import { logDev } from 'modules/utils';
 import { usePromptRCV } from './usePromptRCV';
 
@@ -17,7 +19,7 @@ import { usePromptRCV } from './usePromptRCV';
 let MAX_A = parseInt(import.meta.env.VITE_FLOOD_MAX_LIMIT_A || '1000000'); // @ts-ignore
 let MIN_A = parseInt(import.meta.env.VITE_FLOOD_MIN_LIMIT_A || '100000');
 
-type TDefaultLimitPct = { [key in LimitKeys]: number };
+type TDefaultLimitPct = { [key in LimitKey]: number };
 
 let defaultLimitPercents: TDefaultLimitPct = {
   limitA: 1,

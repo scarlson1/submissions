@@ -2,10 +2,9 @@ import { DocumentReference, DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
+import { ChangeRequestStatus, type ChangeRequest } from '@idemand/common';
 import {
   audience,
-  ChangeRequest,
-  ChangeRequestStatus,
   getReportErrorFn,
   hostingBaseURL,
   resendKey,

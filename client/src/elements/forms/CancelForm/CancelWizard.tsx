@@ -6,9 +6,9 @@ import { useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
-import type { Policy } from '@idemand/common';
+import type { CancellationRequest, Policy } from '@idemand/common';
 import { calcCancelChange, calcPolicyCancelChanges } from 'api';
-import { CancellationReason, CancellationRequest } from 'common';
+import { CancellationReason } from 'common';
 import { Wizard } from 'components/forms';
 import { useDocDataOnce } from 'hooks';
 import { createChangeRequest } from 'modules/db';

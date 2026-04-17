@@ -2,17 +2,16 @@ import { endOfToday, startOfToday } from 'date-fns';
 import { isEqual } from 'lodash';
 import { array, boolean, date, number, object, string } from 'yup';
 
+import type { FeeItem, TaxItem } from '@idemand/common';
 import { SubjectBaseKeyVal } from 'api';
 import {
-  TFeeItem,
-  TSubjectBaseItem,
-  TTaxItem,
   addressValidationActiveStates,
   agencyValidation,
   agentValidation,
   carrierValidation,
   limitsValidation,
   namedInsuredValidationNotRequired,
+  TSubjectBaseItem,
 } from 'common';
 import {
   addToDate,
@@ -30,7 +29,9 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
     address: addressValidationActiveStates(activeStates), // addressValidation,
     homeState: string().required('home state required'),
     limits: limitsValidation,
-    effectiveExceptionRequested: boolean().typeError('eff. exception (boolean)'),
+    effectiveExceptionRequested: boolean().typeError(
+      'eff. exception (boolean)',
+    ),
     effectiveDate: date().when('effectiveExceptionRequested', {
       is: true,
       then: () => date().required(), // .min(minDate, 'Effective must be 15+ days'),
@@ -43,11 +44,15 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
     deductible: number().min(1000).required(),
     fees: array().of(
       object().shape({
-        displayName: string().typeError('fee name required').required('fee name is required'),
-        value: string().typeError('fee value required (string)').required('fee value is required'),
+        displayName: string()
+          .typeError('fee name required')
+          .required('fee name is required'),
+        value: string()
+          .typeError('fee value required (string)')
+          .required('fee value is required'),
         // refundable: number().required('refundable is required'),
         refundable: boolean(),
-      })
+      }),
     ),
     taxes: array().of(
       object().shape({
@@ -64,9 +69,9 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
             function (val, ctx) {
               if (!val) return true; // pass to required error
               // TODO: get subject base
-              const tax = ctx.parent as TTaxItem;
+              const tax = ctx.parent as TaxItem;
               const baseKeys = tax?.subjectBase?.filter(
-                (b: TSubjectBaseItem) => b !== 'fixedFee' && b !== 'noFee'
+                (b: TSubjectBaseItem) => b !== 'fixedFee' && b !== 'noFee',
               );
               if (!baseKeys || !baseKeys.length || !tax.rate) return true;
 
@@ -83,25 +88,36 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
                 premium: values.annualPremium || 0,
                 homeStatePremium: values.annualPremium || 0,
                 outStatePremium: 0,
-                inspectionFees: sumByTypes<TFeeItem>(
+                inspectionFees: sumByTypes<FeeItem>(
                   fees,
                   'displayName',
                   'Inspection Fee',
-                  'value'
+                  'value',
                 ),
-                mgaFees: sumByTypes<TFeeItem>(fees, 'displayName', 'MGA Fee', 'value'),
+                mgaFees: sumByTypes<FeeItem>(
+                  fees,
+                  'displayName',
+                  'MGA Fee',
+                  'value',
+                ),
               };
 
               // TODO: fix "as" typing
               let taxBase = baseKeys.reduce((acc, curr) => {
-                const num = typeof curr === 'string' ? body[curr as keyof SubjectBaseKeyVal] : 0;
+                const num =
+                  typeof curr === 'string'
+                    ? body[curr as keyof SubjectBaseKeyVal]
+                    : 0;
                 return acc + (num ?? 0);
               }, 0);
               const baseRoundingFunc = getRoundingFunc(tax.baseRoundType);
               taxBase = baseRoundingFunc(taxBase, tax.baseDigits ?? 2);
 
               const resultRoundFunc = getRoundingFunc(tax.resultRoundType);
-              const validationValue = resultRoundFunc(taxBase * tax.rate, tax.resultDigits ?? 2);
+              const validationValue = resultRoundFunc(
+                taxBase * tax.rate,
+                tax.resultDigits ?? 2,
+              );
 
               if (!isEqual(val, validationValue)) {
                 return this.createError({
@@ -110,11 +126,11 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
               }
 
               return true;
-            }
+            },
           )
           .required('tax value is required'),
         subjectBase: array().of(string().typeError('subject base (string)')),
-      })
+      }),
     ),
     annualPremium: number()
       .typeError('annual premium required (number)')
@@ -142,14 +158,18 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
     agency: agencyValidation.concat(
       object().shape({
         stripeAccountId: string().required('connect account ID required'),
-      })
+      }),
     ),
     carrier: carrierValidation,
     commSource: string().required('commission source required'),
     // TODO: reusable rating data validation
     ratingPropertyData: object().shape({
-      CBRSDesignation: string().typeError('CBRS required').required(`CBRS designation is required`),
-      basement: string().typeError('basement required (string)').required(`basement is required`),
+      CBRSDesignation: string()
+        .typeError('CBRS required')
+        .required(`CBRS designation is required`),
+      basement: string()
+        .typeError('basement required (string)')
+        .required(`basement is required`),
       distToCoastFeet: number().typeError('dist to coast (string)').min(1), // .required(`distance to coast is required`),
       floodZone: string()
         .typeError('flood zone required (string)')
@@ -169,12 +189,15 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
         .typeError('year built required (number)')
         .required(`year built is required`)
         .min(1900, 'Must be after 1900')
-        .max(new Date().getFullYear(), `Year cannot exceed ${new Date().getFullYear()}`),
+        .max(
+          new Date().getFullYear(),
+          `Year cannot exceed ${new Date().getFullYear()}`,
+        ),
       priorLossCount: string().typeError('prior loss count (string)'),
     }),
     notes: array().of(
       object().shape({
         note: string(),
-      })
+      }),
     ),
   });

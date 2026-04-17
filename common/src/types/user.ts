@@ -1,12 +1,18 @@
 import { DefaultCommission } from '../enums.js';
-import { Address, AgencyDetails, AgentDetails, BaseMetadata, GeoPoint } from './common.js';
+import {
+  Address,
+  AgencyDetails,
+  AgentDetails,
+  BaseMetadata,
+  GeoPoint,
+} from './common.js';
 
 export interface User {
   displayName?: string;
-  email?: string;
+  email?: string | null;
   phone?: string;
   photoURL?: string;
-  stripe_customer_id?: string;
+  // stripe_customer_id?: string; // TODO: add back ?? currently set as billingEntity.stripeCustomerId
   tenantId?: string | null; // useOrgId ??
   orgId?: string | null;
   orgName?: string | null;

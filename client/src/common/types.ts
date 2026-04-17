@@ -10,121 +10,35 @@ import { z } from 'zod';
 
 import {
   Address as AddressZ,
-  Basement,
-  BaseMetadata as BaseMetadataZ,
-  CBRSDesignation,
-  FloodZone,
   Phone as PhoneZ,
-  Product,
-  State,
-  Timestamp as TimestampZ,
   type Address,
   type AuthProviders,
+  type BaseDoc,
   type BaseMetadata,
-  type DefaultCommission,
   type GeoPoint,
   type ILocation,
-  type InviteStatus,
   type Limits,
   type Nullable,
   type OrgType,
+  type PaymentMethod,
   type Policy,
+  type PremiumCalcData,
   type Quote,
+  type RatingPropertyData,
+  type RCVs,
   type DisclosureType as TDisclosureType,
   type Timestamp,
   type LicenseType as TLicenseType,
   type Product as TProduct,
   type State as TState,
-  type WithRequired,
 } from '@idemand/common';
 import { ServerDataGridProps } from 'components';
-import { AddLocationValues } from 'elements/forms';
-import { CancelValues } from 'elements/forms/CancelForm';
-import { LocationChangeValues } from 'elements/forms/LocationChangeForm/LocationChangeWizard';
-import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import {
-  FeeItemName,
-  LineOfBusiness,
-  PriorLossCount,
-  RoundingType,
-  SubjectBaseItem,
   TAgencySubmissionStatus,
-  TaxItemName,
-  TaxRateType,
-  TChangeRequestStatus,
-  TChangeRequestTrxType,
   TLicenseOwner,
-  TransactionType,
   TTransactionType,
   UW_NOTE_CODE,
 } from './enums';
-
-export interface BaseDoc {
-  metadata: BaseMetadata;
-}
-
-// TODO: redo Optional type / rename (MaybeKeys)
-// make optional accept keys that are optional (partial)
-// export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
-
-// TODO: need DeepPick & DeepOmit ??
-// export type DeepOptionalKeys <T, P extends Path<T>> = Pick<DeepPartial<T>, > &
-
-export type DeepPartial<T> = {
-  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
-};
-
-// export type DeepPartial<T> = {
-//   [K in keyof T]?: T[K] extends object ? DeepPartial<Partial<T[K]>> : T[K];
-// };
-
-// type DeepPartial<K> = {
-//   [attr in keyof K]?: K[attr] extends object
-//     ? DeepPartial<K[attr]>
-//     : K[attr] extends object | null
-//     ? DeepPartial<K[attr]> | null
-//     : K[attr] extends object | null | undefined
-//     ? DeepPartial<K[attr]> | null | undefined
-//     : K[attr];
-// };
-
-export type Maybe<T> = T | null | undefined;
-
-export type Mutable<T> = {
-  -readonly [P in keyof T]: T[P];
-};
-
-export type FlattenObjectKeys<
-  T extends Record<string, any>,
-  Key = keyof T,
-> = Key extends string
-  ? T[Key] extends Record<string, any>
-    ? `${Key}.${FlattenObjectKeys<T[Key]>}`
-    : `${Key}`
-  : never;
-
-// const example = {
-//   a: {
-//     b: 'red',
-//     c: 'green',
-//   },
-//   d: {
-//     e: 'blue',
-//     f: 'yellow',
-//   },
-//   g: 'pink',
-//   h: {
-//     i: {
-//       j: {
-//         k: 'gray',
-//         l: 'grey',
-//       },
-//     },
-//   },
-// } as const;
-
-// type FlatKeys = FlattenObjectKeys<typeof example>;
-// type FlatKeys = "g" | "a.b" | "a.c" | "d.e" | "d.f" | "h.i.j.k" | "h.i.j.l"
 
 type PathImpl<T, K extends keyof T> = K extends string
   ? T[K] extends Record<string, any>
@@ -193,11 +107,11 @@ export type AllowString<Type> = {
 //   metadata: BaseMetadata;
 // }
 
-export type LimitKeys = 'limitA' | 'limitB' | 'limitC' | 'limitD';
-export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
+// export type LimitKey = 'limitA' | 'limitB' | 'limitC' | 'limitD';
+// export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
 
-export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD'; // TODO: use zod and keyof()
-// export type Limits = Record<LimitTypes, number>;
+// export type LimitKey = 'limitA' | 'limitB' | 'limitC' | 'limitD'; // TODO: use zod and keyof()
+// export type Limits = Record<LimitKey, number>;
 
 // export const LimitsZ = z.object({
 //   limitA: z
@@ -211,20 +125,20 @@ export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD'; // TODO: use
 // });
 // export type Limits = z.infer<typeof LimitsZ>;
 
-export const RCVsZ = z.object({
-  building: z.number().int().min(100000),
-  otherStructures: z.number().int().nonnegative(),
-  contents: z.number().int().nonnegative(),
-  BI: z.number().int().nonnegative(),
-  total: z.number().int().nonnegative(),
-});
-export type RCVs = z.infer<typeof RCVsZ>;
+// export const RCVsZ = z.object({
+//   building: z.number().int().min(100000),
+//   otherStructures: z.number().int().nonnegative(),
+//   contents: z.number().int().nonnegative(),
+//   BI: z.number().int().nonnegative(),
+//   total: z.number().int().nonnegative(),
+// });
+// export type RCVs = z.infer<typeof RCVsZ>;
 
-export const DeductibleZ = z.number().int().min(1000);
-export type Deductible = z.infer<typeof DeductibleZ>;
+// export const DeductibleZ = z.number().int().min(1000);
+// export type Deductible = z.infer<typeof DeductibleZ>;
 
-export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
-export type ValueByRiskType = Record<FloodPerilCategories, number>;
+// export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
+// export type ValueByRiskType = Record<FloodPerilCategories, number>;
 
 // export const PhoneZ = z.string().min(10).max(12).trim(); // TODO: regex ??
 // export type Phone = z.infer<typeof PhoneZ>;
@@ -446,78 +360,78 @@ export type NamedInsured = z.infer<typeof NamedInsuredZ>;
 //   refundable?: boolean;
 // }
 
-export const TaxItem = z.object({
-  displayName: TaxItemName,
-  rate: z.number(),
-  value: z.number(),
-  subjectBase: z.array(SubjectBaseItem),
-  baseDigits: z.number().int().optional(), // .default(2),
-  resultDigits: z.number().int().optional(), // .default(2),
-  baseRoundType: RoundingType.optional(),
-  resultRoundType: RoundingType.default('nearest'),
-  // id: z.string(),
-  taxId: z.string(),
-  taxCalcId: z.string(),
-});
-export type TTaxItem = z.infer<typeof TaxItem>;
+// export const TaxItem = z.object({
+//   displayName: TaxItemName,
+//   rate: z.number(),
+//   value: z.number(),
+//   subjectBase: z.array(SubjectBaseItem),
+//   baseDigits: z.number().int().optional(), // .default(2),
+//   resultDigits: z.number().int().optional(), // .default(2),
+//   baseRoundType: RoundingType.optional(),
+//   resultRoundType: RoundingType.default('nearest'),
+//   // id: z.string(),
+//   taxId: z.string(),
+//   taxCalcId: z.string(),
+// });
+// export type TTaxItem = z.infer<typeof TaxItem>;
 
-export const Tax = TaxItem.omit({ value: true, taxCalcId: true }).and(
-  z.object({
-    state: State,
-    effectiveDate: TimestampZ,
-    expirationDate: TimestampZ.optional().nullable(),
-    LOB: z.array(LineOfBusiness),
-    products: z.array(Product),
-    transactionTypes: z.array(TransactionType),
-    rateType: TaxRateType,
-    refundable: z.boolean(),
-    metadata: BaseMetadataZ,
-  }),
-);
-export type TTax = z.infer<typeof Tax>;
+// export const Tax = TaxItem.omit({ value: true, taxCalcId: true }).and(
+//   z.object({
+//     state: State,
+//     effectiveDate: TimestampZ,
+//     expirationDate: TimestampZ.optional().nullable(),
+//     LOB: z.array(LineOfBusiness),
+//     products: z.array(Product),
+//     transactionTypes: z.array(TransactionType),
+//     rateType: TaxRateType,
+//     refundable: z.boolean(),
+//     metadata: BaseMetadataZ,
+//   }),
+// );
+// export type TTax = z.infer<typeof Tax>;
 
-export const TaxTransactionType = z.enum(['transaction', 'reversal']);
-export type TaxTransactionType = z.infer<typeof TaxTransactionType>;
+// export const TaxTransactionType = z.enum(['transaction', 'reversal']);
+// export type TaxTransactionType = z.infer<typeof TaxTransactionType>;
 
-export const TaxOgTransactionZ = z.object({
-  type: z.literal(TaxTransactionType.Enum.transaction),
-  taxId: z.string(),
-  chargeAmount: z.number().nonnegative(),
-  taxAmount: z.number().nonnegative(),
-  stripeCustomerId: z.string().nullable(),
-  customerDetails: z
-    .object({
-      taxIds: z.array(z.string()),
-      address: AddressZ.optional().nullable(),
-    })
-    .nullable(),
-  policyId: z.string(),
-  taxDate: TimestampZ,
-  reversal: z.null(),
-  metadata: BaseMetadataZ,
-});
-export type TaxOgTransaction = z.infer<typeof TaxOgTransactionZ>;
+// export const TaxOgTransactionZ = z.object({
+//   type: z.literal(TaxTransactionType.Enum.transaction),
+//   taxId: z.string(),
+//   chargeAmount: z.number().nonnegative(),
+//   taxAmount: z.number().nonnegative(),
+//   stripeCustomerId: z.string().nullable(),
+//   customerDetails: z
+//     .object({
+//       taxIds: z.array(z.string()),
+//       address: AddressZ.optional().nullable(),
+//     })
+//     .nullable(),
+//   policyId: z.string(),
+//   taxDate: TimestampZ,
+//   reversal: z.null(),
+//   metadata: BaseMetadataZ,
+// });
+// export type TaxOgTransaction = z.infer<typeof TaxOgTransactionZ>;
 
-export const TaxReversalTransactionZ = TaxOgTransactionZ.omit({
-  type: true,
-  reversal: true,
-}).and(
-  z.object({
-    type: z.literal(TaxTransactionType.Enum.reversal),
-    reversal: z.object({
-      originalTransactionId: z.string(),
-    }),
-    chargeAmount: z.number().nonpositive(),
-    taxAmount: z.number().nonpositive(),
-  }),
-);
-export type TaxReversalTransaction = z.infer<typeof TaxReversalTransactionZ>;
+// export const TaxReversalTransactionZ = TaxOgTransactionZ.omit({
+//   type: true,
+//   reversal: true,
+// }).and(
+//   z.object({
+//     type: z.literal(TaxTransactionType.Enum.reversal),
+//     reversal: z.object({
+//       originalTransactionId: z.string(),
+//     }),
+//     chargeAmount: z.number().nonpositive(),
+//     taxAmount: z.number().nonpositive(),
+//   }),
+// );
+// export type TaxReversalTransaction = z.infer<typeof TaxReversalTransactionZ>;
 
-export const TaxTransactionZ = z.union([
-  TaxOgTransactionZ,
-  TaxReversalTransactionZ,
-]);
-export type TaxTransaction = z.infer<typeof TaxTransactionZ>;
+// export const TaxTransactionZ = z.union([
+//   TaxOgTransactionZ,
+//   TaxReversalTransactionZ,
+// ]);
+// export type TaxTransaction = z.infer<typeof TaxTransactionZ>;
 
 export interface ElevationResult {
   elevation: number;
@@ -526,55 +440,6 @@ export interface ElevationResult {
   data_source: string;
   resolution: number;
 }
-
-const currentYear = new Date().getFullYear();
-export const RatingPropertyDataZ = z.object({
-  CBRSDesignation: CBRSDesignation.optional().nullable(),
-  basement: Basement.default('unknown'),
-  distToCoastFeet: z.coerce.number().optional().nullable(),
-  floodZone: FloodZone,
-  numStories: z.number().int().nonnegative().optional().nullable(),
-  propertyCode: z.string().optional().nullable(),
-  replacementCost: z
-    .number()
-    .nonnegative()
-    .min(50000, 'replacement cost est. must be > $50k'), // TODO: min ??
-  sqFootage: z.coerce
-    .number()
-    .int('sq. footage must be an integer')
-    .optional()
-    .nullable(),
-  yearBuilt: z.coerce
-    .number()
-    .min(1900, 'year built must be > 1900')
-    .max(currentYear + 1, `yearBuilt must be < ${currentYear + 1}`)
-    .int('year built must be an integer')
-    .optional()
-    .nullable(),
-
-  FFH: z.coerce.number().int().optional().nullable(),
-  priorLossCount: PriorLossCount.optional().nullable(),
-  units: z.coerce.number().optional().nullable(),
-  elevation: z.number().optional().nullable(),
-});
-export type RatingPropertyData = z.infer<typeof RatingPropertyDataZ>;
-
-interface RatingCalcData {
-  AALs: ValueByRiskType;
-  PM: ValueByRiskType;
-  riskScore: ValueByRiskType;
-  stateMultipliers: ValueByRiskType;
-  secondaryFactorMults: ValueByRiskType;
-}
-
-type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
-
-export const FeeItem = z.object({
-  displayName: FeeItemName,
-  value: z.number(),
-  refundable: z.boolean(),
-});
-export type TFeeItem = z.infer<typeof FeeItem>;
 
 // TODO: require name, email, phone
 // TODO: refactor billing entity - payment method relationship
@@ -680,84 +545,84 @@ export interface VersionAwareMetadata extends BaseMetadata {
   archivedAtVersion: WithFieldValue<number | null>;
 }
 
-export interface PremiumCalcData {
-  techPremium: ValueByRiskType;
-  floodCategoryPremium: ValueByRiskType;
-  premiumSubtotal: number;
-  provisionalPremium: number;
-  subproducerAdj: number;
-  subproducerCommissionPct: number;
-  minPremium: number;
-  minPremiumAdj: number;
-  annualPremium: number;
-  MGACommission: number;
-  MGACommissionPct: number;
-}
+// export interface PremiumCalcData {
+//   techPremium: ValueByRiskType;
+//   floodCategoryPremium: ValueByRiskType;
+//   premiumSubtotal: number;
+//   provisionalPremium: number;
+//   subproducerAdj: number;
+//   subproducerCommissionPct: number;
+//   minPremium: number;
+//   minPremiumAdj: number;
+//   annualPremium: number;
+//   MGACommission: number;
+//   MGACommissionPct: number;
+// }
 
 // TODO: standardize this interface with the "Trx" interface
 // TODO: fix - copy from functions types
-export interface RatingDataOld {
-  quoteDocRef: string;
-  quoteId: string;
-  deductible: Deductible;
-  limits: Limits;
-  tiv: number;
-  replacementCostValues: {
-    a: number;
-    b: number;
-    c: number;
-    d: number;
-    spatialKey: number;
-  };
-  ratingData: PropWithRatingCalcData;
-  premiumData: PremiumCalcData;
-  address: Address;
-  geoHash?: any;
-  lat: number; // TODO: use GeoPoint ??
-  lng: number;
-  externalId: string | null;
-  metadata: VersionAwareMetadata;
-}
+// export interface RatingDataOld {
+//   quoteDocRef: string;
+//   quoteId: string;
+//   deductible: Deductible;
+//   limits: Limits;
+//   tiv: number;
+//   replacementCostValues: {
+//     a: number;
+//     b: number;
+//     c: number;
+//     d: number;
+//     spatialKey: number;
+//   };
+//   ratingData: PropWithRatingCalcData;
+//   premiumData: PremiumCalcData;
+//   address: Address;
+//   geoHash?: any;
+//   lat: number; // TODO: use GeoPoint ??
+//   lng: number;
+//   externalId: string | null;
+//   metadata: VersionAwareMetadata;
+// }
 
-export interface SecondaryFactorMults {
-  inland: number;
-  surge: number;
-  tsunami: number;
-  // secondaryFactorMultsByFactor: {
-  factors: {
-    ffeMult: ValueByRiskType;
-    basementMult: number;
-    historyMult: Nullable<ValueByRiskType>;
-    contentsMult: number;
-    ordinanceMult: number;
-    distanceToCoastMult: number;
-    tier1Mult: number;
-  };
-}
+// export interface SecondaryFactorMults {
+//   inland: number;
+//   surge: number;
+//   tsunami: number;
+//   // secondaryFactorMultsByFactor: {
+//   factors: {
+//     ffeMult: ValueByRiskType;
+//     basementMult: number;
+//     historyMult: Nullable<ValueByRiskType>;
+//     contentsMult: number;
+//     ordinanceMult: number;
+//     distanceToCoastMult: number;
+//     tier1Mult: number;
+//   };
+// }
 
-export type RatingPremCalcData = WithRequired<
-  DeepPartial<PremiumCalcData>,
-  'MGACommission' | 'MGACommissionPct' | 'annualPremium'
->;
+// export type RatingPremCalcData = WithRequired<
+//   DeepPartial<PremiumCalcData>,
+//   'MGACommission' | 'MGACommissionPct' | 'annualPremium'
+// >;
 
-export interface RatingData extends BaseDoc {
-  submissionId: string | null;
-  locationId?: string | null; // any point to locationId at this stage ? pre policy ??
-  externalId?: string | null;
-  limits: Limits;
-  TIV: number;
-  deductible: number;
-  RCVs: RCVs | null;
-  ratingPropertyData: Nullable<RatingPropertyData>;
-  premiumCalcData: PremiumCalcData;
-  AALs: Nullable<ValueByRiskType>;
-  PM: ValueByRiskType;
-  riskScore: ValueByRiskType;
-  stateMultipliers: ValueByRiskType;
-  secondaryFactorMults: SecondaryFactorMults;
-  address?: Address | null;
-  coordinates: GeoPoint | null;
-}
+// export interface RatingData extends BaseDoc {
+//   submissionId: string | null;
+//   locationId?: string | null; // any point to locationId at this stage ? pre policy ??
+//   externalId?: string | null;
+//   limits: Limits;
+//   TIV: number;
+//   deductible: number;
+//   RCVs: RCVs | null;
+//   ratingPropertyData: Nullable<RatingPropertyData>;
+//   premiumCalcData: PremiumCalcData;
+//   AALs: Nullable<ValueByRiskType>;
+//   PM: ValueByRiskType;
+//   riskScore: ValueByRiskType;
+//   stateMultipliers: ValueByRiskType;
+//   secondaryFactorMults: SecondaryFactorMults;
+//   address?: Address | null;
+//   coordinates: GeoPoint | null;
+// }
 
 export interface PrivilegedPolicyData {
   subproducerCommissionPct: number;
@@ -807,28 +672,16 @@ export interface UpdateQuoteRequestBody {
   setMortgageeInterest?: Mortgagee[];
 }
 
-export interface EPayPaymentMethodDetails {
-  attributeValues: any[];
-  country: string;
-  emailAddress: string;
-  id: string;
-  maskedAccountNumber: string;
-  payer: string;
-  transactionType: string;
-  type?: string | null;
-  accountHolder?: string | null;
-}
-
-export interface PaymentMethod
-  extends EPayPaymentMethodDetails, Partial<BaseDoc> {
-  last4?: string;
-  expiration?: string;
-  // TODO: separate into expMonth and expYear
-  brand?: string;
-  network?: string;
-  userId?: string | null;
-  // metadata?: BaseMetadata;
-}
+// export interface PaymentMethod
+//   extends EPayPaymentMethodDetails, Partial<BaseDoc> {
+//   last4?: string;
+//   expiration?: string;
+//   // TODO: separate into expMonth and expYear
+//   brand?: string;
+//   network?: string;
+//   userId?: string | null;
+//   // metadata?: BaseMetadata;
+// }
 
 export interface BaseContact {
   firstName: string;
@@ -837,24 +690,24 @@ export interface BaseContact {
   phone: string;
 }
 
-export const SLProdOfRecordDetailsZ = z.object({
-  name: z.string(),
-  licenseNum: z.string(),
-  licenseState: State,
-  phone: PhoneZ.optional().nullable(),
-});
-export type SLProdOfRecordDetails = z.infer<typeof SLProdOfRecordDetailsZ>;
+// export const SLProdOfRecordDetailsZ = z.object({
+//   name: z.string(),
+//   licenseNum: z.string(),
+//   licenseState: State,
+//   phone: PhoneZ.optional().nullable(),
+// });
+// export type SLProdOfRecordDetails = z.infer<typeof SLProdOfRecordDetailsZ>;
 
-export const TotalsZ = z.object({
-  termPremium: z.number(),
-  taxes: z.array(TaxItem),
-  fees: z.array(FeeItem),
-  price: z.number(),
-});
-export type Totals = z.infer<typeof TotalsZ>;
+// export const TotalsZ = z.object({
+//   termPremium: z.number(),
+//   taxes: z.array(TaxItem),
+//   fees: z.array(FeeItem),
+//   price: z.number(),
+// });
+// export type Totals = z.infer<typeof TotalsZ>;
 
-export const TotalsByBillingEntityZ = z.record(TotalsZ);
-export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntityZ>;
+// export const TotalsByBillingEntityZ = z.record(TotalsZ);
+// export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntityZ>;
 
 // export interface Policy extends BaseDoc {
 //   product: TProduct;
@@ -1022,202 +875,194 @@ export type Transaction =
 //   homeState: string;
 // }
 
-export interface BaseChangeRequest extends BaseDoc {
-  trxType: TChangeRequestTrxType;
-  requestEffDate: Timestamp;
-  policyId: string;
-  userId: string;
-  createdAtPolicyVersion?: number | null;
-  policyChangesCalcVersion?: number | null;
-  mergedWithPolicyVersion?: number | null; // remove in favor of object
-  mergedWithVersions?: Record<string, number>; // TODO: make required once extending with ProcessedPolicyChangeRequest
-  agent: {
-    userId: string | null;
-  };
-  agency: {
-    orgId: string | null;
-  };
-  status: TChangeRequestStatus;
-  processedTimestamp?: Timestamp;
-  processedByUserId?: string;
-  submittedBy: {
-    userId: string | null;
-    displayName: string;
-    email: string | null;
-  };
-  underwriterNotes?: string | null;
-  error?: string;
-  _lastCommitted?: Timestamp;
-}
+// export interface BaseChangeRequest extends BaseDoc {
+//   trxType: TChangeRequestTrxType;
+//   requestEffDate: Timestamp;
+//   policyId: string;
+//   userId: string;
+//   createdAtPolicyVersion?: number | null;
+//   policyChangesCalcVersion?: number | null;
+//   mergedWithPolicyVersion?: number | null; // remove in favor of object
+//   mergedWithVersions?: Record<string, number>; // TODO: make required once extending with ProcessedPolicyChangeRequest
+//   agent: {
+//     userId: string | null;
+//   };
+//   agency: {
+//     orgId: string | null;
+//   };
+//   status: TChangeRequestStatus;
+//   processedTimestamp?: Timestamp;
+//   processedByUserId?: string;
+//   submittedBy: {
+//     userId: string | null;
+//     displayName: string;
+//     email: string | null;
+//   };
+//   underwriterNotes?: string | null;
+//   error?: string;
+//   _lastCommitted?: Timestamp;
+// }
 
-// TODO: same as policy change request --> use policy change request instead (locationID moved inside changes objects)
-// TODO: create extend to create ProcessedPolicyChangeRequest (mergedPolicyVersion, status: 'accepted' 'cancelled', etc., or mergedVersions: { [id]: number })
-export interface PolicyChangeRequest extends BaseChangeRequest {
-  formValues: LocationChangeValues; // TODO: support multi-location. remove req eff date from form values
-  endorsementChanges: Record<
-    string,
-    Pick<
-      ILocation,
-      | 'limits'
-      | 'deductible'
-      | 'annualPremium'
-      | 'ratingDocId'
-      | 'TIV'
-      | 'RCVs'
-      | 'termPremium'
-      | 'termDays'
-    >
-  >;
-  amendmentChanges: Record<
-    string,
-    Partial<Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>>
-  >;
-  locationChanges: PolicyChangeRequest['endorsementChanges'] &
-    PolicyChangeRequest['amendmentChanges'];
-  policyChanges: DeepPartial<Policy>;
-  policyChangesCalcVersion?: number;
-  locationId: string; // TODO: delete once using multi-location (store ID in form values)
-  scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
-  mergedVersions?: Record<string, number | null>;
-}
+// // TODO: same as policy change request --> use policy change request instead (locationID moved inside changes objects)
+// // TODO: create extend to create ProcessedPolicyChangeRequest (mergedPolicyVersion, status: 'accepted' 'cancelled', etc., or mergedVersions: { [id]: number })
+// export interface PolicyChangeRequest extends BaseChangeRequest {
+//   formValues: LocationChangeValues; // TODO: support multi-location. remove req eff date from form values
+//   endorsementChanges: Record<
+//     string,
+//     Pick<
+//       ILocation,
+//       | 'limits'
+//       | 'deductible'
+//       | 'annualPremium'
+//       | 'ratingDocId'
+//       | 'TIV'
+//       | 'RCVs'
+//       | 'termPremium'
+//       | 'termDays'
+//     >
+//   >;
+//   amendmentChanges: Record<
+//     string,
+//     Partial<Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>>
+//   >;
+//   locationChanges: PolicyChangeRequest['endorsementChanges'] &
+//     PolicyChangeRequest['amendmentChanges'];
+//   policyChanges: DeepPartial<Policy>;
+//   policyChangesCalcVersion?: number;
+//   locationId: string; // TODO: delete once using multi-location (store ID in form values)
+//   scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
+//   mergedVersions?: Record<string, number | null>;
+// }
 
-// new cancel request interface - not in use yet
-export interface CancellationRequest extends BaseChangeRequest {
-  trxType: 'cancellation' | 'flat_cancel';
-  formValues: {
-    requestEffDate: Timestamp;
-    cancelReason: CancellationReason;
-  };
-  locationChanges: Record<
-    string,
-    Pick<
-      ILocation,
-      'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
-    >
-  >;
-  cancellationChanges: Record<
-    string,
-    Pick<
-      ILocation,
-      'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
-    >
-  >;
-  policyChanges?: Pick<
-    Policy,
-    | 'termPremium'
-    | 'termDays'
-    | 'price'
-    | 'inStatePremium'
-    | 'outStatePremium'
-    | 'locations'
-    | 'termPremiumWithCancels'
-    | 'taxes'
-    | 'fees' // keep or delete fees ?? (added to remove typescript error in ReviewStep)
-  > &
-    Partial<Pick<Policy, 'cancelEffDate' | 'cancelReason'>>;
-  locationId: string; // TODO: delete once using multi-location (store ID in form values)
-}
+// // new cancel request interface - not in use yet
+// export interface CancellationRequest extends BaseChangeRequest {
+//   trxType: 'cancellation' | 'flat_cancel';
+//   formValues: {
+//     requestEffDate: Timestamp;
+//     cancelReason: CancellationReason;
+//   };
+//   locationChanges: Record<
+//     string,
+//     Pick<
+//       ILocation,
+//       'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+//     >
+//   >;
+//   cancellationChanges: Record<
+//     string,
+//     Pick<
+//       ILocation,
+//       'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'
+//     >
+//   >;
+//   policyChanges?: Pick<
+//     Policy,
+//     | 'termPremium'
+//     | 'termDays'
+//     | 'price'
+//     | 'inStatePremium'
+//     | 'outStatePremium'
+//     | 'locations'
+//     | 'termPremiumWithCancels'
+//     | 'taxes'
+//     | 'fees' // keep or delete fees ?? (added to remove typescript error in ReviewStep)
+//   > &
+//     Partial<Pick<Policy, 'cancelEffDate' | 'cancelReason'>>;
+//   locationId: string; // TODO: delete once using multi-location (store ID in form values)
+// }
 
-export interface LocationChangeRequest extends BaseChangeRequest {
-  scope: 'location';
-  policyChanges?: DeepPartial<Policy>; // TODO: rename policyChanges
-  locationChanges: DeepPartial<ILocation>;
-  formValues: LocationChangeValues;
-  locationId: string;
-  externalId?: string | null;
-  cancelReason?: CancellationReason;
-  isAddLocationRequest?: false;
-}
+// export interface LocationChangeRequest extends BaseChangeRequest {
+//   scope: 'location';
+//   policyChanges?: DeepPartial<Policy>; // TODO: rename policyChanges
+//   locationChanges: DeepPartial<ILocation>;
+//   formValues: LocationChangeValues;
+//   locationId: string;
+//   externalId?: string | null;
+//   cancelReason?: CancellationReason;
+//   isAddLocationRequest?: false;
+// }
 
-export interface LocationCancellationRequest extends Omit<
-  LocationChangeRequest,
-  'formValues' | 'locationChanges'
-> {
-  trxType: 'cancellation' | 'flat_cancel';
-  cancelReason: CancellationReason;
-  formValues: CancelValues;
-  policyChanges?: DeepPartial<Policy>;
-  locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??)
-  isAddLocationRequest?: false;
-}
+// export interface LocationCancellationRequest extends Omit<
+//   LocationChangeRequest,
+//   'formValues' | 'locationChanges'
+// > {
+//   trxType: 'cancellation' | 'flat_cancel';
+//   cancelReason: CancellationReason;
+//   formValues: CancelValues;
+//   policyChanges?: DeepPartial<Policy>;
+//   locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??)
+//   isAddLocationRequest?: false;
+// }
 
-export interface PolicyChangeRequestOld extends BaseChangeRequest {
-  scope: 'policy';
-  policyChanges?: DeepPartial<Policy>;
-  formValues: PolicyChangeValues;
-  cancelReason?: CancellationReason;
-  isAddLocationRequest?: false;
-}
+// export interface PolicyChangeRequestOld extends BaseChangeRequest {
+//   scope: 'policy';
+//   policyChanges?: DeepPartial<Policy>;
+//   formValues: PolicyChangeValues;
+//   cancelReason?: CancellationReason;
+//   isAddLocationRequest?: false;
+// }
 
-export interface PolicyCancellationRequest extends Omit<
-  PolicyChangeRequestOld,
-  'formValues'
-> {
-  trxType: 'cancellation' | 'flat_cancel';
-  cancelReason: CancellationReason;
-  formValues: CancelValues;
-  isAddLocationRequest?: false;
-  locationId?: null;
-}
+// export interface PolicyCancellationRequest extends Omit<
+//   PolicyChangeRequestOld,
+//   'formValues'
+// > {
+//   trxType: 'cancellation' | 'flat_cancel';
+//   cancelReason: CancellationReason;
+//   formValues: CancelValues;
+//   isAddLocationRequest?: false;
+//   locationId?: null;
+// }
 
-export interface AddLocationRequest extends BaseChangeRequest {
-  trxType: 'endorsement';
-  scope: 'add_location';
-  status:
-    | 'submitted'
-    | 'accepted'
-    | 'denied'
-    | 'under_review'
-    | 'cancelled'
-    | 'error';
-  formValues: AddLocationValues;
-  policyChanges?: DeepPartial<Policy>;
-  locationChanges?: DeepPartial<ILocation>;
-  endorsementChanges?: Record<string, ILocation>; // PolicyChangeRequest['endorsementChanges'];
-  isAddLocationRequest: true;
-  locationId: string;
-}
+// export interface AddLocationRequest extends BaseChangeRequest {
+//   trxType: 'endorsement';
+//   scope: 'add_location';
+//   status:
+//     | 'submitted'
+//     | 'accepted'
+//     | 'denied'
+//     | 'under_review'
+//     | 'cancelled'
+//     | 'error';
+//   formValues: AddLocationValues;
+//   policyChanges?: DeepPartial<Policy>;
+//   locationChanges?: DeepPartial<ILocation>;
+//   endorsementChanges?: Record<string, ILocation>; // PolicyChangeRequest['endorsementChanges'];
+//   isAddLocationRequest: true;
+//   locationId: string;
+// }
 
-export interface DraftAddLocationRequest extends Omit<
-  AddLocationRequest,
-  'formValues' | 'status' | 'locationId'
-> {
-  status: 'draft';
-  formValues: Partial<AddLocationValues>;
-  locationId?: string;
-}
+// export interface DraftAddLocationRequest extends Omit<
+//   AddLocationRequest,
+//   'formValues' | 'status' | 'locationId'
+// > {
+//   status: 'draft';
+//   formValues: Partial<AddLocationValues>;
+//   locationId?: string;
+// }
 
-export type ChangeRequest =
-  | LocationChangeRequest
-  | PolicyChangeRequestOld
-  | LocationCancellationRequest
-  | PolicyCancellationRequest
-  | AddLocationRequest
-  | DraftAddLocationRequest;
+// export type ChangeRequest =
+//   | LocationChangeRequest
+//   | PolicyChangeRequestOld
+//   | LocationCancellationRequest
+//   | PolicyCancellationRequest
+//   | AddLocationRequest
+//   | DraftAddLocationRequest;
 
-// export type DefaultCommission = {
-//   [key in TProduct]?: number;
-// };
-
-// export type DefaultCommission = {
-//   [key in PRODUCT]?: number;
-// };
-
-export interface User extends BaseDoc {
-  displayName?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string | null;
-  phone?: string;
-  photoURL?: string | null;
-  stripeCustomerId?: string;
-  insuredOfAgency?: string[];
-  tenantId?: string | null;
-  orgId?: string | null; // org doc id (not always tenant (ex 'idemand'))
-  orgName?: string | null;
-  // store org address ??
-  defaultCommission?: DefaultCommission;
-}
+// export interface User extends BaseDoc {
+//   displayName?: string;
+//   firstName?: string;
+//   lastName?: string;
+//   email?: string | null;
+//   phone?: string;
+//   photoURL?: string | null;
+//   stripeCustomerId?: string;
+//   insuredOfAgency?: string[]; // abandoned ??
+//   tenantId?: string | null;
+//   orgId?: string | null; // org doc id (not always tenant (ex 'idemand'))
+//   orgName?: string | null;
+//   // store org address ??
+//   defaultCommission?: DefaultCommission;
+// }
 
 export interface UserClaims {
   lastCommitted?: Timestamp; // FirestoreTimestamp;
@@ -1309,77 +1154,6 @@ export interface Agency {
 //   'hotmail.com',
 // ]);
 // export type AuthProviders = z.infer<typeof AuthProvidersZ>;
-
-// export const AgencyStatus = z.enum([
-//   'submitted',
-//   'active',
-//   'inactive',
-//   'pending_info',
-// ]);
-// export type AgencyStatus = z.infer<typeof AgencyStatus>;
-
-// export const OrgType = z.enum(['agency', 'carrier']);
-// export type TOrgType = z.infer<typeof OrgType>;
-
-// export const OrganizationZ = z.object({
-//   type: OrgType,
-//   address: AddressZ.optional(),
-//   coordinates: GeoPointZ.nullable().optional(),
-//   orgName: z.string().min(2, 'orgName must be at least 2 characters'),
-//   orgId: z.string().min(5, 'orgId must be at least 5 characters'),
-//   tenantId: z.string().nullable(),
-//   stripeAccountId: z.string().nullable(),
-//   primaryContact: AgentDetailsZ.omit({ name: true })
-//     .extend({
-//       firstName: z.string(),
-//       lastName: z.string(),
-//       displayName: z.string(),
-//     })
-//     .optional(),
-//   principalProducer: AgentDetailsZ.omit({ name: true })
-//     .extend({
-//       firstName: z.string(),
-//       lastName: z.string(),
-//       displayName: z.string(),
-//       NPN: z.string(),
-//     })
-//     .optional(),
-//   FEIN: z.string().optional(),
-//   EandOURL: z.string().optional(),
-//   // accountNumber: z.string(), // TODO: handle in stripe or separate collection
-//   // routingNumber: z.string(),
-//   // TODO: change domain restrictions to an array ??
-//   emailDomains: z.array(z.string()).optional().nullable(), // TODO: add regex ?? reuse in form validation ??
-//   enforceDomainRestriction: z.boolean().optional(),
-//   status: AgencyStatus,
-//   defaultCommission: DefaultCommission,
-//   authProviders: z.array(AuthProvidersZ),
-//   photoURL: z.string().optional().nullable(),
-//   website: z.string().url().optional().nullable(),
-//   metadata: BaseMetadataZ,
-// });
-// export type Organization = z.infer<typeof OrganizationZ>;
-
-// TODO: convert dates to Firestore timestamps so that they're queryable
-
-export interface Invite extends BaseDoc {
-  email: string;
-  displayName?: string;
-  firstName?: string;
-  lastName?: string;
-  link: string;
-  customClaims?: { [key: string]: any };
-  orgId: string | null;
-  orgName?: string;
-  status: InviteStatus;
-  id: string;
-  invitedBy?: {
-    userId?: string;
-    name?: string;
-    email: string;
-  } | null;
-  // metadata: BaseMetadata;
-}
 
 // TODO: create Transaction type to used like: Transaction['charge'] and Transaction['refund']
 

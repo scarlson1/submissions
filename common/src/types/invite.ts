@@ -18,7 +18,7 @@ export const Invite = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   link: z.string().url().optional(),
-  customClaims: z.record(z.any()),
+  customClaims: z.record(z.any()), // use claims type ??
   orgId: z.string().nullable(),
   orgName: z.string(),
   status: InviteStatus,

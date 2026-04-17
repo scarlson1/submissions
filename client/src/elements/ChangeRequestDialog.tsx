@@ -28,9 +28,9 @@ import { isEqual } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import type { WithId } from '@idemand/common';
+import type { ChangeRequest, WithId } from '@idemand/common';
 import { Claim, Collection } from '@idemand/common';
-import { ChangeRequest, ChangeRequestStatus } from 'common';
+import { ChangeRequestStatus } from 'common';
 import { ErrorFallback } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';

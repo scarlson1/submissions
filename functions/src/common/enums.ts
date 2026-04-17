@@ -25,24 +25,6 @@ export enum POLICY_STATUS {
   CANCELLED = 'cancelled',
 }
 
-export const ChangeRequestStatus = z.enum([
-  'draft',
-  'submitted',
-  'accepted',
-  'denied',
-  'under_review',
-  'cancelled',
-  'error',
-]); // z.nativeEnum(CHANGE_REQUEST_STATUS);
-export type ChangeRequestStatus = z.infer<typeof ChangeRequestStatus>;
-
-export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude([
-  'draft',
-]);
-export type SubmittedChangeRequestStatus = z.infer<
-  typeof SubmittedChangeRequestStatus
->;
-
 export enum FIN_TRANSACTION_STATUS {
   PROCESSING = 'processing',
   SUCCEEDED = 'succeeded',

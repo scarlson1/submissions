@@ -8,8 +8,8 @@ import {
 import { useCallback } from 'react';
 import { useSigninCheck } from 'reactfire';
 
+import type { User } from '@idemand/common';
 import { Claim } from '@idemand/common';
-import { User } from 'common';
 import InputDialog from 'components/InputDialog';
 import { useConfirmation } from 'context';
 import { UsersGrid } from 'elements/grids';

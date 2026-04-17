@@ -1,5 +1,6 @@
 export * from './types/changeRequest.js';
 export * from './types/common.js';
+export * from './types/epay.js';
 export * from './types/fees.js';
 export * from './types/imports.js';
 export * from './types/invite.js';

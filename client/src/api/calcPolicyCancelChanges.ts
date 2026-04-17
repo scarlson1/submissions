@@ -1,6 +1,5 @@
+import type { CancellationRequest } from '@idemand/common';
 import { Functions, httpsCallable } from 'firebase/functions';
-
-import { CancellationRequest } from 'common';
 
 export interface CalcPolicyCancelChangesRequest {
   requestId: string;

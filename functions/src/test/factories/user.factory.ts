@@ -14,7 +14,7 @@ export function makeUser(overrides: Partial<User> = {}): User {
       email: faker.internet.email({ firstName, lastName }).toLowerCase(),
       phone: faker.string.numeric(10),
       photoURL: null,
-      stripe_customer_id: `cus_${faker.string.alphanumeric(14)}`,
+      // stripe_customer_id: `cus_${faker.string.alphanumeric(14)}`,
       tenantId: null,
       orgId: null,
       orgName: null,

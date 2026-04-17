@@ -1,4 +1,11 @@
-import { ILocation, Policy, ValueByRiskType, type RCVs } from '@idemand/common';
+import {
+  ChangeRequestStatus,
+  ILocation,
+  Policy,
+  ValueByRiskType,
+  type ChangeRequest,
+  type RCVs,
+} from '@idemand/common';
 import {
   DocumentReference,
   getFirestore,
@@ -7,9 +14,7 @@ import {
 import { error, info } from 'firebase-functions/logger';
 import { isObject } from 'lodash-es';
 import {
-  ChangeRequest,
   changeRequestsCollection,
-  ChangeRequestStatus,
   DeepPartial,
   getReportErrorFn,
   locationsCollection,

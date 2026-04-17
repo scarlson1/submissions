@@ -4,13 +4,12 @@ import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { ceil, max, round, sum } from 'lodash-es';
 
-import type { Address, Coords, Nullable } from '@idemand/common';
+import type { Address, Coords, LimitKey, Nullable } from '@idemand/common';
 import {
   attomKey as attomKeySecret,
   audience,
   elevationKey,
   googleGeoKey,
-  LimitTypes,
   maxA,
   minA,
   propertyDataResCollection,
@@ -31,7 +30,7 @@ function getMockAttomData() {
     .then(({ data }) => data);
 }
 
-let defaultLimitPercents: { [key in LimitTypes]: number } = {
+let defaultLimitPercents: { [key in LimitKey]: number } = {
   limitA: 1,
   limitB: 0.05,
   limitC: 0.25,

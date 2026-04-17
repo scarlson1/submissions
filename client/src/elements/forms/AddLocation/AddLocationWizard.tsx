@@ -3,21 +3,22 @@ import { FormikConfig } from 'formik';
 import { useCallback, useMemo } from 'react';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
-import type { OptionalKeys } from '@idemand/common';
+import type {
+  AddLocationRequest,
+  AddLocationValues,
+  DraftAddLocationRequest,
+  OptionalKeys,
+} from '@idemand/common';
 import { calcAddLocation } from 'api';
-import { AddLocationRequest, DraftAddLocationRequest } from 'common';
 import { Wizard } from 'components/forms';
 import { useAsyncToast } from 'hooks';
 import { createChangeRequest } from 'modules/db';
-import { AddressStep, AddressValues } from './AddressStep';
+import { AddressStep } from './AddressStep';
 import { BillingEntityStep } from './BillingEntityStep';
-import { DeductibleStep, DeductibleValues } from './DeductibleStep';
+import { DeductibleStep } from './DeductibleStep';
 import { Header } from './Header';
-import { LimitsStep, LimitValues } from './LimitsStep';
-import {
-  PropertyRatingDataStep,
-  RatingDataValues,
-} from './PropertyRatingDataStep';
+import { LimitsStep } from './LimitsStep';
+import { PropertyRatingDataStep } from './PropertyRatingDataStep';
 import { ReviewStep } from './ReviewStep';
 import { SubmittedStep } from './SubmittedStep';
 
@@ -29,10 +30,10 @@ export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
   onError?: (msg: string) => void;
 }
 
-export type AddLocationValues = AddressValues &
-  LimitValues &
-  DeductibleValues &
-  RatingDataValues;
+// export type AddLocationValues = AddressValues &
+//   LimitValues &
+//   DeductibleValues &
+//   RatingDataValues;
 
 interface AddLocationFormProps extends OptionalKeys<
   FormikConfig<AddLocationValues>,
@@ -65,7 +66,7 @@ export const AddLocationWizard = ({
 
   const saveChangeRequest = useCallback(
     async (
-      values: AddressValues | LimitValues | DeductibleValues | RatingDataValues,
+      values, // : AddressValues | LimitValues | DeductibleValues | RatingDataValues,
     ) =>
       await setDoc(
         changeRequestRef,

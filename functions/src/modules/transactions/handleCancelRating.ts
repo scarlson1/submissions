@@ -1,12 +1,16 @@
 import { isValid } from 'date-fns';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 
-import { ILocation, Policy, PolicyLocation } from '@idemand/common';
 import {
-  ChangeRequest,
-  LocationCancellationRequest,
-  PolicyCancellationRequest,
+  ILocation,
+  Policy,
+  PolicyLocation,
+  type ChangeRequest,
+  type LocationCancellationRequest,
+  type PolicyCancellationRequest,
+} from '@idemand/common';
+import {
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
@@ -22,18 +26,25 @@ const reportErr = getReportErrorFn('policyChangeRequest.handleCancelRating');
 
 // Calculates location and policy changes for a cancelled location
 
-export async function handleCancelRating(data: ChangeRequest, policyId: string, requestId: string) {
+export async function handleCancelRating(
+  data: ChangeRequest,
+  policyId: string,
+  requestId: string,
+) {
   let changeRequestRef;
 
   try {
     const { requestEffDate, scope } = data;
     verify(
       scope === 'location' || scope === 'policy',
-      'cancel request rating should be location or policy scope'
+      'cancel request rating should be location or policy scope',
     );
 
     const cancelEffDate = requestEffDate.toDate();
-    verify(requestEffDate && isValid(cancelEffDate), 'requestEffDate must be a valid Timestamp');
+    verify(
+      requestEffDate && isValid(cancelEffDate),
+      'requestEffDate must be a valid Timestamp',
+    );
 
     const db = getFirestore();
     changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
@@ -41,7 +52,8 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
     const policy = await getDocData<Policy>(policyRef, 'policy not found');
 
-    let lcnIds = scope === 'location' ? [data.locationId] : Object.keys(policy.locations);
+    let lcnIds =
+      scope === 'location' ? [data.locationId] : Object.keys(policy.locations);
 
     const locationsColRef = locationsCollection(db);
 
@@ -52,7 +64,10 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
     for (let lcnId of lcnIds) {
       const lcnSummary = policy.locations[lcnId];
-      verify(lcnSummary, `location not found on policy (Location ID: ${lcnId})`);
+      verify(
+        lcnSummary,
+        `location not found on policy (Location ID: ${lcnId})`,
+      );
 
       const locationSnap = await locationsColRef.doc(lcnId).get();
       const location = locationSnap.exists ? locationSnap.data() : null;
@@ -62,7 +77,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       const { termPremium, termDays } = calcTerm(
         annualPremium,
         effectiveDate.toDate(),
-        requestEffDate.toDate()
+        requestEffDate.toDate(),
       );
 
       const locationRatingChanges: Partial<ILocation> = {
@@ -88,8 +103,12 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
     let newLcnArr: PolicyLocation[];
     if (scope === 'location') {
-      const { [data.locationId]: locationSummary, ...otherLocations } = policy.locations;
-      newLcnArr = [...Object.values(otherLocations), ...Object.values(newLcnSummary)];
+      const { [data.locationId]: locationSummary, ...otherLocations } =
+        policy.locations;
+      newLcnArr = [
+        ...Object.values(otherLocations),
+        ...Object.values(newLcnSummary),
+      ];
     } else {
       newLcnArr = Object.values(newLcnSummary);
     }
@@ -99,7 +118,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       newLcnArr,
       policy.homeState,
       policy.taxes,
-      policy.fees
+      policy.fees,
     );
 
     let policyLevelUpdates: Partial<Policy> = {
@@ -110,7 +129,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       policyLevelUpdates['cancelEffDate'] = requestEffDate;
       policyLevelUpdates['termDays'] = getTermDays(
         policy.effectiveDate.toDate(),
-        requestEffDate.toDate()
+        requestEffDate.toDate(),
       );
     }
 

@@ -1,9 +1,15 @@
+import type { EPayPaymentMethodDetails, PaymentMethod } from '@idemand/common';
 import { AccountBalanceRounded } from '@mui/icons-material';
-import { Box, Card, CardContent, Skeleton, Typography, useTheme } from '@mui/material';
+import {
+  Box,
+  Card,
+  CardContent,
+  Skeleton,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import { MdPayments } from 'react-icons/md';
 import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
-
-import { EPayPaymentMethodDetails, PaymentMethod } from 'common';
 
 // TODO: finish component & move to components/elements dir
 // TODO: useCardDetails in component & wrap in suspense w/ fallback skeleton ??
@@ -17,7 +23,9 @@ const getPaymentIcon = (pmtType: any, color: any) => {
       return <RiVisaLine {...sizeProps} />;
     case 'Ach':
       return (
-        <AccountBalanceRounded sx={{ fontSize: sizeProps.size, color: sizeProps.style.fill }} />
+        <AccountBalanceRounded
+          sx={{ fontSize: sizeProps.size, color: sizeProps.style.fill }}
+        />
       );
     default:
       return <MdPayments {...sizeProps} />;
@@ -42,13 +50,25 @@ export interface PaymentCardProps {
   error?: string | null;
 }
 
-export const PaymentCard = ({ cardDetails, loading, error }: PaymentCardProps) => {
+export const PaymentCard = ({
+  cardDetails,
+  loading,
+  error,
+}: PaymentCardProps) => {
   const theme = useTheme();
   // const { cardDetails, loading, error } = useCardDetails(id);
 
   if (loading)
     return (
-      <Box sx={{ display: 'flex', maxWidth: 400, p: 2, width: '100%', flex: '1 1 auto' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          maxWidth: 400,
+          p: 2,
+          width: '100%',
+          flex: '1 1 auto',
+        }}
+      >
         <Skeleton variant='circular' height={50} width={50} />
         <Box sx={{ pl: 2, flex: '1 1 auto' }}>
           <Skeleton variant='rounded' width='100%' height={20} />

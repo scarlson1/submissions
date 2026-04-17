@@ -3,8 +3,8 @@ import { error, info } from 'firebase-functions/logger';
 
 import {
   ILocation,
-  type Optional,
-  type RCVs as RCVsType,
+  // type RCVs as RCVsType,
+  RCVs,
   type ValueByRiskType,
   ValueByRiskType as ValueByRiskTypeZ,
 } from '@idemand/common';
@@ -52,7 +52,7 @@ export const rerateForRenewal = async ({
   // ── Fetch prior ratingData to get stored RCVs ─────────────────────────────
   const ratingDataCol = ratingDataCollection(db);
 
-  let priorRCVs: Optional<RCVsType> | null = null;
+  let priorRCVs: RCVs | null = null; // Optional<RCVs> | null = null;
   let numStories = 1;
 
   if (priorRatingDocId) {

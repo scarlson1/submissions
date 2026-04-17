@@ -3,8 +3,8 @@ import { GridActionsColDef, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
 import { useMemo } from 'react';
 
-import { Collection } from '@idemand/common';
-import { ChangeRequest, ServerDataGridCollectionProps } from 'common';
+import { Collection, type ChangeRequest } from '@idemand/common';
+import { ServerDataGridCollectionProps } from 'common';
 import { ChangeRequestStatus } from 'common/enums';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useClaims, useWidth } from 'hooks';

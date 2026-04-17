@@ -1,4 +1,5 @@
-import { EPayPaymentMethodDetails } from 'common';
+// import { EPayPaymentMethodDetails } from 'common';
+import type { EPayVerifiedResponse } from '@idemand/common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface VerifyEPayTokenRequest {
@@ -7,7 +8,8 @@ export interface VerifyEPayTokenRequest {
 }
 
 // TODO: type response
-export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
+// export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
+export interface VerifyEPayTokenResponse extends EPayVerifiedResponse {
   [key: string]: any;
 }
 

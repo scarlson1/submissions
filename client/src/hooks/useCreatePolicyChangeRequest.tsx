@@ -5,13 +5,13 @@ import { pick } from 'lodash';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
 
-import type { Policy, WithId } from '@idemand/common';
-import {
+import type {
   ChangeRequest,
-  changeRequestsCollection,
-  policiesCollection,
+  Policy,
   PolicyChangeRequestOld,
-} from 'common';
+  WithId,
+} from '@idemand/common';
+import { changeRequestsCollection, policiesCollection } from 'common';
 import { ChangeRequestStatus } from 'common/enums';
 import { useAuth } from 'context';
 import {
@@ -193,6 +193,7 @@ function getCommonTrxJson(
       orgId: policy.agency?.orgId || null,
     },
     status: ChangeRequestStatus.enum.submitted,
+    locationChanges: {},
     submittedBy: {
       userId: user?.uid || null,
       displayName: user?.displayName || '',
