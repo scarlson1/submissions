@@ -2,6 +2,8 @@ export { Item } from './Item';
 export { LocationCard } from './LocationCard';
 export { PolicyCard } from './PolicyCard';
 export { PolicyCards } from './PolicyCards';
+export { PolicyClaimCard } from './PolicyClaimCard';
+export { PolicyClaimCards } from './PolicyClaimCards';
 export { PolicyLocationCards } from './PolicyLocationCards';
 export { QuoteCard } from './QuoteCard';
 export { QuoteCards } from './QuoteCards';

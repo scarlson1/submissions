@@ -1,3 +1,4 @@
+export { AdminClaims } from './AdminClaims';
 export { AdminLocations } from './AdminLocations';
 export { AdminSubmissionsGrid } from './AdminSubmissionsGrid';
 export { AgencyApp } from './AgencyApp';

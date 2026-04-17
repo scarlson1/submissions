@@ -1,3 +1,4 @@
+import type { User } from '@idemand/common';
 import axios from 'axios';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
@@ -17,6 +18,7 @@ import {
   RequestUserAuth,
   stripeEndpointSecret,
   stripeSecretKey,
+  usersCollection,
 } from '../common/index.js';
 import {
   handleInvoiceFinalized,
@@ -45,6 +47,18 @@ import {
 
 // TODO: create separate endpoint for connected accounts: https://stripe.com/docs/connect/webhooks#connect-webhooks
 // and invoice, charges, refunds ??
+
+async function updateUser(email: string, updates: Partial<User>) {
+  const userSnap = await usersCollection(getFirestore())
+    .where('email', '==', email)
+    .limit(1)
+    .get();
+
+  if (userSnap.empty) throw new Error(`no user found with email ${email}`);
+
+  let userRef = userSnap.docs[0].ref;
+  await userRef.update(updates);
+}
 
 const reportErr = getReportErrorFn('stripe');
 
@@ -250,23 +264,31 @@ app.post('/webhook', async (req: StripeWebhookRequest, res: Response) => {
     }
     // capability.updated
     case 'customer.created': {
-      const createdCustomer = event.data.object as Stripe.Customer;
-      console.log('customer created', createdCustomer);
+      const customer = event.data.object as Stripe.Customer;
+      console.log('customer created', customer);
       // ensure exists / set on user doc ??
+
+      await updateUser(customer.email, { stripeCustomerId: customer.id });
 
       break;
     }
     case 'customer.deleted': {
-      const deletedCustomer = event.data.object as Stripe.Customer;
-      console.log('customer deleted', deletedCustomer);
+      const customer = event.data.object as Stripe.Customer;
+      console.log('customer deleted', customer);
       // await removeStripeCustomerId(deletedCustomer.id); // get by email & delete if id === deletedId ??
-      // TODO: handle updating user doc
+      await updateUser(customer.email, { stripeCustomerId: null });
 
       break;
     }
     case 'customer.updated': {
-      const updatedCustomer = event.data.object as Stripe.Customer;
-      console.log('customer updated: ', updatedCustomer);
+      const customer = event.data.object as Stripe.Customer;
+      console.log('customer updated: ', customer);
+
+      // how should email updates be handled ??
+      // currently creating new stripe user for billing entity if one isn't found with matching email
+      // store userId in stipe customer metadata ??
+
+      await updateUser(customer.email, { stripeCustomerId: null });
 
       break;
     }

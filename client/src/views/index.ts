@@ -5,6 +5,7 @@ export { AddLocation } from './AddLocation';
 export { AgencyNew } from './AgencyNew';
 export { ClaimNew } from './ClaimNew';
 export { Claims } from './Claims';
+export { ClaimView } from './ClaimView';
 export { ContactUs } from './ContactUs';
 export { CreateAccount } from './CreateAccount';
 export { Home } from './Home';

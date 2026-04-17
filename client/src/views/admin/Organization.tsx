@@ -11,6 +11,7 @@ import { ClaimsGuard, ErrorFallback, PageMeta } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { AddUsersDialog } from 'elements/forms';
 import {
+  ClaimsGrid,
   InvitesGrid,
   PoliciesGrid,
   QuotesGrid,
@@ -81,6 +82,7 @@ export const Organization = () => {
                 {/* <Tab label='Admin Users (test)' value='test' /> */}
                 <Tab label='Invites' value='invites' />
 
+                <Tab label='Claims' value='claims' />
                 <Tab label='Stripe' value='stripe' />
                 <Tab label='Analytics' value='analytics' />
               </TabList>
@@ -165,6 +167,11 @@ export const Organization = () => {
                   </Suspense>
                 </ErrorBoundary>
               </>
+            </TabPanel>
+            <TabPanel value='claims'>
+              <Suspense fallback={<LoadingComponent />}>
+                <ClaimsGrid constraints={[where('agency.orgId', '==', orgId)]} />
+              </Suspense>
             </TabPanel>
             <TabPanel value='analytics'>
               <OrgFunnelStats org={org} />

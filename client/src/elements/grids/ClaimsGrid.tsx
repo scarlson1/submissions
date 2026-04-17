@@ -1,14 +1,16 @@
 import { Box } from '@mui/material';
 import { GridActionsColDef, GridRowParams } from '@mui/x-data-grid';
-import { where } from 'firebase/firestore';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { Collection, PolicyClaim } from '@idemand/common';
+import { PolicyClaim } from '@idemand/common';
 import { ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useClaims, useWidth } from 'hooks';
+import { getClaimsQueryProps } from 'modules/db/query';
 import { CLAIM_COLUMN_VISIBILITY, claimCols } from 'modules/muiGrid';
 import { verify } from 'modules/utils';
+import { createPath, ROUTES } from 'router';
 
 interface ClaimsGridProps extends ServerDataGridCollectionProps {
   policyId?: string;
@@ -24,6 +26,23 @@ export const ClaimsGrid = ({
 }: ClaimsGridProps) => {
   const { user, claims, orgId } = useClaims();
   const { isSmall } = useWidth();
+  const navigate = useNavigate();
+
+  const handleRowClick = useCallback(
+    (params: GridRowParams<PolicyClaim & { id: string }>) => {
+      if (!params.row.policyId || !params.id) return;
+      navigate(
+        createPath({
+          path: ROUTES.CLAIM_VIEW,
+          params: {
+            policyId: params.row.policyId,
+            claimId: params.id.toString(),
+          },
+        }),
+      );
+    },
+    [navigate],
+  );
 
   verify(user?.uid, 'must be signed in');
 
@@ -42,37 +61,10 @@ export const ClaimsGrid = ({
     return cols;
   }, [additionalColumns, renderActions, isSmall]);
 
-  const props: Omit<ServerDataGridProps<PolicyClaim>, 'columns'> = useMemo(() => {
-    let queryProps: Omit<ServerDataGridProps<PolicyClaim>, 'columns'>;
-    let constraints: ServerDataGridProps<PolicyClaim>['constraints'] = [
-      ...propConstraints,
-    ];
-
-    if (policyId) {
-      queryProps = {
-        colName: 'policies',
-        pathSegments: [policyId, Collection.Enum.claims],
-        isCollectionGroup: false,
-      };
-    } else {
-      queryProps = {
-        colName: 'claims',
-        isCollectionGroup: true,
-      };
-
-      if (claims?.iDemandAdmin) {
-        // no additional constraint — admin sees all
-      } else if (claims?.orgAdmin) {
-        constraints.push(where('agency.orgId', '==', orgId));
-      } else if (claims?.agent) {
-        constraints.push(where('agent.userId', '==', user?.uid));
-      } else {
-        constraints.push(where('submittedBy.userId', '==', user?.uid));
-      }
-    }
-
-    return { ...queryProps, constraints };
-  }, [policyId, propConstraints, claims, user, orgId]);
+  const props = useMemo<Omit<ServerDataGridProps<PolicyClaim>, 'columns'>>(
+    () => getClaimsQueryProps(user, claims, policyId, propConstraints),
+    [policyId, propConstraints, claims, user, orgId],
+  );
 
   return (
     <Box>
@@ -80,6 +72,8 @@ export const ClaimsGrid = ({
         {...props}
         columns={columns}
         autoHeight
+        onRowClick={handleRowClick}
+        sx={{ cursor: 'pointer' }}
         initialState={{
           columns: {
             columnVisibilityModel: CLAIM_COLUMN_VISIBILITY,

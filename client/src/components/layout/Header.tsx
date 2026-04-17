@@ -14,6 +14,7 @@ import {
   ContactSupportRounded,
   CorporateFareRounded,
   FiberNewRounded,
+  GavelRounded,
   InboxRounded,
   KeyboardArrowDownRounded,
   ManageAccountsRounded,
@@ -145,6 +146,11 @@ export const Header = (props: HeaderProps) => {
       {
         title: 'More',
         items: [
+          {
+            title: 'Claims',
+            route: createPath({ path: ADMIN_ROUTES.CLAIMS }),
+            icon: <GavelRounded color='primary' fontSize='small' />,
+          },
           {
             title: 'Agency Apps',
             route: createPath({

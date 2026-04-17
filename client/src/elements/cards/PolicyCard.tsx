@@ -122,12 +122,13 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
                   label='Named Insured'
                   value={`${policy.namedInsured?.displayName}`}
                 />
-                <Item label='Agent' value={policy.agent?.name ?? 'iDemand'} />
+                <Item
+                  label='Agent'
+                  value={policy.agent?.name ?? 'Unavailable'}
+                />
                 <Item
                   label='Agency'
-                  value={
-                    policy.agency?.name ?? 'iDemand Insurance Agency, Inc.'
-                  }
+                  value={policy.agency?.name ?? 'Unavailable'}
                 />
                 <Item
                   label='Effective'

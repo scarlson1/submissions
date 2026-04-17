@@ -4,12 +4,20 @@ import {
   TableRowsRounded,
 } from '@mui/icons-material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { Avatar, Box, Button, Tab, Typography } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Button,
+  Link,
+  Stack,
+  Tab,
+  Typography,
+} from '@mui/material';
 import { where } from 'firebase/firestore';
 import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
-import type { User } from '@idemand/common';
+import type { Organization, User } from '@idemand/common';
 import { VIEW_QUERY_KEY } from 'common';
 import { Copy } from 'components';
 import { ToggleViewLayout, ToggleViewPanel } from 'components/toggleView';
@@ -20,7 +28,7 @@ import { PoliciesMap, QuotesMap, SubmissionsMap } from 'elements/maps';
 import { DataViewType, TDataViewType, useDocData, useSafeParams } from 'hooks';
 import { useClaims } from 'hooks/useClaims';
 import { formatDate } from 'modules/utils';
-import { createPath, ROUTES } from 'router';
+import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 
 // TODO: handle queries depending on whether user is insured or agent
 // query user policies based on userId or insured.userId ??
@@ -167,14 +175,52 @@ function UserInfo({ userId }: { userId: string }) {
           sx={{ fontSize: '0.725rem' }}
         >{`Joined: ${formatDate(data.metadata.created.toDate())}`}</Typography>
         {data.orgId ? (
-          <Typography
-            variant='body2'
-            align='right'
-            sx={{ fontSize: '0.725rem' }}
-          >{`Org ID: ${data.orgId}`}</Typography>
+          // <Typography
+          //   variant='body2'
+          //   align='right'
+          //   sx={{ fontSize: '0.725rem' }}
+          // >{`Org ID: ${data.orgId}`}</Typography>
+          <OrgName orgId={data.orgId} />
         ) : null}
       </Box>
     </Box>
+  );
+}
+
+function OrgName({ orgId }: { orgId: string }) {
+  const { data } = useDocData<Organization>('organizations', orgId);
+
+  return (
+    <Stack spacing={0.5} direction='column' sx={{ alignItems: 'flex-end' }}>
+      <Link
+        component={RouterLink}
+        to={createPath({
+          path: ADMIN_ROUTES.ORGANIZATION,
+          params: { orgId },
+        })}
+        underline='hover'
+      >
+        {data.orgName || 'missing org name'}
+      </Link>
+      <Box
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          overflow: 'hidden',
+        }}
+      >
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          sx={{ mr: 1, fontSize: '0.725rem' }}
+        >
+          Org&nbsp;ID:
+        </Typography>
+        <Copy value={orgId} textProps={{ sx: { fontSize: '0.725rem' } }}>
+          {orgId}
+        </Copy>
+      </Box>
+    </Stack>
   );
 }
 
