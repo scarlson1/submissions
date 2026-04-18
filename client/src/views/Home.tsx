@@ -8,6 +8,7 @@ import {
   ArrowForwardRounded,
   AutorenewRounded,
   FiberNewRounded,
+  GavelRounded,
   LocationOnRounded,
   PolicyRounded,
   RequestQuoteRounded,
@@ -25,6 +26,7 @@ import {
   Divider,
   Unstable_Grid2 as Grid,
   LinearProgress,
+  MenuItem,
   Stack,
   Typography,
 } from '@mui/material';
@@ -32,6 +34,7 @@ import { keyframes, lighten, useTheme } from '@mui/material/styles';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import type { Marker } from 'cobe';
 import { Globe } from 'components/Globe';
+import { IconMenu } from 'components/IconButtonMenu';
 import { useAuth } from 'context/AuthContext';
 import type { User } from 'firebase/auth';
 import {
@@ -1431,37 +1434,66 @@ export function AuthenticatedHome() {
               )}
             </Box>
 
-            <Button
-              variant='contained'
-              startIcon={<FiberNewRounded />}
-              onClick={() =>
-                navigate(
-                  createPath({
-                    path: ROUTES.SUBMISSION_NEW,
-                    params: { productId: 'flood' },
-                  }),
-                )
-              }
+            <Stack
+              direction='row'
+              spacing={1}
+              alignItems='center'
               sx={{
-                background: 'linear-gradient(135deg, #007FFF, #0059B2)',
-                fontFamily: '"Syne", sans-serif',
-                fontWeight: 700,
-                borderRadius: '10px',
-                px: 4,
-                py: 1.5,
-                fontSize: '0.95rem',
-                boxShadow: '0 6px 20px rgba(0,127,255,0.26)',
                 animation: `${fadeUp} 0.42s ease both`,
                 animationDelay: '80ms',
-                flexShrink: 0,
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #3399FF, #007FFF)',
-                },
                 zIndex: 2,
+                flexShrink: 0,
               }}
             >
-              New quote
-            </Button>
+              <Button
+                variant='contained'
+                startIcon={<FiberNewRounded />}
+                onClick={() =>
+                  navigate(
+                    createPath({
+                      path: ROUTES.SUBMISSION_NEW,
+                      params: { productId: 'flood' },
+                    }),
+                  )
+                }
+                sx={{
+                  background: 'linear-gradient(135deg, #007FFF, #0059B2)',
+                  fontFamily: '"Syne", sans-serif',
+                  fontWeight: 700,
+                  borderRadius: '10px',
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '0.95rem',
+                  boxShadow: '0 6px 20px rgba(0,127,255,0.26)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #3399FF, #007FFF)',
+                  },
+                }}
+              >
+                New quote
+              </Button>
+              <IconMenu
+                // buttonIcon={<GavelRounded />}
+                iconButtonProps={{
+                  size: 'small',
+                  sx: {
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: '10px',
+                    p: 1.5,
+                  },
+                }}
+              >
+                <MenuItem
+                  onClick={() =>
+                    navigate(createPath({ path: ROUTES.CLAIM_START }))
+                  }
+                >
+                  <GavelRounded fontSize='small' sx={{ mr: 1 }} />
+                  New claim
+                </MenuItem>
+              </IconMenu>
+            </Stack>
           </Stack>
           {/* TODO: uncomment once user's locations are fetched -> pass as markers */}
           <ErrorBoundary fallback={null}>

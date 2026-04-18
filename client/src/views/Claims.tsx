@@ -1,6 +1,10 @@
 import { Collection } from '@idemand/common';
-import { GridViewRounded, TableRowsRounded } from '@mui/icons-material';
-import { alpha, type Theme } from '@mui/material';
+import {
+  AddCircleRounded,
+  GridViewRounded,
+  TableRowsRounded,
+} from '@mui/icons-material';
+import { alpha, Button, type Theme } from '@mui/material';
 import { VIEW_QUERY_KEY } from 'common';
 
 import {
@@ -13,6 +17,8 @@ import { ClaimsGrid } from 'elements/grids';
 import { DataViewType, useClaims } from 'hooks';
 import { getClaimsQueryProps } from 'modules/db/query';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPath, ROUTES } from 'router';
 import invariant from 'tiny-invariant';
 import type z from 'zod';
 
@@ -48,6 +54,7 @@ function getLayoutProps(claims: {
 export const Claims = () => {
   const { user, claims } = useClaims();
   invariant(user, 'authentication required');
+  const navigate = useNavigate();
 
   const layoutProps = useMemo(() => getLayoutProps(claims), [claims]);
   const queryProps = useMemo(
@@ -60,6 +67,16 @@ export const Claims = () => {
       title='Claims'
       queryKey={VIEW_QUERY_KEY}
       options={ClaimsDataViewType.options}
+      actions={
+        <Button
+          size='small'
+          variant='outlined'
+          startIcon={<AddCircleRounded fontSize='inherit' />}
+          onClick={() => navigate(createPath({ path: ROUTES.CLAIM_START }))}
+        >
+          New claim
+        </Button>
+      }
       icons={{
         cards: <GridViewRounded />,
         grid: <TableRowsRounded />,
@@ -81,7 +98,6 @@ export const Claims = () => {
       {...layoutProps}
     >
       <ToggleViewPanel value={DataViewType.Enum.cards}>
-        {/* <QuoteCards {...queryProps} onClick={handleViewQuote} /> */}
         <PolicyClaimCards constraints={queryProps.constraints} />
       </ToggleViewPanel>
       <ToggleViewPanel value={DataViewType.Enum.grid}>

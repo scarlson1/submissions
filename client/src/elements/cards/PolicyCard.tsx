@@ -1,5 +1,9 @@
 import type { Policy, WithId } from '@idemand/common';
-import { DescriptionRounded, PaymentsRounded } from '@mui/icons-material';
+import {
+  AddCircleRounded,
+  DescriptionRounded,
+  PaymentsRounded,
+} from '@mui/icons-material';
 import {
   Avatar,
   AvatarGroup,
@@ -165,6 +169,24 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
                   ) : null}
                 </AvatarGroup>
                 <Stack direction='row' spacing={1}>
+                  <Tooltip placement='top' title='new claim'>
+                    <IconButton
+                      aria-label='new claim'
+                      size='small'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate(
+                          createPath({
+                            path: ROUTES.CLAIM_START,
+                            search: { policyId: policy.id },
+                          }),
+                        );
+                      }}
+                    >
+                      <AddCircleRounded fontSize='inherit' />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip placement='top' title='view policy'>
                     <IconButton
                       aria-label='download policy'

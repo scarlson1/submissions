@@ -91,6 +91,12 @@ service cloud.firestore {
         allow create: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
         allow update: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
         allow delete: if false;
+
+        match /notes/{noteId} {
+          allow read: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
+          allow create: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
+          allow update, delete: if false;
+        }
       }
 
       match /secure/rating {
@@ -111,13 +117,7 @@ service cloud.firestore {
       let policyData = policy.data;
 
       return isUserOrAgentOrAdminOfDocData(policyData)
-
-      // return (
-      // 	isUser(policyData.get('userId', null))
-      //   || isUser(policyData.get(['namedInsured','userId'], null))
-      //   || isUser(policyData.get(['agency', 'userId'], null)) 
-      //   || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId'], null)))
-      // )
+        || isUser(policyData.get(['namedInsured', 'userId'], null));
     }
 
     function isPolicyOrgUser(policyId) {

@@ -25,14 +25,15 @@ export const PolicyCards = ({ constraints, ...props }: PolicyCardsProps) => {
 
   return (
     <>
-      <Grid container spacing={8}>
-        {policies?.map((p, i) => (
-          <Grid xs={12} sm={6} md={4} lg={3} key={p.id}>
-            <PolicyCard policy={p} i={i} {...props} />
-          </Grid>
-        ))}
-      </Grid>
-      {(!policies || policies.length < 1) && (
+      {policies && policies?.length > 1 ? (
+        <Grid container spacing={8}>
+          {policies?.map((p, i) => (
+            <Grid xs={12} sm={6} md={4} lg={3} key={p.id}>
+              <PolicyCard policy={p} i={i} {...props} />
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
         <Box>
           <Typography
             variant='subtitle2'

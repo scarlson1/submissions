@@ -1,4 +1,4 @@
-import { EditRounded } from '@mui/icons-material';
+import { AddCircleRounded, EditRounded } from '@mui/icons-material';
 import {
   Avatar,
   AvatarGroup,
@@ -29,6 +29,7 @@ export interface LocationCardProps {
   handleClick?: (id: string) => void;
   // policyId: string;
   onEdit?: (location: WithId<ILocation>) => void;
+  onNewClaim?: (location: WithId<ILocation>) => void;
 }
 
 export const LocationCard = ({
@@ -37,12 +38,17 @@ export const LocationCard = ({
   handleClick = noop,
   // policyId,
   onEdit,
+  onNewClaim,
 }: LocationCardProps) => {
   const theme = useTheme();
 
   const handleEdit = useCallback(() => {
     onEdit && onEdit(location);
   }, [onEdit, location]);
+
+  const handleNewClaim = useCallback(() => {
+    onNewClaim && onNewClaim(location);
+  }, [onNewClaim, location]);
 
   return (
     <FlexCard
@@ -75,6 +81,19 @@ export const LocationCard = ({
           //   />
           // }
         >
+          {onNewClaim ? (
+            <Tooltip title='new claim'>
+              <IconButton
+                size='small'
+                edge='start'
+                aria-label='new claim'
+                sx={{ position: 'absolute', top: 10, left: 10 }}
+                onClick={handleNewClaim}
+              >
+                <AddCircleRounded fontSize='inherit' />
+              </IconButton>
+            </Tooltip>
+          ) : null}
           {onEdit ? (
             <Tooltip title='location change request'>
               <IconButton

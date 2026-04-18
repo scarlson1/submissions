@@ -97,6 +97,7 @@ import { Exposure } from 'views/admin/Exposure';
 import { ViewReceivables } from 'views/admin/ViewReceivables';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ClaimNew } from 'views/ClaimNew';
+import { ClaimNewFromPolicy } from 'views/ClaimNewFromPolicy';
 import { EmailVerified } from 'views/EmailVerified';
 import App from './App';
 
@@ -141,6 +142,7 @@ export enum ROUTES {
   USER_QUOTES = '/quotes/list/:userId', // TODO: use users view instead (with query param to initialize tab state)
   BILLING = '/billing',
   CLAIMS = '/claims',
+  CLAIM_START = '/claims/new',
   CLAIM_VIEW = '/claims/:policyId/:claimId',
   POLICIES = '/policies',
   POLICY = '/policies/:policyId',
@@ -234,6 +236,7 @@ type TArgs =
     }
   | { path: ROUTES.BILLING }
   | { path: ROUTES.CLAIMS }
+  | { path: ROUTES.CLAIM_START; search?: { policyId?: string; locationId?: string } }
   | { path: ROUTES.CLAIM_VIEW; params: { policyId: string; claimId: string } }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | {
@@ -1137,6 +1140,17 @@ export const router = sentryCreateBrowserRouter([
               </>
             ),
             errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: ROUTES.CLAIM_START,
+            element: <ClaimNewFromPolicy />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: () => [
+                { label: 'Claims', link: createPath({ path: ROUTES.CLAIMS }) },
+                { label: 'New Claim' },
+              ],
+            },
           },
           {
             path: ROUTES.CLAIM_VIEW,

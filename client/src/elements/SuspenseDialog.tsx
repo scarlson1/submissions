@@ -19,6 +19,7 @@ interface SuspenseDialogProps extends DialogProps {
   onClose: () => void; // DialogProps['onClose'];
   // dialogOptions?: Omit<DialogProps, 'open' | 'onClose'>;
   children: ReactNode;
+  titleActions?: ReactNode;
 }
 
 export const SuspenseDialog = ({
@@ -26,12 +27,16 @@ export const SuspenseDialog = ({
   onClose,
   // dialogOptions,
   title,
+  titleActions,
   children,
   ...props
 }: SuspenseDialogProps) => {
   return (
     <Dialog open={open} onClose={onClose} {...props}>
-      <DialogTitle>{title}</DialogTitle>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: titleActions ? 2 : undefined }}>
+        {title}
+        {titleActions}
+      </DialogTitle>
       <DialogContent>
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<LoadingComponent />}>

@@ -53,13 +53,13 @@ export const PolicyClaimCard = ({
                 flex: '1 1 auto',
               }}
             >
-              {claim.address.addressLine1 || ''}
+              {claim.address?.addressLine1 || '[Address unavailable]'}
             </Typography>
           </Box>
           <Box sx={{ flex: '1 0 auto' }}>
             <Item
               label='Named Insured'
-              value={`${claim.namedInsured.displayName}`}
+              value={`${claim.namedInsured?.displayName || '--'}`}
             />
             <Item label='Agent' value={claim.agent?.name ?? 'Unavailable'} />
             <Item label='Agency' value={claim.agency?.name ?? 'Unavailable'} />

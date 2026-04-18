@@ -136,16 +136,15 @@ export function getClaimsQueryProps(
       colName: 'claims',
       isCollectionGroup: true,
     };
-
-    if (claims?.iDemandAdmin) {
-      // no additional constraint — admin sees all
-    } else if (claims?.orgAdmin && user.tenantId) {
-      constraints.push(where('agency.orgId', '==', user.tenantId));
-    } else if (claims?.agent) {
-      constraints.push(where('agent.userId', '==', user?.uid));
-    } else {
-      constraints.push(where('submittedBy.userId', '==', user?.uid));
-    }
+  }
+  if (claims?.iDemandAdmin) {
+    // no additional constraint — admin sees all
+  } else if (claims?.orgAdmin && user.tenantId) {
+    constraints.push(where('agency.orgId', '==', user.tenantId));
+  } else if (claims?.agent) {
+    constraints.push(where('agent.userId', '==', user?.uid));
+  } else {
+    constraints.push(where('submittedBy.userId', '==', user?.uid));
   }
 
   return { ...queryProps, constraints };
