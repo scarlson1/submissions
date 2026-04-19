@@ -43,6 +43,7 @@ import {
   AddLocation,
   AgencyNew,
   Billing,
+  ClaimView,
   Claims,
   ContactUs,
   CreateAccount,
@@ -62,6 +63,7 @@ import {
 } from 'views';
 import { AccountDetailsNew } from 'views/AccountDetailsNew';
 import {
+  AdminClaims,
   Home as AdminHome,
   AdminLocations,
   AgencyApp,
@@ -95,6 +97,7 @@ import { Exposure } from 'views/admin/Exposure';
 import { ViewReceivables } from 'views/admin/ViewReceivables';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ClaimNew } from 'views/ClaimNew';
+import { ClaimNewFromPolicy } from 'views/ClaimNewFromPolicy';
 import { EmailVerified } from 'views/EmailVerified';
 import App from './App';
 
@@ -139,6 +142,8 @@ export enum ROUTES {
   USER_QUOTES = '/quotes/list/:userId', // TODO: use users view instead (with query param to initialize tab state)
   BILLING = '/billing',
   CLAIMS = '/claims',
+  CLAIM_START = '/claims/new',
+  CLAIM_VIEW = '/claims/:policyId/:claimId',
   POLICIES = '/policies',
   POLICY = '/policies/:policyId',
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
@@ -160,6 +165,7 @@ export enum ADMIN_ROUTES {
   QUOTE_EDIT = '/admin/quotes/:productId/edit/:quoteId',
   POLICY_DELIVERY = '/admin/policies/:policyId/delivery',
   // POLICIES = '/admin/policies',
+  CLAIMS = '/admin/claims',
   AGENCY_APPS = '/admin/agencies/submissions',
   AGENCY_APP = '/admin/agencies/submissions/:submissionId',
   CREATE_TENANT = '/admin/agencies/new',
@@ -230,6 +236,8 @@ type TArgs =
     }
   | { path: ROUTES.BILLING }
   | { path: ROUTES.CLAIMS }
+  | { path: ROUTES.CLAIM_START; search?: { policyId?: string; locationId?: string } }
+  | { path: ROUTES.CLAIM_VIEW; params: { policyId: string; claimId: string } }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | {
       path: ROUTES.POLICY;
@@ -267,6 +275,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.SL_LICENSES }
   | { path: ADMIN_ROUTES.SL_LICENSE_NEW }
   | { path: ADMIN_ROUTES.LICENSE_EDIT; params: { licenseId: string } }
+  | { path: ADMIN_ROUTES.CLAIMS }
   | { path: ADMIN_ROUTES.AGENCY_APPS }
   | { path: ADMIN_ROUTES.AGENCY_APP; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.DISCLOSURES }
@@ -1132,6 +1141,28 @@ export const router = sentryCreateBrowserRouter([
             ),
             errorElement: <RouterErrorBoundary />,
           },
+          {
+            path: ROUTES.CLAIM_START,
+            element: <ClaimNewFromPolicy />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: () => [
+                { label: 'Claims', link: createPath({ path: ROUTES.CLAIMS }) },
+                { label: 'New Claim' },
+              ],
+            },
+          },
+          {
+            path: ROUTES.CLAIM_VIEW,
+            element: <ClaimView />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                { label: 'Claims', link: createPath({ path: ROUTES.CLAIMS }) },
+                { label: match.params.claimId || 'Claim' },
+              ],
+            },
+          },
         ],
       },
       {
@@ -1520,6 +1551,23 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: 'Delivery',
                 },
+              ],
+            },
+          },
+          {
+            path: ADMIN_ROUTES.CLAIMS,
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{
+                  requiredClaims: { [Claim.enum.iDemandAdmin]: true },
+                }}
+              >
+                <AdminClaims />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: () => [
+                { label: 'Claims', link: createPath({ path: ADMIN_ROUTES.CLAIMS }) },
               ],
             },
           },

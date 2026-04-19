@@ -14,6 +14,7 @@ import {
   ContactSupportRounded,
   CorporateFareRounded,
   FiberNewRounded,
+  GavelRounded,
   InboxRounded,
   KeyboardArrowDownRounded,
   ManageAccountsRounded,
@@ -58,6 +59,7 @@ import {
   MAPBOX_LIGHT,
   usePreferredMapStyle,
 } from 'components/MapStyleControl';
+import { AppSearch } from 'components/search/AppSearch';
 import { AuthActionsProvider, useAuthActions } from 'context';
 import { useClaims } from 'hooks';
 import { stringAvatar } from 'modules/utils';
@@ -144,6 +146,11 @@ export const Header = (props: HeaderProps) => {
       {
         title: 'More',
         items: [
+          {
+            title: 'Claims',
+            route: createPath({ path: ADMIN_ROUTES.CLAIMS }),
+            icon: <GavelRounded color='primary' fontSize='small' />,
+          },
           {
             title: 'Agency Apps',
             route: createPath({
@@ -451,6 +458,7 @@ export const Header = (props: HeaderProps) => {
               textAlign: 'center',
             }}
           >
+            <AppSearch />
             <IconButton
               sx={{ mx: { xs: 1, sm: 2, md: 3 } }}
               onClick={toggleTheme}

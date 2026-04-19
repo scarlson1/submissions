@@ -1624,11 +1624,55 @@ function seedChangeRequest(
 }
 
 // ─── Claim ────────────────────────────────────────────
-function seedClaim(bw, { policyDocId, locationDocId, insuredUser }) {
+function seedClaim(
+  bw,
+  {
+    policyDocId,
+    locationDocId,
+    insuredUser,
+    agent,
+    orgData,
+    state,
+    limits,
+    coords,
+    effDate,
+    expDate,
+  },
+) {
   const claimId = mkClaimId();
   const created = sub(new Date(), {
     days: faker.number.int({ min: 5, max: 180 }),
   });
+  const occurrenceDate = sub(new Date(), {
+    days: faker.number.int({ min: 1, max: 365 }),
+  });
+  const address = fakeAddress(state);
+  const namedInsured = {
+    displayName: insuredUser.displayName,
+    firstName: insuredUser.firstName,
+    lastName: insuredUser.lastName,
+    email: insuredUser.email,
+    phone: insuredUser.phone,
+    userId: insuredUser.id,
+    orgId: null,
+  };
+  const locationData = {
+    termPremium: faker.number.int({ min: 500, max: 5000 }),
+    annualPremium: faker.number.int({ min: 500, max: 5000 }),
+    address: compressAddress(address),
+    coords: new GeoPoint(coords.latitude, coords.longitude),
+    billingEntityId: insuredUser.id,
+  };
+  const policyData = {
+    product: 'flood',
+    paymentStatus: 'paid',
+    homeState: state,
+    effectiveDate: ts(effDate),
+    expirationDate: ts(expDate),
+    userId: insuredUser.id,
+    agent: fakeAgentDoc(agent),
+    agency: fakeAgencyDoc(orgData),
+  };
   bw.set(
     db
       .collection('policies')
@@ -1636,31 +1680,43 @@ function seedClaim(bw, { policyDocId, locationDocId, insuredUser }) {
       .collection('claims')
       .doc(claimId),
     {
+      claimId,
       policyId: policyDocId,
       locationId: locationDocId,
-      claimId,
       status: faker.helpers.arrayElement([
-        'open',
+        'submitted',
         'under_review',
-        'closed',
+        'approved',
+        'denied',
         'paid',
+        'closed',
       ]),
+      occurrenceDate: ts(occurrenceDate),
+      submittedAt: ts(created),
+      description: faker.lorem.sentences(faker.number.int({ min: 2, max: 4 })),
+      images: [],
       contact: {
         firstName: insuredUser.firstName,
         lastName: insuredUser.lastName,
         email: insuredUser.email,
         phone: insuredUser.phone,
         preferredMethod: faker.helpers.arrayElement(['email', 'phone']),
+        entityType: 'namedInsured',
       },
-      description: faker.lorem.sentences(2),
-      damageType: faker.helpers.arrayElement([
-        'flood',
-        'wind',
-        'fire',
-        'other',
-      ]),
-      estimatedLoss: faker.number.int({ min: 1000, max: 200000 }),
-      ...meta(created),
+      namedInsured,
+      agent: fakeAgentDoc(agent),
+      agency: fakeAgencyDoc(orgData),
+      address,
+      coordinates: new GeoPoint(coords.latitude, coords.longitude),
+      limits,
+      locationData,
+      policyData,
+      submittedBy: {
+        userId: insuredUser.id,
+        email: insuredUser.email,
+        orgId: null,
+      },
+      metadata: meta(created).metadata,
     },
   );
 }
@@ -2378,7 +2434,18 @@ async function main() {
           C.cancelTrx++;
         }
         if (faker.number.int({ min: 1, max: 3 }) === 1) {
-          seedClaim(bw, { policyDocId, locationDocId, insuredUser });
+          seedClaim(bw, {
+            policyDocId,
+            locationDocId,
+            insuredUser,
+            agent,
+            orgData,
+            state,
+            limits,
+            coords,
+            effDate,
+            expDate,
+          });
           C.claims++;
         }
         for (let ei = 0; ei < faker.number.int({ min: 1, max: 2 }); ei++) {

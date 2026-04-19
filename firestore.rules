@@ -5,7 +5,7 @@ rules_version = '2';
 // custom claims
 // For attribute-based access control, check for an admin claim
 // allow write: if request.auth.token.admin == true;
-// Alternatively, for role-based access, assign specific roles to users
+// Alterntatively, for role-based access, assign specific roles to users
 // allow read: if request.auth.token.reader == "true";
 
 // For tenant-based access control, check for a tenantID
@@ -91,6 +91,12 @@ service cloud.firestore {
         allow create: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
         allow update: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
         allow delete: if false;
+
+        match /notes/{noteId} {
+          allow read: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
+          allow create: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
+          allow update, delete: if false;
+        }
       }
 
       match /secure/rating {
@@ -105,18 +111,13 @@ service cloud.firestore {
       return isUser(existingData().get(['namedInsured', 'userId'], null))
     }
 
+    // TODO: use isUserOrAgentOrAdminOfDocData instead ??
     function isPolicyUser(policyId) {
       let policy = getPolicy(policyId);
       let policyData = policy.data;
 
       return isUserOrAgentOrAdminOfDocData(policyData)
-
-      // return (
-      // 	isUser(policyData.get('userId', null))
-      //   || isUser(policyData.get(['namedInsured','userId'], null))
-      //   || isUser(policyData.get(['agency', 'userId'], null)) 
-      //   || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId'], null)))
-      // )
+        || isUser(policyData.get(['namedInsured', 'userId'], null));
     }
 
     function isPolicyOrgUser(policyId) {

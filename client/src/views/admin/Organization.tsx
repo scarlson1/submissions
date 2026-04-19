@@ -11,6 +11,7 @@ import { ClaimsGuard, ErrorFallback, PageMeta } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { AddUsersDialog } from 'elements/forms';
 import {
+  ClaimsGrid,
   InvitesGrid,
   PoliciesGrid,
   QuotesGrid,
@@ -33,6 +34,11 @@ export const Organization = () => {
   const tabValue = searchParams.get('tab') || 'policies';
 
   const { data: org } = useDocData<Org>('organizations', orgId);
+
+  const isCarrier = org.type === 'carrier';
+  const orgConstraint = isCarrier
+    ? where('carrier.orgId', '==', orgId)
+    : where('agency.orgId', '==', orgId);
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setSearchParams({ tab: newValue });
@@ -70,37 +76,36 @@ export const Organization = () => {
               >
                 <Tab label='Policies' value='policies' />
                 <Tab label='Quotes' value='quotes' />
-                <Tab label='Submissions' value='submissions' />
+                {!isCarrier && <Tab label='Submissions' value='submissions' />}
                 {/* <Tab label='Insureds' value='insureds' /> */}
                 <Tab label='Team' value='team' />
                 {/* <Tab label='Admin Users (test)' value='test' /> */}
                 <Tab label='Invites' value='invites' />
 
+                <Tab label='Claims' value='claims' />
                 <Tab label='Stripe' value='stripe' />
                 <Tab label='Analytics' value='analytics' />
               </TabList>
             </Box>
             <TabPanel value='policies'>
               <Suspense fallback={<LoadingComponent />}>
-                <PoliciesGrid
-                  constraints={[where('agency.orgId', '==', orgId)]}
-                />
+                <PoliciesGrid constraints={[orgConstraint]} />
               </Suspense>
             </TabPanel>
             <TabPanel value='quotes'>
               <Suspense fallback={<LoadingComponent />}>
-                <QuotesGrid
-                  constraints={[where('agency.orgId', '==', orgId)]}
-                />
+                <QuotesGrid constraints={[orgConstraint]} />
               </Suspense>
             </TabPanel>
-            <TabPanel value='submissions'>
-              <Suspense fallback={<LoadingComponent />}>
-                <SubmissionsGrid
-                  constraints={[where('agency.orgId', '==', orgId)]}
-                />
-              </Suspense>
-            </TabPanel>
+            {!isCarrier && (
+              <TabPanel value='submissions'>
+                <Suspense fallback={<LoadingComponent />}>
+                  <SubmissionsGrid
+                    constraints={[where('agency.orgId', '==', orgId)]}
+                  />
+                </Suspense>
+              </TabPanel>
+            )}
             {/* TODO: use rxjs observable (like useUsers hook) */}
             {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id ?? use innerJoin observable ?? */}
             {/* <TabPanel value='insureds'>
@@ -162,6 +167,11 @@ export const Organization = () => {
                   </Suspense>
                 </ErrorBoundary>
               </>
+            </TabPanel>
+            <TabPanel value='claims'>
+              <Suspense fallback={<LoadingComponent />}>
+                <ClaimsGrid constraints={[where('agency.orgId', '==', orgId)]} />
+              </Suspense>
             </TabPanel>
             <TabPanel value='analytics'>
               <OrgFunnelStats org={org} />

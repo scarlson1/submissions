@@ -26,6 +26,7 @@ export function Hit({ hit, children }: HitProps) {
 }
 
 // TODO: get url func (different routes for agents vs idemand admin vs user ?? orgs, for example)
+// need to pass claims - some are currently admin only routes
 export function getURLByType(item: any) {
   // const base = import.meta.env.VITE_HOSTING_URL;
   let url = '';
@@ -63,6 +64,14 @@ export function getURLByType(item: any) {
   if (item.collectionName === Collection.Enum.users) {
     // TODO: create user route
     url = createPath({ path: ROUTES.USER, params: { userId: item.objectID } });
+  }
+  // TODO: transaction route
+  if (item.collectionName === Collection.Enum.financialTransactions) {
+    url = createPath({ path: ADMIN_ROUTES.TRANSACTIONS });
+  }
+  // TODO: user locations route
+  if (item.collectionName === Collection.Enum.locations) {
+    url = createPath({ path: ADMIN_ROUTES.LOCATIONS });
   }
   // TODO: finish getUrl func
   return url;

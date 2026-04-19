@@ -77,13 +77,11 @@ service firebase.storage {
       allow write: if isIDemandAdmin()
     }
 
-    // TODO: don't allow delete ?? unless admin ??
-    match /policies/{policyId}/claims/{claimId}/{fileName} {
-      allow read,write: if isAuthenticated()
+    match /policies/{policyId}/claims/{claimId}/{fileName=**} {
+      allow read, write: if isAuthenticated()
       // TODO: fix rules
         // allow read, write: if (isAuthenticated() && isUserOrAgent(firestore.get(/databases/(default)/documents/policies/$(policyId)))) || isIDemandAdmin()
       }
-      // policies/IDP0GLKKks/claims/04zzFQj1Nao7ocFpdSzW/1702503242538_stock_flood_damage_1.jpeg
 
     
 

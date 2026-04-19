@@ -13,6 +13,8 @@ import {
   type ExtraSendGridArgs,
 } from '../services/sendgrid/index.js';
 
+// TODO: set stripeCustomerId and stripeAccountId (tenant) as custom claims ??
+
 // TODO: consider using auth event to update DB user email ??
 // https://stackoverflow.com/a/47933914/10887890
 
@@ -29,7 +31,6 @@ export default async (event: AuthBlockingEvent) => {
           user.email,
           user.tenantId,
           user.displayName,
-          // TODO: switch to resend templates ?? need to update admin email grid to use resend
           // {
           //   customArgs: {
           //     firebaseEventId: event.eventId,

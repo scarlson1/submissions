@@ -38,11 +38,10 @@ import { ToggleViewPanel } from 'components/toggleView/ToggleViewPanel';
 import { CSVUploadDialog } from 'elements';
 import { PolicyCards } from 'elements/cards';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
-import { ClaimsGrid, PoliciesGrid } from 'elements/grids';
+import { PoliciesGrid } from 'elements/grids';
 import { PoliciesMap } from 'elements/maps';
 import { DataViewType, useAsyncToast, useClaims } from 'hooks';
 
-import { useToggleContext } from 'context';
 import { getPoliciesQueryProps } from 'modules/db/query';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
@@ -102,7 +101,8 @@ function getLayoutProps(claims: {
 }
 
 function ViewClaimsButton() {
-  const context = useToggleContext();
+  // const context = useToggleContext();
+  const navigate = useNavigate();
 
   return (
     <Tooltip title='claims'>
@@ -112,7 +112,8 @@ function ViewClaimsButton() {
           color='primary'
           aria-label='view claims'
           onClick={() => {
-            context.onToggle(PoliciesViewType.Enum.claims);
+            // context.onToggle(PoliciesViewType.Enum.claims);
+            navigate(createPath({ path: ROUTES.CLAIMS }));
           }}
         >
           <GavelRounded fontSize='inherit' />
@@ -181,9 +182,9 @@ export const Policies = () => {
         <ToggleViewPanel value={DataViewType.Enum.map}>
           <PoliciesMap {...queryProps} />
         </ToggleViewPanel>
-        <ToggleViewPanel value={PoliciesViewType.Enum.claims}>
+        {/* <ToggleViewPanel value={PoliciesViewType.Enum.claims}>
           <ClaimsGrid />
-        </ToggleViewPanel>
+        </ToggleViewPanel> */}
       </ToggleViewLayout>
     </Container>
   );

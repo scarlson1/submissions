@@ -1,5 +1,9 @@
 import type { Policy, WithId } from '@idemand/common';
-import { DescriptionRounded, PaymentsRounded } from '@mui/icons-material';
+import {
+  AddCircleRounded,
+  DescriptionRounded,
+  PaymentsRounded,
+} from '@mui/icons-material';
 import {
   Avatar,
   AvatarGroup,
@@ -122,12 +126,13 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
                   label='Named Insured'
                   value={`${policy.namedInsured?.displayName}`}
                 />
-                <Item label='Agent' value={policy.agent?.name ?? 'iDemand'} />
+                <Item
+                  label='Agent'
+                  value={policy.agent?.name ?? 'Unavailable'}
+                />
                 <Item
                   label='Agency'
-                  value={
-                    policy.agency?.name ?? 'iDemand Insurance Agency, Inc.'
-                  }
+                  value={policy.agency?.name ?? 'Unavailable'}
                 />
                 <Item
                   label='Effective'
@@ -164,6 +169,24 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
                   ) : null}
                 </AvatarGroup>
                 <Stack direction='row' spacing={1}>
+                  <Tooltip placement='top' title='new claim'>
+                    <IconButton
+                      aria-label='new claim'
+                      size='small'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate(
+                          createPath({
+                            path: ROUTES.CLAIM_START,
+                            search: { policyId: policy.id },
+                          }),
+                        );
+                      }}
+                    >
+                      <AddCircleRounded fontSize='inherit' />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip placement='top' title='view policy'>
                     <IconButton
                       aria-label='download policy'

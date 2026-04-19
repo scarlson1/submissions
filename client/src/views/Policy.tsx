@@ -1,5 +1,6 @@
 import {
   AccountBalanceRounded,
+  AddCircleRounded,
   CancelRounded,
   EditRounded,
   EmailRounded,
@@ -15,6 +16,7 @@ import {
   Avatar,
   Badge,
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -146,6 +148,17 @@ export const Policy = () => {
     (location: WithId<ILocation>) =>
       locationChangeDialog(policyId, location.id),
     [locationChangeDialog, policyId],
+  );
+
+  const handleNewClaimFromCard = useCallback(
+    (location: WithId<ILocation>) =>
+      navigate(
+        createPath({
+          path: ROUTES.CLAIM_NEW,
+          params: { policyId, locationId: location.id },
+        }),
+      ),
+    [navigate, policyId],
   );
 
   const handleLocationChangeDialog = useCallback(
@@ -426,6 +439,7 @@ export const Policy = () => {
                   <PolicyLocationCards
                     policyId={policyId}
                     onEdit={handleLocationChangeRequest}
+                    onNewClaim={handleNewClaimFromCard}
                     currentLcnIds={Object.keys(data.locations)}
                   />
                 </Box>
@@ -570,8 +584,9 @@ function useViewClaimDialogProps(
 
     constraints.push(where('userId', '==', user?.uid));
     return constraints;
-  }, [claims, user, orgId, policyId]);
+  }, [claims, user, orgId, policyId, status]);
 
+  // TODO: fix - running collection group - counts unexpected docs.
   const { data: count } = useDocCount(
     Collection.Enum.claims,
     countConstraints,
@@ -681,6 +696,16 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
         open={claimsOpen}
         onClose={() => setClaimsOpen(false)}
         title={`Claims - Policy ${policyId}`}
+        titleActions={
+          <Button
+            size='small'
+            variant='outlined'
+            startIcon={<AddCircleRounded fontSize='inherit' />}
+            onClick={() => setClaimsOpen(false)}
+          >
+            New claim
+          </Button>
+        }
         fullWidth
         maxWidth='xl'
       >
