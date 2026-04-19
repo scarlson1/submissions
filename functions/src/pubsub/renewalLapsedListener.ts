@@ -5,6 +5,7 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { Policy, WithId } from '@idemand/common';
 import {
+  adminNotificationEmail,
   audience,
   getReportErrorFn,
   hostingBaseURL,
@@ -27,7 +28,9 @@ export interface RenewalLapsedPayload {
  * Notifies the named insured and agent that their policy has expired without
  * renewal. Logs the event for audit and compliance purposes.
  */
-export default async (event: CloudEvent<MessagePublishedData<RenewalLapsedPayload>>) => {
+export default async (
+  event: CloudEvent<MessagePublishedData<RenewalLapsedPayload>>,
+) => {
   info('RENEWAL LAPSED EVENT', { ...(event.data?.message?.json || {}) });
 
   const { policyId } = extractPubSubPayload(event, ['policyId']);
@@ -38,7 +41,10 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalLapsedPayloa
   let policy: WithId<Policy>;
 
   try {
-    verify(policyId && typeof policyId === 'string', 'invalid/missing policyId');
+    verify(
+      policyId && typeof policyId === 'string',
+      'invalid/missing policyId',
+    );
 
     const snap = await policiesCol.doc(policyId).get();
     verify(snap.exists, `Policy not found (${policyId})`);
@@ -48,11 +54,14 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalLapsedPayloa
     return;
   }
 
-  info(`RENEWAL LAPSED: Policy ${policyId} has lapsed. Notifying insured and agent.`, {
-    policyId,
-    namedInsuredEmail: policy.namedInsured?.email,
-    agentEmail: policy.agent?.email,
-  });
+  info(
+    `RENEWAL LAPSED: Policy ${policyId} has lapsed. Notifying insured and agent.`,
+    {
+      policyId,
+      namedInsuredEmail: policy.namedInsured?.email,
+      agentEmail: policy.agent?.email,
+    },
+  );
 
   // ── Send lapse notifications ────────────────────────────────────────────────
 
@@ -63,18 +72,25 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalLapsedPayloa
 
     const audienceVal = audience.value();
     if (audienceVal === 'DEV HUMANS' || audienceVal === 'LOCAL HUMANS') {
-      to.push('spencer@s-carlson.com');
+      to.push(adminNotificationEmail.value());
     }
 
     if (!to.length) {
-      info(`RENEWAL LAPSED: No recipients found for policy ${policyId}. Skipping notification.`);
+      info(
+        `RENEWAL LAPSED: No recipients found for policy ${policyId}. Skipping notification.`,
+      );
       return;
     }
 
     const baseURL = hostingBaseURL.value();
-    const primaryAddress = Object.values(policy.locations)[0]?.address?.s1 ?? '';
-    const addressLabel = primaryAddress ? ` for <strong>${primaryAddress}</strong>` : '';
-    const expirationDateStr = new Date(policy.expirationDate.toMillis()).toLocaleDateString('en-US', {
+    const primaryAddress =
+      Object.values(policy.locations)[0]?.address?.s1 ?? '';
+    const addressLabel = primaryAddress
+      ? ` for <strong>${primaryAddress}</strong>`
+      : '';
+    const expirationDateStr = new Date(
+      policy.expirationDate.toMillis(),
+    ).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
@@ -93,7 +109,9 @@ export default async (event: CloudEvent<MessagePublishedData<RenewalLapsedPayloa
       'Your flood insurance policy has lapsed',
     );
 
-    info(`RENEWAL LAPSED: Lapse notifications sent for policy ${policyId}`, { to });
+    info(`RENEWAL LAPSED: Lapse notifications sent for policy ${policyId}`, {
+      to,
+    });
   } catch (err: any) {
     reportErr('Error sending lapse notifications', { policyId }, err);
   }

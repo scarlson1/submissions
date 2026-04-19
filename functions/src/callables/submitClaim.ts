@@ -1,6 +1,7 @@
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
+  adminNotificationEmail,
   audience,
   getReportErrorFn,
   locationsCollection,
@@ -121,7 +122,7 @@ const submitClaim = async ({
         contact: { ...claim.contact } as SendClaimSubmittedProps['contact'],
       });
       // TODO: pull idemand to emails up to function or integrating into sendgrid flow
-      const adminTo: string[] = ['spencer@s-carlson.com'];
+      const adminTo: string[] = [adminNotificationEmail.value()];
       if (audience.value() !== 'PROD HUMANS')
         adminTo.push('noreply@s-carlson.com');
 

@@ -26,6 +26,7 @@ import { round } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
 import {
+  adminNotificationEmail,
   CancellationReason,
   getReportErrorFn,
   hostingBaseURL,
@@ -236,7 +237,7 @@ export default async (event: StorageEvent) => {
     info(`SAVED IMPORT SUMMARY TO DOC ${importSummaryRef.id}`);
 
     const sgKey = resendKey.value();
-    const to = ['spencer@s-carlson.com'];
+    const to = [adminNotificationEmail.value()];
     // let link;
 
     // if (audience.value() !== 'LOCAL HUMANS') {

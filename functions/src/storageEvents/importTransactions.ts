@@ -7,6 +7,7 @@ import { createReadStream } from 'fs';
 import { tmpdir } from 'os';
 import { basename, join } from 'path';
 import {
+  adminNotificationEmail,
   audience,
   getReportErrorFn,
   hostingBaseURL,
@@ -144,7 +145,7 @@ export default async (event: StorageEvent) => {
   }
 
   try {
-    const to = ['spencer@s-carlson.com'];
+    const to = [adminNotificationEmail.value()];
     let link;
 
     if (audience.value() !== 'LOCAL HUMANS') {

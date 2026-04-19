@@ -6,7 +6,11 @@ import {
 } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { audience, resendKey } from '../common/index.js';
+import {
+  adminNotificationEmail,
+  audience,
+  resendKey,
+} from '../common/index.js';
 import { sendUserInvite } from '../services/sendgrid/index.js';
 
 export default async (
@@ -50,7 +54,7 @@ export default async (
 
   const to = [data.email];
   if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS')
-    to.push('spencer@s-carlson.com');
+    to.push(adminNotificationEmail.value());
 
   try {
     await sendUserInvite(

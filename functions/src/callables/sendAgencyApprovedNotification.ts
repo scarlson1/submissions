@@ -3,6 +3,7 @@ import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
+  adminNotificationEmail,
   agencyApplicationCollection,
   audience,
   invitesCollection,
@@ -85,7 +86,7 @@ const sendAgencyApprovedNotification = async ({
       audience.value() === 'LOCAL HUMANS' ||
       audience.value() === 'DEV HUMANS'
     ) {
-      to.push('spencer@s-carlson.com');
+      to.push(adminNotificationEmail.value());
     }
 
     await sendAgencyAppApprovedNotification(

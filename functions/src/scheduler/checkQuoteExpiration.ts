@@ -5,6 +5,7 @@ import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
 
 import { Quote, WithId } from '@idemand/common';
 import {
+  adminNotificationEmail,
   audience,
   hostingBaseURL,
   QUOTE_STATUS,
@@ -131,7 +132,7 @@ export default async (event: ScheduledEvent) => {
           audience.value() === 'DEV HUMANS' ||
           audience.value() === 'LOCAL HUMANS'
         ) {
-          to.push('spencer@s-carlson.com');
+          to.push(adminNotificationEmail.value());
         }
 
         if (to.length) {

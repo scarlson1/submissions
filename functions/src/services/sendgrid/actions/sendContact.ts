@@ -2,7 +2,11 @@ import { HttpsError } from 'firebase-functions/v1/auth';
 
 // import { audience } from '../../../common/environmentVars';
 import { Resend } from 'resend';
-import { EmailTemplate, getReportErrorFn } from '../../../common/index.js';
+import {
+  adminNotificationEmail,
+  EmailTemplate,
+  getReportErrorFn,
+} from '../../../common/index.js';
 import { CreateMsgContentProps } from '../index.js';
 import { newContactMessage } from '../templates/index.js'; // /newContactMessage
 
@@ -27,7 +31,7 @@ export async function sendContact(key: string, args: SendContactProps) {
       body,
     });
 
-    const to = ['spencer@s-carlson.com'];
+    const to = [adminNotificationEmail.value()];
 
     const resend = new Resend(key);
 

@@ -2,7 +2,10 @@ import type { CloudEvent } from 'firebase-functions/core';
 import { error, info } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/pubsub';
 import { Resend } from 'resend';
-import { resendKey } from '../common/environmentVars.js';
+import {
+  adminNotificationEmail,
+  resendKey,
+} from '../common/environmentVars.js';
 import { EmailType } from '../services/sendgrid/index.js';
 import { extractPubSubPayload } from './utils';
 
@@ -19,7 +22,7 @@ export default async (
 
   const { data, error: err } = await resend.emails.send({
     from: 'iDemand Insurance <noreply@s-carlson.com>',
-    to: 'spencer@s-carlson.com',
+    to: adminNotificationEmail.value(),
     subject: 'Reconciliation Error',
     html: `<div><p>Hello,</p><br/> <br/><p>Tax reconciliation errors (report ID: ${reportId})</p><br/> <br/><p>iDemand Team</p></div>`,
     // html,

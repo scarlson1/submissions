@@ -5,16 +5,17 @@ import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
 
 import { Policy, RenewalStatus, WithId } from '@idemand/common';
 import {
+  adminNotificationEmail,
   audience,
   hostingBaseURL,
   policiesCollection,
   resendKey,
 } from '../common/index.js';
-import { sendMessage } from '../services/sendgrid/index.js';
 import {
   publishRenewalLapsed,
   publishRenewalRequested,
 } from '../services/pubsub/trxPublishers.js';
+import { sendMessage } from '../services/sendgrid/index.js';
 
 /**
  * Scheduled daily at 6:00 AM UTC.
@@ -50,7 +51,9 @@ export default async (_event: ScheduledEvent) => {
     return;
   }
 
-  info(`RENEWAL CHECK: ${upcomingPolicies.length} active policies expiring within 60 days`);
+  info(
+    `RENEWAL CHECK: ${upcomingPolicies.length} active policies expiring within 60 days`,
+  );
 
   const baseURL = hostingBaseURL.value();
   const audienceVal = audience.value();
@@ -61,15 +64,19 @@ export default async (_event: ScheduledEvent) => {
       const { renewalStatus } = policy;
 
       // Already handled — nothing to do
-      if (renewalStatus === 'bound' || renewalStatus === 'non_renewed') continue;
+      if (renewalStatus === 'bound' || renewalStatus === 'non_renewed')
+        continue;
 
       const expiresInDays = Math.floor(
-        (policy.expirationDate.toMillis() - now.getTime()) / (1000 * 60 * 60 * 24),
+        (policy.expirationDate.toMillis() - now.getTime()) /
+          (1000 * 60 * 60 * 24),
       );
 
       // First pass: trigger quote generation and stamp 60-day notification
       if (!renewalStatus || renewalStatus === 'pending') {
-        info(`RENEWAL CHECK: Requesting renewal quote for policy ${policy.id} (expires in ${expiresInDays} days)`);
+        info(
+          `RENEWAL CHECK: Requesting renewal quote for policy ${policy.id} (expires in ${expiresInDays} days)`,
+        );
 
         await publishRenewalRequested({ policyId: policy.id });
         await policiesCol.doc(policy.id).update({
@@ -102,7 +109,10 @@ export default async (_event: ScheduledEvent) => {
         });
       }
     } catch (err: any) {
-      error(`RENEWAL CHECK: Error processing policy ${policy.id}`, { policyId: policy.id, err });
+      error(`RENEWAL CHECK: Error processing policy ${policy.id}`, {
+        policyId: policy.id,
+        err,
+      });
     }
   }
 
@@ -123,7 +133,11 @@ export default async (_event: ScheduledEvent) => {
       .filter((p) => {
         if (p.cancelEffDate) return false;
         const { renewalStatus } = p;
-        return renewalStatus !== 'bound' && renewalStatus !== 'non_renewed' && renewalStatus !== 'lapsed';
+        return (
+          renewalStatus !== 'bound' &&
+          renewalStatus !== 'non_renewed' &&
+          renewalStatus !== 'lapsed'
+        );
       });
   } catch (err: any) {
     error('RENEWAL CHECK: Error querying lapsed policy candidates', { err });
@@ -140,7 +154,10 @@ export default async (_event: ScheduledEvent) => {
       await publishRenewalLapsed({ policyId: policy.id });
       info(`RENEWAL CHECK: Marked policy ${policy.id} as lapsed`);
     } catch (err: any) {
-      error(`RENEWAL CHECK: Error marking policy ${policy.id} as lapsed`, { policyId: policy.id, err });
+      error(`RENEWAL CHECK: Error marking policy ${policy.id} as lapsed`, {
+        policyId: policy.id,
+        err,
+      });
     }
   }
 
@@ -158,7 +175,7 @@ async function sendRenewalReminder(
   if (policy.namedInsured?.email) to.push(policy.namedInsured.email);
   if (policy.agent?.email) to.push(policy.agent.email);
   if (audienceVal === 'DEV HUMANS' || audienceVal === 'LOCAL HUMANS') {
-    to.push('spencer@s-carlson.com');
+    to.push(adminNotificationEmail.value());
   }
   if (!to.length) return;
 
@@ -172,7 +189,9 @@ async function sendRenewalReminder(
     : `Action required: Your flood policy renews in ${daysRemaining} days`;
 
   const primaryAddress = Object.values(policy.locations)[0]?.address?.s1 ?? '';
-  const addressLabel = primaryAddress ? ` for <strong>${primaryAddress}</strong>` : '';
+  const addressLabel = primaryAddress
+    ? ` for <strong>${primaryAddress}</strong>`
+    : '';
 
   const msgBody = `
     <p>Your flood insurance policy${addressLabel} expires in <strong>${daysRemaining} day${daysRemaining === 1 ? '' : 's'}</strong>.</p>

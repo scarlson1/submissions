@@ -10,6 +10,7 @@ import fs from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import {
+  adminNotificationEmail,
   audience,
   getReportErrorFn,
   printObj,
@@ -458,7 +459,7 @@ async function notifyAdmin(
     expires: addDays(new Date(), 7),
   });
 
-  const to = ['spencer@s-carlson.com'];
+  const to = [adminNotificationEmail.value()];
   if (audience.value() === 'PROD HUMANS') to.push('noreply@s-carlson.com');
 
   const msgBody = `<div>
