@@ -198,7 +198,7 @@ function getChipProps(p: WithId<Policy>): ChipProps {
 
   switch (status) {
     case 'cancelled':
-    case 'expired':
+      // case 'expired':
       color = 'default';
       break;
     case 'expired':

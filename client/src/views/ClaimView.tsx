@@ -5,6 +5,7 @@ import {
   CircleRounded,
   CloseRounded,
   EmailRounded,
+  OpenInNewRounded,
   PhoneRounded,
   SendRounded,
 } from '@mui/icons-material';
@@ -21,6 +22,7 @@ import {
   IconButton,
   ImageList,
   ImageListItem,
+  ImageListItemBar,
   Paper,
   Stack,
   Step,
@@ -42,7 +44,7 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL } from 'firebase/storage';
 import { useCallback, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RLink, useNavigate } from 'react-router-dom';
 import { useFirestore, useFirestoreCollectionData } from 'reactfire';
 
 import {
@@ -50,6 +52,7 @@ import {
   StorageFolder,
   type PolicyClaim,
 } from '@idemand/common';
+import { useMutation } from '@tanstack/react-query';
 import { LoadingSpinner, NotFound, PageMeta } from 'components';
 import { UploadFilesDialogComponent } from 'elements/UploadFilesDialog';
 import {
@@ -133,17 +136,7 @@ export function ClaimView() {
   const { policyId, claimId } = useSafeParams(['policyId', 'claimId']);
   const navigate = useNavigate();
   const { user, claims, orgId } = useClaims();
-  const toast = useAsyncToast();
   const firestore = useFirestore();
-
-  const [noteText, setNoteText] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-
-  const noteStoragePath = `${StorageFolder.enum.policies}/${policyId}/${StorageFolder.enum.claims}/${claimId}/notes`;
-  const { uploadFiles, loading: uploadLoading } =
-    useUploadStorageFiles(noteStoragePath);
 
   const { data: claim, status: claimStatus } = useDocData<PolicyClaim>(
     'policies',
@@ -191,61 +184,12 @@ export function ClaimView() {
 
   const handleBack = () => navigate(createPath({ path: ROUTES.CLAIMS }));
 
-  const handleNewFiles = useCallback((files: File[]) => {
-    setPendingFiles((prev) => [...prev, ...files]);
-  }, []);
-
-  const handleRemoveFile = useCallback((file: File) => {
-    setPendingFiles((prev) => prev.filter((f) => f !== file));
-  }, []);
-
-  // TODO: useMutation
-  const handleSubmitNote = async () => {
-    if (!noteText.trim() || !user) return;
-    setSubmitting(true);
-    toast.loading('Submitting...');
-    try {
-      let imageUrls: string[] = [];
-      if (pendingFiles.length > 0) {
-        const uploadResults = await uploadFiles(pendingFiles, {
-          customMetadata: {
-            claimId,
-            policyId,
-          },
-        });
-        imageUrls = await Promise.all(
-          uploadResults.map((r) => getDownloadURL(r.ref)),
-        );
-      }
-      await addDoc(
-        collection(firestore, 'policies', policyId, 'claims', claimId, 'notes'),
-        {
-          text: noteText.trim(),
-          images: imageUrls,
-          createdAt: Timestamp.now(),
-          createdBy: {
-            userId: user.uid,
-            email: user.email ?? null,
-          },
-        },
-      );
-      setNoteText('');
-      setPendingFiles([]);
-      toast.success('Information submitted.');
-    } catch {
-      toast.error('Failed to submit. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   if (claimStatus === 'loading') return <LoadingSpinner loading />;
   if (!claim) return <NotFound title='Claim not found' />;
   if (!canAccess) return <NotFound title='Access denied' />;
 
   const activeStep = getActiveStep(claim.status);
   const isDenied = claim.status === PolicyClaimStatus.enum.denied;
-  const busy = submitting || uploadLoading;
 
   return (
     <>
@@ -261,7 +205,13 @@ export function ClaimView() {
           <Typography
             variant='overline'
             color='text.secondary'
-            sx={{ lineHeight: 1 }}
+            sx={{
+              lineHeight: 1,
+              textDecoration: 'none',
+              '&:hover': { textDecoration: 'underline' },
+            }}
+            component={RLink}
+            to={createPath({ path: ROUTES.POLICY, params: { policyId } })}
           >
             {`Policy: ${policyId}`}
           </Typography>
@@ -281,9 +231,9 @@ export function ClaimView() {
 
         {/* Status stepper */}
         <Paper variant='outlined' sx={{ p: { xs: 2, sm: 3 }, mb: 4 }}>
-          <Typography variant='subtitle2' color='text.secondary' gutterBottom>
+          {/* <Typography variant='subtitle2' color='text.secondary' gutterBottom>
             Status
-          </Typography>
+          </Typography> */}
           <Stepper
             activeStep={isDenied ? 2 : activeStep}
             alternativeLabel
@@ -312,6 +262,7 @@ export function ClaimView() {
                             )
                           : undefined
                     }
+                    sx={{ '& .MuiStepLabel-label': { mt: 2 } }}
                   >
                     <Typography variant='caption'>{label}</Typography>
                   </StepLabel>
@@ -440,7 +391,7 @@ export function ClaimView() {
                       note.createdBy?.userId ??
                       'Unknown'}
                   </Typography>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography variant='caption' color='text.tertiary'>
                     {formatFirestoreTimestamp(note.createdAt, 'relative')}
                   </Typography>
                 </Stack>
@@ -459,115 +410,7 @@ export function ClaimView() {
 
         {/* Additional info form */}
         {canSubmitNote ? (
-          <Box>
-            <Typography variant='subtitle2' color='text.secondary' gutterBottom>
-              Submit Additional Information
-            </Typography>
-            <Paper variant='outlined' sx={{ p: 2 }}>
-              <TextField
-                multiline
-                minRows={3}
-                fullWidth
-                placeholder='Provide any additional details, updates, or documentation references…'
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                variant='outlined'
-                size='small'
-                disabled={busy}
-              />
-
-              {/* Staged image previews */}
-              {pendingFiles.length > 0 && (
-                <Box sx={{ mt: 1.5 }}>
-                  <Typography variant='caption' color='text.secondary'>
-                    {`${pendingFiles.length} image${pendingFiles.length !== 1 ? 's' : ''} attached`}
-                  </Typography>
-                  <Grid container spacing={1} sx={{ mt: 0.5 }}>
-                    {pendingFiles.map((file, i) => (
-                      <Grid xs={6} sm={4} md={3} key={i}>
-                        <Box sx={{ position: 'relative' }}>
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt={file.name}
-                            style={{
-                              width: '100%',
-                              height: 100,
-                              objectFit: 'cover',
-                              borderRadius: 4,
-                              display: 'block',
-                            }}
-                          />
-                          <IconButton
-                            size='small'
-                            onClick={() => handleRemoveFile(file)}
-                            sx={{
-                              position: 'absolute',
-                              top: 2,
-                              right: 2,
-                              bgcolor: 'background.paper',
-                              '&:hover': { bgcolor: 'background.paper' },
-                              p: 0.25,
-                            }}
-                          >
-                            <CloseRounded sx={{ fontSize: 14 }} />
-                          </IconButton>
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              )}
-
-              <Stack
-                direction='row'
-                justifyContent='flex-end'
-                sx={{ mt: 1.5 }}
-                spacing={1}
-              >
-                <Tooltip title='Attach images'>
-                  <IconButton
-                    size='small'
-                    onClick={() => setUploadDialogOpen(true)}
-                    disabled={busy}
-                  >
-                    <AttachFileRounded fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-                <Button
-                  variant='contained'
-                  size='small'
-                  endIcon={
-                    busy ? (
-                      <CircularProgress size={14} />
-                    ) : (
-                      <SendRounded fontSize='small' />
-                    )
-                  }
-                  disabled={!noteText.trim() || busy}
-                  onClick={handleSubmitNote}
-                >
-                  Submit
-                </Button>
-              </Stack>
-            </Paper>
-
-            {/* Image staging dialog — files are staged locally, uploaded on note submit */}
-            <UploadFilesDialogComponent
-              open={uploadDialogOpen}
-              acceptedTypes='.png,.jpeg,.jpg'
-              title='Attach Images'
-              submitButtonText='Attach'
-              files={pendingFiles}
-              onNewFiles={handleNewFiles}
-              onRemove={handleRemoveFile}
-              onCancel={() => setUploadDialogOpen(false)}
-              handleSubmit={async () => setUploadDialogOpen(false)}
-            >
-              <DialogContentText>
-                Images will be uploaded when you submit the note.
-              </DialogContentText>
-            </UploadFilesDialogComponent>
-          </Box>
+          <SubmitAdditionalInfoForm policyId={policyId} claimId={claimId} />
         ) : (
           <Alert severity='info' variant='outlined'>
             This claim is{' '}
@@ -577,6 +420,189 @@ export function ClaimView() {
         )}
       </Container>
     </>
+  );
+}
+
+function SubmitAdditionalInfoForm({
+  policyId,
+  claimId,
+}: {
+  policyId: string;
+  claimId: string;
+}) {
+  const firestore = useFirestore();
+  const { user } = useClaims();
+  const toast = useAsyncToast();
+
+  const [noteText, setNoteText] = useState('');
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+
+  const noteStoragePath = `${StorageFolder.enum.policies}/${policyId}/${StorageFolder.enum.claims}/${claimId}/notes`;
+  const { uploadFiles, loading: uploadLoading } =
+    useUploadStorageFiles(noteStoragePath);
+
+  const handleNewFiles = useCallback((files: File[]) => {
+    setPendingFiles((prev) => [...prev, ...files]);
+  }, []);
+
+  const handleRemoveFile = useCallback((file: File) => {
+    setPendingFiles((prev) => prev.filter((f) => f !== file));
+  }, []);
+
+  const { mutate: handleSubmitNote, isPending } = useMutation({
+    mutationFn: async () => {
+      if (!noteText.trim() || !user) return;
+      let imageUrls: string[] = [];
+      if (pendingFiles.length > 0) {
+        const uploadResults = await uploadFiles(pendingFiles, {
+          customMetadata: {
+            claimId,
+            policyId,
+          },
+        });
+        imageUrls = await Promise.all(
+          uploadResults.map((r) => getDownloadURL(r.ref)),
+        );
+      }
+      await addDoc(
+        collection(firestore, 'policies', policyId, 'claims', claimId, 'notes'),
+        {
+          text: noteText.trim(),
+          images: imageUrls,
+          createdAt: Timestamp.now(),
+          createdBy: {
+            userId: user.uid,
+            email: user.email ?? null,
+          },
+        },
+      );
+    },
+    onMutate: (vars) => {
+      toast.loading('Submitting...');
+    },
+    onSuccess: (data, vars, result, ctx) => {
+      setNoteText('');
+      setPendingFiles([]);
+      toast.success('Information submitted.');
+    },
+    onError: () => {
+      toast.error('Failed to submit. Please try again.');
+    },
+  });
+
+  const busy = isPending || uploadLoading;
+
+  return (
+    <Box>
+      <Typography variant='subtitle2' color='text.secondary' gutterBottom>
+        Submit Additional Information
+      </Typography>
+      <Paper variant='outlined' sx={{ p: 2 }}>
+        <TextField
+          multiline
+          minRows={3}
+          fullWidth
+          placeholder='Provide any additional details, updates, or documentation references…'
+          value={noteText}
+          onChange={(e) => setNoteText(e.target.value)}
+          variant='outlined'
+          size='small'
+          disabled={busy}
+        />
+
+        {/* Staged image previews */}
+        {pendingFiles.length > 0 && (
+          <Box sx={{ mt: 1.5 }}>
+            <Typography variant='caption' color='text.secondary'>
+              {`${pendingFiles.length} image${pendingFiles.length !== 1 ? 's' : ''} attached`}
+            </Typography>
+            <Grid container spacing={1} sx={{ mt: 0.5 }}>
+              {pendingFiles.map((file, i) => (
+                <Grid xs={6} sm={4} md={3} key={i}>
+                  <Box sx={{ position: 'relative' }}>
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      style={{
+                        width: '100%',
+                        height: 100,
+                        objectFit: 'cover',
+                        borderRadius: 4,
+                        display: 'block',
+                      }}
+                    />
+                    <IconButton
+                      size='small'
+                      onClick={() => handleRemoveFile(file)}
+                      sx={{
+                        position: 'absolute',
+                        top: 2,
+                        right: 2,
+                        bgcolor: 'background.paper',
+                        '&:hover': { bgcolor: 'background.paper' },
+                        p: 0.25,
+                      }}
+                    >
+                      <CloseRounded sx={{ fontSize: 14 }} />
+                    </IconButton>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
+
+        <Stack
+          direction='row'
+          justifyContent='flex-end'
+          sx={{ mt: 1.5 }}
+          spacing={1}
+        >
+          <Tooltip title='Attach images'>
+            <IconButton
+              size='small'
+              onClick={() => setUploadDialogOpen(true)}
+              disabled={busy}
+            >
+              <AttachFileRounded fontSize='small' />
+            </IconButton>
+          </Tooltip>
+          <Button
+            variant='contained'
+            size='small'
+            endIcon={
+              busy ? (
+                <CircularProgress size={14} />
+              ) : (
+                <SendRounded fontSize='small' />
+              )
+            }
+            disabled={!noteText.trim() || busy}
+            onClick={() => handleSubmitNote()}
+          >
+            Submit
+          </Button>
+        </Stack>
+      </Paper>
+
+      {/* Image staging dialog — files are staged locally, uploaded on note submit */}
+      <UploadFilesDialogComponent
+        open={uploadDialogOpen}
+        acceptedTypes='.png,.jpeg,.jpg'
+        title='Attach Images'
+        submitButtonText='Attach'
+        files={pendingFiles}
+        onNewFiles={handleNewFiles}
+        onRemove={handleRemoveFile}
+        onCancel={() => setUploadDialogOpen(false)}
+        handleSubmit={async () => setUploadDialogOpen(false)}
+      >
+        <DialogContentText>
+          Images will be uploaded when you submit the note.
+        </DialogContentText>
+      </UploadFilesDialogComponent>
+    </Box>
   );
 }
 
@@ -609,8 +635,28 @@ function NoteImageList({ urls }: { urls: string[] }) {
                 width: '100%',
                 height: 100,
                 objectFit: 'cover',
-                borderRadius: 4,
+                borderRadius: 8,
               }}
+            />
+            <ImageListItemBar
+              sx={{
+                background:
+                  'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, ' +
+                  'rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+                borderRadius: '8px',
+              }}
+              // title={item.title}
+              position='top'
+              actionIcon={
+                <IconButton
+                  sx={{ color: 'white' }}
+                  size='small'
+                  // aria-label={`star ${item.title}`}
+                >
+                  <OpenInNewRounded fontSize='inherit' />
+                </IconButton>
+              }
+              actionPosition='right'
             />
           </a>
         </ImageListItem>
