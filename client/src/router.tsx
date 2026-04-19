@@ -43,8 +43,8 @@ import {
   AddLocation,
   AgencyNew,
   Billing,
-  ClaimView,
   Claims,
+  ClaimView,
   ContactUs,
   CreateAccount,
   Home,
@@ -63,7 +63,6 @@ import {
 } from 'views';
 import { AccountDetailsNew } from 'views/AccountDetailsNew';
 import {
-  AdminClaims,
   Home as AdminHome,
   AdminLocations,
   AgencyApp,
@@ -164,8 +163,6 @@ export enum ADMIN_ROUTES {
   QUOTE_NEW = '/admin/quotes/:productId/new/:submissionId',
   QUOTE_EDIT = '/admin/quotes/:productId/edit/:quoteId',
   POLICY_DELIVERY = '/admin/policies/:policyId/delivery',
-  // POLICIES = '/admin/policies',
-  CLAIMS = '/admin/claims',
   AGENCY_APPS = '/admin/agencies/submissions',
   AGENCY_APP = '/admin/agencies/submissions/:submissionId',
   CREATE_TENANT = '/admin/agencies/new',
@@ -236,7 +233,10 @@ type TArgs =
     }
   | { path: ROUTES.BILLING }
   | { path: ROUTES.CLAIMS }
-  | { path: ROUTES.CLAIM_START; search?: { policyId?: string; locationId?: string } }
+  | {
+      path: ROUTES.CLAIM_START;
+      search?: { policyId?: string; locationId?: string };
+    }
   | { path: ROUTES.CLAIM_VIEW; params: { policyId: string; claimId: string } }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | {
@@ -275,7 +275,6 @@ type TArgs =
   | { path: ADMIN_ROUTES.SL_LICENSES }
   | { path: ADMIN_ROUTES.SL_LICENSE_NEW }
   | { path: ADMIN_ROUTES.LICENSE_EDIT; params: { licenseId: string } }
-  | { path: ADMIN_ROUTES.CLAIMS }
   | { path: ADMIN_ROUTES.AGENCY_APPS }
   | { path: ADMIN_ROUTES.AGENCY_APP; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.DISCLOSURES }
@@ -1109,7 +1108,9 @@ export const router = sentryCreateBrowserRouter([
         ),
         errorElement: <RouterErrorBoundary />,
         handle: {
-          crumb: () => [{ label: 'Billing', link: createPath({ path: ROUTES.BILLING }) }],
+          crumb: () => [
+            { label: 'Billing', link: createPath({ path: ROUTES.BILLING }) },
+          ],
         },
         children: [
           {
@@ -1128,7 +1129,9 @@ export const router = sentryCreateBrowserRouter([
         ),
         errorElement: <RouterErrorBoundary />,
         handle: {
-          crumb: () => [{ label: 'Claims', link: createPath({ path: ROUTES.CLAIMS }) }],
+          crumb: () => [
+            { label: 'Claims', link: createPath({ path: ROUTES.CLAIMS }) },
+          ],
         },
         children: [
           {
@@ -1551,23 +1554,6 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: 'Delivery',
                 },
-              ],
-            },
-          },
-          {
-            path: ADMIN_ROUTES.CLAIMS,
-            element: (
-              <RequireAuthReactFire
-                signInCheckProps={{
-                  requiredClaims: { [Claim.enum.iDemandAdmin]: true },
-                }}
-              >
-                <AdminClaims />
-              </RequireAuthReactFire>
-            ),
-            handle: {
-              crumb: () => [
-                { label: 'Claims', link: createPath({ path: ADMIN_ROUTES.CLAIMS }) },
               ],
             },
           },
