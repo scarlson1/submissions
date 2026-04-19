@@ -120,10 +120,6 @@ export const PolicyClaimCard = ({
                     <Avatar
                       alt={`${claim.namedInsured.displayName}`}
                       sx={{ width: 28, height: 28 }}
-                      // sx={{
-                      //   width: { xs: 30, md: 36, lg: 36, xl: 36 },
-                      //   height: { xs: 30, md: 36, lg: 36, xl: 36 },
-                      // }}
                     />
                   </Tooltip>
                 ) : null}

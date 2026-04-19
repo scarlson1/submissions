@@ -14,6 +14,7 @@ import {
   Typography,
   type ChipProps,
 } from '@mui/material';
+import { fallbackImages } from 'common';
 import { ErrorFallback, LoadingSpinner, PageMeta } from 'components';
 import { format, startOfDay } from 'date-fns';
 import { FormattedAddress } from 'elements';
@@ -79,7 +80,11 @@ export const ClaimNewFromPolicy = () => {
 
   // TODO: dont allow submitting another claim for same property while on is already open ??
 
-  return <NewClaim policyId={policyId} locationId={lcnId} />;
+  return (
+    <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 4, md: 6 } }}>
+      <NewClaim policyId={policyId} locationId={lcnId} />
+    </Container>
+  );
 };
 
 // const nowMS = Date.now();
@@ -184,7 +189,7 @@ function ChoosePolicy({ onSelect }: { onSelect: (policyId: string) => void }) {
             }
             secondaryAction={<Chip {...getChipProps(p)} size='small' />}
             onSelect={onSelect}
-            imgSrc={p.imageURLs?.satellite || ''}
+            imgSrc={p.imageURLs?.satellite || fallbackImages[5] || ''}
           />
         ))}
       </Stack>
