@@ -148,7 +148,7 @@ export const Header = (props: HeaderProps) => {
         items: [
           {
             title: 'Claims',
-            route: createPath({ path: ADMIN_ROUTES.CLAIMS }),
+            route: createPath({ path: ROUTES.CLAIMS }),
             icon: <GavelRounded color='primary' fontSize='small' />,
           },
           {

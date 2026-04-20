@@ -1,3 +1,5 @@
+import { hostingBaseURL } from '../../../common/environmentVars.js';
+
 export interface ClaimSubmittedProps {
   policyId: string;
   claimId: string;
@@ -33,9 +35,9 @@ export const claimSubmittedHTML = ({
             <p style="padding-bottom: 4px">A member of our claims team will reach out to ${
               contact?.firstName || 'preferred contact'
             } at ${contact?.preferredMethod === 'phone' ? contact?.phone : contact.email}.</p>
-            <p style="padding-bottom: 2px">Policy ID: ${policyId}</p>
+            <p style="padding-bottom: 2px">Claim ID: <a href='${hostingBaseURL.value()}/claims/${policyId}/${claimId}'>${claimId}</a></p>
+            <p style="padding-bottom: 2px">Policy ID: <a href='${hostingBaseURL.value()}/claims/${policyId}/${claimId}'>${policyId}</a></p>
             <p style="padding-bottom: 2px">Location ID: ${externalId || locationId}</p>
-            <p style="padding-bottom: 2px">Claim ID: ${claimId}</p>
             <div style="padding-top: 8px">
               <p>
                 Cheers,<br />

@@ -4,7 +4,12 @@ import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import querystring from 'querystring';
 
 import { Submission } from '@idemand/common';
-import { audience, hostingBaseURL, resendKey } from '../common/index.js';
+import {
+  adminNotificationEmail,
+  audience,
+  hostingBaseURL,
+  resendKey,
+} from '../common/index.js';
 import {
   sendNewSubmissionAdminNotification,
   sendSubmissionReceivedConfirmation,
@@ -61,10 +66,9 @@ export default async (
     const link = `${hostingBaseURL.value()}/submissions/${submissionId}`;
     console.log(`submission link: ${link}`);
 
-    const adminRecipients = ['spencer@s-carlson.com'];
-    if (audience.value() !== 'LOCAL HUMANS') {
+    const adminRecipients = [adminNotificationEmail.value()];
+    if (audience.value() !== 'LOCAL HUMANS')
       adminRecipients.push('noreply@s-carlson.com');
-    }
 
     info(
       `sending admin notifications to: ${JSON.stringify(adminRecipients)}`,

@@ -3,6 +3,7 @@ import { info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import {
+  adminNotificationEmail,
   AgencyApplication,
   audience,
   hostingBaseURL,
@@ -30,10 +31,9 @@ export default async (
   const link = `${hostingBaseURL.value()}/admin/agencies/submissions/${submissionId}`;
   info(`submission link: ${link}`);
 
-  const adminRecipients = ['spencer@s-carlson.com'];
-  if (audience.value() !== 'LOCAL HUMANS') {
+  const adminRecipients = [adminNotificationEmail.value()];
+  if (audience.value() !== 'LOCAL HUMANS')
     adminRecipients.push('noreply@s-carlson.com');
-  }
 
   if (submission.sendAppReceivedNotification) {
     info(`sending admin notifications to: ${JSON.stringify(adminRecipients)}`);

@@ -9,6 +9,7 @@ import { StorageEvent } from 'firebase-functions/v2/storage';
 
 import { Collection, Quote, type StagedQuoteImport } from '@idemand/common';
 import {
+  adminNotificationEmail,
   getCardFee,
   hostingBaseURL,
   importSummaryCollection,
@@ -168,7 +169,7 @@ export default async (event: StorageEvent) => {
     });
     info(`SAVED IMPORT SUMMARY TO DOC ${importSummaryRef.id}`);
 
-    const to = ['spencer@s-carlson.com'];
+    const to = [adminNotificationEmail.value()];
 
     // if (audience.value() !== 'LOCAL HUMANS') {
     // to.push('noreply@s-carlson.com');

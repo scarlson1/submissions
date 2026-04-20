@@ -87,6 +87,9 @@ export const fipsUrl = defineString('FIPS_URL', {
 export const bigqueryDataset = defineString('BIGQUERY_DATASET', {
   default: 'submissions',
 });
+export const adminNotificationEmail = defineString('ADMIN_NOTIFICATION_EMAIL', {
+  default: 'spencer@s-carlson.com',
+});
 
 export const typesensePort = defineInt('TYPESENSE_PORT', { default: 443 });
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });

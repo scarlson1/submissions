@@ -4,6 +4,7 @@ import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { ChangeRequestStatus, type ChangeRequest } from '@idemand/common';
 import {
+  adminNotificationEmail,
   audience,
   getReportErrorFn,
   hostingBaseURL,
@@ -146,7 +147,7 @@ async function handleRequestNotifications(
   eventId: string,
 ) {
   try {
-    const to = ['spencer@s-carlson.com'];
+    const to = [adminNotificationEmail.value()];
     if (
       audience.value() !== 'DEV HUMANS' &&
       audience.value() !== 'LOCAL HUMANS'

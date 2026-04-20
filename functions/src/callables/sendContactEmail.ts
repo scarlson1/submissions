@@ -2,7 +2,7 @@ import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import { Resend } from 'resend';
-import { resendKey } from '../common/index.js';
+import { adminNotificationEmail, resendKey } from '../common/index.js';
 import { newContactMessage } from '../services/sendgrid/templates/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 
@@ -33,7 +33,7 @@ const sendContactEmail = async ({
       body,
     });
 
-    const to = ['spencer@s-carlson.com'];
+    const to = [adminNotificationEmail.value()];
     // if (audience.value() !== 'LOCAL HUMANS') to.push('noreply@s-carlson.com');
 
     const resend = new Resend(resendKey.value());

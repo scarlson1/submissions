@@ -5,6 +5,7 @@ import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { PaymentStatus } from '@idemand/common';
 import {
+  adminNotificationEmail,
   audience,
   ePayBaseHostingURL,
   hostingBaseURL,
@@ -63,7 +64,7 @@ export default async (
     `POLICY ${policyId} STATUS UPDATED TO PAID - TRX ID: ${transactionId}`,
   );
 
-  const to = ['spencer@s-carlson.com'];
+  const to = [adminNotificationEmail.value()];
   if (audience.value() !== 'LOCAL HUMANS') to.push('noreply@s-carlson.com');
 
   const policyLink = `${hostingBaseURL.value()}/admin/policies/${policyId}/delivery`;

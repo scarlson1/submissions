@@ -651,7 +651,7 @@ function NoteImageList({ urls }: { urls: string[] }) {
                 <IconButton
                   sx={{ color: 'white' }}
                   size='small'
-                  // aria-label={`star ${item.title}`}
+                  aria-label='view image'
                 >
                   <OpenInNewRounded fontSize='inherit' />
                 </IconButton>
