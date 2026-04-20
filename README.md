@@ -1,5 +1,13 @@
 # submissions
 
+![Typecheck](https://github.com/scarlson1/submissions/actions/workflows/typecheck-functions.yml/badge.svg)
+
+![CI](https://github.com/scarlson1/submissions/actions/workflows/test-functions.yml/badge.svg)
+
+![Deploy Functions](https://github.com/scarlson1/submissions/actions/workflows/deploy-functions.yml/badge.svg)
+
+![Deploy Hosting](https://github.com/scarlson1/submissions/actions/workflows/deploy-hosting-dev.yml/badge.svg)
+
 ### Detailed documentation
 
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md)
